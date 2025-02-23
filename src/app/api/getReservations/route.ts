@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
+import { getReservations } from "@/lib/getReservationService";
 
 export async function GET() {
-  console.log('siema!');
-  return NextResponse.json({ ok: true });
-  //test
+  console.log('siema tu cron!');
+  const reservations = await getReservations();
+  return NextResponse.json({ ok: true, count: reservations.length });
 }

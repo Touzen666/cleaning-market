@@ -1,5 +1,8 @@
 import {db} from "@/server/db";
 
+
+
+
 async function main() {
     await db.post.create({
         data: {

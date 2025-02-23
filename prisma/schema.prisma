@@ -81,3 +81,20 @@ model VerificationToken {
 
   @@unique([identifier, token])
 }
+
+model Reservation {
+  id            Int      @id
+  source        String
+  createDate    DateTime @db.Date
+  guest         String
+  start         DateTime
+  end           DateTime
+  apartmentName String
+  address       String
+  status        String
+  payment       String
+  paymantValue  Float
+  currency      String
+  adults        Int?
+  children      Int?
+}
