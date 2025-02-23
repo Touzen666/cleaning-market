@@ -320,8 +320,8 @@ function  mapReservation(reservation: Record<string, string>): Reservation {
         payment: reservation['Płatności']!,
         paymantValue: parseFloat(reservation['Wartość']!),
         currency: reservation.Waluta!,
-        adults: parseInt(reservation.dorosli?.split(' ')?.at(-1) || 'NaN'),
-        children: parseInt(reservation.dzieci?.split(' ')?.at(-1) || 'NaN')
+        adults: parseInt(reservation.dorosli?.split(' ')?.at(-1) ?? 'NaN'),
+        children: parseInt(reservation.dzieci?.split(' ')?.at(-1) ?? 'NaN')
 
     }
 }
