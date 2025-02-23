@@ -2,6 +2,7 @@ import {LatestPost} from "@/app/_components/post";
 import {auth} from "@/server/auth";
 import {api, HydrateClient} from "@/trpc/server";
 import Link from "next/link";
+import { ReservationList } from "@/app/_components/reservations";
 
 export default async function Home() {
     const hello = await api.post.hello({text: "from tRPC"});
@@ -26,7 +27,8 @@ export default async function Home() {
                   {session ? "Sign out" : "Sign in"}
                 </Link>
               </div>
-            {session?.user && <LatestPost />}
+            {/*{session?.user && <LatestPost />}*/}
+            {session?.user && <ReservationList />}
           </main>
         </HydrateClient>
     );

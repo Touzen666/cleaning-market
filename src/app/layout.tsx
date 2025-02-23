@@ -19,6 +19,7 @@ export default function RootLayout({
         {/*<Head>*/}
         {/*    <title>Sprzątanie app</title>*/}
         {/*</Head>*/}
+
         <body>
         <TRPCReactProvider>{children}</TRPCReactProvider>
         </body>
