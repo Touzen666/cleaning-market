@@ -7,7 +7,7 @@ import Form from "@/app/_components/Form";
 import MessagesList from "@/app/_components/MessagesList";
 
 type Post = RouterOutputs["post"]["getAll"][0];
-
+//test
 export function LatestPost() {
     // Pobierz wszystkie posty zamiast tylko jednego
     const {data: posts, isLoading} = api.post.getAll.useQuery();
