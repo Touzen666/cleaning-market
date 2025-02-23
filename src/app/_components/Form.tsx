@@ -9,15 +9,16 @@ export default function Form() {
         email: "",
         message: "", // 🔥 Upewnij się, że 'message' istnieje
     });
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFormData({...formData, [e.target.name]: e.target.value});
-    };
+    const utils = api.useUtils();
+    // const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    //     setFormData({...formData, [e.target.name]: e.target.value});
+    // };
     const sendMessage = api.contact.sendMessage.useMutation({
         onSuccess: async (data) => {
             console.log("Wiadomość zapisana w bazie:", data); // 🔥 Sprawdź w konsoli
             alert("Wiadomość wysłana!");
             setFormData({name: "", email: "", message: ""});
+            await utils.contact.invalidate(); // Odśwież listę postów
         },
         onError: (error) => {
             console.error("Błąd podczas zapisu wiadomości:", error); // 🔥 Sprawdź, czy jest jakiś błąd
