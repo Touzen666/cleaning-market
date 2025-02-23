@@ -13,12 +13,12 @@ export function LatestPost() {
     const {data: posts, isLoading} = api.post.getAll.useQuery();
 
     const utils = api.useUtils();
-    const [name, setName] = useState("");
+    const [title, setTitle] = useState("");
 
     const createPost = api.post.create.useMutation({
         onSuccess: async () => {
             await utils.post.invalidate(); // Odśwież listę postów
-            setName("");
+          setTitle("");
         },
     });
 
@@ -50,15 +50,15 @@ export function LatestPost() {
             <form
                 onSubmit={(e) => {
                     e.preventDefault();
-                    createPost.mutate({name});
+                    createPost.mutate({title});
                 }}
                 className="flex flex-col gap-2 mt-4"
             >
                 <input
                     type="text"
                     placeholder="Dodaj tytuł posta"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
                     className="w-full rounded-lg px-4 py-2 border border-gray-300 text-black"
                 />
                 <button
