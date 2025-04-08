@@ -1,39 +1,33 @@
-# Create T3 App
+Run server first:
+npm run dev
+Open the Prisma Client in browser:
+npx prisma studio
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+If you have a prisma/migrations folder, delete, move, rename, or archive this folder.
 
-## What's next? How do I make an app with this?
+Run the following command to create a migrations directory inside with your preferred name. This example will use 0_init for the migration name:
+mkdir -p prisma/migrations/0_init
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add
-additional things later when they become necessary.
+Generate a migration and save it to a file using prisma migrate diff
+npx prisma migrate diff --from-empty --to-schema-datamodel prisma/schema.prisma --script > prisma/migrations/0_init/migration.sql
+https://www.prisma.io/docs/orm/prisma-migrate/workflows/baselining
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If
-you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+Now you can create new migrations going forward without errors:
+npx prisma migrate dev --name add-lead-application
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Drizzle](https://orm.drizzle.team)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+If you just want to sync the schema without new migrations (e.g. adding fields):
+npx prisma db push
 
-## Learn More
+⚠️ BUT – One Thing to Know
+While db push updates the schema, it:
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+❌ Does not create migration files
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these
-  awesome tutorials
+❌ Is not ideal for collaborative projects or full CI/CD
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and
-contributions are welcome!
+✅ Is fast and safe for quick manual updates
 
-## How do I deploy this?
-
-Follow our deployment guides
-for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify)
-and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
-
+If you ever want to switch to a more structured process with migrations (migrate deploy), I recommend baselining first (which you started doing).
 src/
 ├── _components/
 │ ├── shared-small/ # 🔹 Małe komponenty UI

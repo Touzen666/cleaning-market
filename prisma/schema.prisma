@@ -89,7 +89,7 @@ model Reservation {
   guest         String
   start         DateTime
   end           DateTime
-  apartmentName String
+  apartmentName String // Keep if you want free-text name
   address       String
   status        String
   payment       String
@@ -97,4 +97,30 @@ model Reservation {
   currency      String
   adults        Int?
   children      Int?
+
+  // NEW RELATION
+  apartmentId Int?
+  apartment   Apartment? @relation(fields: [apartmentId], references: [id])
+}
+
+model Apartment {
+  id               Int               @id @default(autoincrement())
+  name             String
+  address          String
+  reservations     Reservation[]
+  leadApplications LeadApplication[]
+}
+
+model LeadApplication {
+  id        String   @id @default(uuid())
+  name      String
+  surname   String
+  phone     String
+  email     String
+  message   String?
+  createdAt DateTime @default(now())
+
+  // Optional relation to an apartment (future guest booking or interest)
+  apartmentId Int?
+  apartment   Apartment? @relation(fields: [apartmentId], references: [id])
 }
