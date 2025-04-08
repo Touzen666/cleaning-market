@@ -1,12 +1,17 @@
-const fs = require('fs');
-const path = require('path');
+import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { join } from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Get current timestamp
 const buildTime = new Date().toISOString();
 
 // Read package.json to get and update version
-const packageJsonPath = path.join(process.cwd(), 'package.json');
-const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+const packageJsonPath = join(dirname(__dirname), 'package.json');
+const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'));
 
 // Increment patch version
 const [major, minor, patch] = packageJson.version.split('.').map(Number);
@@ -14,14 +19,14 @@ const newVersion = `${major}.${minor}.${patch + 1}`;
 packageJson.version = newVersion;
 
 // Write updated version back to package.json
-fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n');
+writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n');
 
 // Create or update .env.local file
-const envPath = path.join(process.cwd(), '.env.local');
+const envPath = join(dirname(__dirname), '.env.local');
 let envContent = '';
 
-if (fs.existsSync(envPath)) {
-    envContent = fs.readFileSync(envPath, 'utf8');
+if (existsSync(envPath)) {
+    envContent = readFileSync(envPath, 'utf8');
 }
 
 // Split into lines and process each line
@@ -52,7 +57,7 @@ if (!buildTimeFound) {
 }
 
 // Write back to file
-fs.writeFileSync(envPath, newLines.join('\n') + '\n');
+writeFileSync(envPath, newLines.join('\n') + '\n');
 
 console.log(`Version updated to ${newVersion}`);
 console.log('Build time updated successfully!'); 
