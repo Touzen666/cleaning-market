@@ -1,12 +1,12 @@
 import fs from "fs";
-import {JSDOM} from "jsdom";
+import { JSDOM } from "jsdom";
 import * as process from "node:process";
 import { type Reservation } from "@prisma/client";
 import { db } from "@/server/db";
 import moment from "moment";
 
 const user = process.env.IDOBOOKING_USER;
-const password =  process.env.IDOBOOKING_PASSWORD;
+const password = process.env.IDOBOOKING_PASSWORD;
 let PHPSESSID = "";
 
 
@@ -306,7 +306,7 @@ async function dbUpsert(reservations: Record<string, string>[]) {
 //     dzieci: 'Dzieci do 2 lat: 0'
 // }
 
-function  mapReservation(reservation: Record<string, string>): Reservation {
+function mapReservation(reservation: Record<string, string>): Reservation {
     return {
         id: parseInt(reservation.ID!),
         source: reservation['Źródło']!,
@@ -318,10 +318,10 @@ function  mapReservation(reservation: Record<string, string>): Reservation {
         address: reservation.Lokalizacje!,
         status: reservation.Status!,
         payment: reservation['Płatności']!,
-        paymantValue: parseFloat(reservation['Wartość']!),
+        paymantValue: parseFloat(reservation['Wartość']!.replace(',', '.')),
         currency: reservation.Waluta!,
-        adults: parseInt(reservation.dorosli?.split(' ')?.at(-1) ?? 'NaN'),
-        children: parseInt(reservation.dzieci?.split(' ')?.at(-1) ?? 'NaN')
-
-    }
+        adults: parseInt(reservation.dorosli?.split(':')[1] || '0'),
+        children: parseInt(reservation.dzieci?.split(':')[1] || '0'),
+        apartmentId: null
+    };
 }
