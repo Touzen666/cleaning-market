@@ -8,7 +8,7 @@ interface VersionInfoProps {
 
 export function VersionInfo({ children }: VersionInfoProps) {
   const buildTime = process.env.NEXT_PUBLIC_BUILD_TIME;
-  const version = process.env.NEXT_PUBLIC_APP_VERSION || "1.0.0";
+  const version = process.env.NEXT_PUBLIC_APP_VERSION ?? "1.0.0";
 
   useEffect(() => {
     console.log(

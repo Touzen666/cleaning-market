@@ -1,4 +1,3 @@
-import fs from "fs";
 import { JSDOM } from "jsdom";
 import * as process from "node:process";
 import { type Reservation } from "@prisma/client";
