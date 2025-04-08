@@ -1,0 +1,103 @@
+;ID;Źródło;"Data złożenia";Klient/Gość;"Data przyjazdu";"Data wyjazdu";"Miejsca noclegowe";Lokalizacje;Status;Płatności;Wartość;Waluta
+1;102;Booking.com;22.02.2025;"Atamaniuk Viktoria";"23.02.2025 15:00";"24.02.2025 10:00";"Przytulny apartament Brooklyn";"Podwisłocze 38 198A";Przyjęta;"opłacona w Booking.com";171,94;PLN
+2;101;Booking.com;22.02.2025;"Gębicz Arkadiusz";"28.02.2025 15:00";"01.03.2025 12:00";"Przytulny apartament w wieżowcu - Centrum miasta";"Podwisłocze 38 198b";Przyjęta;"opłacona w Booking.com";156,19;PLN
+3;100;Panel;22.02.2025;"Pakuła Marcin";"12.03.2025 15:00";"13.03.2025 10:00";"Przytulny apartament Brooklyn";"Podwisłocze 38 198A";Przyjęta;opłacona;153,44;PLN
+4;99;Panel;22.02.2025;"Pakuła Marcin";"04.03.2025 15:00";"05.03.2025 12:00";"Przytulny apartament Brooklyn";"Podwisłocze 38 198A";Przyjęta;opłacona;163,29;PLN
+5;98;Airbnb;22.02.2025;"Peczyńska Julita";"09.03.2025 15:00";"10.03.2025 10:00";"Przytulny apartament Brooklyn";"Podwisłocze 38 198A";Przyjęta;"opłacona w Airbnb";194,00;PLN
+6;97;Airbnb;21.02.2025;"Peczyńska Julita";"09.03.2025 15:00";"11.03.2025 10:00";"Przytulny apartament Brooklyn";"Podwisłocze 38 198A";"Anulowana przez klienta";"opłacona w Airbnb";387,00;PLN
+7;96;Booking.com;21.02.2025;"McManus Laurence";"17.05.2025 15:00";"18.05.2025 12:00";"Przytulny apartament w wieżowcu - Centrum miasta";"Podwisłocze 38 198b";Przyjęta;"opłacona w Booking.com";226,48;PLN
+8;95;Booking.com;21.02.2025;"McManus Laurence";"10.05.2025 15:00";"11.05.2025 12:00";"Przytulny apartament w wieżowcu - Centrum miasta";"Podwisłocze 38 198b";Przyjęta;"opłacona w Booking.com";226,48;PLN
+9;94;Booking.com;21.02.2025;"Pasteczka Paweł";"26.02.2025 15:00";"27.02.2025 12:00";"Przytulny apartament w wieżowcu - Centrum miasta";"Podwisłocze 38 198b";Przyjęta;"opłacona w Booking.com";152,36;PLN
+10;93;Booking.com;21.02.2025;"Michalew Magdalena";"25.04.2025 15:00";"26.04.2025 12:00";"Przytulny apartament w wieżowcu - Centrum miasta";"Podwisłocze 38 198b";Przyjęta;"opłacona w Booking.com";193,43;PLN
+11;92;Booking.com;20.02.2025;"Zbieska Magdalena";"22.02.2025 15:00";"23.02.2025 10:00";"Przytulny apartament Brooklyn";"Podwisłocze 38 198A";Przyjęta;"opłacona w Booking.com";171,94;PLN
+12;91;Booking.com;20.02.2025;"Mielcarek Damian";"05.03.2025 15:00";"06.03.2025 10:00";"Przytulny apartament Brooklyn";"Podwisłocze 38 198A";Przyjęta;"opłacona w Booking.com";193,43;PLN
+13;90;Booking.com;19.02.2025;"trzeciak pawel";"20.02.2025 15:00";"21.02.2025 10:00";"Przytulny apartament Brooklyn";"Podwisłocze 38 198A";Zakończona;"opłacona w Booking.com";182,68;PLN
+14;89;Booking.com;19.02.2025;"Szymański Paweł";"20.02.2025 15:00";"22.02.2025 12:00";"Przytulny apartament w wieżowcu - Centrum miasta";"Podwisłocze 38 198b";Zakończona;"opłacona w Booking.com";288,68;PLN
+15;88;Booking.com;18.02.2025;"Munashe Makusha";"01.03.2025 15:00";"02.03.2025 10:00";"Miodowy Apartament+balkon+ huśtawka+garaż, faktura";"Aleja Majora Wacława Kopisto 8a 8a";Przyjęta;"opłacona w Booking.com";238,80;PLN
+16;87;Booking.com;18.02.2025;"Suprun Bogdana";"09.04.2025 15:00";"10.04.2025 10:00";"Przytulny apartament Brooklyn";"Podwisłocze 38 198A";Przyjęta;"opłacona w Booking.com";171,94;PLN
+17;86;Booking.com;18.02.2025;"Piersiak Bernadeta";"19.02.2025 15:00";"20.02.2025 12:00";"Przytulny apartament w wieżowcu - Centrum miasta";"Podwisłocze 38 198b";Zakończona;"opłacona w Booking.com";140,96;PLN
+18;85;Booking.com;18.02.2025;"Patrycja Wodecka";"09.03.2025 15:00";"10.03.2025 12:00";"Przytulny apartament w wieżowcu - Centrum miasta";"Podwisłocze 38 198b";Przyjęta;"opłacona w Booking.com";181,76;PLN
+19;84;Booking.com;18.02.2025;"zuk anna";"18.02.2025 15:00";"19.02.2025 12:00";"Przytulny apartament w wieżowcu - Centrum miasta";"Podwisłocze 38 198b";Zakończona;"opłacona w Booking.com";137,12;PLN
+20;83;Booking.com;18.02.2025;"Cichonski Marcin";"21.02.2025 15:00";"22.02.2025 12:00";"Przytulny apartament w wieżowcu - Centrum miasta";"Podwisłocze 38 198b";"Anulowana przez klienta";brak;144,34;PLN
+21;82;Booking.com;17.02.2025;"Chmielewska Anna";"09.05.2025 15:00";"11.05.2025 10:00";"Przytulny apartament Brooklyn";"Podwisłocze 38 198A";Przyjęta;"opłacona w Booking.com";457,16;PLN
+22;81;Booking.com;17.02.2025;"Pazdyk Andrzej";"17.02.2025 15:00";"18.02.2025 12:00";"Przytulny apartament w wieżowcu - Centrum miasta";"Podwisłocze 38 198b";Zakończona;"opłacona w Booking.com";129,91;PLN
+23;80;Booking.com;17.02.2025;"Wiśniowska Adrianna";"28.03.2025 15:00";"30.03.2025 10:00";"Przytulny apartament Brooklyn";"Podwisłocze 38 198A";"Anulowana przez klienta";brak;386,86;PLN
+24;79;Booking.com;17.02.2025;"Bystrzanowska Anna";"19.02.2025 15:00";"20.02.2025 12:00";"Przytulny apartament w wieżowcu - Centrum miasta";"Podwisłocze 38 198b";"Anulowana przez klienta";brak;164,41;PLN
+25;78;Booking.com;16.02.2025;"Horoń Elżbieta";"17.02.2025 15:00";"18.02.2025 10:00";"Miodowy Apartament+balkon+ huśtawka+garaż, faktura";"Aleja Majora Wacława Kopisto 8a 8a";Zakończona;"opłacona w Booking.com";145,82;PLN
+26;77;Booking.com;16.02.2025;"Chmielewska Anna";"09.05.2025 15:00";"11.05.2025 12:00";"Przytulny apartament w wieżowcu - Centrum miasta";"Podwisłocze 38 198b";"Anulowana przez klienta";brak;484,06;PLN
+27;76;Booking.com;16.02.2025;"BARNAK JAROSŁAW";"18.02.2025 15:00";"20.02.2025 10:00";"Miodowy Apartament+balkon+ huśtawka+garaż, faktura";"Aleja Majora Wacława Kopisto 8a 8a";Zakończona;"opłacona w Booking.com";291,65;PLN
+28;75;Booking.com;16.02.2025;"Nowak Przemysław";"16.02.2025 15:00";"17.02.2025 10:00";"Miodowy Apartament+balkon+ huśtawka+garaż, faktura";"Aleja Majora Wacława Kopisto 8a 8a";Zakończona;"opłacona w Booking.com";142,56;PLN
+29;74;Booking.com;14.02.2025;"Wieczorek Sara";"05.03.2025 15:00";"08.03.2025 12:00";"Przytulny apartament w wieżowcu - Centrum miasta";"Podwisłocze 38 198b";Przyjęta;"opłacona w Booking.com";580,28;PLN
+30;73;Booking.com;14.02.2025;"Moskal Iwona";"22.03.2025 15:00";"23.03.2025 10:00";"Przytulny apartament Brooklyn";"Podwisłocze 38 198A";"Anulowana przez klienta";brak;171,67;PLN
+31;72;Booking.com;14.02.2025;"Drost Mateusz";"27.04.2025 15:00";"28.04.2025 10:00";"Przytulny apartament Brooklyn";"Podwisłocze 38 198A";Przyjęta;"opłacona w Booking.com";171,94;PLN
+32;71;Booking.com;14.02.2025;"Turski Michał";"05.04.2025 15:00";"06.04.2025 10:00";"Przytulny apartament Brooklyn";"Podwisłocze 38 198A";Przyjęta;"opłacona w Booking.com";159,84;PLN
+33;70;Booking.com;13.02.2025;"Buława Szczepan";"15.03.2025 15:00";"16.03.2025 12:00";"Przytulny apartament w wieżowcu - Centrum miasta";"Podwisłocze 38 198b";Przyjęta;"opłacona w Booking.com";193,43;PLN
+34;69;Panel;13.02.2025;"Pazdyk Andrzej ";"13.02.2025 15:00";"14.02.2025 10:00";"Miodowy Apartament+balkon+ huśtawka+garaż, faktura";"Aleja Majora Wacława Kopisto 8a 8a";Zakończona;opłacona;133,65;PLN
+35;68;Booking.com;12.02.2025;"Mazurek Julia";"16.02.2025 15:00";"17.02.2025 12:00";"Przytulny apartament w wieżowcu - Centrum miasta";"Podwisłocze 38 198b";Zakończona;"opłacona w Booking.com";193,43;PLN
+36;67;Panel;12.02.2025;"Pazdyk Andrzej";"12.02.2025 15:00";"13.02.2025 10:00";"Miodowy Apartament+balkon+ huśtawka+garaż, faktura";"Aleja Majora Wacława Kopisto 8a 8a";Zakończona;opłacona;150,00;PLN
+37;66;Booking.com;11.02.2025;"Henriksen Jonas";"02.04.2025 15:00";"09.04.2025 12:00";"Przytulny apartament w wieżowcu - Centrum miasta";"Podwisłocze 38 198b";Przyjęta;"opłacona w Booking.com";1258,74;PLN
+38;65;Booking.com;11.02.2025;"Poleszak Dominika";"25.04.2025 15:00";"26.04.2025 10:00";"Przytulny apartament Brooklyn";"Podwisłocze 38 198A";Przyjęta;"opłacona w Booking.com";193,43;PLN
+39;64;Booking.com;11.02.2025;"Dacko Justyna";"21.03.2025 15:00";"22.03.2025 10:00";"Przytulny apartament Brooklyn";"Podwisłocze 38 198A";"Anulowana przez klienta";brak;182,68;PLN
+40;63;Booking.com;11.02.2025;"Osypanka Rafał";"12.02.2025 15:00";"13.02.2025 12:00";"Przytulny apartament w wieżowcu - Centrum miasta";"Podwisłocze 38 198b";Zakończona;"opłacona w Booking.com";144,34;PLN
+41;62;Booking.com;11.02.2025;"Kuna Kuba";"17.02.2025 15:00";"18.02.2025 10:00";"Przytulny apartament Brooklyn";"Podwisłocze 38 198A";Zakończona;"opłacona w Booking.com";168,30;PLN
+42;61;Booking.com;11.02.2025;"Kuna Kuba";"16.02.2025 15:00";"17.02.2025 10:00";"Przytulny apartament Brooklyn";"Podwisłocze 38 198A";Zakończona;"opłacona w Booking.com";168,30;PLN
+43;60;Booking.com;11.02.2025;"Lechowicz Ewelina";"13.02.2025 15:00";"14.02.2025 12:00";"Przytulny apartament w wieżowcu - Centrum miasta";"Podwisłocze 38 198b";Zakończona;"opłacona w Booking.com";214,92;PLN
+44;59;Booking.com;11.02.2025;"Skiba Piotr";"11.02.2025 15:00";"12.02.2025 10:00";"Miodowy Apartament+balkon+ huśtawka+garaż, faktura";"Aleja Majora Wacława Kopisto 8a 8a";Zakończona;"opłacona w Booking.com";160,83;PLN
+45;58;Booking.com;11.02.2025;"Kędzierska Martyna";"18.02.2025 15:00";"20.02.2025 10:00";"Przytulny apartament Brooklyn";"Podwisłocze 38 198A";Zakończona;"opłacona w Booking.com";285,12;PLN
+46;57;Airbnb;10.02.2025;"Dardeniz Gonca";"24.03.2025 15:00";"29.03.2025 12:00";"Przytulny apartament w wieżowcu - Centrum miasta";"Podwisłocze 38 198b";Przyjęta;"opłacona w Airbnb";968,00;PLN
+47;56;Booking.com;10.02.2025;"Jagusiak Aleksandra";"11.02.2025 15:00";"12.02.2025 12:00";"Przytulny apartament w wieżowcu - Centrum miasta";"Podwisłocze 38 198b";Zakończona;"opłacona w Booking.com";160,38;PLN
+48;55;Booking.com;10.02.2025;"Michał Koplejewski Technik Dentystyczny Zamoiskyi Yurii";"15.02.2025 15:00";"16.02.2025 10:00";"Miodowy Apartament+balkon+ huśtawka+garaż, faktura";"Aleja Majora Wacława Kopisto 8a 8a";Zakończona;"opłacona w Booking.com";217,79;PLN
+49;54;Booking.com;09.02.2025;"Kapułka Joanna";"01.03.2025 15:00";"02.03.2025 12:00";"Przytulny apartament w wieżowcu - Centrum miasta";"Podwisłocze 38 198b";Przyjęta;"opłacona w Booking.com";193,43;PLN
+50;53;Booking.com;08.02.2025;"Zann Investments Maciej Zarzecki Sobieraj Tomasz";"24.02.2025 15:00";"27.02.2025 10:00";"Przytulny apartament Brooklyn";"Podwisłocze 38 198A";Przyjęta;"opłacona w Booking.com";427,68;PLN
+51;52;Airbnb;08.02.2025;"Loboda Frederic";"22.02.2025 15:00";"24.02.2025 12:00";"Przytulny apartament w wieżowcu - Centrum miasta";"Podwisłocze 38 198b";Przyjęta;"opłacona w Airbnb";342,00;PLN
+52;51;Booking.com;07.02.2025;"Piotr Kotarski SHIVOO Kotarski Piotr";"09.02.2025 15:00";"11.02.2025 12:00";"Przytulny apartament w wieżowcu - Centrum miasta";"Podwisłocze 38 198b";Zakończona;"opłacona w Booking.com";320,76;PLN
+53;50;Booking.com;07.02.2025;"Ciechowicz Jakub";"21.02.2025 15:00";"22.02.2025 10:00";"Przytulny apartament Brooklyn";"Podwisłocze 38 198A";Zakończona;"opłacona w Booking.com";182,68;PLN
+54;49;Booking.com;07.02.2025;"Hlyva Nazarii";"07.03.2025 15:00";"09.03.2025 10:00";"Przytulny apartament Brooklyn";"Podwisłocze 38 198A";Przyjęta;"opłacona w Booking.com";343,87;PLN
+55;48;Panel;06.02.2025;"Pazdyk Andrzej ";"06.02.2025 15:00";"07.02.2025 10:00";"Miodowy Apartament+balkon+ huśtawka+garaż, faktura";"Aleja Majora Wacława Kopisto 8a 8a";Zakończona;opłacona;150,00;PLN
+56;47;Booking.com;05.02.2025;"Pękala Tomek";"14.02.2025 15:00";"15.02.2025 10:00";"Miodowy Apartament+balkon+ huśtawka+garaż, faktura";"Aleja Majora Wacława Kopisto 8a 8a";Zakończona;"opłacona w Booking.com";238,80;PLN
+57;46;Booking.com;05.02.2025;"Marciniec Robert";"09.02.2025 15:00";"10.02.2025 10:00";"Miodowy Apartament+balkon+ huśtawka+garaż, faktura";"Aleja Majora Wacława Kopisto 8a 8a";Zakończona;"opłacona w Booking.com";238,80;PLN
+58;45;Booking.com;05.02.2025;"Olejarczyk Andrzej";"07.02.2025 15:00";"08.02.2025 10:00";"Przytulny apartament Brooklyn";"Podwisłocze 38 198A";Zakończona;"opłacona w Booking.com";142,56;PLN
+59;44;Booking.com;05.02.2025;"Środa Jakub";"27.02.2025 15:00";"02.03.2025 10:00";"Przytulny apartament Brooklyn";"Podwisłocze 38 198A";Przyjęta;"opłacona w Booking.com";548,05;PLN
+60;43;Booking.com;05.02.2025;"Pazdyk Andrzej";"05.02.2025 15:00";"06.02.2025 10:00";"Miodowy Apartament+balkon+ huśtawka+garaż, faktura";"Nazwa Lokalizacji";Zakończona;"opłacona w Booking.com";198,00;PLN
+61;42;Booking.com;04.02.2025;"Tunia Piotr";"08.02.2025 15:00";"09.02.2025 10:00";"Przytulny apartament Brooklyn";"Podwisłocze 38 198A";Zakończona;"opłacona w Booking.com";171,94;PLN
+62;41;Booking.com;04.02.2025;"Grzywacz Mariusz";"07.02.2025 15:00";"09.02.2025 12:00";"Przytulny apartament w wieżowcu - Centrum miasta";"Podwisłocze 38 198b";Zakończona;"opłacona w Booking.com";386,86;PLN
+63;40;Airbnb;04.02.2025;"Stagg Anthony";"22.02.2025 15:00";"24.02.2025 10:00";"Miodowy Apartament+balkon+ huśtawka+garaż, faktura";"Aleja Majora Wacława Kopisto 8a 8a";Przyjęta;"opłacona w Airbnb";328,00;PLN
+64;39;Airbnb;04.02.2025;"Arnfred Bojesen Julie";"20.03.2025 15:00";"23.03.2025 12:00";"Przytulny apartament w wieżowcu - Centrum miasta";"Podwisłocze 38 198b";Przyjęta;"opłacona w Airbnb";684,00;PLN
+65;38;Booking.com;04.02.2025;"Kusz Łukasz";"21.02.2025 15:00";"22.02.2025 12:00";"Przytulny apartament w wieżowcu - Centrum miasta";"Podwisłocze 38 198b";"Anulowana przez klienta";brak;193,43;PLN
+66;37;Booking.com;03.02.2025;"DZIEKAN TOMASZ";"22.05.2025 15:00";"24.05.2025 10:00";"Przytulny apartament Brooklyn";"Podwisłocze 38 198A";Przyjęta;"opłacona w Booking.com";447,36;PLN
+67;36;Panel;03.02.2025;"Pakuła Marcin";"25.02.2025 15:00";"26.02.2025 10:00";"Przytulny apartament w wieżowcu - Centrum miasta";"Podwisłocze 38 198b";Przyjęta;opłacona;135,39;PLN
+68;35;Panel;03.02.2025;"Pakuła Marcin";"04.02.2025 15:00";"05.02.2025 12:00";"Przytulny apartament w wieżowcu - Centrum miasta";"Podwisłocze 38 198b";Zakończona;opłacona;150,00;PLN
+69;34;Airbnb;03.02.2025;"Chytailo Maks";"05.02.2025 15:00";"07.02.2025 12:00";"Przytulny apartament w wieżowcu - Centrum miasta";"Podwisłocze 38 198b";Zakończona;"opłacona w Airbnb";342,00;PLN
+70;32;Booking.com;03.02.2025;"Bartuś Angelika";"03.02.2025 15:00";"07.02.2025 10:00";"Przytulny apartament Brooklyn";"Podwisłocze 38 198A";Zakończona;"opłacona w Booking.com";712,80;PLN
+71;33;Booking.com;03.02.2025;"Kozłowska Daria";"14.02.2025 15:00";"15.02.2025 12:00";"Przytulny apartament w wieżowcu - Centrum miasta";"Podwisłocze 38 198b";Zakończona;"opłacona w Booking.com";193,43;PLN
+72;31;Booking.com;03.02.2025;"Gaik Bogusława";"26.04.2025 15:00";"27.04.2025 10:00";"Przytulny apartament Brooklyn";"Podwisłocze 38 198A";Przyjęta;brak;229,50;PLN
+73;30;Booking.com;03.02.2025;"Witewska Monika";"09.03.2025 15:00";"14.03.2025 10:00";"Przytulny apartament Brooklyn";"Podwisłocze 38 198A";"Anulowana przez klienta";brak;972,00;PLN
+74;29;Booking.com;03.02.2025;"Kaminska Monika";"24.03.2025 15:00";"28.03.2025 10:00";"Przytulny apartament Brooklyn";"Podwisłocze 38 198A";Przyjęta;brak;787,32;PLN
+75;28;Booking.com;03.02.2025;"Darmetko Kinga";"15.03.2025 15:00";"16.03.2025 10:00";"Przytulny apartament Brooklyn";"Podwisłocze 38 198A";Przyjęta;"opłacona w Booking.com";171,94;PLN
+76;27;Booking.com;03.02.2025;"Agnieszka Błaszczyk";"19.06.2025 15:00";"20.06.2025 10:00";"Przytulny apartament Brooklyn";"Podwisłocze 38 198A";Przyjęta;brak;174,96;PLN
+77;26;Booking.com;03.02.2025;"Agnieszka Niedżwiecka";"03.08.2025 15:00";"08.08.2025 10:00";"Przytulny apartament Brooklyn";"Podwisłocze 38 198A";Przyjęta;brak;1147,50;PLN
+78;25;Booking.com;03.02.2025;"Hemer Clemens";"06.03.2025 15:00";"08.03.2025 10:00";"Przytulny apartament Brooklyn";"Podwisłocze 38 198A";"Anulowana przez klienta";brak;331,20;PLN
+79;24;Booking.com;03.02.2025;"Filip Jabłoński";"14.02.2025 15:00";"16.02.2025 10:00";"Przytulny apartament Brooklyn";"Podwisłocze 38 198A";Zakończona;brak;459,00;PLN
+80;23;Booking.com;03.02.2025;"Florek Sabina";"10.07.2025 15:00";"13.07.2025 10:00";"Przytulny apartament Brooklyn";"Podwisłocze 38 198A";Przyjęta;brak;656,10;PLN
+81;22;Booking.com;03.02.2025;"gustowicz ewa";"09.02.2025 15:00";"14.02.2025 10:00";"Przytulny apartament Brooklyn";"Podwisłocze 38 198A";Zakończona;brak;874,80;PLN
+82;21;Booking.com;03.02.2025;"Dzida Jagoda";"21.05.2025 15:00";"23.05.2025 10:00";"Miodowy Apartament+balkon+ huśtawka+garaż, faktura";"Aleja Majora Wacława Kopisto 8a 8a";Przyjęta;brak;408,00;PLN
+83;20;Booking.com;03.02.2025;"Anna Jarnutowska";"03.03.2025 15:00";"04.03.2025 10:00";"Miodowy Apartament+balkon+ huśtawka+garaż, faktura";"Nazwa Lokalizacji";"Anulowana przez klienta";brak;204,00;PLN
+84;19;Booking.com;03.02.2025;"Boczoń Krystian";"11.07.2025 15:00";"13.07.2025 10:00";"Miodowy Apartament+balkon+ huśtawka+garaż, faktura";"Aleja Majora Wacława Kopisto 8a 8a";Przyjęta;brak;544,00;PLN
+85;18;Booking.com;03.02.2025;"Milyushina Yana";"11.05.2025 15:00";"17.05.2025 10:00";"Miodowy Apartament+balkon+ huśtawka+garaż, faktura";"Aleja Majora Wacława Kopisto 8a 8a";Przyjęta;brak;1224,00;PLN
+86;17;Booking.com;03.02.2025;"Vdovytska Viktoriia";"03.02.2025 15:00";"05.02.2025 10:00";"Miodowy Apartament+balkon+ huśtawka+garaż, faktura";"Nazwa Lokalizacji";Zakończona;brak;394,40;PLN
+87;16;Booking.com;03.02.2025;"Gibała Marcin";"01.04.2025 15:00";"06.04.2025 10:00";"Miodowy Apartament+balkon+ huśtawka+garaż, faktura";"Aleja Majora Wacława Kopisto 8a 8a";Przyjęta;brak;1020,00;PLN
+88;15;Booking.com;03.02.2025;"Buśko Wioletta";"14.02.2025 15:00";"16.02.2025 10:00";"Miodowy Apartament+balkon+ huśtawka+garaż, faktura";"Nazwa Lokalizacji";"Anulowana przez klienta";brak;629,86;PLN
+89;14;Booking.com;03.02.2025;"Rozalewicz Katarzyna";"03.10.2025 15:00";"09.10.2025 10:00";"Miodowy Apartament+balkon+ huśtawka+garaż, faktura";"Aleja Majora Wacława Kopisto 8a 8a";Przyjęta;brak;1224,00;PLN
+90;13;Booking.com;03.02.2025;"Flis Urszula";"21.02.2025 15:00";"22.02.2025 10:00";"Miodowy Apartament+balkon+ huśtawka+garaż, faktura";"Aleja Majora Wacława Kopisto 8a 8a";Zakończona;brak;175,95;PLN
+91;12;Booking.com;03.02.2025;"Jasiński Dariusz";"26.02.2025 15:00";"28.02.2025 10:00";"Miodowy Apartament+balkon+ huśtawka+garaż, faktura";"Aleja Majora Wacława Kopisto 8a 8a";Przyjęta;brak;397,80;PLN
+92;11;Booking.com;03.02.2025;"Galarowicz Aleksandra";"07.02.2025 15:00";"09.02.2025 10:00";"Miodowy Apartament+balkon+ huśtawka+garaż, faktura";"Aleja Majora Wacława Kopisto 8a 8a";Zakończona;brak;382,50;PLN
+93;10;Booking.com;03.02.2025;"Ryś Marzena";"20.02.2025 15:00";"21.02.2025 10:00";"Miodowy Apartament+balkon+ huśtawka+garaż, faktura";"Aleja Majora Wacława Kopisto 8a 8a";Zakończona;brak;175,95;PLN
+94;9;Booking.com;03.02.2025;"Szczepańska Iza";"03.05.2025 15:00";"04.05.2025 10:00";"Miodowy Apartament+balkon+ huśtawka+garaż, faktura";"Aleja Majora Wacława Kopisto 8a 8a";Przyjęta;brak;323,00;PLN
+95;8;Booking.com;03.02.2025;"Kołodziejska Olga";"19.04.2025 15:00";"22.04.2025 10:00";"Miodowy Apartament+balkon+ huśtawka+garaż, faktura";"Aleja Majora Wacława Kopisto 8a 8a";Przyjęta;brak;1020,00;PLN
+96;7;Booking.com;03.02.2025;"Zd Klaudia";"15.02.2025 15:00";"16.02.2025 12:00";"Przytulny apartament w wieżowcu - Centrum miasta";"Podwisłocze 38 198b";Zakończona;brak;218,70;PLN
+97;6;Booking.com;03.02.2025;"Siwek Łukasz";"01.05.2025 15:00";"03.05.2025 12:00";"Przytulny apartament w wieżowcu - Centrum miasta";"Podwisłocze 38 198b";Przyjęta;brak;486,00;PLN
+98;5;Booking.com;03.02.2025;"Małgorzata Kusiak";"03.02.2025 15:00";"04.02.2025 12:00";"Przytulny apartament w wieżowcu - Centrum miasta";"Podwisłocze 38 198b";Zakończona;brak;218,70;PLN
+99;4;Booking.com;03.02.2025;"Bąk Ewelina";"27.02.2025 15:00";"28.02.2025 12:00";"Przytulny apartament w wieżowcu - Centrum miasta";"Podwisłocze 38 198b";Przyjęta;brak;196,83;PLN
+100;3;Airbnb;23.01.2025;"Ziembicka Joanna";"20.04.2025 15:00";"25.04.2025 10:00";"Przytulny apartament Brooklyn";"Podwisłocze 38 198A";Przyjęta;"opłacona w Airbnb";975,00;PLN
+101;2;Airbnb;23.01.2025;"Kania Jacek";"07.02.2025 15:00";"09.02.2025 10:00";"Przytulny apartament Brooklyn";"Podwisłocze 38 198A";"Anulowana przez klienta";"opłacona w Airbnb";320,00;PLN
+102;1;Airbnb;23.01.2025;"Orevchuk Liliia";"24.01.2025 15:00";"25.01.2025 10:00";"Przytulny apartament Brooklyn";"Podwisłocze 38 198A";Zakończona;"opłacona w Airbnb";190,00;PLN

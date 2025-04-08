@@ -1,7 +1,5 @@
-import type {RouterOutputs} from "@/trpc/react";
 import {api} from "@/trpc/server";
 
-type Post = RouterOutputs["post"]["getAll"][0];
 //test
 export async function ReservationList() {
   const reservations = await api.reservation.getAll();
