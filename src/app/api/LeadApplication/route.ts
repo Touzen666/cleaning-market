@@ -23,19 +23,24 @@ interface LeadApplicationRequest {
     apartmentId?: number;
 }
 
-const corsHeaders = {
-    'Access-Control-Allow-Origin': DEFAULT_ORIGIN,
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Accept, Origin',
-    'Access-Control-Allow-Credentials': 'true',
-    'Access-Control-Max-Age': '86400',
-} as const;
+function createCorsHeaders(origin: string = DEFAULT_ORIGIN) {
+    return {
+        'Access-Control-Allow-Origin': origin,
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Accept, Origin',
+        'Access-Control-Allow-Credentials': 'true',
+        'Access-Control-Max-Age': '86400',
+    };
+}
 
 // Handle preflight requests
-export async function OPTIONS() {
+export async function OPTIONS(request: Request) {
+    const origin = request.headers.get('origin');
+    const isAllowedOrigin = origin && ALLOWED_ORIGINS.includes(origin.toLowerCase() as typeof ALLOWED_ORIGINS[number]);
+
     return new NextResponse(null, {
         status: 200,
-        headers: corsHeaders
+        headers: createCorsHeaders(isAllowedOrigin ? origin : DEFAULT_ORIGIN)
     });
 }
 
@@ -48,22 +53,16 @@ export async function POST(request: Request) {
                 { error: 'Unauthorized origin' },
                 {
                     status: 403,
-                    headers: {
-                        'Access-Control-Allow-Origin': DEFAULT_ORIGIN,
-                        'Content-Type': 'application/json',
-                    }
+                    headers: createCorsHeaders()
                 }
             );
         }
 
-        // Set CORS headers
+        // Set CORS headers with validated origin
         const responseHeaders = {
-            'Access-Control-Allow-Origin': requestOrigin,
-            'Access-Control-Allow-Methods': 'POST',
-            'Access-Control-Allow-Headers': 'Content-Type, Accept, Origin',
-            'Access-Control-Allow-Credentials': 'true',
+            ...createCorsHeaders(requestOrigin),
             'Content-Type': 'application/json',
-        } as const;
+        };
 
         // Parse and validate request body
         const rawData = await request.json() as unknown;
@@ -116,7 +115,7 @@ export async function POST(request: Request) {
             },
             {
                 status: 500,
-                headers: corsHeaders
+                headers: createCorsHeaders()
             }
         );
     }
