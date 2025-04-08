@@ -4,16 +4,22 @@ const path = require('path');
 // Get current timestamp
 const buildTime = new Date().toISOString();
 
-// Read package.json to get version
+// Read package.json to get and update version
 const packageJsonPath = path.join(process.cwd(), 'package.json');
 const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
-const version = packageJson.version;
 
-// Path to .env.local
+// Increment patch version
+const [major, minor, patch] = packageJson.version.split('.').map(Number);
+const newVersion = `${major}.${minor}.${patch + 1}`;
+packageJson.version = newVersion;
+
+// Write updated version back to package.json
+fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n');
+
+// Create or update .env.local file
 const envPath = path.join(process.cwd(), '.env.local');
-
-// Read existing .env.local if it exists
 let envContent = '';
+
 if (fs.existsSync(envPath)) {
     envContent = fs.readFileSync(envPath, 'utf8');
 }
@@ -27,7 +33,7 @@ let buildTimeFound = false;
 // Process existing lines
 for (const line of lines) {
     if (line.startsWith('NEXT_PUBLIC_APP_VERSION=')) {
-        newLines.push(`NEXT_PUBLIC_APP_VERSION=${version}`);
+        newLines.push(`NEXT_PUBLIC_APP_VERSION=${newVersion}`);
         versionFound = true;
     } else if (line.startsWith('NEXT_PUBLIC_BUILD_TIME=')) {
         newLines.push(`NEXT_PUBLIC_BUILD_TIME=${buildTime}`);
@@ -39,7 +45,7 @@ for (const line of lines) {
 
 // Add version and build time if they weren't found
 if (!versionFound) {
-    newLines.push(`NEXT_PUBLIC_APP_VERSION=${version}`);
+    newLines.push(`NEXT_PUBLIC_APP_VERSION=${newVersion}`);
 }
 if (!buildTimeFound) {
     newLines.push(`NEXT_PUBLIC_BUILD_TIME=${buildTime}`);
@@ -48,4 +54,5 @@ if (!buildTimeFound) {
 // Write back to file
 fs.writeFileSync(envPath, newLines.join('\n') + '\n');
 
-console.log('Version and build time updated successfully!'); 
+console.log(`Version updated to ${newVersion}`);
+console.log('Build time updated successfully!'); 
