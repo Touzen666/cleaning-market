@@ -1,6 +1,17 @@
 {
-  "crons": [{
-    "path": "/api/getReservations",
-    "schedule": "07 16 * * *"
-  }]
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "outputDirectory": ".next",
+  "regions": ["fra1"],
+  "env": {
+    "NODE_ENV": "production"
+  },
+  "crons": [
+    {
+      "path": "/api/getReservations",
+      "schedule": "07 16 * * *"
+    }
+  ]
 }

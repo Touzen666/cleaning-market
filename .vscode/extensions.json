@@ -1,0 +1,21 @@
+{
+  "recommendations": [
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "bradlc.vscode-tailwindcss",
+    "prisma.prisma",
+    "prisma.prisma-ai",
+    "christian-kohler.path-intellisense",
+    "formulahendry.auto-rename-tag",
+    "ms-vscode.vscode-typescript-next",
+    "ms-vscode.vscode-typescript-tslint-plugin",
+    "dsznajder.es7-react-js-snippets",
+    "pulkitgangwar.nextjs-snippets",
+    "wix.vscode-import-cost",
+    "usernamehw.errorlens",
+    "ms-vsliveshare.vsliveshare",
+    "mhutchie.git-graph",
+    "rangav.vscode-thunder-client",
+    "humao.rest-client"
+  ]
+} 
