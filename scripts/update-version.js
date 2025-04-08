@@ -59,5 +59,5 @@ if (!buildTimeFound) {
 // Write back to file
 writeFileSync(envPath, newLines.join('\n') + '\n');
 
-console.log(`Version updated to ${newVersion}`);
-console.log('Build time updated successfully!'); 
+// Log only the essential information
+console.log(`✨ App version updated to ${newVersion}`); 

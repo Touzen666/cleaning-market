@@ -11,10 +11,13 @@ export function VersionInfo({ children }: VersionInfoProps) {
   const version = process.env.NEXT_PUBLIC_APP_VERSION ?? "1.0.0";
 
   useEffect(() => {
+    // Format the build time to be more readable
+    const formattedBuildTime = new Date(buildTime ?? '').toLocaleString();
+    
     console.log(
-      `%cCleaning Market App%c\nVersion: ${version}\nBuild Time: ${buildTime}`,
-      'background: #2e026d; color: white; padding: 5px 10px; border-radius: 3px; font-weight: bold;',
-      'color: #666; margin-top: 5px; display: block;'
+      `%cCleaning Market%c\n\n🔖 Version: ${version}\n🕒 Build: ${formattedBuildTime}`,
+      'background: #2e026d; color: white; padding: 8px 12px; border-radius: 4px; font-size: 14px; font-weight: bold;',
+      'color: #666; font-size: 13px; padding: 8px 0;'
     );
   }, [version, buildTime]);
 
