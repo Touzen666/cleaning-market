@@ -4,84 +4,30 @@ import { headers } from 'next/headers';
 
 const prisma = new PrismaClient();
 
-// Allowed origins with guaranteed default
-const ALLOWED_ORIGINS = [
-    'https://zlote-wynajmy.pl',
-    'http://zlote-wynajmy.pl',
-    'https://www.zlote-wynajmy.pl',
-    'http://www.zlote-wynajmy.pl'
-] as const;
+const corsHeaders = {
+    'Access-Control-Allow-Origin': 'https://zlote-wynajmy.pl',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': '*',
+    'Access-Control-Allow-Credentials': 'true',
+};
 
-const DEFAULT_ORIGIN = ALLOWED_ORIGINS[0];
-
-interface LeadApplicationRequest {
-    firstName: string;
-    lastName: string;
-    phone?: string;
-    email: string;
-    message?: string;
-    apartmentId?: number;
-}
-
-function createCorsHeaders(origin: string = DEFAULT_ORIGIN) {
-    return {
-        'Access-Control-Allow-Origin': origin,
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Accept, Origin',
-        'Access-Control-Allow-Credentials': 'true',
-        'Access-Control-Max-Age': '86400',
-    };
-}
-
-// Handle preflight requests
-export async function OPTIONS(request: Request) {
-    const origin = request.headers.get('origin');
-    const isAllowedOrigin = origin && ALLOWED_ORIGINS.includes(origin.toLowerCase() as typeof ALLOWED_ORIGINS[number]);
-
+export async function OPTIONS() {
     return new NextResponse(null, {
         status: 200,
-        headers: createCorsHeaders(isAllowedOrigin ? origin : DEFAULT_ORIGIN)
+        headers: corsHeaders
     });
 }
 
 export async function POST(request: Request) {
     try {
-        // Get and validate origin
-        const requestOrigin = request.headers.get('origin');
-        if (!requestOrigin || !ALLOWED_ORIGINS.includes(requestOrigin.toLowerCase() as typeof ALLOWED_ORIGINS[number])) {
-            return NextResponse.json(
-                { error: 'Unauthorized origin' },
-                {
-                    status: 403,
-                    headers: createCorsHeaders()
-                }
-            );
-        }
-
-        // Set CORS headers with validated origin
         const responseHeaders = {
-            ...createCorsHeaders(requestOrigin),
-            'Content-Type': 'application/json',
+            ...corsHeaders,
+            'Content-Type': 'application/json'
         };
 
         // Parse and validate request body
         const rawData = await request.json() as unknown;
         const data = validateLeadApplication(rawData);
-
-        // Validate required fields
-        if (!data.firstName || !data.lastName || !data.email) {
-            return NextResponse.json(
-                {
-                    error: 'Missing required fields',
-                    details: {
-                        firstName: !data.firstName ? 'First name is required' : null,
-                        lastName: !data.lastName ? 'Last name is required' : null,
-                        email: !data.email ? 'Email is required' : null,
-                    }
-                },
-                { status: 400, headers: responseHeaders }
-            );
-        }
 
         // Create the lead application
         const leadApplication = await prisma.leadApplication.create({
@@ -94,7 +40,6 @@ export async function POST(request: Request) {
             }
         });
 
-        // Return success response
         return NextResponse.json(
             {
                 success: true,
@@ -115,10 +60,19 @@ export async function POST(request: Request) {
             },
             {
                 status: 500,
-                headers: createCorsHeaders()
+                headers: corsHeaders
             }
         );
     }
+}
+
+interface LeadApplicationRequest {
+    firstName: string;
+    lastName: string;
+    phone?: string;
+    email: string;
+    message?: string;
+    apartmentId?: number;
 }
 
 function validateLeadApplication(data: unknown): LeadApplicationRequest {
