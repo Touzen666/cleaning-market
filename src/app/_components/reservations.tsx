@@ -4,8 +4,6 @@ import {api} from "@/trpc/server";
 export async function ReservationList() {
   const reservations = await api.reservation.getAll();
 
-
-
   return (
     <div className="w-full max-w-md mx-auto">
       <h2 className="text-lg font-bold mt-4">Twoje apartamenty:</h2>
