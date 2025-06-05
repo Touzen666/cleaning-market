@@ -7,6 +7,9 @@ import moment from "moment";
 const user = process.env.IDOBOOKING_USER;
 const password = process.env.IDOBOOKING_PASSWORD;
 let PHPSESSID = "";
+let panelLoginCookie = ""; // Store panel_login_cookie
+let fullCookieString = ""; // Store the full cookie string from successful login
+const IDOBOOKING_BASE_URL = "https://client47056.idosell.com"; // Base URL for Idobooking panel
 
 
 export async function getReservations() {
@@ -22,134 +25,179 @@ export async function getReservations() {
 }
 
 async function loginAndDownload() {
-    const session = await fetch(
-        "https://client47056.idosell.com/panel/user/login",
+    // Define common browser-like headers to be used across requests
+    const commonHeaders = {
+        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+        "accept-language": "en-US,en;q=0.9,pl;q=0.8", // You might want to adjust this to pl-PL,pl;q=0.9 if that's your primary browser lang
+        "cache-control": "max-age=0",
+        "priority": "u=0, i",
+        "sec-ch-ua": '"Not(A:Brand";v="99", "Google Chrome";v="133", "Chromium";v="133"', // Example, update if needed
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": '"Windows"', // Example, update if needed
+        "sec-fetch-dest": "document",
+        "sec-fetch-mode": "navigate",
+        "sec-fetch-site": "same-origin",
+        "upgrade-insecure-requests": "1",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36" // Example User-Agent
+    };
+
+    // Step 1: Fetch the login page to get an initial PHPSESSID cookie.
+    console.log("Step 1: Fetching initial login page to get PHPSESSID...");
+    const initialSession = await fetch(
+        `${IDOBOOKING_BASE_URL}/panel/user/login`,
         {
             headers: {
-                accept:
-                    "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
-                "accept-language": "en-US,en;q=0.9,pl;q=0.8",
-                "cache-control": "max-age=0",
-                priority: "u=0, i",
-                "sec-ch-ua":
-                    '"Not(A:Brand";v="99", "Google Chrome";v="133", "Chromium";v="133"',
-                "sec-ch-ua-mobile": "?0",
-                "sec-ch-ua-platform": '"Windows"',
-                "sec-fetch-dest": "document",
-                "sec-fetch-mode": "navigate",
-                "sec-fetch-site": "same-origin",
-                "sec-fetch-user": "?1",
-                "upgrade-insecure-requests": "1",
-                Referer: "https://client47056.idosell.com/panel",
-                "Referrer-Policy": "strict-origin-when-cross-origin",
+                ...commonHeaders,
+                "sec-fetch-user": "?1", // Specific to initial navigation
+                "Referer": `${IDOBOOKING_BASE_URL}/panel/`, // Common referer for initial visit
+                "Referrer-Policy": "strict-origin-when-cross-origin"
             },
-            body: null,
-            method: "GET",
         },
     );
+    console.log("Initial session fetch status:", initialSession.status);
 
-    PHPSESSID =
-        session.headers.get("set-cookie")?.split(";")[0]?.split("=")[1] ?? "";
-    console.log("PHPSESSID", PHPSESSID);
+    const initialSetCookie = initialSession.headers.get("set-cookie");
+    if (initialSetCookie) {
+        console.log("Set-Cookie from initial session fetch:", initialSetCookie);
+        PHPSESSID = (/PHPSESSID=([^;]+)/.exec(initialSetCookie))?.[1] ?? PHPSESSID;
+        panelLoginCookie = (/panel_login_cookie=([^;]+)/.exec(initialSetCookie))?.[1] ?? panelLoginCookie;
+        // Potentially extract other cookies if they seem relevant from your manual tests
+        // const typeOfVisitor = initialSetCookie.match(/type_of_visitor=([^;]+)/)?.[1];
+        // if (typeOfVisitor) fullCookieString += `; type_of_visitor=${typeOfVisitor}`;
+    } else {
+        console.warn("No Set-Cookie header from initial session fetch.");
+    }
+    console.log(`PHPSESSID after initial fetch: ${PHPSESSID}, panelLoginCookie: ${panelLoginCookie}`);
 
-    const login = await fetch(
-        "https://client47056.idosell.com/panel/user/login/",
+    // Step 2: Perform the actual login by sending credentials (user/password).
+    // We now expect 200 OK if successful, as observed.
+    console.log("Step 2: Posting login credentials...");
+    const loginResponse = await fetch(
+        `${IDOBOOKING_BASE_URL}/panel/user/login/`,
         {
+            method: "POST",
             headers: {
-                accept:
-                    "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
-                "accept-language": "en-US,en;q=0.9,pl;q=0.8",
-                "cache-control": "max-age=0",
+                ...commonHeaders, // Base headers
                 "content-type": "application/x-www-form-urlencoded",
-                priority: "u=0, i",
-                "sec-ch-ua":
-                    '"Not(A:Brand";v="99", "Google Chrome";v="133", "Chromium";v="133"',
-                "sec-ch-ua-mobile": "?0",
-                "sec-ch-ua-platform": '"Windows"',
-                "sec-fetch-dest": "document",
-                "sec-fetch-mode": "navigate",
-                "sec-fetch-site": "same-origin",
-                "sec-fetch-user": "?1",
-                "upgrade-insecure-requests": "1",
-                cookie:
-                    "PHPSESSID=" +
-                    PHPSESSID +
-                    "; idosellbooking_frntpg=%257B%2522language%2522%253A1%252C%2522currency%2522%253A1%257D; type_of_visitor=client",
-                Referer:
-                    "https://client47056.idosell.com/panel/user/login/source/logout",
-                "Referrer-Policy": "strict-origin-when-cross-origin",
+                cookie: `PHPSESSID=${PHPSESSID}${panelLoginCookie ? "; panel_login_cookie=" + panelLoginCookie : ""}`,
+                "Referer": `${IDOBOOKING_BASE_URL}/panel/user/login/`,
+                "sec-fetch-user": "?1", // Often present on user-initiated form submissions
+                "origin": IDOBOOKING_BASE_URL, // Added origin for POST
+                "Referrer-Policy": "strict-origin-when-cross-origin"
             },
             body:
-                "login=" +
-                user +
-                "&password=" +
-                password +
-                "&remember_login%5B%5D=1&domain=client47056.idosell.com",
-            method: "POST",
+                `login=${encodeURIComponent(user!)}&password=${encodeURIComponent(password!)}&remember_login%5B%5D=1&domain=client47056.idosell.com`,
+            // redirect: 'manual', // Removed, as we now expect 200 and no manual redirect handling for now
         },
     );
 
-    console.log("login status", login.status);
+    console.log("Login POST response status:", loginResponse.status);
 
-    if (login.status >= 400) {
-        console.log("login failed", await login.text());
-        console.log("login failed");
+    if (loginResponse.status !== 200) {
+        console.error("Login POST failed. Status:", loginResponse.status);
+        try {
+            const errorBody = await loginResponse.text();
+            console.error("Login POST error body:", errorBody.substring(0, 500));
+        } catch (e) {
+            console.error("Could not read error body from login POST.");
+        }
         process.exit(1);
     }
 
-    const reservations = await fetch(
-        "https://client47056.idosell.com/panel/reservations-lists/download",
+    // Step 3: Process cookies from the login POST response (if any).
+    // Even with a 200, there might be updated cookies, though logs say otherwise currently.
+    const loginSetCookie = loginResponse.headers.get("set-cookie");
+    if (loginSetCookie) {
+        console.log("Set-Cookie header from Login POST response (status 200):", loginSetCookie);
+        const newPHPSESSID = (/PHPSESSID=([^;]+)/.exec(loginSetCookie))?.[1];
+        if (newPHPSESSID) PHPSESSID = newPHPSESSID;
+        const newPanelCookie = (/panel_login_cookie=([^;]+)/.exec(loginSetCookie))?.[1];
+        if (newPanelCookie) panelLoginCookie = newPanelCookie;
+    } else {
+        console.log("No Set-Cookie header in Login POST response (status 200).");
+    }
+
+    // Construct the cookie string for downloading the CSV
+    // Primarily use cookies obtained from the initial GET, potentially updated by POST response.
+    fullCookieString = `PHPSESSID=${PHPSESSID}`;
+    // Manually add panel_login_cookie based on successful manual test, as script doesn't receive it via Set-Cookie
+    // The value for 'login' inside the cookie should be the actual username.
+    const panelLoginCookieValue = encodeURIComponent(`{"login":"${user}"}`);
+    fullCookieString += `; panel_login_cookie=${panelLoginCookieValue}`;
+
+    // Add other cookies observed in successful manual browser navigation and download
+    // Replicating the cookie string from the previously working version as closely as possible.
+    fullCookieString += "; type_of_visitor=client";
+    fullCookieString += "; WebAnkieta_IdoBooking=1";
+    fullCookieString += "; idosellbooking_frntpg=" + encodeURIComponent("{\"language\":1,\"currency\":1}");
+    fullCookieString += "; ck_cook=yes"; // Added from previously working version
+    if (user) { // Add 'login=<username>' cookie if user is defined
+        fullCookieString += `; login=${encodeURIComponent(user)}`;
+    }
+    // The WV also had 'client=' + PHPSESSID again, let's try adding that too.
+    // However, ensure PHPSESSID is defined before appending it, to avoid 'client=undefined'.
+    if (PHPSESSID) {
+        fullCookieString += `; client=${PHPSESSID}`;
+    }
+    // Note: Analytic cookies like _ga, _gid, _clck are omitted for now as they are less likely to be critical for auth.
+
+    console.log("Constructed fullCookieString for CSV download:", fullCookieString);
+
+    // Step 4 (formerly 5): Attempt to download the CSV file.
+    // We are skipping the explicit redirect following step for now as login POST returns 200.
+    console.log("Step 4: Attempting to download CSV...");
+    const reservationsResponse = await fetch(
+        `${IDOBOOKING_BASE_URL}/panel/reservations-lists/download`,
         {
+            method: "POST", // Make sure this is POST as in WV
             headers: {
-                accept:
-                    "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
-                "accept-language": "en-US,en;q=0.9,pl;q=0.8",
-                "cache-control": "max-age=0",
+                ...commonHeaders, // Base headers
                 "content-type": "application/x-www-form-urlencoded",
-                priority: "u=0, i",
-                "sec-ch-ua":
-                    '"Not(A:Brand";v="99", "Google Chrome";v="133", "Chromium";v="133"',
-                "sec-ch-ua-mobile": "?0",
-                "sec-ch-ua-platform": '"Windows"',
-                "sec-fetch-dest": "document",
-                "sec-fetch-mode": "navigate",
-                "sec-fetch-site": "same-origin",
-                "sec-fetch-user": "?1",
-                "upgrade-insecure-requests": "1",
-                cookie:
-                    "type_of_visitor=client; WebAnkieta_IdoBooking=1; ck_cook=yes; login=" +
-                    user +
-                    "; panel_login_cookie=%257B%2522login%2522%253A%2522" +
-                    user +
-                    "%2522%257D; PHPSESSID=" +
-                    PHPSESSID +
-                    "; client=" +
-                    PHPSESSID +
-                    "; _gid=GA1.2.1838747238.1740239209; _clck=1bjfhdm%7C2%7Cftn%7C0%7C1853; positionInCalendar=818.1818237304688; _ga=GA1.1.2018585069.1738004960; _clsk=1fb1q0u%7C1740263750991%7C3%7C1%7Cs.clarity.ms%2Fcollect; _ga_520KR3NJHW=GS1.1.1740263706.109.1.1740263828.60.0.0",
-                Referer: "https://client47056.idosell.com/panel/reservations-lists/",
-                "Referrer-Policy": "strict-origin-when-cross-origin",
+                cookie: fullCookieString,
+                "Referer": `${IDOBOOKING_BASE_URL}/panel/reservations-lists/`,
+                "sec-fetch-user": "?1", // Similar to other user-initiated actions
+                "origin": IDOBOOKING_BASE_URL, // Added origin for POST
+                "Referrer-Policy": "strict-origin-when-cross-origin"
             },
             body: "processId=189&type=csv",
-            method: "POST",
         },
     );
 
-    if (reservations.status !== 200) {
-        console.log("reservations failed", await reservations.text());
-        console.log("reservations failed");
+    // Check if CSV download was successful
+    if (reservationsResponse.status !== 200) {
+        console.error(`CSV download failed. Status: ${reservationsResponse.status}`);
+        try {
+            const errorBody = await reservationsResponse.text();
+            console.error("CSV download error body (first 500 chars):", errorBody.substring(0, 500));
+        } catch (e) {
+            console.error("Could not read error body from CSV download.");
+        }
         process.exit(1);
     }
 
-    const text = await reservations.text();
+    const text = await reservationsResponse.text();
 
-    // write to file
-    // fs.writeFileSync("reservations.csv", text);
+    // Log a sample of the downloaded text to verify if it's CSV or HTML
+    console.log("--- Downloaded Content (reservationsText) Sample ---");
+    console.log(text.substring(0, 500));
+    console.log("--- End Downloaded Content Sample ---");
+
     return text;
 }
 
 async function parseReservations(reservationsData: string) {
-    //read from file
-    // const reservationsData = fs.readFileSync("reservations.csv", "utf8");
+    // This function parses the raw string data (expected to be CSV) into an array of reservation objects.
+    // It splits the data by lines, then each line by semicolons.
+    // The first line is assumed to be headers.
+
+    // Check if the data seems like HTML, which would indicate a problem in the download step.
+    if (reservationsData.trim().toLowerCase().startsWith("<!doctype html") || reservationsData.trim().toLowerCase().startsWith("<html")) {
+        console.error("Error: parseReservations received HTML content instead of CSV. Aborting parse.");
+        console.error("Received content sample (first 300 chars):", reservationsData.substring(0, 300));
+        // Optionally, throw an error or return an empty array to prevent further processing issues.
+        // For now, we'll proceed, but this will likely lead to errors in mapReservation.
+        // A more robust solution would be to throw an error here.
+    }
 
     // Parse CSV data using proper CSV parsing to handle quotes and escapes
     const reservationsArray = reservationsData
@@ -273,6 +321,9 @@ async function enrichReservations(reservations: Record<string, string>[]) {
 
 async function dbUpsert(reservations: Record<string, string>[]) {
     const reservationsArr = [];
+    if (reservations.length > 0) {
+        console.log("Sample reservation object from CSV (feed to mapReservation):", JSON.stringify(reservations[0], null, 2));
+    }
     for (const reservation of reservations) {
         const dbReservation = mapReservation(reservation);
         await db.reservation.upsert({
@@ -317,7 +368,7 @@ function mapReservation(reservation: Record<string, string>): Reservation {
         address: reservation.Lokalizacje!,
         status: reservation.Status!,
         payment: reservation['Płatności']!,
-        paymantValue: parseFloat(reservation['Wartość']!.replace(',', '.')),
+        paymantValue: typeof reservation['Wartość'] === 'string' ? parseFloat(reservation['Wartość'].replace(',', '.')) : 0,
         currency: reservation.Waluta!,
         adults: parseInt(reservation.dorosli?.split(':')[1] ?? '0'),
         children: parseInt(reservation.dzieci?.split(':')[1] ?? '0'),

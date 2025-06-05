@@ -63,6 +63,14 @@ model Session {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+enum UserType {
+  ADMIN
+  UNKNOWN
+  GUEST
+  OWNER
+  CLEANER
+}
+
 model User {
   id            String    @id @default(cuid())
   name          String?
@@ -72,6 +80,7 @@ model User {
   accounts      Account[]
   sessions      Session[]
   posts         Post[]
+  type          UserType  @default(UNKNOWN)
 }
 
 model VerificationToken {
@@ -83,13 +92,13 @@ model VerificationToken {
 }
 
 model Reservation {
-  id            Int      @id
+  id            Int      @id @default(autoincrement())
   source        String
   createDate    DateTime @db.Date
-  guest         String
+  guest         String // Name of the person who made the reservation
   start         DateTime
   end           DateTime
-  apartmentName String // Keep if you want free-text name
+  apartmentName String 
   address       String
   status        String
   payment       String
@@ -98,14 +107,18 @@ model Reservation {
   adults        Int?
   children      Int?
 
-  // NEW RELATION
   apartmentId Int?
   apartment   Apartment? @relation(fields: [apartmentId], references: [id])
+
+  // A reservation can have multiple check-in cards if multiple guests check in under it,
+  // or if the person checking in isn't the primary booker.
+  checkInCards  CheckInCard[] 
 }
 
 model Apartment {
   id               Int               @id @default(autoincrement())
   name             String
+  slug             String            @unique // New unique identifier for apartments
   address          String
   reservations     Reservation[]
   leadApplications LeadApplication[]
@@ -123,4 +136,63 @@ model LeadApplication {
   // Optional relation to an apartment (future guest booking or interest)
   apartmentId Int?
   apartment   Apartment? @relation(fields: [apartmentId], references: [id])
+}
+
+model CheckInCard {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Personal Details of the person checking in
+  firstName        String
+  lastName         String
+  dateOfBirth      DateTime @db.Date
+  nationality      String
+  documentType     String
+  documentNumber   String
+
+  // Booking Holder Details (if different from the guest checking in)
+  bookingHolderFirstName String? // Optional: Name of the person who made the booking
+  bookingHolderLastName  String? // Optional: Last name of the person who made the booking
+  isDifferentGuest       Boolean @default(false) // Was the booking made by a different person?
+
+  // Guest Address
+  addressStreet    String
+  addressCity      String
+  addressZipCode   String
+  addressCountry   String
+
+  // Information used for lookup and context
+  submittedApartmentIdentifier String   // e.g., "przytulny-paris"
+  checkInDate                DateTime @db.Date // The date this check-in is for
+  isPrimaryGuest             Boolean  // Is this the person who booked the reservation?
+  actualCheckInTime          DateTime? // Actual time the guest performed the online check-in
+
+  // Link to a Reservation if one is matched
+  reservationId    Int?        
+  reservation      Reservation? @relation(fields: [reservationId], references: [id])
+
+  // Guest sessions for this check-in
+  guestSessions    GuestSession[]
+  @@unique([reservationId])
+  // @@unique([submittedApartmentIdentifier, checkInDate], name: "apartmentDayUnique")
+}
+
+model GuestSession {
+  id                String   @id @default(uuid())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  expiresAt         DateTime
+  lastActivity      DateTime @default(now())
+  
+  // Session metadata
+  apartmentSlug     String
+  isActive          Boolean  @default(true)
+  
+  // Link to check-in card
+  checkInCardId     String
+  checkInCard       CheckInCard @relation(fields: [checkInCardId], references: [id], onDelete: Cascade)
+  
+  @@index([apartmentSlug, isActive])
+  @@index([expiresAt])
 }
