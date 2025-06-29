@@ -1,7 +1,13 @@
-import {postRouter} from "@/server/api/routers/post";
-import {createCallerFactory, createTRPCRouter} from "@/server/api/trpc";
-import {contactRouter} from "@/server/api/routers/contact.router";
-import { reservationRouter } from "@/server/api/routers/reservations";
+import { postRouter } from "@/server/api/routers/post";
+import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
+import { contactRouter } from "@/server/api/routers/contact.router";
+import { reservationsRouter } from "@/server/api/routers/reservations";
+import { apartmentsRouter } from "@/server/api/routers/apartments";
+import { guestAuthRouter } from "@/server/api/routers/guest-auth";
+import { checkInRouter } from "@/server/api/routers/check-in";
+import { guestCheckinRouter } from "@/server/api/routers/guest-checkin";
+import { leadApplicationRouter } from "@/server/api/routers/lead-application";
+import { apartmentOwnersRouter } from "@/server/api/routers/apartment-owners";
 
 /**
  * This is the primary router for your server.
@@ -11,7 +17,13 @@ import { reservationRouter } from "@/server/api/routers/reservations";
 export const appRouter = createTRPCRouter({
     post: postRouter,
     contact: contactRouter,
-    reservation: reservationRouter,
+    reservation: reservationsRouter,
+    apartments: apartmentsRouter,
+    guestAuth: guestAuthRouter,
+    checkIn: checkInRouter,
+    guestCheckin: guestCheckinRouter,
+    leadApplication: leadApplicationRouter,
+    apartmentOwners: apartmentOwnersRouter,
 });
 
 // export type definition of API

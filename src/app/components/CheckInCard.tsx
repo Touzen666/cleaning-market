@@ -1,7 +1,11 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-// Removed useSearchParams as apartmentSlug comes from props now
+import { api } from "@/trpc/react";
+import {
+  checkInFormSchema,
+  type CheckInFormData,
+} from "@/lib/validations/guest";
 
 // It's good practice to define the expected shape of your API response
 interface ApiResponse {
@@ -14,43 +18,24 @@ interface ApiResponse {
   error?: string;
 }
 
-// This interface should ideally be generated from your Prisma schema
-// or be a subset of the Prisma.CheckInCardCreateInput type.
-interface CheckInFormData {
-  bookingHolderFirstName: string;
-  bookingHolderLastName: string;
-  isDifferentGuest: boolean;
-  guestFirstName: string;
-  guestLastName: string;
-  dateOfBirth: string;
-  nationality: string;
-  documentType: string;
-  documentNumber: string;
-  addressStreet: string;
-  addressCity: string;
-  addressZipCode: string;
-  addressCountry: string;
-  stayStartDate: string;
-  stayEndDate: string;
-}
-
 // Define props for CheckInCard
 interface CheckInCardProps {
   apartmentSlug: string;
 }
 
 const CheckInCard: React.FC<CheckInCardProps> = ({ apartmentSlug }) => {
-  // Stan dla nazwy apartamentu w nagłówku
   const [headerDisplayApartmentName, setHeaderDisplayApartmentName] =
     useState<string>(apartmentSlug);
-  const [isFetchingName, setIsFetchingName] = useState<boolean>(false); // Nowy stan do śledzenia ładowania nazwy
 
+  // Używamy prostego useState zamiast react-hook-form
   const [formData, setFormData] = useState<CheckInFormData>({
     bookingHolderFirstName: "",
     bookingHolderLastName: "",
     isDifferentGuest: false,
     guestFirstName: "",
     guestLastName: "",
+    firstName: "",
+    lastName: "",
     dateOfBirth: "",
     nationality: "",
     documentType: "ID Card",
@@ -59,91 +44,76 @@ const CheckInCard: React.FC<CheckInCardProps> = ({ apartmentSlug }) => {
     addressCity: "",
     addressZipCode: "",
     addressCountry: "",
+    submittedApartmentIdentifier: apartmentSlug,
     stayStartDate: "",
     stayEndDate: "",
   });
-  const [isLoading, setIsLoading] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<"success" | "error" | null>(
-    null,
-  );
-  const [submitMessage, setSubmitMessage] = useState<string>("");
 
-  // useEffect for searchParams is removed as apartmentSlug comes from props.
-  // If you need to react to apartmentSlug changes, you can add a new useEffect:
-  useEffect(() => {
-    // Reset form or perform actions if apartmentSlug changes, if necessary
-    console.log("Check-in for apartment:", apartmentSlug);
-    // Clear any previous submission messages if the slug changes
-    setSubmitStatus(null);
-    setSubmitMessage("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
-    // Reset części formularza przy zmianie slugu, zwłaszcza jeśli dane zależą od poprzedniego kontekstu
-    setFormData((prev) => ({
-      ...prev, // Zachowaj niektóre wartości, np. typ dokumentu jeśli ma być domyślny
-      bookingHolderFirstName: "",
-      bookingHolderLastName: "",
-      isDifferentGuest: false,
-      guestFirstName: "",
-      guestLastName: "",
-      dateOfBirth: "",
-      nationality: "",
-      // documentType: 'ID Card', // Można zostawić jeśli to globalna domyślna
-      documentNumber: "",
-      addressStreet: "",
-      addressCity: "",
-      addressZipCode: "",
-      addressCountry: "",
-      stayStartDate: prev.stayStartDate, // Można rozważyć czy te też resetować
-      stayEndDate: prev.stayEndDate,
-    }));
+  // tRPC queries i mutations
+  const { data: apartmentDetails, isLoading: isFetchingName } =
+    api.apartments.getDetails.useQuery(
+      { slug: apartmentSlug },
+      { enabled: !!apartmentSlug },
+    );
 
-    // Dodatkowo, pobieramy pełną nazwę apartamentu
-    if (apartmentSlug) {
-      const fetchApartmentName = async () => {
-        setIsFetchingName(true); // Ustawiamy ładowanie na true
-        try {
-          console.log(`[CheckInCard] Fetching name for slug: ${apartmentSlug}`);
-          const response = await fetch(
-            `/api/apartments/details/${apartmentSlug}`,
+  const checkInMutation = api.checkIn.create.useMutation({
+    onSuccess: (data) => {
+      if (data.success && data.data?.redirectTo) {
+        console.log("✅ Check-in successful");
+
+        // Ustaw cookie po stronie klienta
+        if (data.data.sessionToken && data.data.sessionExpiresAt) {
+          const expiresDate = new Date(data.data.sessionExpiresAt);
+          const maxAge = Math.floor(
+            (expiresDate.getTime() - Date.now()) / 1000,
           );
-          if (response.ok) {
-            const data = (await response.json()) as {
-              success: boolean;
-              name?: string;
-              error?: string;
-            };
-            if (data.success && data.name) {
-              console.log(
-                `[CheckInCard] Fetched name: ${data.name} for slug: ${apartmentSlug}`,
-              );
-              setHeaderDisplayApartmentName(data.name);
-            } else {
-              console.warn(
-                `[CheckInCard] API succeeded but no name returned for ${apartmentSlug}:`,
-                data.error,
-              );
-              setHeaderDisplayApartmentName(apartmentSlug); // Fallback na slug
-            }
-          } else {
-            console.warn(
-              `[CheckInCard] API error fetching name for ${apartmentSlug}:`,
-              response.status,
-            );
-            setHeaderDisplayApartmentName(apartmentSlug); // Fallback na slug
-          }
-        } catch (err) {
-          console.error("[CheckInCard] Error in fetchApartmentName:", err);
-          setHeaderDisplayApartmentName(apartmentSlug); // Fallback na slug
-        } finally {
-          setIsFetchingName(false); // Kończymy ładowanie
+
+          document.cookie = `guest-session=${data.data.sessionToken}; path=/; max-age=${maxAge}; SameSite=lax`;
+          console.log("🍪 Client-side cookie set:", data.data.sessionToken);
+          console.log("🕒 Cookie expires:", expiresDate.toISOString());
         }
-      };
-      void fetchApartmentName();
+
+        // Używamy window.location.href zamiast replace, aby zachować cookie
+        setTimeout(() => {
+          window.location.href = data.data.redirectTo;
+        }, 2000);
+      }
+    },
+  });
+
+  // Update apartment name when data loads
+  useEffect(() => {
+    if (apartmentDetails?.success && apartmentDetails.name) {
+      setHeaderDisplayApartmentName(apartmentDetails.name);
     } else {
-      setHeaderDisplayApartmentName("Nieznany apartament"); // Jeśli slug jest pusty
-      setIsFetchingName(false); // Upewniamy się, że ładowanie jest false, jeśli nie ma slugu
+      setHeaderDisplayApartmentName(apartmentSlug);
     }
-  }, [apartmentSlug]);
+  }, [apartmentDetails, apartmentSlug]);
+
+  // Auto-fill firstName/lastName based on isDifferentGuest
+  useEffect(() => {
+    if (formData.isDifferentGuest) {
+      setFormData((prev) => ({
+        ...prev,
+        firstName: prev.guestFirstName ?? "",
+        lastName: prev.guestLastName ?? "",
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        firstName: prev.bookingHolderFirstName ?? "",
+        lastName: prev.bookingHolderLastName ?? "",
+      }));
+    }
+  }, [
+    formData.isDifferentGuest,
+    formData.bookingHolderFirstName,
+    formData.bookingHolderLastName,
+    formData.guestFirstName,
+    formData.guestLastName,
+  ]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -152,116 +122,39 @@ const CheckInCard: React.FC<CheckInCardProps> = ({ apartmentSlug }) => {
 
     if (type === "checkbox") {
       const { checked } = e.target as HTMLInputElement;
-      setFormData((prevData) => ({
-        ...prevData,
+      setFormData((prev) => ({
+        ...prev,
         [name]: checked,
-        guestFirstName: checked ? prevData.guestFirstName : "",
-        guestLastName: checked ? prevData.guestLastName : "",
+        guestFirstName: checked ? prev.guestFirstName : "",
+        guestLastName: checked ? prev.guestLastName : "",
       }));
     } else {
-      setFormData((prevData) => ({
-        ...prevData,
+      setFormData((prev) => ({
+        ...prev,
         [name]: value,
       }));
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsLoading(true);
-    setSubmitStatus(null);
-    setSubmitMessage("");
 
-    console.log("🔥 Form submitted for apartment:", apartmentSlug);
+    // Validate with Zod
+    const result = checkInFormSchema.safeParse(formData);
 
-    const checkInDate = new Date();
-    // Set hours, minutes, seconds, and milliseconds to 0 for consistent date comparison
-    checkInDate.setHours(0, 0, 0, 0);
-
-    const finalFirstName = formData.isDifferentGuest
-      ? formData.guestFirstName
-      : formData.bookingHolderFirstName;
-    const finalLastName = formData.isDifferentGuest
-      ? formData.guestLastName
-      : formData.bookingHolderLastName;
-
-    if (!finalFirstName || !finalLastName) {
-      setSubmitStatus("error");
-      setSubmitMessage("Imię i nazwisko osoby meldowanej są wymagane.");
-      setIsLoading(false);
+    if (!result.success) {
+      const newErrors: Record<string, string> = {};
+      result.error.errors.forEach((error) => {
+        newErrors[error.path[0] as string] = error.message;
+      });
+      setErrors(newErrors);
       return;
     }
 
-    const dataToSend = {
-      bookingHolderFirstName: formData.bookingHolderFirstName,
-      bookingHolderLastName: formData.bookingHolderLastName,
-      isDifferentGuest: formData.isDifferentGuest,
-      guestFirstName: formData.isDifferentGuest
-        ? formData.guestFirstName
-        : undefined,
-      guestLastName: formData.isDifferentGuest
-        ? formData.guestLastName
-        : undefined,
-      firstName: finalFirstName,
-      lastName: finalLastName,
-      dateOfBirth: new Date(formData.dateOfBirth).toISOString(),
-      nationality: formData.nationality,
-      documentType: formData.documentType,
-      documentNumber: formData.documentNumber,
-      addressStreet: formData.addressStreet,
-      addressCity: formData.addressCity,
-      addressZipCode: formData.addressZipCode,
-      addressCountry: formData.addressCountry,
-      submittedApartmentIdentifier: apartmentSlug,
-      checkInDate: checkInDate.toISOString().split("T")[0],
-      stayStartDate: formData.stayStartDate,
-      stayEndDate: formData.stayEndDate,
-    };
-
-    console.log("📤 Sending data to API:", dataToSend);
-
-    try {
-      const response = await fetch("/api/check-in", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(dataToSend),
-      });
-
-      console.log("📥 API Response status:", response.status);
-      const result = (await response.json()) as ApiResponse;
-      console.log("📥 API Response data:", result);
-
-      if (response.ok && result.success && result.data?.redirectTo) {
-        setSubmitStatus("success");
-        setSubmitMessage(
-          "Karta meldunkowa została pomyślnie przesłana! Przekierowywanie do panelu gościa...",
-        );
-
-        // 🔥 NOWE: Przekierowanie do dashboardu gościa po 2 sekundach
-        setTimeout(() => {
-          window.location.href = result.data!.redirectTo;
-        }, 2000);
-      } else {
-        setSubmitStatus("error");
-        setSubmitMessage(
-          result.error ??
-            "Wystąpił błąd podczas przesyłania karty meldunkowej.",
-        );
-      }
-    } catch (error) {
-      console.error("Błąd przesyłania formularza:", error);
-      setSubmitStatus("error");
-      setSubmitMessage("Wystąpił błąd sieci lub serwera. Spróbuj ponownie.");
-    } finally {
-      setIsLoading(false);
-    }
+    setErrors({});
+    console.log("🔥 Form submitted for apartment:", apartmentSlug);
+    checkInMutation.mutate(result.data);
   };
-
-  // The fields for reservationCity and reservedApartment were removed from the form
-  // as they should be derived from the Reservation itself, using reservationId.
-  // If you still need to display them, you'd fetch Reservation details using reservationId.
 
   return (
     <div className="mx-auto max-w-2xl rounded-lg bg-white p-6 shadow-md">
@@ -274,51 +167,44 @@ const CheckInCard: React.FC<CheckInCardProps> = ({ apartmentSlug }) => {
         </span>
       </h1>
 
-      {/* Removed the warning about missing reservationId from URL */}
-
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={onSubmit} className="space-y-6">
         {/* Dane Osoby Rezerwującej */}
         <fieldset className="rounded-md border p-4">
           <legend className="px-2 text-lg font-semibold text-gray-700">
             Dane osoby która dokonała rezerwującej
           </legend>
-          <p className="mb-2 text-sm text-gray-600">
-            Podaj imię oraz nazwisko osoby, która dokonała rezerwacji.
-          </p>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
-              <label
-                htmlFor="bookingHolderFirstName"
-                className="block text-sm font-medium text-gray-700"
-              >
+              <label className="block text-sm font-medium text-gray-700">
                 Imię
               </label>
               <input
-                type="text"
                 name="bookingHolderFirstName"
-                id="bookingHolderFirstName"
                 value={formData.bookingHolderFirstName}
                 onChange={handleChange}
-                required
                 className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
               />
+              {errors.bookingHolderFirstName && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.bookingHolderFirstName}
+                </p>
+              )}
             </div>
             <div>
-              <label
-                htmlFor="bookingHolderLastName"
-                className="block text-sm font-medium text-gray-700"
-              >
+              <label className="block text-sm font-medium text-gray-700">
                 Nazwisko
               </label>
               <input
-                type="text"
                 name="bookingHolderLastName"
-                id="bookingHolderLastName"
                 value={formData.bookingHolderLastName}
                 onChange={handleChange}
-                required
                 className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
               />
+              {errors.bookingHolderLastName && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.bookingHolderLastName}
+                </p>
+              )}
             </div>
           </div>
         </fieldset>
@@ -326,130 +212,110 @@ const CheckInCard: React.FC<CheckInCardProps> = ({ apartmentSlug }) => {
         {/* Checkbox for different guest */}
         <div className="mt-4 flex items-center">
           <input
-            id="isDifferentGuest"
             name="isDifferentGuest"
             type="checkbox"
             checked={formData.isDifferentGuest}
             onChange={handleChange}
             className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
           />
-          <label
-            htmlFor="isDifferentGuest"
-            className="ml-2 block text-sm text-gray-900"
-          >
+          <label className="ml-2 block text-sm text-gray-900">
             Czy osoba meldująca się w apartamencie to inna osoba niż ta która
             złożyła rezerwacje?
           </label>
         </div>
 
-        {/* Dane Osoby Meldowanej (szczegóły) */}
-        <fieldset className="rounded-md border p-4">
-          <legend className="px-2 text-lg font-semibold text-gray-700">
-            Dane osoby meldowanej
-          </legend>
-
-          {/* PRZYWRÓCONY WARUNEK: Pola Imię i Nazwisko dla osoby meldowanej, jeśli JEST INNA niż rezerwująca */}
-          {formData.isDifferentGuest && (
-            <div className="mb-4">
-              <p className="mb-3 text-sm text-gray-600">
-                Podaj imię i nazwisko osoby, która będzie faktycznie meldowana w
-                apartamencie.
-              </p>
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div>
-                  <label
-                    htmlFor="guestFirstName"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Imię osoby meldowanej
-                  </label>
-                  <input
-                    type="text"
-                    name="guestFirstName"
-                    id="guestFirstName"
-                    value={formData.guestFirstName}
-                    onChange={handleChange}
-                    required={formData.isDifferentGuest}
-                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
-                  />
-                </div>
-                <div>
-                  <label
-                    htmlFor="guestLastName"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Nazwisko osoby meldowanej
-                  </label>
-                  <input
-                    type="text"
-                    name="guestLastName"
-                    id="guestLastName"
-                    value={formData.guestLastName}
-                    onChange={handleChange}
-                    required={formData.isDifferentGuest}
-                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
-                  />
-                </div>
+        {/* Guest details when different */}
+        {formData.isDifferentGuest && (
+          <fieldset className="rounded-md border p-4">
+            <legend className="px-2 text-lg font-semibold text-gray-700">
+              Dane osoby meldowanej
+            </legend>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Imię osoby meldowanej
+                </label>
+                <input
+                  name="guestFirstName"
+                  value={formData.guestFirstName}
+                  onChange={handleChange}
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                />
+                {errors.guestFirstName && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.guestFirstName}
+                  </p>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Nazwisko osoby meldowanej
+                </label>
+                <input
+                  name="guestLastName"
+                  value={formData.guestLastName}
+                  onChange={handleChange}
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                />
+                {errors.guestLastName && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.guestLastName}
+                  </p>
+                )}
               </div>
             </div>
-          )}
+          </fieldset>
+        )}
 
-          {/* Tekst wyjaśniający, czyje szczegółowe dane są zbierane poniżej - PRZYWRÓCONY WARUNEK */}
-          <p className="mb-3 text-sm text-gray-600">
-            {formData.isDifferentGuest
-              ? "Poniższe dane (data urodzenia, dokument, adres) dotyczą powyżej wprowadzonej osoby meldowanej."
-              : `Poniższe dane (data urodzenia, dokument, adres) dotyczą osoby rezerwującej (${formData.bookingHolderFirstName || "imię"} ${formData.bookingHolderLastName || "nazwisko"}), która będzie również osobą meldowaną.`}
-          </p>
-
-          {/* Pola Data urodzenia, Narodowość, Dokument, Adres - zawsze widoczne */}
+        {/* Rest of form fields... */}
+        {/* Date of Birth, Nationality, Document, Address fields */}
+        <fieldset className="rounded-md border p-4">
+          <legend className="px-2 text-lg font-semibold text-gray-700">
+            Szczegóły osoby meldowanej
+          </legend>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
-              <label
-                htmlFor="dateOfBirth"
-                className="block text-sm font-medium text-gray-700"
-              >
+              <label className="block text-sm font-medium text-gray-700">
                 Data urodzenia
               </label>
               <input
-                type="date"
                 name="dateOfBirth"
-                id="dateOfBirth"
                 value={formData.dateOfBirth}
                 onChange={handleChange}
-                required
+                type="date"
                 className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
               />
+              {errors.dateOfBirth && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.dateOfBirth}
+                </p>
+              )}
             </div>
             <div>
-              <label
-                htmlFor="nationality"
-                className="block text-sm font-medium text-gray-700"
-              >
+              <label className="block text-sm font-medium text-gray-700">
                 Narodowość
               </label>
               <input
-                type="text"
                 name="nationality"
-                id="nationality"
                 value={formData.nationality}
                 onChange={handleChange}
-                required
                 className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
               />
+              {errors.nationality && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.nationality}
+                </p>
+              )}
             </div>
+            {/* Document Type and Number */}
             <div>
-              <label
-                htmlFor="documentType"
-                className="block text-sm font-medium text-gray-700"
-              >
+              <label className="block text-sm font-medium text-gray-700">
                 Rodzaj dokumentu
               </label>
               <select
                 name="documentType"
-                id="documentType"
                 value={formData.documentType}
                 onChange={handleChange}
-                required
                 className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
               >
                 <option value="ID Card">Dowód osobisty</option>
@@ -458,166 +324,164 @@ const CheckInCard: React.FC<CheckInCardProps> = ({ apartmentSlug }) => {
               </select>
             </div>
             <div>
-              <label
-                htmlFor="documentNumber"
-                className="block text-sm font-medium text-gray-700"
-              >
+              <label className="block text-sm font-medium text-gray-700">
                 Numer dokumentu
               </label>
               <input
-                type="text"
                 name="documentNumber"
-                id="documentNumber"
                 value={formData.documentNumber}
                 onChange={handleChange}
-                required
                 className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
               />
+              {errors.documentNumber && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.documentNumber}
+                </p>
+              )}
             </div>
           </div>
         </fieldset>
 
-        {/* Dane Rezerwacji */}
+        {/* Stay dates */}
         <fieldset className="rounded-md border p-4">
           <legend className="px-2 text-lg font-semibold text-gray-700">
             Dane Rezerwacji
           </legend>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
-              <label
-                htmlFor="stayStartDate"
-                className="block text-sm font-medium text-gray-700"
-              >
+              <label className="block text-sm font-medium text-gray-700">
                 Data zameldowania
               </label>
               <input
-                type="date"
                 name="stayStartDate"
-                id="stayStartDate"
                 value={formData.stayStartDate}
                 onChange={handleChange}
-                required
+                type="date"
                 className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
               />
+              {errors.stayStartDate && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.stayStartDate}
+                </p>
+              )}
             </div>
             <div>
-              <label
-                htmlFor="stayEndDate"
-                className="block text-sm font-medium text-gray-700"
-              >
+              <label className="block text-sm font-medium text-gray-700">
                 Data wymeldowania
               </label>
               <input
-                type="date"
                 name="stayEndDate"
-                id="stayEndDate"
                 value={formData.stayEndDate}
                 onChange={handleChange}
-                required
+                type="date"
                 className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
               />
+              {errors.stayEndDate && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.stayEndDate}
+                </p>
+              )}
             </div>
           </div>
         </fieldset>
 
-        {/* Dane Adresowe */}
+        {/* Address fields */}
         <fieldset className="rounded-md border p-4">
           <legend className="px-2 text-lg font-semibold text-gray-700">
             Dane Adresowe
           </legend>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="md:col-span-2">
-              <label
-                htmlFor="addressStreet"
-                className="block text-sm font-medium text-gray-700"
-              >
+              <label className="block text-sm font-medium text-gray-700">
                 Ulica i numer domu/mieszkania
               </label>
               <input
-                type="text"
                 name="addressStreet"
-                id="addressStreet"
                 value={formData.addressStreet}
                 onChange={handleChange}
-                required
                 className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
               />
+              {errors.addressStreet && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.addressStreet}
+                </p>
+              )}
             </div>
             <div>
-              <label
-                htmlFor="addressCity"
-                className="block text-sm font-medium text-gray-700"
-              >
+              <label className="block text-sm font-medium text-gray-700">
                 Miejscowość
               </label>
               <input
-                type="text"
                 name="addressCity"
-                id="addressCity"
                 value={formData.addressCity}
                 onChange={handleChange}
-                required
                 className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
               />
+              {errors.addressCity && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.addressCity}
+                </p>
+              )}
             </div>
             <div>
-              <label
-                htmlFor="addressZipCode"
-                className="block text-sm font-medium text-gray-700"
-              >
+              <label className="block text-sm font-medium text-gray-700">
                 Kod pocztowy
               </label>
               <input
-                type="text"
                 name="addressZipCode"
-                id="addressZipCode"
                 value={formData.addressZipCode}
                 onChange={handleChange}
-                required
                 className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
               />
+              {errors.addressZipCode && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.addressZipCode}
+                </p>
+              )}
             </div>
             <div>
-              <label
-                htmlFor="addressCountry"
-                className="block text-sm font-medium text-gray-700"
-              >
+              <label className="block text-sm font-medium text-gray-700">
                 Kraj
               </label>
               <input
-                type="text"
                 name="addressCountry"
-                id="addressCountry"
                 value={formData.addressCountry}
                 onChange={handleChange}
-                required
                 className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
               />
+              {errors.addressCountry && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.addressCountry}
+                </p>
+              )}
             </div>
           </div>
         </fieldset>
 
-        {/* Removed Reservation Details section from form - no longer needed here */}
+        {/* Submit status */}
+        {checkInMutation.isError && (
+          <div className="rounded bg-red-100 p-4 text-sm text-red-700">
+            {checkInMutation.error?.message ??
+              "Wystąpił błąd podczas przesyłania karty meldunkowej."}
+          </div>
+        )}
 
-        {submitStatus && (
-          <div
-            className={`rounded p-4 text-sm ${
-              submitStatus === "success"
-                ? "bg-green-100 text-green-700"
-                : "bg-red-100 text-red-700"
-            }`}
-          >
-            {submitMessage}
+        {checkInMutation.isSuccess && checkInMutation.data?.success && (
+          <div className="rounded bg-green-100 p-4 text-sm text-green-700">
+            Karta meldunkowa została pomyślnie przesłana! Przekierowywanie do
+            panelu gościa...
           </div>
         )}
 
         <div className="flex justify-end">
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={checkInMutation.isPending}
             className="rounded-md border border-transparent bg-indigo-600 px-6 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
           >
-            {isLoading ? "Przetwarzanie..." : "Wyślij Kartę Meldunkową"}
+            {checkInMutation.isPending
+              ? "Przetwarzanie..."
+              : "Wyślij Kartę Meldunkową"}
           </button>
         </div>
       </form>

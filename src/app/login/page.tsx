@@ -9,20 +9,33 @@ export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Odczytaj callbackUrl, ale jeśli go nie ma lub jest to strona główna,
-  // ustaw domyślny callback na /apartments po zalogowaniu.
+  // Odczytaj callbackUrl z URL parametrów
   const requestedCallbackUrl = searchParams.get("callbackUrl");
-  const callbackUrl =
-    requestedCallbackUrl && requestedCallbackUrl !== "/"
-      ? requestedCallbackUrl
-      : "/apartments";
 
   useEffect(() => {
-    // Jeśli już zalogowany, przekieruj od razu (respektując callbackUrl lub domyślny)
-    if (status === "authenticated") {
-      router.push(callbackUrl);
+    // Jeśli już zalogowany, przekieruj zgodnie z typem użytkownika
+    if (status === "authenticated" && session?.user) {
+      let redirectUrl: string;
+
+      // Jeśli jest callbackUrl w parametrach, użyj go
+      if (requestedCallbackUrl && requestedCallbackUrl !== "/") {
+        redirectUrl = requestedCallbackUrl;
+      }
+      // Jeśli użytkownik to ADMIN, przekieruj do panelu administracyjnego
+      else if (session.user.type === "ADMIN") {
+        redirectUrl = "/admin/owners";
+      }
+      // Dla innych typów użytkowników przekieruj do apartamentów
+      else {
+        redirectUrl = "/apartments";
+      }
+
+      console.log(
+        `🔄 Redirecting ${session.user.type} user to: ${redirectUrl}`,
+      );
+      router.push(redirectUrl);
     }
-  }, [status, router, callbackUrl]);
+  }, [status, session, router, requestedCallbackUrl]);
 
   if (status === "loading" || status === "authenticated") {
     return (
@@ -38,6 +51,16 @@ export default function LoginPage() {
       </div>
     );
   }
+
+  // Dla przycisku logowania również uwzględnij typ użytkownika
+  const getCallbackUrl = () => {
+    if (requestedCallbackUrl && requestedCallbackUrl !== "/") {
+      return requestedCallbackUrl;
+    }
+    // Nie możemy tutaj sprawdzić typu użytkownika przed logowaniem,
+    // więc użyjemy domyślnej strony, a logika przekierowania zadziała w useEffect
+    return "/apartments";
+  };
 
   return (
     <div
@@ -56,7 +79,7 @@ export default function LoginPage() {
         Discord.
       </p>
       <button
-        onClick={() => signIn("discord", { callbackUrl: callbackUrl })} // Przekaż finalny callbackUrl
+        onClick={() => signIn("discord", { callbackUrl: getCallbackUrl() })}
         style={{
           padding: "12px 24px",
           fontSize: "1rem",

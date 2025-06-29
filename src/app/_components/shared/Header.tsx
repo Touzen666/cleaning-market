@@ -1,66 +1,21 @@
+"use client";
+
 import Link from "next/link";
-import { useState, useEffect } from "react";
-
-interface ApartmentInfo {
-  name: string;
-  slug: string;
-}
-
-interface ApiResponse {
-  success: boolean;
-  apartments: ApartmentInfo[];
-  error?: string;
-  details?: string;
-}
+import { useState } from "react";
+import { api } from "@/trpc/react";
 
 export default function Header() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [apartments, setApartments] = useState<ApartmentInfo[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchApartments = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const response = await fetch("/api/apartments");
-        if (!response.ok) {
-          let apiError = `Failed to fetch apartments: ${response.status}`;
-          try {
-            const errorData = (await response.json()) as ApiResponse;
-            if (errorData.error) apiError = errorData.error;
-          } catch (e) {
-            /* Ignore parsing error, use status code error */
-          }
-          throw new Error(apiError);
-        } else {
-          const data = (await response.json()) as ApiResponse;
-          if (data.success && data.apartments) {
-            setApartments(data.apartments);
-          } else {
-            console.warn(
-              "Header: API call for apartments did not return expected data.",
-              data,
-            );
-            setApartments([]);
-          }
-        }
-      } catch (err) {
-        console.error("Header: Error fetching apartments:", err);
-        setError(
-          err instanceof Error ? err.message : "An unknown error occurred",
-        );
-        setApartments([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    void fetchApartments(); // Mark promise as intentionally not awaited here
-  }, []);
+  const {
+    data: apartmentsData,
+    isLoading,
+    error,
+  } = api.apartments.getAll.useQuery();
 
   const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
+
+  const apartments = apartmentsData?.apartments ?? [];
 
   return (
     <header className="bg-black p-4 text-white">
@@ -86,8 +41,8 @@ export default function Header() {
             {isDropdownOpen && (
               <div className="absolute right-0 z-10 mt-2 w-64 rounded-md bg-white text-black shadow-lg">
                 <ul className="py-1">
-                  {apartments.map((apartment, index) => (
-                    <li key={index}>
+                  {apartments.map((apartment) => (
+                    <li key={apartment.slug}>
                       <Link
                         href={`/check-in-card/${apartment.slug}`}
                         className="block px-4 py-2 text-sm hover:bg-gray-100"

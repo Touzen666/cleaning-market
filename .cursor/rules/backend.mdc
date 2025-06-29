@@ -1,0 +1,7 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Używaj frameworku T3App oraz TRPC w folderze src/server/api do pisania backendu
+
