@@ -1,50 +1,49 @@
-"use client"; // Musi być komponentem klienckim, aby użyć hooków
+"use client";
 
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { api } from "@/trpc/react";
+import Link from "next/link";
 
 export default function HomePage() {
-  const { data: session } = useSession();
-  const router = useRouter();
+  const {
+    data: apartmentsData,
+    isLoading,
+    error,
+  } = api.apartments.getAll.useQuery();
 
-  useEffect(() => {
-    if (session?.user?.type === "ADMIN") {
-      router.push("/admin");
-    }
-  }, [session, router]);
+  if (isLoading) {
+    return <div className="py-8 text-center">Ładowanie apartamentów...</div>;
+  }
 
-  if (session?.user?.type === "UNKNOWN") {
+  if (error) {
     return (
-      <div className="flex min-h-[80vh] items-center justify-center p-4">
-        <div
-          className="w-full max-w-2xl rounded-md border-l-4 border-red-500 bg-red-100 p-6 text-red-700 shadow-md"
-          role="alert"
-        >
-          <h2 className="mb-2 text-xl font-bold">Błąd Dostępu</h2>
-          <p className="text-base">
-            Wygląda na to, że link, którego używasz, jest niekompletny lub
-            uszkodzony. Aby uzyskać dostęp do karty meldunkowej, prosimy
-            skorzystać z pełnego linku przesłanego w szczegółach rezerwacji lub
-            drogą mailową.
-          </p>
-          <p className="mt-4 text-sm">
-            Jeśli problem będzie się powtarzał, skontaktuj się z obsługą.
-            <br />
-            <a href="mailto:biuro@zlote-wynajmy.columns">
-              <strong>biuro@zlote-wynajmy.columns</strong>
-            </a>
-            <br />
-            <a href="tel:+48690884961">
-              <strong>+48 690 884 961</strong>
-            </a>
-            <br />
-            <a href="tel:+48531392423">
-              <strong>+48 531 392 423</strong>
-            </a>
-          </p>
-        </div>
+      <div className="py-8 text-center text-red-600">
+        Błąd ładowania apartamentów
       </div>
     );
   }
+
+  return (
+    <main className="container mx-auto py-8">
+      <h1 className="mb-8 text-center text-3xl font-bold">
+        Wybierz Apartament
+      </h1>
+
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {apartmentsData?.apartments?.map((apartment) => (
+          <Link
+            key={apartment.id}
+            href={`/check-in-card/${apartment.slug}`}
+            className="block rounded-lg border border-gray-200 p-6 transition-all hover:bg-gray-50 hover:shadow-md"
+          >
+            <h2 className="text-xl font-semibold text-gray-800">
+              {apartment.name}
+            </h2>
+            <p className="mt-2 text-gray-600">
+              Kliknij aby wypełnić kartę meldunkową
+            </p>
+          </Link>
+        ))}
+      </div>
+    </main>
+  );
 }

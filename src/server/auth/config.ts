@@ -1,6 +1,8 @@
-import { PrismaAdapter } from "@auth/prisma-adapter";
-import type { User, Session, DefaultSession, AuthOptions } from "next-auth";
+import { PrismaAdapter, } from "@auth/prisma-adapter";
+import { type DefaultSession, type NextAuthConfig, type User, type Session, } from "next-auth";
+import { type AdapterUser } from "next-auth/adapters";
 import DiscordProvider from "next-auth/providers/discord";
+import { type UserType } from "@prisma/client";
 
 import { db } from "@/server/db";
 
@@ -14,15 +16,17 @@ declare module "next-auth" {
   interface Session extends DefaultSession {
     user: {
       id: string;
+      type: UserType;
       // ...other properties
       // role: UserRole;
     } & DefaultSession["user"];
   }
 
-  // interface User {
-  //   // ...other properties
-  //   // role: UserRole;
-  // }
+  interface User {
+    type: UserType;
+    // ...other properties
+    // role: UserRole;
+  }
 }
 
 /**
@@ -30,30 +34,35 @@ declare module "next-auth" {
  *
  * @see https://next-auth.js.org/configuration/options
  */
-export const authConfig: AuthOptions = {
+export const authConfig = {
+  adapter: PrismaAdapter(db),
   providers: [
     DiscordProvider({
       clientId: process.env.DISCORD_CLIENT_ID!,
       clientSecret: process.env.DISCORD_CLIENT_SECRET!,
     }),
-    /**
-     * ...add more providers here.
-     *
-     * Most other providers require a bit more work than the Discord provider. For example, the
-     * GitHub provider requires you to add the `refresh_token_expires_in` field to the Account
-     * model. Refer to the NextAuth.js docs for the provider you want to use. Example:
-     *
-     * @see https://next-auth.js.org/providers/github
-     */
   ],
-  adapter: PrismaAdapter(db),
+  pages: {
+    signIn: '/login',
+  },
   callbacks: {
-    session: ({ session, user }: { session: Session; user: User }) => ({
-      ...session,
-      user: {
-        ...session.user,
-        id: user.id,
-      },
-    }),
+    async session({ session, user }: { session: Session; user: User | AdapterUser }) {
+      if (session.user && user.id) {
+        session.user.id = user.id;
+
+        // Get full user data with type from database
+        const dbUser = await db.user.findUnique({
+          where: { id: user.id },
+          select: { type: true }
+        });
+
+        session.user.type = dbUser?.type ?? "UNKNOWN";
+      }
+      return session;
+    },
+  },
+  secret: process.env.NEXTAUTH_SECRET!,
+  session: {
+    strategy: "database" as const,
   },
 };

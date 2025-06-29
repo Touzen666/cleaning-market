@@ -1,118 +1,101 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useCallback, useState } from "react";
 import { useParams } from "next/navigation";
-
-interface ApartmentData {
-  id: string;
-  name: string;
-  slug: string;
-}
-
-interface GuestData {
-  authenticated: boolean;
-  apartmentSlug: string;
-  reservation?: {
-    start: string;
-    end: string;
-    guest: string;
-    apartment?: ApartmentData;
-  };
-  checkInCard?: {
-    firstName: string;
-    lastName: string;
-    isPrimaryGuest: boolean;
-    actualCheckInTime?: string | null;
-  };
-  shouldShowCheckIn?: boolean;
-  canCheckInFrom?: string;
-  sessionExpiresAt?: string;
-}
+import { api } from "@/trpc/react";
 
 export default function GuestDashboardPage() {
   const params = useParams<{ apartmentSlug: string }>();
-  const initialApartmentSlug = params.apartmentSlug;
+  const apartmentSlug = params.apartmentSlug;
 
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [guestData, setGuestData] = useState<GuestData | null>(null);
-  const [checkingIn, setCheckingIn] = useState(false);
+  // Client-only state for guest session token
+  const [guestSessionToken, setGuestSessionToken] = useState<
+    string | undefined
+  >(undefined);
+  const [mounted, setMounted] = useState(false);
 
-  const checkGuestSession = useCallback(async () => {
-    console.log(
-      "[GuestDashboardPage] Checking guest session for apartmentSlug:",
-      initialApartmentSlug,
-    );
-    if (!initialApartmentSlug) {
-      console.error(
-        "[GuestDashboardPage] CRITICAL: initialApartmentSlug is missing. Redirecting.",
-      );
-      setLoading(false);
-      setIsAuthenticated(false);
-      window.location.href = `/guest-login/unknown-apartment`;
-      return;
-    }
-    try {
-      console.log(
-        `[GuestDashboardPage] Attempting to fetch: /api/guest-auth/verify?apartmentSlug=${initialApartmentSlug}`,
-      );
-      const response = await fetch(
-        `/api/guest-auth/verify?apartmentSlug=${initialApartmentSlug}`,
-      );
-      console.log("[GuestDashboardPage] API response status:", response.status);
-      const result = (await response.json()) as GuestData;
-      console.log("[GuestDashboardPage] API response data:", result);
-
-      if (response.ok && result.authenticated) {
-        setIsAuthenticated(true);
-        setGuestData(result);
-      } else {
-        window.location.href = `/guest-login/${initialApartmentSlug}`;
-      }
-    } catch (error) {
-      console.error("Error checking guest session:", error);
-      window.location.href = `/guest-login/${initialApartmentSlug}`;
-    } finally {
-      setLoading(false);
-    }
-  }, [initialApartmentSlug]);
-
-  const handleCheckIn = async () => {
-    setCheckingIn(true);
-    const slugForCheckIn = guestData?.apartmentSlug ?? initialApartmentSlug;
-    try {
-      const response = await fetch("/api/guest-checkin", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          apartmentSlug: slugForCheckIn,
-        }),
-      });
-
-      const result = (await response.json()) as {
-        success: boolean;
-        error?: string;
-      };
-      if (response.ok && result.success) {
-        await checkGuestSession();
-      } else {
-        alert(result.error ?? "Błąd podczas meldowania");
-      }
-    } catch (error) {
-      console.error("Check-in error:", error);
-      alert("Wystąpił błąd podczas meldowania");
-    } finally {
-      setCheckingIn(false);
-    }
-  };
-
+  // Debug: sprawdź cookie po stronie klienta
   useEffect(() => {
-    void checkGuestSession();
-  }, [checkGuestSession]);
+    setMounted(true);
+
+    const allCookies = document.cookie;
+    const guestSession = document.cookie
+      .split(";")
+      .find((cookie) => cookie.trim().startsWith("guest-session="))
+      ?.split("=")[1];
+
+    console.log("🔍 Client-side cookie debugging:");
+    console.log("📋 All cookies:", allCookies);
+    console.log("🍪 Guest session cookie:", guestSession);
+
+    setGuestSessionToken(guestSession);
+  }, []);
+
+  // tRPC queries and mutations - only run after mount
+  const {
+    data: guestData,
+    isLoading: loading,
+    refetch: checkGuestSession,
+    error,
+  } = api.guestAuth.verify.useQuery(
+    {
+      apartmentSlug,
+      sessionToken: guestSessionToken,
+    },
+    {
+      enabled: mounted && !!apartmentSlug && !!guestSessionToken,
+      retry: false,
+    },
+  );
+
+  const guestCheckinMutation = api.guestCheckin.checkin.useMutation({
+    onSuccess: () => {
+      void checkGuestSession();
+    },
+    onError: (error) => {
+      alert(error.message ?? "Błąd podczas meldowania");
+    },
+  });
+
+  // Handle success/error with useEffect instead
+  useEffect(() => {
+    if (guestData) {
+      console.log("🔍 Guest verification result:", guestData);
+    }
+    if (error) {
+      console.error("❌ Guest verification error:", error);
+    }
+  }, [guestData, error]);
+
+  const handleCheckIn = useCallback(() => {
+    if (!apartmentSlug) return;
+    guestCheckinMutation.mutate({ apartmentSlug });
+  }, [apartmentSlug, guestCheckinMutation]);
+
+  // Debug info
+  console.log("🔍 Dashboard render state:", {
+    mounted,
+    loading,
+    authenticated: guestData?.authenticated,
+    apartmentSlug,
+    hasError: !!error,
+    hasToken: !!guestSessionToken,
+  });
+
+  // Show loading until component is mounted (client-side)
+  if (!mounted) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="h-32 w-32 animate-spin rounded-full border-b-2 border-indigo-600"></div>
+          <p className="mt-4 text-gray-600">Inicjalizacja...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
+    console.log("📱 Showing loading state");
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
@@ -123,9 +106,12 @@ export default function GuestDashboardPage() {
     );
   }
 
-  if (!isAuthenticated) {
-    return null;
+  if (!guestData?.authenticated) {
+    console.log("❌ Not authenticated, rendering null");
+    return null; // Will redirect in useEffect
   }
+
+  console.log("✅ Rendering dashboard content");
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("pl-PL", {
@@ -139,7 +125,7 @@ export default function GuestDashboardPage() {
   };
 
   const displayApartmentName =
-    guestData?.reservation?.apartment?.name ?? initialApartmentSlug;
+    guestData.reservation?.apartment?.name ?? apartmentSlug;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -153,7 +139,7 @@ export default function GuestDashboardPage() {
                 {displayApartmentName}
               </span>
             </p>
-            {guestData?.checkInCard && (
+            {guestData.checkInCard && (
               <p className="mt-1 text-sm text-gray-500">
                 Witaj, {guestData.checkInCard.firstName}{" "}
                 {guestData.checkInCard.lastName}
@@ -161,7 +147,7 @@ export default function GuestDashboardPage() {
             )}
           </div>
 
-          {guestData?.shouldShowCheckIn && (
+          {guestData.shouldShowCheckIn && (
             <div className="mb-6">
               <div className="rounded-lg bg-blue-50 p-4 text-center">
                 <h3 className="mb-2 text-lg font-semibold text-blue-800">
@@ -172,10 +158,12 @@ export default function GuestDashboardPage() {
                 </p>
                 <button
                   onClick={handleCheckIn}
-                  disabled={checkingIn}
+                  disabled={guestCheckinMutation.isPending}
                   className="rounded-md bg-blue-600 px-6 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
                 >
-                  {checkingIn ? "Meldowanie..." : "Zamelduj się"}
+                  {guestCheckinMutation.isPending
+                    ? "Meldowanie..."
+                    : "Zamelduj się"}
                 </button>
               </div>
             </div>
@@ -186,7 +174,7 @@ export default function GuestDashboardPage() {
               <h3 className="mb-2 text-lg font-semibold text-gray-800">
                 Status Pobytu
               </h3>
-              {guestData?.checkInCard?.actualCheckInTime ? (
+              {guestData.checkInCard?.actualCheckInTime ? (
                 <div className="flex items-center">
                   <div className="h-3 w-3 rounded-full bg-green-500"></div>
                   <span className="ml-2 text-sm font-medium text-green-700">
@@ -197,13 +185,14 @@ export default function GuestDashboardPage() {
                 <div className="flex items-center">
                   <div className="h-3 w-3 rounded-full bg-yellow-500"></div>
                   <span className="ml-2 text-sm font-medium text-yellow-700">
-                    Utworzona karta <br></br> Nie zameldowany
+                    Utworzona karta <br /> Nie zameldowany
                   </span>
                 </div>
               )}
-              {guestData?.sessionExpiresAt && (
+              {guestData.sessionExpiresAt && (
                 <p className="mt-2 text-xs text-gray-500">
-                  Wymeldowanie do:<br></br>
+                  Wymeldowanie do:
+                  <br />
                   {formatDate(guestData.sessionExpiresAt)}
                 </p>
               )}
@@ -213,14 +202,14 @@ export default function GuestDashboardPage() {
               <h3 className="mb-2 text-lg font-semibold text-gray-800">
                 Rezerwacja
               </h3>
-              {guestData?.reservation ? (
+              {guestData.reservation ? (
                 <>
-                  {guestData?.canCheckInFrom && (
+                  {guestData.canCheckInFrom && (
                     <p className="text-sm text-gray-600">
                       Meldowanie od: {formatDate(guestData.canCheckInFrom)}
                     </p>
                   )}
-                  {guestData?.sessionExpiresAt && (
+                  {guestData.sessionExpiresAt && (
                     <p className="text-sm text-gray-600">
                       Wymeldowanie do: {formatDate(guestData.sessionExpiresAt)}
                     </p>
@@ -229,8 +218,8 @@ export default function GuestDashboardPage() {
                     Rezerwujący: {guestData.reservation.guest}
                   </p>
                   <p className="mt-1 text-xs text-gray-500">
-                    Gość: {guestData?.checkInCard?.firstName}{" "}
-                    {guestData?.checkInCard?.lastName}
+                    Gość: {guestData.checkInCard?.firstName}{" "}
+                    {guestData.checkInCard?.lastName}
                   </p>
                 </>
               ) : (
@@ -275,7 +264,7 @@ export default function GuestDashboardPage() {
                 zarezerwowałeś/aś ten apartament.
               </p>
               <br></br>
-              {guestData?.canCheckInFrom && (
+              {guestData.canCheckInFrom && (
                 <p className="mt-2 text-sm text-indigo-600">
                   Meldowanie możliwe od: {formatDate(guestData.canCheckInFrom)}
                 </p>
@@ -286,7 +275,7 @@ export default function GuestDashboardPage() {
           <div className="mt-6 text-center">
             <button
               onClick={() => {
-                window.location.href = `/guest-login/${initialApartmentSlug}`;
+                window.location.href = `/guest-login/${apartmentSlug}`;
               }}
               className="rounded-md bg-red-600 px-4 py-2 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
             >

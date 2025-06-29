@@ -53,11 +53,17 @@ export function TRPCReactProvider(props: { children: React.ReactNode }) {
           headers: () => {
             const headers = new Headers();
             headers.set("x-trpc-source", "nextjs-react");
+
+            // Dodaj cookies do headers dla server requests
+            if (typeof window !== "undefined") {
+              headers.set("Cookie", document.cookie);
+            }
+
             return headers;
           },
         }),
       ],
-    })
+    }),
   );
 
   return (
