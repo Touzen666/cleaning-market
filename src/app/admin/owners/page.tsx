@@ -1,12 +1,14 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { api } from "@/trpc/react";
 import type { RouterOutputs } from "@/trpc/react";
 
 type ApartmentOwner = RouterOutputs["apartmentOwners"]["getAll"][0];
 
 export default function AdminOwnersPage() {
+  const router = useRouter();
   const [showAddForm, setShowAddForm] = useState(false);
   const [selectedOwner, setSelectedOwner] = useState<string | null>(null);
 
@@ -60,25 +62,65 @@ export default function AdminOwnersPage() {
               </p>
             </div>
             <div className="mt-4 sm:mt-0">
-              <button
-                onClick={() => setShowAddForm(true)}
-                className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-              >
-                <svg
-                  className="-ml-0.5 mr-1.5 h-5 w-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+              <div className="flex gap-3">
+                <button
+                  onClick={() => router.push("/admin/reservations")}
+                  className="inline-flex items-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                  />
-                </svg>
-                Dodaj Właściciela
-              </button>
+                  <svg
+                    className="-ml-0.5 mr-1.5 h-5 w-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                  </svg>
+                  Rezerwacje
+                </button>
+                <button
+                  onClick={() => router.push("/admin/reports")}
+                  className="inline-flex items-center rounded-md bg-purple-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-purple-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-600"
+                >
+                  <svg
+                    className="-ml-0.5 mr-1.5 h-5 w-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
+                  </svg>
+                  Fakturownia
+                </button>
+                <button
+                  onClick={() => setShowAddForm(true)}
+                  className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                >
+                  <svg
+                    className="-ml-0.5 mr-1.5 h-5 w-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                    />
+                  </svg>
+                  Dodaj Właściciela
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -497,6 +539,9 @@ function AddOwnerModal({
     lastName: "",
     phone: "",
     apartmentIds: [] as string[],
+    paymentType: "COMMISSION" as "COMMISSION" | "FIXED_AMOUNT",
+    fixedPaymentAmount: "",
+    vatOption: "NO_VAT" as "NO_VAT" | "VAT_8" | "VAT_23",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -521,6 +566,19 @@ function AddOwnerModal({
     if (!formData.email) newErrors.email = "Email jest wymagany";
     if (!formData.firstName) newErrors.firstName = "Imię jest wymagane";
     if (!formData.lastName) newErrors.lastName = "Nazwisko jest wymagane";
+    if (
+      formData.paymentType === "FIXED_AMOUNT" &&
+      !formData.fixedPaymentAmount
+    ) {
+      newErrors.fixedPaymentAmount =
+        "Kwota stała jest wymagana dla tego typu rozliczenia";
+    }
+    if (
+      formData.paymentType === "FIXED_AMOUNT" &&
+      isNaN(parseFloat(formData.fixedPaymentAmount))
+    ) {
+      newErrors.fixedPaymentAmount = "Wprowadź prawidłową kwotę";
+    }
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -533,6 +591,12 @@ function AddOwnerModal({
       lastName: formData.lastName,
       phone: formData.phone || undefined,
       apartmentIds: formData.apartmentIds.map((id) => parseInt(id)),
+      paymentType: formData.paymentType,
+      fixedPaymentAmount:
+        formData.paymentType === "FIXED_AMOUNT"
+          ? parseFloat(formData.fixedPaymentAmount)
+          : undefined,
+      vatOption: formData.vatOption,
     });
   };
 
@@ -659,6 +723,100 @@ function AddOwnerModal({
               className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
               placeholder="+48 123 456 789"
             />
+          </div>
+
+          {/* Konfiguracja płatności */}
+          <div className="space-y-4 rounded-lg border border-gray-200 p-4">
+            <h4 className="text-sm font-medium text-gray-900">
+              Konfiguracja rozliczenia
+            </h4>
+
+            {/* Typ płatności */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Sposób rozliczenia *
+              </label>
+              <select
+                value={formData.paymentType}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    paymentType: e.target.value as
+                      | "COMMISSION"
+                      | "FIXED_AMOUNT",
+                    fixedPaymentAmount:
+                      e.target.value === "COMMISSION"
+                        ? ""
+                        : prev.fixedPaymentAmount,
+                  }))
+                }
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
+              >
+                <option value="COMMISSION">Prowizja od przychodów</option>
+                <option value="FIXED_AMOUNT">Kwota stała miesięcznie</option>
+              </select>
+            </div>
+
+            {/* Kwota stała (tylko dla FIXED_AMOUNT) */}
+            {formData.paymentType === "FIXED_AMOUNT" && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Miesięczna kwota stała (PLN) *
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={formData.fixedPaymentAmount}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      fixedPaymentAmount: e.target.value,
+                    }))
+                  }
+                  className={`mt-1 block w-full rounded-md border px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 ${
+                    errors.fixedPaymentAmount
+                      ? "border-red-300"
+                      : "border-gray-300"
+                  }`}
+                  placeholder="1500.00"
+                />
+                {errors.fixedPaymentAmount && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.fixedPaymentAmount}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Opcja VAT */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Konfiguracja VAT *
+              </label>
+              <select
+                value={formData.vatOption}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    vatOption: e.target.value as "NO_VAT" | "VAT_8" | "VAT_23",
+                  }))
+                }
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
+              >
+                <option value="NO_VAT">Bez VAT (zwolniony z podatku)</option>
+                <option value="VAT_8">VAT 8%</option>
+                <option value="VAT_23">VAT 23%</option>
+              </select>
+              <p className="mt-1 text-xs text-gray-500">
+                {formData.vatOption === "NO_VAT" &&
+                  "Właściciel jest zwolniony z VAT"}
+                {formData.vatOption === "VAT_8" &&
+                  "Do wypłaty zostanie doliczony VAT 8%"}
+                {formData.vatOption === "VAT_23" &&
+                  "Do wypłaty zostanie doliczony VAT 23%"}
+              </p>
+            </div>
           </div>
 
           {/* Apartamenty */}

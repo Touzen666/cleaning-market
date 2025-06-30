@@ -1,108 +1,230 @@
 # 🏢 Book Market - System Zarządzania Apartamentami
 
-**Book Market** to nowoczesna aplikacja full-stack do zarządzania krótkookresowym wynajmem apartamentów, zbudowana w oparciu o Next.js 15, TypeScript i PostgreSQL. Aplikacja oferuje kompleksowy system rezerwacji, kart meldunkowych oraz zarządzania sesjami użytkowników.
+**Book Market** to zaawansowana aplikacja full-stack do kompleksowego zarządzania krótkookresowym wynajmem apartamentów. System oferuje wielopoziomową autoryzację, automatyczne generowanie raportów finansowych, zarządzanie rezerwacjami oraz intuicyjne dashboardy dla różnych typów użytkowników.
 
 ## 📋 **Główne Funkcjonalności**
 
-### 🏠 **System Apartamentów**
+### 🔐 **System Autoryzacji i Ról**
 
-- Zarządzanie portfelem apartamentów z unikalnym systemem slug'ów
-- Przechowywanie informacji o adresach i podstawowych danych
-- Integracja z systemem rezerwacji i kart meldunkowych
+#### **Administrator (Discord OAuth)**
+
+- **Wyłączny dostęp** dla głównego administratora (Bartosz) przez Discord OAuth
+- **Weryfikacja email i nazwy użytkownika** - tylko autoryzowane konto może się zalogować
+- **Pełny dostęp** do wszystkich funkcji administracyjnych
+
+#### **Właściciele Apartamentów**
+
+- **System logowania email/hasło** z obsługą haseł tymczasowych
+- **First-time setup** - ustawianie hasła przy pierwszym logowaniu
+- **Zarządzanie sesjami** z bezpiecznym przechowywaniem w localStorage
+- **Automatyczne przekierowania** po pomyślnym logowaniu
+
+#### **Goście**
+
+- **System check-in** z kartami meldunkowymi
+- **Dostęp per apartament** z unikalnym slugiem
+- **Walidacja dokumentów** (dowód, paszport, prawo jazdy)
+
+### 🏠 **System Apartamentów i Właścicieli**
+
+- **Baza apartamentów** z unikalnym systemem adresowania (slug)
+- **Relacje właściciel-apartament** - jeden właściciel może mieć wiele apartamentów
+- **Zarządzanie kontaktami** właścicieli (email, telefon, dane osobowe)
+- **Status aktywności** właścicieli i apartamentów
 
 ### 📅 **System Rezerwacji**
 
-- Automatyczne pobieranie rezerwacji z zewnętrznych źródeł (IdoBooking)
-- Śledzenie statusów rezerwacji, płatności i dat pobytu
-- Zarządzanie informacjami o gościach (liczba dorosłych/dzieci)
-- Powiązanie rezerwacji z konkretnymi apartamentami
+- **Automatyczne pobieranie** rezerwacji z zewnętrznych platform (Booking.com, Airbnb, IdoBooking)
+- **Statusy rezerwacji**: PENDING, CONFIRMED, CANCELLED, CHECKED_IN, CHECKED_OUT
+- **Śledzenie źródeł** rezerwacji dla analityki prowizji
+- **Zarządzanie gośćmi** z danymi kontaktowymi i liczbą osób
+- **Kalendarze rezerwacji** z wizualnym przedstawieniem okresów
 
-### 🆔 **System Kart Meldunkowych**
+### 📊 **System Raportów Miesięcznych**
 
-- **Cyfrowe karty meldunkowe** dla gości z pełną walidacją danych
+#### **Automatyczne Generowanie**
+
+- **Miesięczne raporty finansowe** dla każdego apartamentu i właściciela
+- **Automatyczna kalkulacja** przychodów z rezerwacji w danym okresie
+- **Integracja z systemem rezerwacji** - automatyczne dodawanie pozycji przychodowych
+
+#### **Zarządzanie Kosztami**
+
+- **Predefiniowane kategorie kosztów** z automatyczną kalkulacją VAT:
+  - Sprzątanie (23% VAT)
+  - Pranie pościeli (8% VAT)
+  - Zakupy środków czystości (23% VAT)
+  - Tekstylia i inne wydatki
+- **Szybkie dodawanie kosztów** z interfejsem kwota netto → kwota brutto
+- **Kategorie pozycji**: Przychody, Wydatki, Opłaty, Podatki, Prowizje
+
+#### **System Prowizji**
+
+- **Automatyczne sugerowanie prowizji** na podstawie przychodów z każdego kanału
+- **Elastyczne stawki prowizji** z możliwością wprowadzenia procentu
+- **Kalkulacja prowizji** od sumy przychodów z danego źródła
+
+#### **Cykl Zatwierdzania**
+
+- **Statusy raportów**: Szkic → Do przeglądu → Zatwierdzony → Wysłany
+- **Kontrola dostępu** - blokada edycji po wysłaniu raportu
+- **Historia zmian** statusów z timestampami
+
+### 🎛 **Panel Administracyjny**
+
+#### **Zarządzanie Właścicielami**
+
+- **Lista wszystkich właścicieli** z danymi kontaktowymi
+- **Dodawanie nowych właścicieli** z automatycznym generowaniem haseł tymczasowych
+- **Przypisywanie apartamentów** do właścicieli
+- **Zarządzanie statusami** (aktywny/nieaktywny)
+
+#### **Zarządzanie Raportami**
+
+- **Przegląd wszystkich raportów** z filtrowaniem i sortowaniem
+- **Tworzenie nowych raportów** z wyborem miesiąca, roku i właściciela
+- **Szczegółowy widok raportu** z możliwością edycji pozycji
+- **Zarządzanie statusami** raportów w cyklu zatwierdzania
+
+#### **Zarządzanie Rezerwacjami**
+
+- **Centralny przegląd** wszystkich rezerwacji w systemie
+- **Filtry po apartamentach** i okresach
+- **Status tracking** ze szczegółami płatności
+
+### 🏡 **Panel Właściciela Apartamentu**
+
+#### **Dashboard z Metrykami**
+
+- **Statystyki w czasie rzeczywistym**:
+  - Liczba posiadanych apartamentów
+  - Liczba aktywnych rezerwacji
+  - Przychód w bieżącym miesiącu
+- **Wizualna prezentacja danych** z kolorowymi kartami statystyk
+
+#### **Zarządzanie Apartamentami**
+
+- **Lista posiadanych apartamentów** z podstawowymi informacjami
+- **Kalendarz rezerwacji** dla każdego apartamentu z 30-dniowym widokiem
+- **Statusy rezerwacji** z kolorowym kodowaniem:
+  - Niebieska: Potwierdzona
+  - Zielona z pulsem: Zameldowany (aktywny pobyt)
+  - Szara z checkmarkiem: Wymeldowany
+  - Żółta: Oczekująca
+  - Czerwona: Anulowana
+
+#### **Dostęp do Raportów**
+
+- **Przeglądanie zatwierdzonych raportów** miesięcznych
+- **Szczegółowy widok finansów** z podziałem na przychody i koszty
+- **Historia raportów** z możliwością filtrowania
+
+### 🆔 **System Check-in Gości**
+
+- **Cyfrowe karty meldunkowe** z pełną walidacją danych osobowych
 - **Automatyczne powiązanie** z aktywnymi rezerwacjami
 - **Ochrona przed duplikatami** - jedna karta na apartament na dzień
-- **Zbieranie danych osobowych**: imię, nazwisko, data urodzenia, narodowość
+- **Zbieranie danych**: imię, nazwisko, data urodzenia, narodowość, adres
 - **Obsługa dokumentów**: dowód osobisty, paszport, prawo jazdy
-- **Dane adresowe**: pełny adres zamieszkania gościa
-- **Identyfikacja gościa głównego** - automatyczne rozpoznawanie głównego rezerwującego
-
-### 👤 **System Użytkowników i Sesji**
-
-- **Autoryzacja NextAuth.js** z obsługą Discord OAuth
-- **Role użytkowników**: ADMIN, OWNER, CLEANER, GUEST, UNKNOWN
-- **Sesje bazodanowe** z automatycznym zarządzaniem cyklem życia
-- **Middleware ochronny** dla chronionych tras (/apartments)
-- **Przekierowania kontekstowe** po zalogowaniu z zachowaniem callbackUrl
 
 ### 📞 **System Kontaktowy**
 
-- Formularz kontaktowy z walidacją tRPC
-- Przechowywanie wiadomości w bazie danych
-- Panel administratora do przeglądania wiadomości
-
-### 📊 **Panel Administracyjny**
-
-- Dostęp dla użytkowników z rolą ADMIN
-- Przeglądanie rezerwacji, kart meldunkowych i wiadomości kontaktowych
-- Zarządzanie apartamentami i użytkownikami
+- **Formularz kontaktowy** z walidacją tRPC i Zod
+- **Przechowywanie wiadomości** w bazie danych
+- **Panel administratora** do przeglądania zapytań
 
 ## 🛠 **Stack Technologiczny**
 
-### **Frontend**
+### **Frontend & UI**
 
-- **Next.js 15** (App Router) - Framework React z SSR/SSG
-- **TypeScript** - Typowanie statyczne
-- **Tailwind CSS** - Utility-first CSS framework
-- **React 18** - Biblioteka UI
+- **Next.js 15** (App Router) - React framework z SSR/SSG
+- **TypeScript** - Statyczne typowanie
+- **Tailwind CSS** - Utility-first styling
+- **React 18** - Biblioteka UI z Concurrent Features
 - **Geist Font** - Nowoczesna typografia
 
 ### **Backend & API**
 
-- **tRPC** - End-to-end typesafe APIs
+- **tRPC v11** - End-to-end typesafe APIs z automatyczną inferencją typów
+- **Zod** - Runtime schema validation i type inference
 - **Next.js API Routes** - Serverless functions
-- **Zod** - Schema validation
-- **Prisma ORM** - Database toolkit
-- **NextAuth.js v5** - Autoryzacja i sesje
+- **NextAuth.js v5** - Autoryzacja i zarządzanie sesjami
+- **Discord OAuth Provider** - Autoryzacja administratora
 
-### **Baza Danych**
+### **Baza Danych & ORM**
 
-- **PostgreSQL** - Główna baza danych
-- **Prisma Client** - ORM z type safety
+- **PostgreSQL** - Relacyjna baza danych
+- **Prisma ORM** - Type-safe database toolkit z automatyczną generacją typów
 - **Database sessions** - Persistent session storage
+- **Automatyczne migracje** - Schema versioning
 
-### **DevOps & Narzędzia**
+### **Security & Validation**
 
-- **Docker Compose** - Konteneryzacja bazy danych
-- **Vercel** - Deployment platform
-- **ESLint + Prettier** - Code quality
-- **TypeScript Compiler** - Type checking
+- **Node.js Crypto** - Hashowanie haseł (SHA-256)
+- **NextAuth.js callbacks** - Custom authorization logic
+- **Zod schemas** - Input validation na wszystkich poziomach
+- **Middleware protection** - Route-level authorization
+
+### **DevOps & Development**
+
+- **Docker Compose** - Lokalna baza danych
+- **ESLint + Prettier** - Code quality i formatowanie
+- **TypeScript Compiler** - Static analysis
+- **Hot Reload** - Development experience
 
 ## 🏗 **Architektura Aplikacji**
 
 ```
 src/
-├── app/                    # 📄 Next.js App Router
-│   ├── page.tsx           # 🏠 Strona główna z przekierowaniami
-│   ├── login/             # 🔐 Strona logowania (Discord OAuth)
-│   ├── apartments/        # 🏢 Panel apartamentów (chroniony)
-│   ├── check-in-card/     # 🆔 Formularz karty meldunkowej
-│   ├── api/               # 🔧 API endpoints
-│   │   ├── auth/          # NextAuth.js handlers
-│   │   └── check-in/      # API kart meldunkowych
-│   └── _components/       # 🧩 Komponenty React
-│       ├── shared/        # Współdzielone komponenty
-│       └── CheckInCard.tsx # Główny komponent karty meldunkowej
-├── server/                # 🔧 Backend logic
-│   ├── api/              # tRPC API
-│   │   ├── root.ts       # Router główny
-│   │   └── routers/      # Endpointy tRPC
-│   │       ├── contact.router.ts    # Formularz kontaktowy
-│   │       ├── reservations.ts      # Zarządzanie rezerwacjami
-│   │       └── post.ts             # Przykładowy router
-│   └── db.ts             # Konfiguracja Prisma Client
-├── lib/                  # 🛠 Funkcje pomocnicze
-└── styles/               # 🎨 Globalne style
+├── app/                           # 📄 Next.js App Router
+│   ├── page.tsx                  # 🏠 Strona główna z loginem
+│   ├── login/                    # 🔐 Discord OAuth dla adminów
+│   ├── admin/                    # 👨‍💼 Panel Administracyjny
+│   │   ├── owners/               # Zarządzanie właścicielami
+│   │   ├── reports/              # System raportów miesięcznych
+│   │   │   ├── [reportId]/       # Szczegóły raportu
+│   │   │   └── create/           # Tworzenie nowego raportu
+│   │   └── reservations/         # Przegląd rezerwacji
+│   ├── apartamentsOwner/         # 🏡 Panel Właściciela
+│   │   ├── login/                # Logowanie właścicieli
+│   │   ├── setup-password/       # Ustawianie hasła (first-time)
+│   │   ├── dashboard/            # Dashboard z metrykami
+│   │   └── reports/              # Dostęp do raportów
+│   ├── apartments/               # 🏢 Lista apartamentów (chronione)
+│   ├── check-in-card/            # 🆔 Karty meldunkowe gości
+│   │   └── [apartmentSlug]/      # Check-in dla konkretnego apartamentu
+│   ├── guest-login/              # 👤 Logowanie gości
+│   ├── guest-dashboard/          # 📊 Panel gościa
+│   └── api/                      # 🔧 API Endpoints
+│       ├── auth/[...nextauth]/   # NextAuth.js handlers
+│       ├── trpc/[trpc]/          # tRPC router endpoint
+│       └── version/              # Version info API
+├── server/                       # 🔧 Backend Logic
+│   ├── api/                      # tRPC Configuration
+│   │   ├── root.ts               # Main tRPC router
+│   │   ├── trpc.ts               # tRPC setup z middleware
+│   │   └── routers/              # API Endpoints
+│   │       ├── apartment-owners.ts    # Zarządzanie właścicielami
+│   │       ├── owner-auth.ts           # Autoryzacja właścicieli
+│   │       ├── monthly-reports.ts      # System raportów
+│   │       ├── reservations.ts         # Zarządzanie rezerwacjami
+│   │       ├── apartments.ts           # API apartamentów
+│   │       ├── guest-auth.ts           # Autoryzacja gości
+│   │       ├── guest-checkin.ts        # Check-in gości
+│   │       └── contact.router.ts       # Formularz kontaktowy
+│   ├── auth/                     # 🔐 NextAuth Configuration
+│   │   ├── config.ts             # NextAuth setup z callbackami
+│   │   └── index.ts              # Auth exports
+│   └── db.ts                     # Prisma Client instance
+├── lib/                          # 🛠 Utilities & Validations
+│   └── validations/              # Zod schemas
+│       └── guest.ts              # Walidacja danych gościa
+├── components/                   # 🧩 Reusable Components
+├── styles/                       # 🎨 Global Styles
+└── trpc/                         # 📡 tRPC Client Setup
+    ├── react.tsx                 # React Query integration
+    ├── server.ts                 # Server-side tRPC client
+    └── query-client.ts           # React Query configuration
 ```
 
 ## 🚀 **Uruchomienie Projektu**
@@ -112,6 +234,7 @@ src/
 - Node.js 18+
 - PostgreSQL 14+
 - npm/yarn/pnpm
+- Discord OAuth App (dla autoryzacji administratora)
 
 ### **Instalacja**
 
@@ -125,7 +248,24 @@ npm install
 
 # Konfiguracja zmiennych środowiskowych
 cp .env.example .env
-# Edytuj .env z odpowiednimi wartościami
+```
+
+### **Konfiguracja Environment Variables**
+
+```env
+# Database
+DATABASE_URL="postgresql://user:password@localhost:5432/book_market"
+
+# NextAuth.js
+NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_SECRET="your-secret-key"
+
+# Discord OAuth (dla autoryzacji administratora)
+DISCORD_CLIENT_ID="your-discord-client-id"
+DISCORD_CLIENT_SECRET="your-discord-client-secret"
+
+# Admin Configuration
+ADMIN_EMAIL="ochedowski.bartosz@gmail.com"
 ```
 
 ### **Konfiguracja Bazy Danych**
@@ -137,10 +277,10 @@ docker-compose up -d
 # Generowanie Prisma Client
 npm run db:generate
 
-# Sync schema z bazą (szybkie)
+# Sync schema z bazą danych
 npm run db:push
 
-# Studio Prisma (interfejs webowy)
+# (Opcjonalnie) Prisma Studio - GUI dla bazy danych
 npm run db:studio
 ```
 
@@ -150,176 +290,113 @@ npm run db:studio
 # Uruchomienie w trybie deweloperskim
 npm run dev
 
-# Otwórz przeglądarkę na http://localhost:3000
+# Aplikacja dostępna na http://localhost:3000
 ```
 
 ## 🗄 **Zarządzanie Bazą Danych**
 
-### **Ważne Komendy Prisma** (zachowaj te podpowiedzi - ważne w debugowaniu!)
+### **Struktura Bazy Danych**
 
-**Jeśli masz folder prisma/migrations, usuń, przenieś, zmień nazwę lub zarchiwizuj ten folder.**
+#### **Główne Tabele**
 
-**Utworzenie katalogu migracji:**
+- **Users** - Użytkownicy systemu (admini)
+- **ApartmentOwner** - Właściciele apartamentów
+- **Apartment** - Apartamenty
+- **ApartmentOwnership** - Relacja wiele-do-wielu (właściciel ↔ apartament)
+- **Reservation** - Rezerwacje
+- **MonthlyReport** - Raporty miesięczne
+- **ReportItem** - Pozycje w raportach (przychody, koszty, prowizje)
+- **CheckInCard** - Karty meldunkowe gości
+- **Contact** - Wiadomości kontaktowe
 
-```bash
-mkdir -p prisma/migrations/0_init
-```
+#### **Relacje**
 
-**Generowanie migracji i zapisanie do pliku:**
+- **ApartmentOwner** → **ApartmentOwnership** ← **Apartment** (many-to-many)
+- **Apartment** → **Reservation** (one-to-many)
+- **ApartmentOwner** → **MonthlyReport** (one-to-many)
+- **MonthlyReport** → **ReportItem** (one-to-many)
+- **Reservation** → **ReportItem** (one-to-one dla przychodów)
 
-```bash
-npx prisma migrate diff --from-empty --to-schema-datamodel prisma/schema.prisma --script > prisma/migrations/0_init/migration.sql
-```
-
-Więcej informacji: https://www.prisma.io/docs/orm/prisma-migrate/workflows/baselining
-
-**Tworzenie nowych migracji:**
-
-```bash
-npx prisma migrate dev --name add-lead-application
-```
-
-**Sync schema bez nowych migracji (np. dodanie pól):**
+### **Ważne Komendy Prisma**
 
 ```bash
+# Sync schema bez migracji (szybkie zmiany)
 npx prisma db push
+
+# Generowanie nowej migracji
+npx prisma migrate dev --name nazwa-migracji
+
+# Reset bazy danych (usuwa wszystkie dane!)
+npx prisma migrate reset
+
+# Prisma Studio (GUI)
+npx prisma studio
 ```
 
-### ⚠️ **Ważna Uwaga o `db push`**
-
-Podczas gdy `db push` aktualizuje schema:
-
-- ❌ **Nie tworzy plików migracji**
-- ❌ **Nie jest idealne dla projektów zespołowych lub pełnego CI/CD**
-- ✅ **Jest szybkie i bezpieczne dla szybkich ręcznych aktualizacji**
-
-Jeśli kiedykolwiek zechcesz przejść na bardziej strukturalny proces z migracjami (`migrate deploy`), zalecam najpierw wykonanie baselining (które rozpocząłeś).
-
-### **Przydatne Skrypty**
+### **Seed Data**
 
 ```bash
-# Sprawdzanie kodu
-npm run check              # ESLint + TypeScript check
-
-# Formatowanie
-npm run format:check       # Sprawdź formatowanie
-npm run format:write      # Popraw formatowanie
-
-# Budowanie
-npm run build             # Production build
-npm run preview           # Podgląd production build
-
-# Database
-npm run db:migrate        # Deploy migrations (production)
-npm run db:seed          # Seed database with test data
+# Wykonanie seed script (jeśli dostępny)
+npx prisma db seed
 ```
 
-## 🔐 **Autoryzacja i Role**
+## 📱 **Użytkowanie Systemu**
 
-### **System Ról**
+### **Flow Administratora**
 
-- **ADMIN** - Pełny dostęp, automatyczne przekierowanie na /admin
-- **OWNER** - Właściciel apartamentów
-- **CLEANER** - Personel sprzątający
-- **GUEST** - Goście (karta meldunkowa)
-- **UNKNOWN** - Nowi użytkownicy (ograniczony dostęp)
+1. **Logowanie** przez Discord OAuth (tylko autoryzowane konto Bartosz)
+2. **Dodawanie właścicieli** apartamentów z automatyczną generacją haseł tymczasowych
+3. **Przypisywanie apartamentów** do właścicieli
+4. **Tworzenie raportów miesięcznych** z automatycznym pobieraniem rezerwacji
+5. **Zarządzanie cyklem zatwierdzania** raportów
+6. **Monitorowanie wszystkich rezerwacji** w systemie
 
-### **Chronione Trasy**
+### **Flow Właściciela Apartamentu**
 
-- `/apartments/*` - Wymaga zalogowania
-- `/admin/*` - Wymaga roli ADMIN
-- `/check-in-card` - Publiczna (dla gości)
-- `/login` - Publiczna
+1. **Pierwsze logowanie** z hasłem tymczasowym otrzymanym od administratora
+2. **Ustawienie bezpiecznego hasła** podczas pierwszego logowania
+3. **Przegląd dashboardu** z aktualnymi statystykami przychodów i rezerwacji
+4. **Kalendarz rezerwacji** z wizualnym statusem każdej rezerwacji
+5. **Dostęp do zatwierdzonych raportów** miesięcznych z szczegółami finansowymi
+6. **Monitorowanie swoich apartamentów** i aktywnych pobytów
 
-### **Konfiguracja OAuth**
+### **Flow Gościa**
 
-1. Utwórz aplikację Discord Developer Portal
-2. Ustaw zmienne środowiskowe:
-   ```env
-   DISCORD_CLIENT_ID=your_client_id
-   DISCORD_CLIENT_SECRET=your_client_secret
-   NEXTAUTH_SECRET=your_random_secret
-   ```
+1. **Dostęp do formularza check-in** przez link z unikalnym slugiem apartamentu
+2. **Wypełnienie karty meldunkowej** z danymi osobowymi i dokumentu
+3. **Automatyczne powiązanie** z aktywną rezerwacją w systemie
+4. **Potwierdzenie check-in** i rozpoczęcie pobytu
 
-## 📝 **System Kart Meldunkowych**
+## 🔒 **Bezpieczeństwo**
 
-### **Przepływ Pracy**
+- **Role-based access control** z walidacją na poziomie API
+- **Discord OAuth** z weryfikacją email i nazwy użytkownika
+- **Hashowanie haseł** właścicieli (SHA-256)
+- **Session management** z bezpiecznym przechowywaniem tokenów
+- **Input validation** na wszystkich poziomach (Zod schemas)
+- **CSRF protection** przez NextAuth.js
+- **Type safety** na całej długości aplikacji (TypeScript + tRPC)
 
-1. **Gość** wypełnia formularz karty meldunkowej
-2. **System** automatycznie łączy z aktywną rezerwacją
-3. **Walidacja** zapobiega duplikatom (jeden check-in na apartament/dzień)
-4. **Identyfikacja** głównego gościa na podstawie danych rezerwacji
-5. **Przechowywanie** wszystkich danych w bazie dla celów prawnych
-
-### **Pola Karty Meldunkowej**
-
-```typescript
-interface CheckInCard {
-  // Dane osobowe
-  firstName: string;
-  lastName: string;
-  dateOfBirth: Date;
-  nationality: string;
-  documentType: "ID Card" | "Passport" | "Driving License";
-  documentNumber: string;
-
-  // Adres
-  addressStreet: string;
-  addressCity: string;
-  addressZipCode: string;
-  addressCountry: string;
-
-  // Metadata
-  submittedApartmentIdentifier: string; // slug apartmentu
-  checkInDate: Date;
-  isPrimaryGuest: boolean;
-  reservationId?: number; // Powiązanie z rezerwacją
-}
-```
-
-## 🌐 **Deployment**
-
-### **Vercel (Zalecane)**
-
-1. Połącz repozytorium z Vercel
-2. Skonfiguruj zmienne środowiskowe
-3. Deploy automatyczny z main branch
-
-### **Environment Variables**
-
-```env
-# Database
-DATABASE_URL="postgresql://..."
-DIRECT_URL="postgresql://..."
-
-# Auth
-NEXTAUTH_SECRET="your-secret"
-DISCORD_CLIENT_ID="your-discord-id"
-DISCORD_CLIENT_SECRET="your-discord-secret"
-
-# External APIs
-IDOBOOKING_EMAIL="your-email"
-IDOBOOKING_PASSWORD="your-password"
-```
-
-## 📞 **Kontakt i Wsparcie**
-
-W przypadku problemów technicznych lub pytań:
-
-- **Email**: biuro@zlote-wynajmy.columns
-- **Telefon**: +48 690 884 961 / +48 531 392 423
-
-## 🔄 **Roadmap**
+## 🚀 **Roadmap i Rozwój**
 
 ### **Planowane Funkcjonalności**
 
-- [ ] Panel analityczny z wykresami okupacji
-- [ ] Automatyczne generowanie raportów PDF
-- [ ] Integracja z systemami płatności
-- [ ] Mobilna aplikacja dla cleaners
-- [ ] Powiadomienia SMS/Email
-- [ ] API dla zewnętrznych integracji
+- **Integracja API** z Booking.com i Airbnb dla automatycznej synchronizacji
+- **System płatności** z automatycznym rozliczaniem prowizji
+- **Powiadomienia email** o nowych rezerwacjach i statusach raportów
+- **Mobile app** dla właścicieli apartamentów
+- **Analytics dashboard** z zaawansowanymi metrykami biznesowymi
+- **Multi-currency support** dla międzynarodowych rezerwacji
+- **Automated cleaning schedules** z integracją z kalendarzem rezerwacji
+
+### **Optymalizacje Techniczne**
+
+- **Redis caching** dla poprawy wydajności
+- **Background jobs** dla heavy operations
+- **Real-time notifications** (WebSocket/Server-Sent Events)
+- **Advanced search** z full-text search capabilities
+- **API rate limiting** i advanced security measures
 
 ---
 
-**Wersja**: 0.1.18 | **Framework**: Next.js 15 | **Database**: PostgreSQL + Prisma
+**Book Market** to kompleksowe rozwiązanie dla zarządzania krótkookresowym wynajmem, łączące nowoczesne technologie z intuicyjnym interfejsem użytkownika. System zapewnia pełną kontrolę nad procesami biznesowymi, automatyzuje rutynowe zadania i dostarcza szczegółowych analiz finansowych.

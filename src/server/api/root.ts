@@ -8,6 +8,8 @@ import { checkInRouter } from "@/server/api/routers/check-in";
 import { guestCheckinRouter } from "@/server/api/routers/guest-checkin";
 import { leadApplicationRouter } from "@/server/api/routers/lead-application";
 import { apartmentOwnersRouter } from "@/server/api/routers/apartment-owners";
+import { ownerAuthRouter } from "@/server/api/routers/owner-auth";
+import { monthlyReportsRouter } from "@/server/api/routers/monthly-reports";
 
 /**
  * This is the primary router for your server.
@@ -24,6 +26,8 @@ export const appRouter = createTRPCRouter({
     guestCheckin: guestCheckinRouter,
     leadApplication: leadApplicationRouter,
     apartmentOwners: apartmentOwnersRouter,
+    ownerAuth: ownerAuthRouter,
+    monthlyReports: monthlyReportsRouter,
 });
 
 // export type definition of API

@@ -2,14 +2,37 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { api } from "@/trpc/react";
+import { useRouter } from "next/navigation";
 
 export default function ApartmentsOwnerLoginPage() {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const loginMutation = api.ownerAuth.login.useMutation({
+    onSuccess: (data) => {
+      // Store session token and email in localStorage (in production use secure httpOnly cookies)
+      localStorage.setItem("ownerSessionToken", data.sessionToken);
+      localStorage.setItem("ownerEmail", data.owner.email);
+
+      // Redirect to owner dashboard
+      if (data.isFirstLogin) {
+        // Redirect to password setup page
+        router.push("/apartamentsOwner/setup-password");
+      } else {
+        // Redirect to owner dashboard
+        router.push("/apartamentsOwner/dashboard");
+      }
+    },
+    onError: (error) => {
+      setErrors({ general: error.message });
+    },
+  });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -43,12 +66,13 @@ export default function ApartmentsOwnerLoginPage() {
     }
 
     try {
-      // TODO: Implementacja logowania będzie dodana później
-      console.log("Logowanie właściciela:", formData);
-      alert("Logowanie zostanie zaimplementowane wkrótce");
+      await loginMutation.mutateAsync({
+        email: formData.email,
+        password: formData.password,
+      });
     } catch (error) {
+      // Error is handled in onError callback
       console.error("Błąd logowania:", error);
-      setErrors({ general: "Wystąpił błąd podczas logowania" });
     } finally {
       setIsLoading(false);
     }
@@ -172,10 +196,10 @@ export default function ApartmentsOwnerLoginPage() {
             <div>
               <button
                 type="submit"
-                disabled={isLoading}
+                disabled={isLoading || loginMutation.isPending}
                 className="group relative flex w-full justify-center rounded-lg border border-transparent bg-indigo-600 px-4 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {isLoading ? (
+                {isLoading || loginMutation.isPending ? (
                   <svg
                     className="-ml-1 mr-3 h-5 w-5 animate-spin text-white"
                     xmlns="http://www.w3.org/2000/svg"
@@ -197,7 +221,9 @@ export default function ApartmentsOwnerLoginPage() {
                     ></path>
                   </svg>
                 ) : null}
-                {isLoading ? "Logowanie..." : "Zaloguj się"}
+                {isLoading || loginMutation.isPending
+                  ? "Logowanie..."
+                  : "Zaloguj się"}
               </button>
             </div>
           </form>

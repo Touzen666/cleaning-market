@@ -82,6 +82,9 @@ export const apartmentOwnersRouter = createTRPCRouter({
             lastName: z.string().min(1),
             phone: z.string().optional(),
             apartmentIds: z.array(z.number()).optional(),
+            paymentType: z.enum(["COMMISSION", "FIXED_AMOUNT"]).default("COMMISSION"),
+            fixedPaymentAmount: z.number().optional(),
+            vatOption: z.enum(["NO_VAT", "VAT_8", "VAT_23"]).default("NO_VAT"),
         }))
         .mutation(async ({ input, ctx }) => {
             // Check if user is admin
@@ -117,6 +120,9 @@ export const apartmentOwnersRouter = createTRPCRouter({
                     phone: input.phone,
                     temporaryPassword,
                     temporaryPasswordExpiresAt,
+                    paymentType: input.paymentType,
+                    fixedPaymentAmount: input.fixedPaymentAmount,
+                    vatOption: input.vatOption,
                     createdByAdminId: ctx.session.user.id,
                 },
             });
