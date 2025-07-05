@@ -1,6 +1,6 @@
 {
   "name": "cleaning-market",
-  "version": "0.1.65",
+  "version": "0.1.66",
   "private": true,
   "type": "module",
   "scripts": {
@@ -23,7 +23,7 @@
     "prebuild": "node scripts/update-version.js"
   },
   "dependencies": {
-    "@auth/prisma-adapter": "^2.7.2",
+    "@auth/prisma-adapter": "^2.10.0",
     "@prisma/client": "^5.14.0",
     "@t3-oss/env-nextjs": "^0.10.1",
     "@tanstack/react-query": "^5.50.0",
@@ -34,7 +34,7 @@
     "jsdom": "^26.0.0",
     "moment": "^2.30.1",
     "next": "^15.0.1",
-    "next-auth": "5.0.0-beta.25",
+    "next-auth": "^5.0.0-beta.29",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "server-only": "^0.0.1",

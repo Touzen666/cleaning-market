@@ -1,5 +1,5 @@
 import { PrismaAdapter, } from "@auth/prisma-adapter";
-import { type DefaultSession, type User, type Session, type Account, type Profile } from "next-auth";
+import { type DefaultSession, type User, type Session, type Account, type Profile, type NextAuthConfig } from "next-auth";
 import { type AdapterUser } from "next-auth/adapters";
 import DiscordProvider from "next-auth/providers/discord";
 import { type UserType } from "@prisma/client";
@@ -30,11 +30,20 @@ declare module "next-auth" {
 }
 
 /**
+ * Module augmentation for `next-auth/adapters` to add the type property to AdapterUser
+ */
+declare module "next-auth/adapters" {
+  interface AdapterUser {
+    type: UserType;
+  }
+}
+
+/**
  * Options for NextAuth.js used to configure adapters, providers, callbacks, etc.
  *
  * @see https://next-auth.js.org/configuration/options
  */
-export const authConfig = {
+export const authConfig: NextAuthConfig = {
   adapter: PrismaAdapter(db),
   providers: [
     DiscordProvider({
@@ -46,7 +55,14 @@ export const authConfig = {
     signIn: '/login',
   },
   callbacks: {
-    async signIn({ user, account, profile }: { user: User; account: Account | null; profile?: Profile }) {
+    async signIn(params: {
+      user: User | AdapterUser;
+      account?: Account | null;
+      profile?: Profile;
+      email?: { verificationRequest?: boolean };
+      credentials?: Record<string, unknown>;
+    }) {
+      const { user, account, profile } = params;
       // Only allow Discord authentication for the main admin
       if (account?.provider === "discord") {
         const adminEmail = process.env.ADMIN_EMAIL ?? "ochedowski.bartosz@gmail.com";
