@@ -2,6 +2,7 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { type Decimal } from "@prisma/client/runtime/library";
+import { type ReportStatus } from "@prisma/client";
 
 // Zod schemas
 const createReportSchema = z.object({
@@ -482,12 +483,12 @@ export const monthlyReportsRouter = createTRPCRouter({
             }
 
             const previousStatus = report.status;
-            const updateData = { status } as {
-                status: string;
+            const updateData: {
+                status: ReportStatus;
                 approvedAt?: Date;
                 approvedByAdminId?: string;
                 sentAt?: Date;
-            };
+            } = { status };
 
             if (status === "APPROVED") {
                 updateData.approvedAt = new Date();
