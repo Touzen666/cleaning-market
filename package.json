@@ -1,6 +1,6 @@
 {
   "name": "cleaning-market",
-  "version": "0.1.72",
+  "version": "0.1.79",
   "private": true,
   "type": "module",
   "scripts": {
@@ -20,6 +20,8 @@
     "preview": "next build && next start",
     "start": "next start",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:ui": "vitest --ui",
     "prebuild": "node scripts/update-version.js"
   },
   "dependencies": {
@@ -42,6 +44,8 @@
     "zod": "^3.23.3"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
     "@types/eslint": "^8.56.10",
     "@types/jsdom": "^21.1.7",
     "@types/node": "^20.14.10",
@@ -49,14 +53,17 @@
     "@types/react-dom": "^18.3.0",
     "@typescript-eslint/eslint-plugin": "^8.1.0",
     "@typescript-eslint/parser": "^8.1.0",
+    "@vitest/ui": "^3.2.4",
     "eslint": "^8.57.0",
     "eslint-config-next": "^15.0.1",
+    "msw": "^2.10.3",
     "postcss": "^8.4.39",
     "prettier": "^3.3.2",
     "prettier-plugin-tailwindcss": "^0.6.5",
     "prisma": "^5.14.0",
     "tailwindcss": "^3.4.3",
-    "typescript": "^5.5.3"
+    "typescript": "^5.5.3",
+    "vitest": "^3.2.4"
   },
   "prisma": {
     "schema": "prisma/schema.prisma",
