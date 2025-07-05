@@ -10,6 +10,7 @@ import { leadApplicationRouter } from "@/server/api/routers/lead-application";
 import { apartmentOwnersRouter } from "@/server/api/routers/apartment-owners";
 import { ownerAuthRouter } from "@/server/api/routers/owner-auth";
 import { monthlyReportsRouter } from "@/server/api/routers/monthly-reports";
+import { idobookingRouter } from "@/server/api/routers/idobooking";
 
 /**
  * This is the primary router for your server.
@@ -28,6 +29,7 @@ export const appRouter = createTRPCRouter({
     apartmentOwners: apartmentOwnersRouter,
     ownerAuth: ownerAuthRouter,
     monthlyReports: monthlyReportsRouter,
+    idobooking: idobookingRouter,
 });
 
 // export type definition of API

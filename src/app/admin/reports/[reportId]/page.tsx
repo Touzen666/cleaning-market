@@ -1,12 +1,27 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/trpc/react";
 import type { RouterOutputs } from "@/trpc/react";
 
 type ReportDetails = RouterOutputs["monthlyReports"]["getById"];
 type ReportItem = ReportDetails["items"][0];
+
+const expenseCategories = [
+  {
+    name: "Sprzątanie",
+    vatRate: 23,
+    description: "Usługi sprzątania apartamentu",
+  },
+  { name: "Pranie", vatRate: 8, description: "Pranie pościeli i ręczników" },
+  {
+    name: "Zakupy środków czystości",
+    vatRate: 23,
+    description: "Środki czyszczące i higiena",
+  },
+  { name: "Inne", vatRate: 23, description: "Inne wydatki" },
+];
 
 export default function ReportDetailsPage({
   params,
@@ -34,23 +49,25 @@ export default function ReportDetailsPage({
     netAmount: 0,
     date: new Date().toISOString().split("T")[0],
     notes: "",
+    // Nowe pola dla niestandardowych wydatków
+    isCustomExpense: false,
+    customExpenseName: "",
+    customVatRate: 0, // 0 = brak VAT, 8, 23
   });
 
-  // Predefiniowane kategorie kosztów z VAT
-  const expenseCategories = [
-    {
-      name: "Sprzątanie",
-      vatRate: 23,
-      description: "Usługi sprzątania apartamentu",
-    },
-    { name: "Pranie", vatRate: 8, description: "Pranie pościeli i ręczników" },
-    {
-      name: "Zakupy środków czystości",
-      vatRate: 23,
-      description: "Środki czyszczące i higiena",
-    },
-    { name: "Inne", vatRate: 23, description: "Inne wydatki" },
-  ];
+  // Dodaj state dla czynszu i mediów
+  const [rentUtilitiesData, setRentUtilitiesData] = useState({
+    rentAmount: 0,
+    utilitiesAmount: 0,
+  });
+
+  // Dodaj mutację
+  const updateRentUtilitiesMutation =
+    api.monthlyReports.updateRentAndUtilities.useMutation({
+      onSuccess: () => {
+        void reportQuery.refetch();
+      },
+    });
 
   // TRPC queries
   const reportQuery = api.monthlyReports.getById.useQuery({
@@ -75,6 +92,9 @@ export default function ReportDetailsPage({
         netAmount: 0,
         date: new Date().toISOString().split("T")[0],
         notes: "",
+        isCustomExpense: false,
+        customExpenseName: "",
+        customVatRate: 0,
       });
     },
   });
@@ -87,7 +107,40 @@ export default function ReportDetailsPage({
 
   const report = reportQuery.data;
 
-  const calculateVATAmount = (netAmount: number, category: string) => {
+  // Zaktualizuj useEffect gdy report się załaduje
+  useEffect(() => {
+    if (report) {
+      setRentUtilitiesData({
+        rentAmount: report.rentAmount ?? 0,
+        utilitiesAmount: report.utilitiesAmount ?? 0,
+      });
+    }
+  }, [report]);
+
+  // Dodaj funkcję do zapisywania
+  const handleSaveRentUtilities = async () => {
+    try {
+      await updateRentUtilitiesMutation.mutateAsync({
+        reportId: params.reportId,
+        ...rentUtilitiesData,
+      });
+    } catch (error) {
+      console.error("Error saving rent and utilities:", error);
+    }
+  };
+
+  const calculateVATAmount = (
+    netAmount: number,
+    category: string,
+    customVatRate?: number,
+  ) => {
+    // Jeśli mamy niestandardową stawkę VAT, użyj jej
+    if (customVatRate !== undefined) {
+      const vatAmount = netAmount * (customVatRate / 100);
+      return netAmount + vatAmount;
+    }
+
+    // W przeciwnym razie szukaj w predefiniowanych kategoriach
     const categoryData = expenseCategories.find((cat) => cat.name === category);
     if (!categoryData) return netAmount;
 
@@ -175,13 +228,35 @@ export default function ReportDetailsPage({
       const newValue = type === "number" ? Number(value) : value;
       const updated = { ...prev, [name]: newValue };
 
-      // Automatyczne obliczenie VAT dla kwoty netto
-      if (name === "netAmount" && updated.category) {
-        updated.amount = calculateVATAmount(Number(value), updated.category);
+      // Obsługa przełączania na wydatek niestandardowy
+      if (name === "category" && value === "CUSTOM") {
+        updated.isCustomExpense = true;
+        updated.category = "";
+      } else if (name === "category" && value !== "CUSTOM") {
+        updated.isCustomExpense = false;
+        updated.customExpenseName = "";
+        updated.customVatRate = 0;
       }
 
-      // Automatyczne obliczenie VAT przy zmianie kategorii
-      if (name === "category" && updated.netAmount > 0) {
+      // Automatyczne obliczenie VAT dla kwoty netto
+      if (name === "netAmount") {
+        if (updated.isCustomExpense) {
+          updated.amount = calculateVATAmount(
+            Number(value),
+            "",
+            updated.customVatRate,
+          );
+        } else if (updated.category) {
+          updated.amount = calculateVATAmount(Number(value), updated.category);
+        }
+      }
+
+      // Automatyczne obliczenie VAT przy zmianie kategorii (predefiniowanej)
+      if (
+        name === "category" &&
+        updated.netAmount > 0 &&
+        !updated.isCustomExpense
+      ) {
         updated.amount = calculateVATAmount(updated.netAmount, value);
         // Automatyczne uzupełnienie opisu
         const categoryData = expenseCategories.find(
@@ -190,6 +265,24 @@ export default function ReportDetailsPage({
         if (categoryData && !updated.description) {
           updated.description = categoryData.description;
         }
+      }
+
+      // Automatyczne obliczenie VAT przy zmianie stawki VAT (niestandardowej)
+      if (
+        name === "customVatRate" &&
+        updated.netAmount > 0 &&
+        updated.isCustomExpense
+      ) {
+        updated.amount = calculateVATAmount(
+          updated.netAmount,
+          "",
+          Number(value),
+        );
+      }
+
+      // Ustawienie kategorii na podstawie nazwy niestandardowego wydatku
+      if (name === "customExpenseName" && updated.isCustomExpense) {
+        updated.category = value;
       }
 
       return updated;
@@ -356,6 +449,55 @@ export default function ReportDetailsPage({
                 {report.apartment.name} - {report.owner.firstName}{" "}
                 {report.owner.lastName}
               </p>
+              {/* Informacja o sposobie rozliczenia */}
+              <div className="mt-3 flex items-center space-x-4">
+                <div className="inline-flex items-center rounded-md bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800">
+                  {report.owner.paymentType === "COMMISSION" ? (
+                    <>
+                      <svg
+                        className="mr-1.5 h-4 w-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+                        />
+                      </svg>
+                      Prowizja od przychodów
+                    </>
+                  ) : (
+                    <>
+                      <svg
+                        className="mr-1.5 h-4 w-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
+                        />
+                      </svg>
+                      Kwota stała:{" "}
+                      {report.owner.fixedPaymentAmount
+                        ? Number(report.owner.fixedPaymentAmount).toFixed(2)
+                        : "0"}{" "}
+                      PLN
+                    </>
+                  )}
+                </div>
+                <div className="inline-flex items-center rounded-md bg-gray-100 px-3 py-1 text-sm font-medium text-gray-800">
+                  {report.owner.vatOption === "NO_VAT" && "Bez VAT"}
+                  {report.owner.vatOption === "VAT_8" && "VAT 8%"}
+                  {report.owner.vatOption === "VAT_23" && "VAT 23%"}
+                </div>
+              </div>
             </div>
             <div className="mt-4 sm:mt-0">
               <div className="flex gap-3">
@@ -910,6 +1052,142 @@ export default function ReportDetailsPage({
           </div>
         </div>
 
+        {/* Rent and Utilities Section */}
+        {report.status !== "SENT" && (
+          <div className="mb-8 overflow-hidden rounded-lg bg-yellow-50 shadow">
+            <div className="border-b border-yellow-200 px-6 py-4">
+              <h3 className="flex items-center text-lg font-medium text-yellow-900">
+                <svg
+                  className="mr-2 h-5 w-5 text-yellow-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H9m0 0H5m5 0v-5a2 2 0 00-2-2H6a2 2 0 00-2 2v5"
+                  />
+                </svg>
+                Czynsz i Media za Mieszkanie
+              </h3>
+              <p className="mt-1 text-sm text-yellow-700">
+                Wprowadź kwoty czynszu i mediów. Sugerowane wartości bazują na
+                ostatnim zatwierdzonym raporcie.
+              </p>
+              <div className="mt-2 rounded-md bg-orange-100 p-2">
+                <p className="text-xs font-medium text-orange-800">
+                  ⚠️ Pamiętaj: Czynsz i media są odejmowane PO odjęciu prowizji
+                  25% dla administratora
+                </p>
+              </div>
+            </div>
+            <div className="bg-white p-6">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Czynsz za mieszkanie (PLN)
+                  </label>
+                  <div className="mt-1 space-y-2">
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={rentUtilitiesData.rentAmount}
+                      onChange={(e) =>
+                        setRentUtilitiesData((prev) => ({
+                          ...prev,
+                          rentAmount: parseFloat(e.target.value) || 0,
+                        }))
+                      }
+                      className="block w-full rounded-md border-gray-300 px-3 py-2 shadow-sm focus:border-yellow-500 focus:outline-none focus:ring-yellow-500"
+                      placeholder="0.00"
+                    />
+                    {report.suggestedRent && report.suggestedRent > 0 && (
+                      <p className="text-xs text-gray-500">
+                        💡 Sugerowany na podstawie poprzednich raportów:{" "}
+                        {report.suggestedRent.toFixed(2)} PLN
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Media (prąd, gaz, woda, internet) (PLN)
+                  </label>
+                  <div className="mt-1 space-y-2">
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={rentUtilitiesData.utilitiesAmount}
+                      onChange={(e) =>
+                        setRentUtilitiesData((prev) => ({
+                          ...prev,
+                          utilitiesAmount: parseFloat(e.target.value) || 0,
+                        }))
+                      }
+                      className="block w-full rounded-md border-gray-300 px-3 py-2 shadow-sm focus:border-yellow-500 focus:outline-none focus:ring-yellow-500"
+                      placeholder="0.00"
+                    />
+                    {report.suggestedUtilities &&
+                      report.suggestedUtilities > 0 && (
+                        <p className="text-xs text-gray-500">
+                          💡 Sugerowane na podstawie poprzednich raportów:{" "}
+                          {report.suggestedUtilities.toFixed(2)} PLN
+                        </p>
+                      )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4 flex justify-end">
+                <button
+                  type="button"
+                  onClick={handleSaveRentUtilities}
+                  disabled={updateRentUtilitiesMutation.isPending}
+                  className="inline-flex items-center rounded-md bg-yellow-600 px-4 py-2 text-sm font-medium text-white hover:bg-yellow-700 disabled:opacity-50"
+                >
+                  {updateRentUtilitiesMutation.isPending
+                    ? "Zapisywanie..."
+                    : "Zapisz czynsz i media"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Owner Payout Calculation */}
+        <div className="mb-8 overflow-hidden rounded-lg bg-gradient-to-br from-green-50 to-blue-50 shadow">
+          <div className="border-b border-green-200 px-6 py-4">
+            <h3 className="flex items-center text-lg font-medium text-green-900">
+              <svg
+                className="mr-2 h-5 w-5 text-green-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 012-2v16a2 2 0 01-2 2z"
+                />
+              </svg>
+              Rozliczenie z Właścicielem
+            </h3>
+            <p className="mt-1 text-sm text-green-700">
+              Ostateczna kalkulacja płatności dla {report.owner.firstName}{" "}
+              {report.owner.lastName}
+            </p>
+          </div>
+          <div className="bg-white p-6">
+            <OwnerPayoutCalculation report={report} />
+          </div>
+        </div>
+
         {/* Add Item Modal */}
         {showAddItemForm && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
@@ -943,7 +1221,11 @@ export default function ReportDetailsPage({
                   {itemFormData.type === "EXPENSE" ? (
                     <select
                       name="category"
-                      value={itemFormData.category}
+                      value={
+                        itemFormData.isCustomExpense
+                          ? "CUSTOM"
+                          : itemFormData.category
+                      }
                       onChange={handleInputChange}
                       className="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
                       required
@@ -954,6 +1236,7 @@ export default function ReportDetailsPage({
                           {cat.name} (VAT: {cat.vatRate}%)
                         </option>
                       ))}
+                      <option value="CUSTOM">Wydatek niestandardowy</option>
                     </select>
                   ) : (
                     <input
@@ -966,16 +1249,55 @@ export default function ReportDetailsPage({
                       required
                     />
                   )}
-                  {itemFormData.category && itemFormData.type === "EXPENSE" && (
-                    <p className="mt-1 text-xs text-gray-500">
-                      {
-                        expenseCategories.find(
-                          (cat) => cat.name === itemFormData.category,
-                        )?.description
-                      }
-                    </p>
-                  )}
+                  {itemFormData.category &&
+                    itemFormData.type === "EXPENSE" &&
+                    !itemFormData.isCustomExpense && (
+                      <p className="mt-1 text-xs text-gray-500">
+                        {
+                          expenseCategories.find(
+                            (cat) => cat.name === itemFormData.category,
+                          )?.description
+                        }
+                      </p>
+                    )}
                 </div>
+
+                {/* Pola dla niestandardowego wydatku */}
+                {itemFormData.isCustomExpense &&
+                  itemFormData.type === "EXPENSE" && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">
+                          Nazwa wydatku
+                        </label>
+                        <input
+                          type="text"
+                          name="customExpenseName"
+                          value={itemFormData.customExpenseName}
+                          onChange={handleInputChange}
+                          placeholder="np. Zakup wyposażenia"
+                          className="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
+                          required
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">
+                          Stawka VAT
+                        </label>
+                        <select
+                          name="customVatRate"
+                          value={itemFormData.customVatRate}
+                          onChange={handleInputChange}
+                          className="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
+                        >
+                          <option value={0}>Brak VAT (0%)</option>
+                          <option value={8}>VAT 8%</option>
+                          <option value={23}>VAT 23%</option>
+                        </select>
+                      </div>
+                    </>
+                  )}
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
@@ -993,10 +1315,11 @@ export default function ReportDetailsPage({
                 </div>
 
                 {itemFormData.type === "EXPENSE" &&
-                itemFormData.category &&
-                expenseCategories.find(
-                  (cat) => cat.name === itemFormData.category,
-                ) ? (
+                ((itemFormData.category &&
+                  expenseCategories.find(
+                    (cat) => cat.name === itemFormData.category,
+                  )) ||
+                  itemFormData.isCustomExpense) ? (
                   <>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">
@@ -1014,19 +1337,25 @@ export default function ReportDetailsPage({
                       />
                       <p className="mt-1 text-xs text-gray-500">
                         VAT (
-                        {
-                          expenseCategories.find(
-                            (cat) => cat.name === itemFormData.category,
-                          )?.vatRate
-                        }
-                        %):{" "}
-                        {(
-                          (itemFormData.netAmount *
-                            (expenseCategories.find(
+                        {itemFormData.isCustomExpense
+                          ? itemFormData.customVatRate
+                          : expenseCategories.find(
                               (cat) => cat.name === itemFormData.category,
-                            )?.vatRate ?? 0)) /
-                          100
-                        ).toFixed(2)}{" "}
+                            )?.vatRate}
+                        %):{" "}
+                        {itemFormData.isCustomExpense
+                          ? (
+                              (itemFormData.netAmount *
+                                itemFormData.customVatRate) /
+                              100
+                            ).toFixed(2)
+                          : (
+                              (itemFormData.netAmount *
+                                (expenseCategories.find(
+                                  (cat) => cat.name === itemFormData.category,
+                                )?.vatRate ?? 0)) /
+                              100
+                            ).toFixed(2)}{" "}
                         PLN
                       </p>
                     </div>
@@ -1335,6 +1664,165 @@ function SuggestedCommissionsSection({
               </div>
             );
           })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Nowy komponent do obliczania i wyświetlania rozliczenia z właścicielem
+function OwnerPayoutCalculation({ report }: { report: ReportDetails }) {
+  const getVatRate = (vatOption: string): number => {
+    switch (vatOption) {
+      case "VAT_8":
+        return 8;
+      case "VAT_23":
+        return 23;
+      case "NO_VAT":
+      default:
+        return 0;
+    }
+  };
+
+  const calculateAmountWithVat = (baseAmount: number, vatRate: number) => {
+    const vatAmount = baseAmount * (vatRate / 100);
+    const grossAmount = baseAmount + vatAmount;
+    return { vatAmount, grossAmount };
+  };
+
+  const ownerVatRate = getVatRate(report.owner.vatOption);
+
+  // Obliczenie 25% prowizji dla administratora
+  const adminCommissionRate = 0.25; // 25%
+  const adminCommissionAmount = report.netIncome * adminCommissionRate;
+  const netIncomeAfterAdminCommission =
+    report.netIncome - adminCommissionAmount;
+
+  // Odejmij czynsz i media (po prowizji admina)
+  const rentAndUtilities =
+    (report.rentAmount ?? 0) + (report.utilitiesAmount ?? 0);
+  const netIncomeAfterAllDeductions =
+    netIncomeAfterAdminCommission - rentAndUtilities;
+
+  // Obliczenia dla scenariusza właściciela
+  const commissionBaseAmountAfterAdmin = Math.max(
+    0,
+    netIncomeAfterAllDeductions,
+  );
+  const fixedBaseAmount = Number(report.owner.fixedPaymentAmount ?? 0);
+  const fixedBaseAmountAfterAdmin = Math.max(
+    0,
+    fixedBaseAmount - adminCommissionAmount - rentAndUtilities,
+  );
+
+  const {
+    vatAmount: commissionVatAmountAfterAdmin,
+    grossAmount: commissionGrossAmountAfterAdmin,
+  } = calculateAmountWithVat(commissionBaseAmountAfterAdmin, ownerVatRate);
+
+  const {
+    vatAmount: fixedVatAmountAfterAdmin,
+    grossAmount: fixedGrossAmountAfterAdmin,
+  } = calculateAmountWithVat(fixedBaseAmountAfterAdmin, ownerVatRate);
+
+  return (
+    <div className="space-y-6">
+      <h4 className="text-xl font-semibold text-gray-800">
+        Podsumowanie rozliczenia
+      </h4>
+
+      {/* Kwota bazowa */}
+      <div className="rounded-lg bg-gray-50 p-4">
+        <h5 className="mb-2 text-lg font-medium text-gray-800">
+          Zysk netto apartamentu (przed wszystkimi potrąceniami)
+        </h5>
+        <p className="text-2xl font-bold text-gray-900">
+          {report.netIncome.toFixed(2)} PLN
+        </p>
+      </div>
+
+      {/* Prowizja 25% dla administratora */}
+      <div className="rounded-lg bg-red-50 p-4">
+        <h5 className="mb-2 text-lg font-medium text-red-800">
+          Prowizja 25% dla administratora
+        </h5>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="rounded-md bg-red-100 p-3">
+            <p className="text-sm text-red-700">Kwota prowizji:</p>
+            <p className="text-xl font-bold text-red-900">
+              -{adminCommissionAmount.toFixed(2)} PLN
+            </p>
+          </div>
+          <div className="rounded-md bg-red-100 p-3">
+            <p className="text-sm text-red-700">Pozostało:</p>
+            <p className="text-xl font-bold text-red-900">
+              {netIncomeAfterAdminCommission.toFixed(2)} PLN
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Czynsz i media */}
+      <div className="rounded-lg bg-yellow-50 p-4">
+        <h5 className="mb-2 text-lg font-medium text-yellow-800">
+          Czynsz i media za mieszkanie
+        </h5>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <div className="rounded-md bg-yellow-100 p-3">
+            <p className="text-sm text-yellow-700">Czynsz:</p>
+            <p className="text-lg font-bold text-yellow-900">
+              -{(report.rentAmount ?? 0).toFixed(2)} PLN
+            </p>
+          </div>
+          <div className="rounded-md bg-yellow-100 p-3">
+            <p className="text-sm text-yellow-700">Media:</p>
+            <p className="text-lg font-bold text-yellow-900">
+              -{(report.utilitiesAmount ?? 0).toFixed(2)} PLN
+            </p>
+          </div>
+          <div className="rounded-md bg-yellow-100 p-3">
+            <p className="text-sm text-yellow-700">Pozostało:</p>
+            <p className="text-xl font-bold text-yellow-900">
+              {netIncomeAfterAllDeductions.toFixed(2)} PLN
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Ostateczne rozliczenie z właścicielem */}
+      <div className="rounded-lg bg-green-50 p-4">
+        <h5 className="mb-2 text-lg font-medium text-green-800">
+          Ostateczna wypłata dla właściciela (
+          {report.owner.paymentType === "COMMISSION"
+            ? "Prowizyjne"
+            : "Kwota stała"}
+          )
+        </h5>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <div className="rounded-md bg-green-100 p-3">
+            <p className="text-sm text-green-700">Kwota bazowa (netto):</p>
+            <p className="text-lg font-bold text-green-900">
+              {report.owner.paymentType === "COMMISSION"
+                ? `${commissionBaseAmountAfterAdmin.toFixed(2)} PLN`
+                : `${fixedBaseAmountAfterAdmin.toFixed(2)} PLN`}
+            </p>
+          </div>
+          <div className="rounded-md bg-green-100 p-3">
+            <p className="text-sm text-green-700">VAT ({ownerVatRate}%):</p>
+            <p className="text-lg font-bold text-green-900">
+              {report.owner.paymentType === "COMMISSION"
+                ? `${commissionVatAmountAfterAdmin.toFixed(2)} PLN`
+                : `${fixedVatAmountAfterAdmin.toFixed(2)} PLN`}
+            </p>
+          </div>
+          <div className="rounded-md bg-green-100 p-3">
+            <p className="text-sm text-green-700">DO WYPŁATY:</p>
+            <p className="text-2xl font-bold text-green-900">
+              {report.owner.paymentType === "COMMISSION"
+                ? `${commissionGrossAmountAfterAdmin.toFixed(2)} PLN`
+                : `${fixedGrossAmountAfterAdmin.toFixed(2)} PLN`}
+            </p>
+          </div>
         </div>
       </div>
     </div>

@@ -86,7 +86,7 @@ export default function AdminReportsPage() {
         <div className="mb-8">
           <div className="sm:flex sm:items-center sm:justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Fakturownia</h1>
+              <h1 className="text-3xl font-bold text-gray-900">Raportownia</h1>
               <p className="mt-2 text-sm text-gray-600">
                 Zarządzaj raportami miesięcznymi i rozliczeniami
               </p>

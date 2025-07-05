@@ -281,10 +281,24 @@ export const monthlyReportsRouter = createTRPCRouter({
                 where: { id: input.reportId },
                 include: {
                     apartment: {
-                        select: { id: true, name: true, address: true },
+                        select: {
+                            id: true,
+                            name: true,
+                            address: true,
+                            defaultRentAmount: true,
+                            defaultUtilitiesAmount: true
+                        },
                     },
                     owner: {
-                        select: { id: true, firstName: true, lastName: true, email: true },
+                        select: {
+                            id: true,
+                            firstName: true,
+                            lastName: true,
+                            email: true,
+                            paymentType: true,
+                            fixedPaymentAmount: true,
+                            vatOption: true,
+                        },
                     },
                     createdByAdmin: {
                         select: { name: true, email: true },
@@ -318,7 +332,26 @@ export const monthlyReportsRouter = createTRPCRouter({
                 });
             }
 
-            return report;
+            // Pobierz sugerowane wartości z ostatniego zatwierdzonego raportu
+            const lastApprovedReport = await ctx.db.monthlyReport.findFirst({
+                where: {
+                    apartmentId: report.apartmentId,
+                    status: "SENT",
+                    id: { not: report.id },
+                },
+                orderBy: { createdAt: "desc" },
+                select: {
+                    rentAmount: true,
+                    utilitiesAmount: true,
+                },
+            });
+
+            return {
+                ...report,
+                // Dodaj sugerowane wartości
+                suggestedRent: lastApprovedReport?.rentAmount ?? report.apartment.defaultRentAmount ?? 0,
+                suggestedUtilities: lastApprovedReport?.utilitiesAmount ?? report.apartment.defaultUtilitiesAmount ?? 0,
+            };
         }),
 
     // Admin: Add item to report
@@ -600,5 +633,24 @@ export const monthlyReportsRouter = createTRPCRouter({
                 existingChannels: Array.from(existingChannels),
                 allChannels: Array.from(channelsMap.keys()),
             };
+        }),
+
+    // Dodaj nową mutację do zapisywania czynszu i mediów
+    updateRentAndUtilities: publicProcedure
+        .input(z.object({
+            reportId: z.string(),
+            rentAmount: z.number().min(0),
+            utilitiesAmount: z.number().min(0),
+        }))
+        .mutation(async ({ input, ctx }) => {
+            await ctx.db.monthlyReport.update({
+                where: { id: input.reportId },
+                data: {
+                    rentAmount: input.rentAmount,
+                    utilitiesAmount: input.utilitiesAmount,
+                },
+            });
+
+            return { success: true };
         }),
 }); 

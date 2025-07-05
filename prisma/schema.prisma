@@ -125,6 +125,9 @@ model Reservation {
   
   // Relations to monthly reports
   reportItems   ReportItem[]
+
+  // Dodaj pole do łączenia z idobooking  
+  idobookingId        Int?     @unique
 }
 
 model Apartment {
@@ -140,6 +143,16 @@ model Apartment {
   
   // Relations to monthly reports
   monthlyReports   MonthlyReport[]
+  
+  // Nowe pola dla ustawień apartamentu
+  defaultRentAmount      Float?   @default(0)    // Domyślny czynsz miesięczny
+  defaultUtilitiesAmount Float?   @default(0)    // Domyślne media miesięczne
+  hasBalcony            Boolean  @default(false) // Czy ma balkon
+  hasParking            Boolean  @default(false) // Czy ma parking
+  maxGuests             Int?     @default(4)     // Maksymalna liczba gości
+
+  // Dodaj pole do łączenia z idobooking
+  idobookingId        Int?     @unique
 }
 
 model LeadApplication {
@@ -343,6 +356,12 @@ model MonthlyReport {
   // Report items
   items           ReportItem[]
   history         ReportHistory[]
+  
+  // Nowe pola dla czynszu i mediów
+  rentAmount          Float?   @default(0)    // Czynsz za mieszkanie
+  utilitiesAmount     Float?   @default(0)    // Media (prąd, gaz, woda, internet)
+  suggestedRent       Float?   @default(0)    // Sugerowany czynsz na podstawie poprzednich raportów
+  suggestedUtilities  Float?   @default(0)    // Sugerowane media na podstawie poprzednich raportów
   
   @@unique([apartmentId, year, month])
   @@index([status])
