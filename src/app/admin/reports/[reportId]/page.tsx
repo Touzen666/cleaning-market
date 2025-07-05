@@ -26,9 +26,11 @@ const expenseCategories = [
 export default function ReportDetailsPage({
   params,
 }: {
-  params: { reportId: string };
+  params: Promise<{ reportId: string }>;
 }) {
   const router = useRouter();
+  const actualParams = React.use(params);
+  const { reportId } = actualParams;
   const [showAddItemForm, setShowAddItemForm] = useState(false);
   const [loadingCommissionIndex, setLoadingCommissionIndex] = useState<
     number | null
@@ -71,12 +73,12 @@ export default function ReportDetailsPage({
 
   // TRPC queries
   const reportQuery = api.monthlyReports.getById.useQuery({
-    reportId: params.reportId,
+    reportId: reportId,
   });
 
   const suggestedCommissionsQuery =
     api.monthlyReports.getSuggestedCommissions.useQuery({
-      reportId: params.reportId,
+      reportId: reportId,
     });
 
   // TRPC mutations
@@ -121,7 +123,7 @@ export default function ReportDetailsPage({
   const handleSaveRentUtilities = async () => {
     try {
       await updateRentUtilitiesMutation.mutateAsync({
-        reportId: params.reportId,
+        reportId: reportId,
         ...rentUtilitiesData,
       });
     } catch (error) {
@@ -189,7 +191,7 @@ export default function ReportDetailsPage({
     try {
       setAddingQuickExpense(category);
       await addItemMutation.mutateAsync({
-        reportId: params.reportId,
+        reportId: reportId,
         type: "EXPENSE",
         category: categoryData.name,
         description: categoryData.description,
@@ -293,7 +295,7 @@ export default function ReportDetailsPage({
     e.preventDefault();
     try {
       await addItemMutation.mutateAsync({
-        reportId: params.reportId,
+        reportId: reportId,
         ...itemFormData,
         date: new Date(itemFormData.date!),
       });
@@ -316,7 +318,7 @@ export default function ReportDetailsPage({
     try {
       setLoadingCommissionIndex(index);
       await addItemMutation.mutateAsync({
-        reportId: params.reportId,
+        reportId: reportId,
         ...suggestion,
       });
       // Refetch suggestions after adding
@@ -331,7 +333,7 @@ export default function ReportDetailsPage({
   const handleStatusChange = async (newStatus: string) => {
     try {
       await updateStatusMutation.mutateAsync({
-        reportId: params.reportId,
+        reportId: reportId,
         status: newStatus as "DRAFT" | "REVIEW" | "APPROVED" | "SENT",
       });
     } catch (error) {
