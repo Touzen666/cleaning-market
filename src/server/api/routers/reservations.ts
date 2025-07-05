@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
+import { type Reservation } from "@prisma/client";
 
 // Schema for creating a new reservation
 const createReservationSchema = z.object({
@@ -20,6 +21,7 @@ const createReservationSchema = z.object({
 export const reservationsRouter = createTRPCRouter({
   getAll: publicProcedure
     .output(z.object({
+      reservations: z.array(z.custom<Reservation>()),
       ok: z.boolean(),
       count: z.number(),
     }))
@@ -33,6 +35,7 @@ export const reservationsRouter = createTRPCRouter({
         });
 
         return {
+          reservations,
           ok: true,
           count: reservations.length
         };
