@@ -4,18 +4,19 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/trpc/react";
 import type { RouterOutputs } from "@/trpc/react";
+import { type ReportStatus } from "@prisma/client";
 
 type MonthlyReport = RouterOutputs["monthlyReports"]["getAll"][0];
 
 export default function AdminReportsPage() {
   const router = useRouter();
-  const [selectedStatus, setSelectedStatus] = useState<string>("");
+  const [selectedStatus, setSelectedStatus] = useState<ReportStatus | "">("");
   const [selectedOwner, setSelectedOwner] = useState<string>("");
 
   // TRPC queries
   const reportsQuery = api.monthlyReports.getAll.useQuery({
-    status: (selectedStatus as any) || undefined,
-    ownerId: selectedOwner || undefined,
+    status: selectedStatus || undefined,
+    ownerId: selectedOwner ?? undefined,
   });
 
   const ownersQuery = api.apartmentOwners.getAll.useQuery();
@@ -60,11 +61,14 @@ export default function AdminReportsPage() {
     }
   };
 
-  const handleStatusChange = async (reportId: string, newStatus: string) => {
+  const handleStatusChange = async (
+    reportId: string,
+    newStatus: ReportStatus,
+  ) => {
     try {
       await updateStatusMutation.mutateAsync({
         reportId,
-        status: newStatus as any,
+        status: newStatus,
       });
     } catch (error) {
       console.error("Error updating status:", error);
@@ -164,7 +168,9 @@ export default function AdminReportsPage() {
               </label>
               <select
                 value={selectedStatus}
-                onChange={(e) => setSelectedStatus(e.target.value)}
+                onChange={(e) =>
+                  setSelectedStatus(e.target.value as ReportStatus | "")
+                }
                 className="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
               >
                 <option value="">Wszystkie statusy</option>
@@ -499,10 +505,13 @@ export default function AdminReportsPage() {
                               <select
                                 value={report.status}
                                 onChange={(e) =>
-                                  handleStatusChange(report.id, e.target.value)
+                                  handleStatusChange(
+                                    report.id,
+                                    e.target.value as ReportStatus,
+                                  )
                                 }
                                 className="rounded border-gray-300 text-xs"
-                                disabled={updateStatusMutation.isLoading}
+                                disabled={updateStatusMutation.isPending}
                               >
                                 <option value="DRAFT">Szkic</option>
                                 <option value="REVIEW">Do przeglądu</option>
