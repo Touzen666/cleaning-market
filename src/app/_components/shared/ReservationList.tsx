@@ -8,8 +8,8 @@ export async function ReservationList() {
       <h2 className="mt-4 text-lg font-bold">Twoje apartamenty:</h2>
 
       <ul className="mt-2 space-y-2">
-        {reservations && reservations.length > 0 ? (
-          reservations.map((reservation) => (
+        {reservations.reservations && reservations.reservations.length > 0 ? (
+          reservations.reservations.map((reservation) => (
             <li key={reservation.id} className="rounded border bg-gray-100 p-2">
               {reservation.apartmentName}
               {reservation.start.toString()}
