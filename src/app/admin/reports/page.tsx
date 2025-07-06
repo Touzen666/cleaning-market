@@ -3,10 +3,10 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/trpc/react";
-import type { RouterOutputs } from "@/trpc/react";
-import { type ReportStatus } from "@prisma/client";
-
-type MonthlyReport = RouterOutputs["monthlyReports"]["getAll"][0];
+import {
+  type ReportStatus,
+  ReportStatus as ReportStatusEnum,
+} from "@prisma/client";
 
 export default function AdminReportsPage() {
   const router = useRouter();
@@ -16,7 +16,7 @@ export default function AdminReportsPage() {
   // TRPC queries
   const reportsQuery = api.monthlyReports.getAll.useQuery({
     status: selectedStatus || undefined,
-    ownerId: selectedOwner ?? undefined,
+    ownerId: selectedOwner || undefined,
   });
 
   const ownersQuery = api.apartmentOwners.getAll.useQuery();
@@ -31,7 +31,7 @@ export default function AdminReportsPage() {
   const reports = reportsQuery.data ?? [];
   const owners = ownersQuery.data ?? [];
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: ReportStatus) => {
     switch (status) {
       case "DRAFT":
         return "bg-gray-100 text-gray-800";
@@ -46,7 +46,7 @@ export default function AdminReportsPage() {
     }
   };
 
-  const getStatusText = (status: string) => {
+  const getStatusText = (status: ReportStatus) => {
     switch (status) {
       case "DRAFT":
         return "Szkic";
@@ -239,7 +239,11 @@ export default function AdminReportsPage() {
                       Szkice
                     </dt>
                     <dd className="text-lg font-medium text-gray-900">
-                      {reports.filter((r) => r.status === "DRAFT").length}
+                      {
+                        reports.filter(
+                          (r) => r.status === ReportStatusEnum.DRAFT,
+                        ).length
+                      }
                     </dd>
                   </dl>
                 </div>
@@ -279,7 +283,11 @@ export default function AdminReportsPage() {
                       Do przeglądu
                     </dt>
                     <dd className="text-lg font-medium text-gray-900">
-                      {reports.filter((r) => r.status === "REVIEW").length}
+                      {
+                        reports.filter(
+                          (r) => r.status === ReportStatusEnum.REVIEW,
+                        ).length
+                      }
                     </dd>
                   </dl>
                 </div>
@@ -313,7 +321,11 @@ export default function AdminReportsPage() {
                       Zatwierdzone
                     </dt>
                     <dd className="text-lg font-medium text-gray-900">
-                      {reports.filter((r) => r.status === "APPROVED").length}
+                      {
+                        reports.filter(
+                          (r) => r.status === ReportStatusEnum.APPROVED,
+                        ).length
+                      }
                     </dd>
                   </dl>
                 </div>
@@ -347,7 +359,11 @@ export default function AdminReportsPage() {
                       Wysłane
                     </dt>
                     <dd className="text-lg font-medium text-gray-900">
-                      {reports.filter((r) => r.status === "SENT").length}
+                      {
+                        reports.filter(
+                          (r) => r.status === ReportStatusEnum.SENT,
+                        ).length
+                      }
                     </dd>
                   </dl>
                 </div>
@@ -501,7 +517,7 @@ export default function AdminReportsPage() {
                             >
                               Szczegóły
                             </button>
-                            {report.status !== "SENT" && (
+                            {report.status !== ReportStatusEnum.SENT && (
                               <select
                                 value={report.status}
                                 onChange={(e) =>

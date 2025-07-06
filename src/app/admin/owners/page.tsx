@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/trpc/react";
 import type { RouterOutputs } from "@/trpc/react";
+import { PaymentType, VATOption } from "@/lib/types";
 
 type ApartmentOwner = RouterOutputs["apartmentOwners"]["getAll"][0];
 
@@ -587,9 +588,9 @@ function AddOwnerModal({
     lastName: "",
     phone: "",
     apartmentIds: [] as string[],
-    paymentType: "COMMISSION" as "COMMISSION" | "FIXED_AMOUNT",
+    paymentType: PaymentType.COMMISSION as PaymentType,
     fixedPaymentAmount: "",
-    vatOption: "NO_VAT" as "NO_VAT" | "VAT_8" | "VAT_23",
+    vatOption: VATOption.NO_VAT as VATOption,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -615,14 +616,14 @@ function AddOwnerModal({
     if (!formData.firstName) newErrors.firstName = "Imię jest wymagane";
     if (!formData.lastName) newErrors.lastName = "Nazwisko jest wymagane";
     if (
-      formData.paymentType === "FIXED_AMOUNT" &&
+      formData.paymentType === PaymentType.FIXED_AMOUNT &&
       !formData.fixedPaymentAmount
     ) {
       newErrors.fixedPaymentAmount =
         "Kwota stała jest wymagana dla tego typu rozliczenia";
     }
     if (
-      formData.paymentType === "FIXED_AMOUNT" &&
+      formData.paymentType === PaymentType.FIXED_AMOUNT &&
       isNaN(parseFloat(formData.fixedPaymentAmount))
     ) {
       newErrors.fixedPaymentAmount = "Wprowadź prawidłową kwotę";
@@ -641,7 +642,7 @@ function AddOwnerModal({
       apartmentIds: formData.apartmentIds.map((id) => parseInt(id)),
       paymentType: formData.paymentType,
       fixedPaymentAmount:
-        formData.paymentType === "FIXED_AMOUNT"
+        formData.paymentType === PaymentType.FIXED_AMOUNT
           ? parseFloat(formData.fixedPaymentAmount)
           : undefined,
       vatOption: formData.vatOption,
@@ -789,11 +790,9 @@ function AddOwnerModal({
                 onChange={(e) =>
                   setFormData((prev) => ({
                     ...prev,
-                    paymentType: e.target.value as
-                      | "COMMISSION"
-                      | "FIXED_AMOUNT",
+                    paymentType: e.target.value as PaymentType,
                     fixedPaymentAmount:
-                      e.target.value === "COMMISSION"
+                      e.target.value === PaymentType.COMMISSION
                         ? ""
                         : prev.fixedPaymentAmount,
                   }))
@@ -806,7 +805,7 @@ function AddOwnerModal({
             </div>
 
             {/* Kwota stała (tylko dla FIXED_AMOUNT) */}
-            {formData.paymentType === "FIXED_AMOUNT" && (
+            {formData.paymentType === PaymentType.FIXED_AMOUNT && (
               <div>
                 <label className="block text-sm font-medium text-gray-700">
                   Miesięczna kwota stała (PLN) *
@@ -847,7 +846,7 @@ function AddOwnerModal({
                 onChange={(e) =>
                   setFormData((prev) => ({
                     ...prev,
-                    vatOption: e.target.value as "NO_VAT" | "VAT_8" | "VAT_23",
+                    vatOption: e.target.value as VATOption,
                   }))
                 }
                 className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
@@ -857,11 +856,11 @@ function AddOwnerModal({
                 <option value="VAT_23">VAT 23%</option>
               </select>
               <p className="mt-1 text-xs text-gray-500">
-                {formData.vatOption === "NO_VAT" &&
+                {formData.vatOption === VATOption.NO_VAT &&
                   "Właściciel jest zwolniony z VAT"}
-                {formData.vatOption === "VAT_8" &&
+                {formData.vatOption === VATOption.VAT_8 &&
                   "Do wypłaty zostanie doliczony VAT 8%"}
-                {formData.vatOption === "VAT_23" &&
+                {formData.vatOption === VATOption.VAT_23 &&
                   "Do wypłaty zostanie doliczony VAT 23%"}
               </p>
             </div>

@@ -2,7 +2,7 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { type Decimal } from "@prisma/client/runtime/library";
-import { type ReportStatus } from "@prisma/client";
+import { ReportStatus, ReportItemType, PaymentType, VATOption, UserType, ExpenseCategory, ReservationPortal } from "@prisma/client";
 
 // Zod schemas
 const createReportSchema = z.object({
@@ -13,33 +13,50 @@ const createReportSchema = z.object({
 
 const addReportItemSchema = z.object({
     reportId: z.string().uuid(),
-    type: z.enum(["REVENUE", "EXPENSE", "FEE", "TAX", "COMMISSION"]),
+    type: z.enum([ReportItemType.REVENUE, ReportItemType.EXPENSE, ReportItemType.FEE, ReportItemType.TAX, ReportItemType.COMMISSION]),
     category: z.string().min(1),
     description: z.string().min(1),
     amount: z.number(),
     date: z.date(),
     notes: z.string().optional(),
     reservationId: z.number().optional(),
+    expenseCategory: z.enum([
+        ExpenseCategory.CZYNSZ,
+        ExpenseCategory.MEDIA,
+        ExpenseCategory.PRAD,
+        ExpenseCategory.GAZ,
+        ExpenseCategory.WODA,
+        ExpenseCategory.INTERNET,
+        ExpenseCategory.PRANIE,
+        ExpenseCategory.SPRZATANIE,
+        ExpenseCategory.SRODKI_CZYSTOSCI
+    ]).optional(),
+    portal: z.enum([
+        ReservationPortal.BOOKING,
+        ReservationPortal.AIRBNB,
+        ReservationPortal.IDOBOOKING,
+        ReservationPortal.CHANEL_MANAGER
+    ]).optional(),
 });
 
 const updateReportStatusSchema = z.object({
     reportId: z.string().uuid(),
-    status: z.enum(["DRAFT", "REVIEW", "APPROVED", "SENT"]),
+    status: z.enum([ReportStatus.DRAFT, ReportStatus.REVIEW, ReportStatus.APPROVED, ReportStatus.SENT]),
     notes: z.string().optional(),
 });
 
 // Helper function to calculate owner payout amount
 function calculateOwnerPayout(
     netIncome: number,
-    paymentType: "COMMISSION" | "FIXED_AMOUNT",
+    paymentType: PaymentType,
     fixedPaymentAmount: Decimal | null,
-    vatOption: "NO_VAT" | "VAT_8" | "VAT_23"
+    vatOption: VATOption
 ): number {
     let baseAmount = 0;
 
-    if (paymentType === "FIXED_AMOUNT" && fixedPaymentAmount) {
+    if (paymentType === PaymentType.FIXED_AMOUNT && fixedPaymentAmount) {
         baseAmount = Number(fixedPaymentAmount);
-    } else if (paymentType === "COMMISSION") {
+    } else if (paymentType === PaymentType.COMMISSION) {
         // For commission, we'll calculate it based on net income
         // This can be customized with commission percentages in the future
         baseAmount = netIncome; // For now, owner gets all net income
@@ -47,11 +64,11 @@ function calculateOwnerPayout(
 
     // Apply VAT if applicable
     switch (vatOption) {
-        case "VAT_8":
+        case VATOption.VAT_8:
             return baseAmount * 1.08;
-        case "VAT_23":
+        case VATOption.VAT_23:
             return baseAmount * 1.23;
-        case "NO_VAT":
+        case VATOption.NO_VAT:
         default:
             return baseAmount;
     }
@@ -63,12 +80,12 @@ export const monthlyReportsRouter = createTRPCRouter({
         .input(z.object({
             apartmentId: z.number().optional(),
             ownerId: z.string().optional(),
-            status: z.enum(["DRAFT", "REVIEW", "APPROVED", "SENT"]).optional(),
+            status: z.enum([ReportStatus.DRAFT, ReportStatus.REVIEW, ReportStatus.APPROVED, ReportStatus.SENT]).optional(),
             year: z.number().optional(),
             month: z.number().optional(),
         }))
         .query(async ({ input, ctx }) => {
-            if (ctx.session.user.type !== "ADMIN") {
+            if (ctx.session.user.type !== UserType.ADMIN) {
                 throw new TRPCError({
                     code: "FORBIDDEN",
                     message: "Only admins can view all reports",
@@ -114,6 +131,9 @@ export const monthlyReportsRouter = createTRPCRouter({
                 ],
             });
 
+            console.log("reportsQuery", reports);
+            console.log("reportsQuery.data", reports);
+
             return reports;
         }),
 
@@ -121,7 +141,7 @@ export const monthlyReportsRouter = createTRPCRouter({
     create: protectedProcedure
         .input(createReportSchema)
         .mutation(async ({ input, ctx }) => {
-            if (ctx.session.user.type !== "ADMIN") {
+            if (ctx.session.user.type !== UserType.ADMIN) {
                 throw new TRPCError({
                     code: "FORBIDDEN",
                     message: "Only admins can create reports",
@@ -219,18 +239,18 @@ export const monthlyReportsRouter = createTRPCRouter({
                     year,
                     month,
                     createdByAdminId: ctx.session.user.id,
-                    status: "DRAFT",
+                    status: ReportStatus.DRAFT,
                 },
             });
 
             // Auto-generate revenue items from reservations
             const revenueItems = reservations.map((reservation) => ({
                 reportId: report.id,
-                type: "REVENUE" as const,
+                type: ReportItemType.REVENUE,
                 category: "Booking",
                 description: `Rezerwacja - ${reservation.guest}`,
                 amount: reservation.paymantValue,
-                currency: reservation.currency,
+                currency: reservation.currency ?? "PLN",
                 date: reservation.start,
                 reservationId: reservation.id,
                 isAutoGenerated: true,
@@ -259,7 +279,7 @@ export const monthlyReportsRouter = createTRPCRouter({
                     reportId: report.id,
                     adminId: ctx.session.user.id,
                     action: "created",
-                    newStatus: "DRAFT",
+                    newStatus: ReportStatus.DRAFT,
                     notes: `Raport utworzony automatycznie z ${reservations.length} rezerwacjami`,
                 },
             });
@@ -271,7 +291,7 @@ export const monthlyReportsRouter = createTRPCRouter({
     getById: protectedProcedure
         .input(z.object({ reportId: z.string().uuid() }))
         .query(async ({ input, ctx }) => {
-            if (ctx.session.user.type !== "ADMIN") {
+            if (ctx.session.user.type !== UserType.ADMIN) {
                 throw new TRPCError({
                     code: "FORBIDDEN",
                     message: "Only admins can view report details",
@@ -323,6 +343,9 @@ export const monthlyReportsRouter = createTRPCRouter({
                         },
                         orderBy: { createdAt: "desc" },
                     },
+                    additionalDeductions: {
+                        orderBy: { createdAt: "asc" },
+                    },
                 },
             });
 
@@ -337,7 +360,7 @@ export const monthlyReportsRouter = createTRPCRouter({
             const lastApprovedReport = await ctx.db.monthlyReport.findFirst({
                 where: {
                     apartmentId: report.apartmentId,
-                    status: "SENT",
+                    status: ReportStatus.SENT,
                     id: { not: report.id },
                 },
                 orderBy: { createdAt: "desc" },
@@ -347,8 +370,11 @@ export const monthlyReportsRouter = createTRPCRouter({
                 },
             });
 
+
+
             return {
                 ...report,
+                finalSettlementType: report.finalSettlementType,
                 // Dodaj sugerowane wartości
                 suggestedRent: lastApprovedReport?.rentAmount ?? report.apartment.defaultRentAmount ?? 0,
                 suggestedUtilities: lastApprovedReport?.utilitiesAmount ?? report.apartment.defaultUtilitiesAmount ?? 0,
@@ -359,7 +385,7 @@ export const monthlyReportsRouter = createTRPCRouter({
     addItem: protectedProcedure
         .input(addReportItemSchema)
         .mutation(async ({ input, ctx }) => {
-            if (ctx.session.user.type !== "ADMIN") {
+            if (ctx.session.user.type !== UserType.ADMIN) {
                 throw new TRPCError({
                     code: "FORBIDDEN",
                     message: "Only admins can add report items",
@@ -380,7 +406,7 @@ export const monthlyReportsRouter = createTRPCRouter({
                 });
             }
 
-            if (report.status === "SENT") {
+            if (report.status === ReportStatus.SENT) {
                 throw new TRPCError({
                     code: "BAD_REQUEST",
                     message: "Nie można edytować wysłanego raportu",
@@ -403,11 +429,11 @@ export const monthlyReportsRouter = createTRPCRouter({
             });
 
             const totalRevenue = allItems
-                .filter((item) => item.type === "REVENUE")
+                .filter((item) => item.type === ReportItemType.REVENUE)
                 .reduce((sum, item) => sum + item.amount, 0);
 
             const totalExpenses = allItems
-                .filter((item) => ["EXPENSE", "FEE", "TAX", "COMMISSION"].includes(item.type))
+                .filter((item) => ([ReportItemType.EXPENSE, ReportItemType.FEE, ReportItemType.TAX, ReportItemType.COMMISSION] as string[]).includes(item.type as string))
                 .reduce((sum, item) => sum + item.amount, 0);
 
             const netIncome = totalRevenue - totalExpenses;
@@ -462,7 +488,7 @@ export const monthlyReportsRouter = createTRPCRouter({
     updateStatus: protectedProcedure
         .input(updateReportStatusSchema)
         .mutation(async ({ input, ctx }) => {
-            if (ctx.session.user.type !== "ADMIN") {
+            if (ctx.session.user.type !== UserType.ADMIN) {
                 throw new TRPCError({
                     code: "FORBIDDEN",
                     message: "Only admins can update report status",
@@ -490,10 +516,10 @@ export const monthlyReportsRouter = createTRPCRouter({
                 sentAt?: Date;
             } = { status };
 
-            if (status === "APPROVED") {
+            if (status === ReportStatus.APPROVED) {
                 updateData.approvedAt = new Date();
                 updateData.approvedByAdminId = ctx.session.user.id;
-            } else if (status === "SENT") {
+            } else if (status === ReportStatus.SENT) {
                 updateData.sentAt = new Date();
             }
 
@@ -507,7 +533,7 @@ export const monthlyReportsRouter = createTRPCRouter({
                 data: {
                     reportId,
                     adminId: ctx.session.user.id,
-                    action: status === "APPROVED" ? "approved" : status === "SENT" ? "sent" : "updated",
+                    action: status === ReportStatus.APPROVED ? "approved" : status === ReportStatus.SENT ? "sent" : "updated",
                     previousStatus,
                     newStatus: status,
                     notes,
@@ -537,7 +563,7 @@ export const monthlyReportsRouter = createTRPCRouter({
             const reports = await ctx.db.monthlyReport.findMany({
                 where: {
                     ownerId: owner.id,
-                    status: { in: ["APPROVED", "SENT"] },
+                    status: { in: [ReportStatus.APPROVED, ReportStatus.SENT] },
                 },
                 include: {
                     apartment: {
@@ -565,7 +591,7 @@ export const monthlyReportsRouter = createTRPCRouter({
     getSuggestedCommissions: protectedProcedure
         .input(z.object({ reportId: z.string().uuid() }))
         .query(async ({ input, ctx }) => {
-            if (ctx.session.user.type !== "ADMIN") {
+            if (ctx.session.user.type !== UserType.ADMIN) {
                 throw new TRPCError({
                     code: "FORBIDDEN",
                     message: "Only admins can view suggested commissions",
@@ -576,7 +602,7 @@ export const monthlyReportsRouter = createTRPCRouter({
                 where: { id: input.reportId },
                 include: {
                     items: {
-                        where: { type: "REVENUE" },
+                        where: { type: ReportItemType.REVENUE },
                         include: {
                             reservation: {
                                 select: { source: true },
@@ -607,7 +633,7 @@ export const monthlyReportsRouter = createTRPCRouter({
             const existingCommissions = await ctx.db.reportItem.findMany({
                 where: {
                     reportId: input.reportId,
-                    type: "COMMISSION",
+                    type: ReportItemType.COMMISSION,
                 },
             });
 
@@ -619,7 +645,7 @@ export const monthlyReportsRouter = createTRPCRouter({
             const suggestions = Array.from(channelsMap.entries())
                 .filter(([channel]) => !existingChannels.has(channel.toLowerCase()))
                 .map(([channel, totalRevenue]) => ({
-                    type: "COMMISSION" as const,
+                    type: ReportItemType.COMMISSION,
                     category: channel,
                     description: `Prowizja - ${channel}`,
                     amount: 0, // Będzie obliczona jako procent
@@ -652,6 +678,164 @@ export const monthlyReportsRouter = createTRPCRouter({
                 },
             });
 
+            return { success: true };
+        }),
+
+    // Owner: Get single report by ID (if approved/sent and owner is active)
+    getOwnerReportById: publicProcedure
+        .input(z.object({ reportId: z.string().uuid() }))
+        .query(async ({ input, ctx }) => {
+            const report = await ctx.db.monthlyReport.findUnique({
+                where: { id: input.reportId },
+                include: {
+                    apartment: { select: { id: true, name: true, address: true } },
+                    owner: { select: { id: true, isActive: true, paymentType: true, fixedPaymentAmount: true, vatOption: true } },
+                    items: {
+                        include: {
+                            reservation: {
+                                select: { id: true, guest: true, start: true, end: true, source: true },
+                            },
+                        },
+                        orderBy: [{ type: "asc" }, { date: "asc" }],
+                    },
+                    additionalDeductions: {
+                        orderBy: { createdAt: "asc" },
+                    },
+                },
+            });
+            if (!report?.owner?.isActive || !([ReportStatus.APPROVED, ReportStatus.SENT] as string[]).includes(report.status as string)) {
+                throw new TRPCError({ code: "NOT_FOUND", message: "Raport nie został znaleziony lub nie jest dostępny." });
+            }
+
+            // Wyliczenia identyczne jak w panelu admina
+            const revenueItems = report.items.filter((i) => i.type === "REVENUE");
+            const expenseItems = report.items.filter((i) => ["EXPENSE", "FEE", "TAX", "COMMISSION"].includes(i.type));
+            const totalRevenue = revenueItems.reduce((sum, i) => sum + i.amount, 0);
+            const totalExpenses = expenseItems.reduce((sum, i) => sum + i.amount, 0);
+            const netIncome = totalRevenue - totalExpenses;
+            const adminCommissionRate = 0.25;
+            const commissionNetBase = Number((netIncome - netIncome * adminCommissionRate).toFixed(2));
+            const commissionVat = report.owner.vatOption === "VAT_23" ? Number((commissionNetBase * 0.23).toFixed(2)) : report.owner.vatOption === "VAT_8" ? Number((commissionNetBase * 0.08).toFixed(2)) : 0;
+            const commissionGross = Number((commissionNetBase + commissionVat).toFixed(2));
+
+            // SUMA DODATKOWYCH ODPISÓW (netto)
+            const totalAdditionalDeductions = (report.additionalDeductions ?? []).reduce((sum, d) => sum + d.amount, 0);
+
+            let fixedNetBase: number | undefined = undefined;
+            let fixedVat: number | undefined = undefined;
+            let fixedGross: number | undefined = undefined;
+            let fixedMinusUtilitiesNetBase: number | undefined = undefined;
+            let fixedMinusUtilitiesVat: number | undefined = undefined;
+            let fixedMinusUtilitiesGross: number | undefined = undefined;
+
+            if (report.owner.fixedPaymentAmount !== null && report.owner.fixedPaymentAmount !== undefined) {
+                fixedNetBase = Number(report.owner.fixedPaymentAmount) - totalAdditionalDeductions;
+                fixedVat = report.owner.vatOption === "VAT_23" ? Number((fixedNetBase * 0.23).toFixed(2)) : report.owner.vatOption === "VAT_8" ? Number((fixedNetBase * 0.08).toFixed(2)) : 0;
+                fixedGross = Number((fixedNetBase + fixedVat).toFixed(2));
+                if (report.utilitiesAmount !== null && report.utilitiesAmount !== undefined) {
+                    fixedMinusUtilitiesNetBase = Number((fixedNetBase - report.utilitiesAmount).toFixed(2));
+                    fixedMinusUtilitiesVat = report.owner.vatOption === "VAT_23" ? Number((fixedMinusUtilitiesNetBase * 0.23).toFixed(2)) : report.owner.vatOption === "VAT_8" ? Number((fixedMinusUtilitiesNetBase * 0.08).toFixed(2)) : 0;
+                    fixedMinusUtilitiesGross = Number((fixedMinusUtilitiesNetBase + fixedMinusUtilitiesVat).toFixed(2));
+                }
+            }
+
+            // Dodatkowe obliczenia dla podsumowania
+            const adminCommissionAmount = netIncome * adminCommissionRate;
+            const afterCommission = netIncome - adminCommissionAmount;
+            const rentAndUtilitiesTotal = (report.rentAmount ?? 0) + (report.utilitiesAmount ?? 0);
+            const afterRentAndUtilities = afterCommission - rentAndUtilitiesTotal;
+
+            // Nowe: kwota prowizyjna po odjęciu czynszu i mediów ORAZ dodatkowych odliczeń
+            const commissionNetBaseAfterUtilities = commissionNetBase - rentAndUtilitiesTotal - totalAdditionalDeductions;
+            const commissionVatAfterUtilities = report.owner.vatOption === "VAT_23"
+                ? Number((commissionNetBaseAfterUtilities * 0.23).toFixed(2))
+                : report.owner.vatOption === "VAT_8"
+                    ? Number((commissionNetBaseAfterUtilities * 0.08).toFixed(2))
+                    : 0;
+            const commissionGrossAfterUtilities = Number((commissionNetBaseAfterUtilities + commissionVatAfterUtilities).toFixed(2));
+
+            return {
+                ...report,
+                finalSettlementType: report.finalSettlementType,
+                commissionNetBase,
+                commissionVat,
+                commissionGross,
+                fixedNetBase,
+                fixedVat,
+                fixedGross,
+                fixedMinusUtilitiesNetBase,
+                fixedMinusUtilitiesVat,
+                fixedMinusUtilitiesGross,
+                adminCommissionAmount,
+                afterCommission,
+                afterRentAndUtilities,
+                commissionNetBaseAfterUtilities,
+                commissionVatAfterUtilities,
+                commissionGrossAfterUtilities,
+                additionalDeductions: report.additionalDeductions,
+                totalAdditionalDeductions,
+            };
+        }),
+
+    // Admin: Delete report by ID
+    deleteReport: protectedProcedure
+        .input(z.object({ reportId: z.string().uuid() }))
+        .mutation(async ({ input, ctx }) => {
+            if (ctx.session.user.type !== UserType.ADMIN) {
+                throw new TRPCError({
+                    code: "FORBIDDEN",
+                    message: "Only admins can delete reports",
+                });
+            }
+            // Usuń powiązane rekordy (items, history)
+            await ctx.db.reportItem.deleteMany({ where: { reportId: input.reportId } });
+            await ctx.db.reportHistory.deleteMany({ where: { reportId: input.reportId } });
+            // Usuń raport
+            await ctx.db.monthlyReport.delete({ where: { id: input.reportId } });
+            return { success: true };
+        }),
+
+    setFinalSettlementType: protectedProcedure
+        .input(z.object({
+            reportId: z.string().uuid(),
+            finalSettlementType: z.enum(["COMMISSION", "FIXED", "FIXED_MINUS_UTILITIES"]),
+        }))
+        .mutation(async ({ input, ctx }) => {
+            // (opcjonalnie: sprawdź uprawnienia admina)
+            await ctx.db.monthlyReport.update({
+                where: { id: input.reportId },
+                data: { finalSettlementType: input.finalSettlementType },
+            });
+            return { success: true };
+        }),
+
+    addAdditionalDeduction: protectedProcedure
+        .input(z.object({
+            reportId: z.string().uuid(),
+            name: z.string().min(1),
+            amount: z.number().min(0),
+            vatOption: z.enum(["NO_VAT", "VAT_8", "VAT_23"]),
+        }))
+        .mutation(async ({ input, ctx }) => {
+            await ctx.db.additionalDeduction.create({
+                data: {
+                    reportId: input.reportId,
+                    name: input.name,
+                    amount: input.amount,
+                    vatOption: input.vatOption,
+                },
+            });
+            return { success: true };
+        }),
+
+    deleteAdditionalDeduction: protectedProcedure
+        .input(z.object({
+            deductionId: z.string().uuid(),
+        }))
+        .mutation(async ({ input, ctx }) => {
+            await ctx.db.additionalDeduction.delete({
+                where: { id: input.deductionId },
+            });
             return { success: true };
         }),
 }); 

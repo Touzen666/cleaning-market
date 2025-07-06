@@ -316,6 +316,48 @@ enum ReportItemType {
   COMMISSION
 }
 
+enum ExpenseCategory {
+  CZYNSZ
+  MEDIA
+  PRAD
+  GAZ
+  WODA
+  INTERNET
+  PRANIE
+  SPRZATANIE
+  SRODKI_CZYSTOSCI
+}
+
+enum ReservationPortal {
+  BOOKING
+  AIRBNB
+  IDOBOOKING
+  CHANEL_MANAGER
+}
+
+enum SettlementType {
+  COMMISSION
+  FIXED
+  FIXED_MINUS_UTILITIES
+}
+
+model AdditionalDeduction {
+  id              String   @id @default(uuid())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  reportId        String
+  report          MonthlyReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  
+  // Deduction details
+  name            String   // Nazwa odliczenia
+  amount          Float    // Kwota netto
+  vatOption       VATOption @default(NO_VAT) // Stawka VAT
+  
+  @@index([reportId])
+}
+
 model MonthlyReport {
   id              String   @id @default(uuid())
   createdAt       DateTime @default(now())
@@ -363,6 +405,12 @@ model MonthlyReport {
   suggestedRent       Float?   @default(0)    // Sugerowany czynsz na podstawie poprzednich raportów
   suggestedUtilities  Float?   @default(0)    // Sugerowane media na podstawie poprzednich raportów
   
+  // Final settlement type chosen by admin
+  finalSettlementType SettlementType?
+  
+  // Additional deductions (relation to separate model)
+  additionalDeductions AdditionalDeduction[]
+  
   @@unique([apartmentId, year, month])
   @@index([status])
   @@index([ownerId, status])
@@ -383,6 +431,9 @@ model ReportItem {
   description     String
   amount          Float
   currency        String @default("PLN")
+  
+  expenseCategory ExpenseCategory?
+  portal          ReservationPortal?
   
   // Optional link to reservation for revenue items
   reservationId   Int?

@@ -4,9 +4,10 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/trpc/react";
 import type { RouterOutputs } from "@/trpc/react";
+import { PaymentType, VATOption, ReportStatus } from "@prisma/client";
+import { Modal } from "@/components/ui/Modal";
 
 type ReportDetails = RouterOutputs["monthlyReports"]["getById"];
-type ReportItem = ReportDetails["items"][0];
 
 const expenseCategories = [
   {
@@ -63,9 +64,40 @@ export default function ReportDetailsPage({
     utilitiesAmount: 0,
   });
 
+  // Dodaj state dla dodatkowego odliczenia
+  const [additionalDeductionData, setAdditionalDeductionData] = useState<{
+    name: string;
+    amount: number;
+    vatOption: VATOption;
+  }>({
+    name: "",
+    amount: 0,
+    vatOption: VATOption.NO_VAT,
+  });
+
   // Dodaj mutację
   const updateRentUtilitiesMutation =
     api.monthlyReports.updateRentAndUtilities.useMutation({
+      onSuccess: () => {
+        void reportQuery.refetch();
+      },
+    });
+
+  const addAdditionalDeductionMutation =
+    api.monthlyReports.addAdditionalDeduction.useMutation({
+      onSuccess: () => {
+        void reportQuery.refetch();
+        // Reset form after successful save
+        setAdditionalDeductionData({
+          name: "",
+          amount: 0,
+          vatOption: VATOption.NO_VAT,
+        });
+      },
+    });
+
+  const deleteAdditionalDeductionMutation =
+    api.monthlyReports.deleteAdditionalDeduction.useMutation({
       onSuccess: () => {
         void reportQuery.refetch();
       },
@@ -128,6 +160,34 @@ export default function ReportDetailsPage({
       });
     } catch (error) {
       console.error("Error saving rent and utilities:", error);
+    }
+  };
+
+  const handleSaveAdditionalDeduction = async () => {
+    if (!additionalDeductionData.name || additionalDeductionData.amount <= 0) {
+      alert("Proszę wypełnić nazwę i kwotę odliczenia");
+      return;
+    }
+
+    try {
+      await addAdditionalDeductionMutation.mutateAsync({
+        reportId: reportId,
+        ...additionalDeductionData,
+      });
+    } catch (error) {
+      console.error("Error saving additional deduction:", error);
+    }
+  };
+
+  const handleDeleteDeduction = async (deductionId: string) => {
+    if (confirm("Czy na pewno chcesz usunąć to odliczenie?")) {
+      try {
+        await deleteAdditionalDeductionMutation.mutateAsync({
+          deductionId,
+        });
+      } catch (error) {
+        console.error("Error deleting additional deduction:", error);
+      }
     }
   };
 
@@ -334,14 +394,14 @@ export default function ReportDetailsPage({
     try {
       await updateStatusMutation.mutateAsync({
         reportId: reportId,
-        status: newStatus as "DRAFT" | "REVIEW" | "APPROVED" | "SENT",
+        status: newStatus as ReportStatus,
       });
     } catch (error) {
       console.error("Error updating status:", error);
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: ReportStatus) => {
     switch (status) {
       case "DRAFT":
         return "bg-gray-100 text-gray-800";
@@ -356,7 +416,7 @@ export default function ReportDetailsPage({
     }
   };
 
-  const getStatusText = (status: string) => {
+  const getStatusText = (status: ReportStatus) => {
     switch (status) {
       case "DRAFT":
         return "Szkic";
@@ -371,7 +431,7 @@ export default function ReportDetailsPage({
     }
   };
 
-  const getItemTypeText = (type: string) => {
+  const getItemTypeTextLocal = (type: string) => {
     switch (type) {
       case "REVENUE":
         return "Przychód";
@@ -388,7 +448,7 @@ export default function ReportDetailsPage({
     }
   };
 
-  const getItemTypeColor = (type: string) => {
+  const getItemTypeColorLocal = (type: string) => {
     switch (type) {
       case "REVENUE":
         return "bg-green-100 text-green-800";
@@ -404,6 +464,9 @@ export default function ReportDetailsPage({
         return "bg-gray-100 text-gray-800";
     }
   };
+
+  const [showDeleteModal, setShowDeleteModal] = React.useState(false);
+  const deleteReportMutation = api.monthlyReports.deleteReport.useMutation();
 
   if (reportQuery.isLoading) {
     return (
@@ -504,7 +567,7 @@ export default function ReportDetailsPage({
             <div className="mt-4 sm:mt-0">
               <div className="flex gap-3">
                 <button
-                  onClick={() => router.push("/admin/reports")}
+                  onClick={() => router.push("/apartamentsOwner/reports")}
                   className="inline-flex items-center rounded-md bg-gray-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-500"
                 >
                   <svg
@@ -522,31 +585,61 @@ export default function ReportDetailsPage({
                   </svg>
                   Powrót do listy
                 </button>
-                {report.status !== "SENT" && (
-                  <button
-                    onClick={() => setShowAddItemForm(true)}
-                    className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
+                {/* Przycisk usuń raport - tylko dla admina */}
+                <button
+                  onClick={() => setShowDeleteModal(true)}
+                  className="inline-flex items-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500"
+                >
+                  <svg
+                    className="-ml-0.5 mr-1.5 h-5 w-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
                   >
-                    <svg
-                      className="-ml-0.5 mr-1.5 h-5 w-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                      />
-                    </svg>
-                    Dodaj pozycję
-                  </button>
-                )}
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                  Usuń raport
+                </button>
               </div>
             </div>
           </div>
         </div>
+        {showDeleteModal && (
+          <Modal onClose={() => setShowDeleteModal(false)}>
+            <div className="p-6">
+              <h2 className="mb-4 text-lg font-bold text-red-700">
+                Czy na pewno chcesz usunąć ten raport?
+              </h2>
+              <p className="mb-6 text-gray-700">
+                Tej operacji nie można cofnąć. Raport zostanie trwale usunięty
+                zarówno dla admina, jak i właściciela.
+              </p>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  className="rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300"
+                >
+                  Anuluj
+                </button>
+                <button
+                  onClick={async () => {
+                    await deleteReportMutation.mutateAsync({ reportId });
+                    setShowDeleteModal(false);
+                    router.push("/admin/reports");
+                  }}
+                  className="rounded-md bg-red-600 px-4 py-2 text-white hover:bg-red-700"
+                >
+                  Usuń raport
+                </button>
+              </div>
+            </div>
+          </Modal>
+        )}
 
         {/* Report Info */}
         <div className="mb-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -662,7 +755,7 @@ export default function ReportDetailsPage({
                 </span>
               </div>
               <div className="ml-5 w-0 flex-1">
-                {report.status !== "SENT" && (
+                {report.status !== ReportStatus.SENT && (
                   <select
                     value={report.status}
                     onChange={(e) => handleStatusChange(e.target.value)}
@@ -681,7 +774,7 @@ export default function ReportDetailsPage({
         </div>
 
         {/* Quick Expense Entry */}
-        {report.status !== "SENT" && (
+        {report.status !== ReportStatus.SENT && (
           <div className="mb-8 overflow-hidden rounded-lg bg-green-50 shadow">
             <div className="px-6 py-4">
               <h3 className="flex items-center text-lg font-medium text-green-900">
@@ -950,7 +1043,7 @@ export default function ReportDetailsPage({
                         </td>
                         <td className="px-6 py-4">
                           <span
-                            className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${getItemTypeColor(
+                            className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${getItemTypeColorLocal(
                               item.type,
                             )}`}
                           >
@@ -969,7 +1062,7 @@ export default function ReportDetailsPage({
         {/* Suggested Commissions */}
         {suggestedCommissionsQuery.data?.suggestions &&
           suggestedCommissionsQuery.data.suggestions.length > 0 &&
-          report.status !== "SENT" && (
+          report.status !== ReportStatus.SENT && (
             <SuggestedCommissionsSection
               suggestions={suggestedCommissionsQuery.data.suggestions}
               onAddCommission={handleAddSuggestedCommission}
@@ -1026,11 +1119,11 @@ export default function ReportDetailsPage({
                         </td>
                         <td className="px-6 py-4">
                           <span
-                            className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${getItemTypeColor(
+                            className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${getItemTypeColorLocal(
                               item.type,
                             )}`}
                           >
-                            {getItemTypeText(item.type)}
+                            {getItemTypeTextLocal(item.type)}
                           </span>
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-900">
@@ -1055,7 +1148,7 @@ export default function ReportDetailsPage({
         </div>
 
         {/* Rent and Utilities Section */}
-        {report.status !== "SENT" && (
+        {report.status !== ReportStatus.SENT && (
           <div className="mb-8 overflow-hidden rounded-lg bg-yellow-50 shadow">
             <div className="border-b border-yellow-200 px-6 py-4">
               <h3 className="flex items-center text-lg font-medium text-yellow-900">
@@ -1161,6 +1254,259 @@ export default function ReportDetailsPage({
           </div>
         )}
 
+        {/* Additional Deductions Section */}
+        {report.status !== ReportStatus.SENT && (
+          <div className="mb-8 overflow-hidden rounded-lg bg-purple-50 shadow">
+            <div className="border-b border-purple-200 px-6 py-4">
+              <h3 className="flex items-center text-lg font-medium text-purple-900">
+                <svg
+                  className="mr-2 h-5 w-5 text-purple-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
+                  />
+                </svg>
+                Dodatkowe Odliczenia
+              </h3>
+              <p className="mt-1 text-sm text-purple-700">
+                Dodatkowe koszty odejmowane od ostatecznej wypłaty właściciela
+              </p>
+            </div>
+            <div className="bg-white p-6">
+              {/* Lista istniejących odliczeń */}
+              {report.additionalDeductions &&
+                report.additionalDeductions.length > 0 && (
+                  <div className="mb-6">
+                    <h4 className="text-md mb-3 font-medium text-gray-800">
+                      Istniejące odliczenia:
+                    </h4>
+                    <div className="mb-3 space-y-2">
+                      {report.additionalDeductions.map((deduction) => {
+                        const vatAmount =
+                          deduction.vatOption === "VAT_23"
+                            ? deduction.amount * 0.23
+                            : deduction.vatOption === "VAT_8"
+                              ? deduction.amount * 0.08
+                              : 0;
+                        const grossAmount = deduction.amount + vatAmount;
+                        const vatLabel =
+                          deduction.vatOption === "VAT_23"
+                            ? "23%"
+                            : deduction.vatOption === "VAT_8"
+                              ? "8%"
+                              : "zwolniony";
+                        return (
+                          <div
+                            key={deduction.id}
+                            className="mb-2 rounded-md bg-purple-100 p-3"
+                          >
+                            <div className="mb-2 text-sm font-medium text-purple-900">
+                              {deduction.name}
+                            </div>
+                            <div className="grid grid-cols-5 items-center gap-2 text-center text-sm">
+                              <div>
+                                <div className="font-semibold text-purple-700">
+                                  Kwota netto
+                                </div>
+                                <div className="font-medium text-purple-900">
+                                  -{deduction.amount.toFixed(2)} PLN
+                                </div>
+                              </div>
+                              <div>
+                                <div className="font-semibold text-purple-700">
+                                  Stawka VAT
+                                </div>
+                                <div className="font-medium text-purple-900">
+                                  {vatLabel}
+                                </div>
+                              </div>
+                              <div>
+                                <div className="font-semibold text-purple-700">
+                                  Kwota VAT
+                                </div>
+                                <div className="font-medium text-purple-900">
+                                  {vatAmount === 0
+                                    ? "-"
+                                    : `-${vatAmount.toFixed(2)} PLN`}
+                                </div>
+                              </div>
+                              <div>
+                                <div className="font-semibold text-purple-700">
+                                  Kwota brutto
+                                </div>
+                                <div className="font-bold text-purple-900">
+                                  -{grossAmount.toFixed(2)} PLN
+                                </div>
+                              </div>
+                              <div className="flex h-full items-center justify-center gap-2">
+                                <button
+                                  onClick={() =>
+                                    alert("Edycja wkrótce dostępna")
+                                  }
+                                  className="rounded-md bg-yellow-100 p-2 text-yellow-600 transition hover:bg-yellow-200"
+                                  title="Edytuj odliczenie"
+                                >
+                                  <svg
+                                    className="h-5 w-5"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M15.232 5.232l3.536 3.536M9 13l6-6m2 2l-6 6m-2 2h2v2H7v-2h2zm0 0v-2H7v2h2z"
+                                    />
+                                  </svg>
+                                </button>
+                                <button
+                                  onClick={() =>
+                                    handleDeleteDeduction(deduction.id)
+                                  }
+                                  className="rounded-md bg-red-100 p-2 text-red-600 transition hover:bg-red-200"
+                                  title="Usuń odliczenie"
+                                >
+                                  <svg
+                                    className="h-5 w-5"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                    />
+                                  </svg>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+              {/* Formularz dodawania nowego odliczenia */}
+              <div className="border-t border-purple-200 pt-4">
+                <h4 className="text-md mb-3 font-medium text-gray-800">
+                  Dodaj nowe odliczenie:
+                </h4>
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Nazwa odliczenia
+                    </label>
+                    <input
+                      type="text"
+                      value={additionalDeductionData.name}
+                      onChange={(e) =>
+                        setAdditionalDeductionData((prev) => ({
+                          ...prev,
+                          name: e.target.value,
+                        }))
+                      }
+                      className="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 shadow-sm focus:border-purple-500 focus:outline-none focus:ring-purple-500"
+                      placeholder="np. Opłata za sprzątanie"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Kwota netto (PLN)
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={additionalDeductionData.amount}
+                      onChange={(e) =>
+                        setAdditionalDeductionData((prev) => ({
+                          ...prev,
+                          amount: parseFloat(e.target.value) || 0,
+                        }))
+                      }
+                      className="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 shadow-sm focus:border-purple-500 focus:outline-none focus:ring-purple-500"
+                      placeholder="0.00"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Stawka VAT
+                    </label>
+                    <select
+                      value={additionalDeductionData.vatOption}
+                      onChange={(e) =>
+                        setAdditionalDeductionData((prev) => ({
+                          ...prev,
+                          vatOption: e.target.value as VATOption,
+                        }))
+                      }
+                      className="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 shadow-sm focus:border-purple-500 focus:outline-none focus:ring-purple-500"
+                    >
+                      <option value={VATOption.NO_VAT}>Bez VAT (0%)</option>
+                      <option value={VATOption.VAT_8}>VAT 8%</option>
+                      <option value={VATOption.VAT_23}>VAT 23%</option>
+                    </select>
+                  </div>
+                </div>
+
+                {additionalDeductionData.amount > 0 && (
+                  <div className="mt-4 rounded-md bg-purple-100 p-3">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-purple-700">VAT:</span>
+                      <span className="font-medium text-purple-900">
+                        {additionalDeductionData.vatOption === VATOption.VAT_23
+                          ? (additionalDeductionData.amount * 0.23).toFixed(2)
+                          : additionalDeductionData.vatOption ===
+                              VATOption.VAT_8
+                            ? (additionalDeductionData.amount * 0.08).toFixed(2)
+                            : "0.00"}{" "}
+                        PLN
+                      </span>
+                    </div>
+                    <div className="mt-1 flex justify-between text-sm font-medium">
+                      <span className="text-purple-900">Kwota brutto:</span>
+                      <span className="text-purple-600">
+                        {additionalDeductionData.vatOption === VATOption.VAT_23
+                          ? (additionalDeductionData.amount * 1.23).toFixed(2)
+                          : additionalDeductionData.vatOption ===
+                              VATOption.VAT_8
+                            ? (additionalDeductionData.amount * 1.08).toFixed(2)
+                            : additionalDeductionData.amount.toFixed(2)}{" "}
+                        PLN
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                <div className="mt-4 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={handleSaveAdditionalDeduction}
+                    disabled={addAdditionalDeductionMutation.isPending}
+                    className="inline-flex items-center rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700 disabled:opacity-50"
+                  >
+                    {addAdditionalDeductionMutation.isPending
+                      ? "Zapisywanie..."
+                      : "Dodaj odliczenie"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Owner Payout Calculation */}
         <div className="mb-8 overflow-hidden rounded-lg bg-gradient-to-br from-green-50 to-blue-50 shadow">
           <div className="border-b border-green-200 px-6 py-4">
@@ -1186,7 +1532,12 @@ export default function ReportDetailsPage({
             </p>
           </div>
           <div className="bg-white p-6">
-            <OwnerPayoutCalculation report={report} />
+            <OwnerPayoutCalculation
+              report={report}
+              onRefetch={() => void reportQuery.refetch()}
+              additionalDeductionData={additionalDeductionData}
+              onDeleteDeduction={handleDeleteDeduction}
+            />
           </div>
         </div>
 
@@ -1673,65 +2024,170 @@ function SuggestedCommissionsSection({
 }
 
 // Nowy komponent do obliczania i wyświetlania rozliczenia z właścicielem
-function OwnerPayoutCalculation({ report }: { report: ReportDetails }) {
-  const getVatRate = (vatOption: string): number => {
+enum LocalPayoutType {
+  FIXED_AMOUNT = "FIXED_AMOUNT",
+  FIXED_AMOUNT_MINUS_UTILITIES = "FIXED_AMOUNT_MINUS_UTILITIES",
+  COMMISSION = "COMMISSION",
+}
+
+function OwnerPayoutCalculation({
+  report,
+  onRefetch,
+  additionalDeductionData,
+  onDeleteDeduction,
+}: {
+  report: ReportDetails;
+  onRefetch: () => void;
+  additionalDeductionData: {
+    name: string;
+    amount: number;
+    vatOption: VATOption;
+  };
+  onDeleteDeduction: (deductionId: string) => Promise<void>;
+}) {
+  const [deductRentAndUtilities, setDeductRentAndUtilities] =
+    React.useState(true);
+
+  const [finalPayoutType, setFinalPayoutType] = React.useState<LocalPayoutType>(
+    () => {
+      if (report.finalSettlementType === "FIXED") {
+        return LocalPayoutType.FIXED_AMOUNT;
+      } else if (report.finalSettlementType === "FIXED_MINUS_UTILITIES") {
+        return LocalPayoutType.FIXED_AMOUNT_MINUS_UTILITIES;
+      } else {
+        return LocalPayoutType.COMMISSION;
+      }
+    },
+  );
+
+  // Mutacja do zapisywania finalSettlementType
+  const setFinalSettlementTypeMutation =
+    api.monthlyReports.setFinalSettlementType.useMutation({
+      onSuccess: () => {
+        // Refetch report data after successful update
+        onRefetch();
+      },
+    });
+
+  // Funkcja do zapisywania wybranego typu rozliczenia
+  const handleFinalPayoutTypeChange = async (newType: LocalPayoutType) => {
+    setFinalPayoutType(newType);
+
+    // Mapuj lokalny typ na typ z bazy danych
+    let settlementType: "COMMISSION" | "FIXED" | "FIXED_MINUS_UTILITIES";
+    switch (newType) {
+      case LocalPayoutType.FIXED_AMOUNT:
+        settlementType = "FIXED";
+        break;
+      case LocalPayoutType.FIXED_AMOUNT_MINUS_UTILITIES:
+        settlementType = "FIXED_MINUS_UTILITIES";
+        break;
+      case LocalPayoutType.COMMISSION:
+      default:
+        settlementType = "COMMISSION";
+        break;
+    }
+
+    try {
+      await setFinalSettlementTypeMutation.mutateAsync({
+        reportId: report.id,
+        finalSettlementType: settlementType,
+      });
+    } catch (error) {
+      console.error("Error saving final settlement type:", error);
+      // Revert the state change if save failed
+      setFinalPayoutType(
+        report.finalSettlementType === "FIXED"
+          ? LocalPayoutType.FIXED_AMOUNT
+          : report.finalSettlementType === "FIXED_MINUS_UTILITIES"
+            ? LocalPayoutType.FIXED_AMOUNT_MINUS_UTILITIES
+            : LocalPayoutType.COMMISSION,
+      );
+    }
+  };
+
+  const getVatRate = (vatOption: VATOption): number => {
     switch (vatOption) {
-      case "VAT_8":
+      case VATOption.VAT_8:
         return 8;
-      case "VAT_23":
+      case VATOption.VAT_23:
         return 23;
-      case "NO_VAT":
+      case VATOption.NO_VAT:
       default:
         return 0;
     }
   };
 
-  const calculateAmountWithVat = (baseAmount: number, vatRate: number) => {
-    const vatAmount = baseAmount * (vatRate / 100);
-    const grossAmount = baseAmount + vatAmount;
-    return { vatAmount, grossAmount };
-  };
-
   const ownerVatRate = getVatRate(report.owner.vatOption);
+  const isVatExempt = report.owner.vatOption === VATOption.NO_VAT;
 
-  // Obliczenie 25% prowizji dla administratora
+  // Suma dodatkowych odliczeń (netto)
+  const totalAdditionalDeductions = (report.additionalDeductions ?? []).reduce(
+    (sum, deduction) => sum + deduction.amount,
+    0,
+  );
+
+  // Suma dodatkowych odliczeń (brutto)
+  const totalAdditionalDeductionsGross = (
+    report.additionalDeductions ?? []
+  ).reduce((sum, deduction) => {
+    const vatAmount =
+      deduction.vatOption === "VAT_23"
+        ? deduction.amount * 0.23
+        : deduction.vatOption === "VAT_8"
+          ? deduction.amount * 0.08
+          : 0;
+    return sum + deduction.amount + vatAmount;
+  }, 0);
+
+  // Kwota stała z umowy (po odjęciu dodatkowych odliczeń)
+  const fixedBaseAmount = Number(report.owner.fixedPaymentAmount ?? 0);
+  const fixedBaseAmountAfterDeductions =
+    fixedBaseAmount - totalAdditionalDeductionsGross;
+  const fixedVatAmount = isVatExempt
+    ? 0
+    : fixedBaseAmountAfterDeductions * (ownerVatRate / 100);
+  const fixedGrossAmount = fixedBaseAmountAfterDeductions + fixedVatAmount;
+
+  // Zysk procentowy (po prowizji admina i odjęciu czynszu/mediów)
   const adminCommissionRate = 0.25; // 25%
   const adminCommissionAmount = report.netIncome * adminCommissionRate;
   const netIncomeAfterAdminCommission =
     report.netIncome - adminCommissionAmount;
-
-  // Odejmij czynsz i media (po prowizji admina)
   const rentAndUtilities =
     (report.rentAmount ?? 0) + (report.utilitiesAmount ?? 0);
+
+  // Nowe: jeśli nie potrącamy czynszu i mediów, nie odejmujemy ich od kwoty do wypłaty
+  const netIncomeAfterRentAndUtilities = deductRentAndUtilities
+    ? netIncomeAfterAdminCommission - rentAndUtilities
+    : netIncomeAfterAdminCommission;
+
+  // Kwota po odjęciu dodatkowych odliczeń (odejmujemy kwoty brutto)
   const netIncomeAfterAllDeductions =
-    netIncomeAfterAdminCommission - rentAndUtilities;
-
-  // Obliczenia dla scenariusza właściciela
-  const commissionBaseAmountAfterAdmin = Math.max(
-    0,
-    netIncomeAfterAllDeductions,
-  );
-  const fixedBaseAmount = Number(report.owner.fixedPaymentAmount ?? 0);
-  const fixedBaseAmountAfterAdmin = Math.max(
-    0,
-    fixedBaseAmount - adminCommissionAmount - rentAndUtilities,
-  );
-
-  const {
-    vatAmount: commissionVatAmountAfterAdmin,
-    grossAmount: commissionGrossAmountAfterAdmin,
-  } = calculateAmountWithVat(commissionBaseAmountAfterAdmin, ownerVatRate);
-
-  const {
-    vatAmount: fixedVatAmountAfterAdmin,
-    grossAmount: fixedGrossAmountAfterAdmin,
-  } = calculateAmountWithVat(fixedBaseAmountAfterAdmin, ownerVatRate);
+    netIncomeAfterRentAndUtilities - totalAdditionalDeductionsGross;
 
   return (
     <div className="space-y-6">
       <h4 className="text-xl font-semibold text-gray-800">
         Podsumowanie rozliczenia
       </h4>
+
+      {/* Przełącznik potrącania czynszu i mediów */}
+      <div className="my-6 flex items-center gap-3 rounded-lg border border-green-300 bg-green-50 px-4 py-3">
+        <input
+          id="deduct-rent-utilities"
+          type="checkbox"
+          checked={deductRentAndUtilities}
+          onChange={() => setDeductRentAndUtilities((v) => !v)}
+          className="h-5 w-5 rounded border-green-400 text-green-600 focus:ring-green-500"
+        />
+        <label
+          htmlFor="deduct-rent-utilities"
+          className="select-none text-base font-semibold text-green-900"
+        >
+          Potrąć czynsz i media z wypłaty właściciela
+        </label>
+      </div>
 
       {/* Kwota bazowa */}
       <div className="rounded-lg bg-gray-50 p-4">
@@ -1785,48 +2241,449 @@ function OwnerPayoutCalculation({ report }: { report: ReportDetails }) {
           <div className="rounded-md bg-yellow-100 p-3">
             <p className="text-sm text-yellow-700">Pozostało:</p>
             <p className="text-xl font-bold text-yellow-900">
-              {netIncomeAfterAllDeductions.toFixed(2)} PLN
+              {netIncomeAfterRentAndUtilities.toFixed(2)} PLN
             </p>
           </div>
         </div>
       </div>
 
-      {/* Ostateczne rozliczenie z właścicielem */}
-      <div className="rounded-lg bg-green-50 p-4">
-        <h5 className="mb-2 text-lg font-medium text-green-800">
-          Ostateczna wypłata dla właściciela (
-          {report.owner.paymentType === "COMMISSION"
-            ? "Prowizyjne"
-            : "Kwota stała"}
-          )
-        </h5>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <div className="rounded-md bg-green-100 p-3">
-            <p className="text-sm text-green-700">Kwota bazowa (netto):</p>
-            <p className="text-lg font-bold text-green-900">
-              {report.owner.paymentType === "COMMISSION"
-                ? `${commissionBaseAmountAfterAdmin.toFixed(2)} PLN`
-                : `${fixedBaseAmountAfterAdmin.toFixed(2)} PLN`}
-            </p>
+      {/* Dodatkowe odliczenia */}
+      {report.additionalDeductions &&
+        report.additionalDeductions.length > 0 && (
+          <div className="rounded-lg bg-purple-50 p-4">
+            <h5 className="mb-2 text-lg font-medium text-purple-800">
+              Dodatkowe odliczenia
+            </h5>
+            <div className="mb-3 space-y-2">
+              {report.additionalDeductions.map((deduction) => {
+                const vatAmount =
+                  deduction.vatOption === "VAT_23"
+                    ? deduction.amount * 0.23
+                    : deduction.vatOption === "VAT_8"
+                      ? deduction.amount * 0.08
+                      : 0;
+                const grossAmount = deduction.amount + vatAmount;
+                const vatLabel =
+                  deduction.vatOption === "VAT_23"
+                    ? "23%"
+                    : deduction.vatOption === "VAT_8"
+                      ? "8%"
+                      : "zwolniony";
+                return (
+                  <div
+                    key={deduction.id}
+                    className="mb-2 rounded-md bg-purple-100 p-3"
+                  >
+                    <div className="mb-2 text-sm font-medium text-purple-900">
+                      {deduction.name}
+                    </div>
+                    <div className="grid grid-cols-5 items-center gap-2 text-center text-sm">
+                      <div>
+                        <div className="font-semibold text-purple-700">
+                          Kwota netto
+                        </div>
+                        <div className="font-medium text-purple-900">
+                          -{deduction.amount.toFixed(2)} PLN
+                        </div>
+                      </div>
+                      <div>
+                        <div className="font-semibold text-purple-700">
+                          Stawka VAT
+                        </div>
+                        <div className="font-medium text-purple-900">
+                          {vatLabel}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="font-semibold text-purple-700">
+                          Kwota VAT
+                        </div>
+                        <div className="font-medium text-purple-900">
+                          {vatAmount === 0
+                            ? "-"
+                            : `-${vatAmount.toFixed(2)} PLN`}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="font-semibold text-purple-700">
+                          Kwota brutto
+                        </div>
+                        <div className="font-bold text-purple-900">
+                          -{grossAmount.toFixed(2)} PLN
+                        </div>
+                      </div>
+                      <div className="flex h-full items-center justify-center gap-2">
+                        <button
+                          onClick={() => alert("Edycja wkrótce dostępna")}
+                          className="rounded-md bg-yellow-100 p-2 text-yellow-600 transition hover:bg-yellow-200"
+                          title="Edytuj odliczenie"
+                        >
+                          <svg
+                            className="h-5 w-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M15.232 5.232l3.536 3.536M9 13l6-6m2 2l-6 6m-2 2h2v2H7v-2h2zm0 0v-2H7v2h2z"
+                            />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => onDeleteDeduction(deduction.id)}
+                          className="rounded-md bg-red-100 p-2 text-red-600 transition hover:bg-red-200"
+                          title="Usuń odliczenie"
+                        >
+                          <svg
+                            className="h-5 w-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+              <div className="rounded-md bg-purple-100 p-3">
+                <p className="text-sm text-purple-700">
+                  Suma odliczeń (netto):
+                </p>
+                <p className="text-lg font-bold text-purple-900">
+                  -{totalAdditionalDeductions.toFixed(2)} PLN
+                </p>
+              </div>
+              <div className="rounded-md bg-purple-100 p-3">
+                <p className="text-sm text-purple-700">
+                  Suma odliczeń (brutto):
+                </p>
+                <p className="text-lg font-bold text-purple-900">
+                  -{totalAdditionalDeductionsGross.toFixed(2)} PLN
+                </p>
+              </div>
+              <div className="rounded-md bg-purple-100 p-3">
+                <p className="text-sm text-purple-700">Pozostało:</p>
+                <p className="text-xl font-bold text-purple-900">
+                  {netIncomeAfterAllDeductions.toFixed(2)} PLN
+                </p>
+              </div>
+            </div>
           </div>
-          <div className="rounded-md bg-green-100 p-3">
-            <p className="text-sm text-green-700">VAT ({ownerVatRate}%):</p>
-            <p className="text-lg font-bold text-green-900">
-              {report.owner.paymentType === "COMMISSION"
-                ? `${commissionVatAmountAfterAdmin.toFixed(2)} PLN`
-                : `${fixedVatAmountAfterAdmin.toFixed(2)} PLN`}
-            </p>
-          </div>
-          <div className="rounded-md bg-green-100 p-3">
-            <p className="text-sm text-green-700">DO WYPŁATY:</p>
-            <p className="text-2xl font-bold text-green-900">
-              {report.owner.paymentType === "COMMISSION"
-                ? `${commissionGrossAmountAfterAdmin.toFixed(2)} PLN`
-                : `${fixedGrossAmountAfterAdmin.toFixed(2)} PLN`}
-            </p>
+        )}
+
+      {/* Dodatkowe odliczenie */}
+      {additionalDeductionData.name && additionalDeductionData.amount > 0 && (
+        <div className="rounded-lg bg-purple-50 p-4">
+          <h5 className="mb-2 text-lg font-medium text-purple-800">
+            Dodatkowe odliczenie: {additionalDeductionData.name}
+          </h5>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div className="rounded-md bg-purple-100 p-3">
+              <p className="text-sm text-purple-700">Kwota netto:</p>
+              <p className="text-lg font-bold text-purple-900">
+                -{additionalDeductionData.amount.toFixed(2)} PLN
+              </p>
+            </div>
+            <div className="rounded-md bg-purple-100 p-3">
+              <p className="text-sm text-purple-700">VAT:</p>
+              <p className="text-lg font-bold text-purple-900">
+                {additionalDeductionData.vatOption === "VAT_23"
+                  ? `-${(additionalDeductionData.amount * 0.23).toFixed(2)} PLN (23%)`
+                  : additionalDeductionData.vatOption === "VAT_8"
+                    ? `-${(additionalDeductionData.amount * 0.08).toFixed(2)} PLN (8%)`
+                    : "zwolniony"}
+              </p>
+            </div>
+            <div className="rounded-md bg-purple-100 p-3">
+              <p className="text-sm text-purple-700">Łącznie do odliczenia:</p>
+              <p className="text-xl font-bold text-purple-900">
+                -
+                {additionalDeductionData.vatOption === "VAT_23"
+                  ? (additionalDeductionData.amount * 1.23).toFixed(2)
+                  : additionalDeductionData.vatOption === "VAT_8"
+                    ? (additionalDeductionData.amount * 1.08).toFixed(2)
+                    : additionalDeductionData.amount.toFixed(2)}{" "}
+                PLN
+              </p>
+            </div>
           </div>
         </div>
-      </div>
+      )}
+
+      {/* Ostateczne rozliczenie z właścicielem (Kwota stała) */}
+      {report.owner.paymentType === PaymentType.FIXED_AMOUNT && (
+        <>
+          <div className="flex flex-col gap-2 rounded-lg bg-green-50 p-4">
+            {/* Kwota stała */}
+            <div className="mb-2 flex items-center gap-2">
+              <input
+                type="radio"
+                id="final-fixed"
+                name="final-payout-type"
+                checked={finalPayoutType === LocalPayoutType.FIXED_AMOUNT}
+                onChange={() =>
+                  handleFinalPayoutTypeChange(LocalPayoutType.FIXED_AMOUNT)
+                }
+                className="h-4 w-4 border-green-300 text-green-600 focus:ring-green-500"
+              />
+              <label
+                htmlFor="final-fixed"
+                className="text-lg font-semibold text-green-800"
+              >
+                Rozliczenie właściciela: kwota stała
+              </label>
+              {finalPayoutType === LocalPayoutType.FIXED_AMOUNT && (
+                <span className="ml-2 rounded bg-green-200 px-2 py-0.5 text-xs font-medium text-green-900">
+                  Wybrano jako ostateczne
+                </span>
+              )}
+            </div>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+              <div className="rounded-md bg-green-100 p-3">
+                <p className="text-sm text-green-700">Kwota bazowa (netto):</p>
+                <p className="text-lg font-bold text-green-900">
+                  {fixedBaseAmountAfterDeductions.toFixed(2)} PLN
+                  {totalAdditionalDeductionsGross > 0 && (
+                    <span className="block text-xs text-green-600">
+                      (po odliczeniu dodatkowych odliczeń:{" "}
+                      {totalAdditionalDeductionsGross.toFixed(2)} PLN brutto ={" "}
+                      {fixedBaseAmountAfterDeductions.toFixed(2)} PLN)
+                    </span>
+                  )}
+                </p>
+              </div>
+              {!isVatExempt && (
+                <div className="rounded-md bg-green-100 p-3">
+                  <p className="text-sm text-green-700">VAT:</p>
+                  <p className="text-lg font-bold text-green-900">
+                    {isVatExempt
+                      ? "zwolniony"
+                      : `${fixedVatAmount.toFixed(2)} PLN (${ownerVatRate}%)`}
+                  </p>
+                </div>
+              )}
+              <div className="rounded-md bg-green-100 p-3">
+                <p className="text-sm text-green-700">DO WYPŁATY:</p>
+                <p className="text-2xl font-bold text-green-900">
+                  {isVatExempt
+                    ? `${fixedBaseAmountAfterDeductions.toFixed(2)} PLN`
+                    : `${fixedGrossAmount.toFixed(2)} PLN`}
+                </p>
+              </div>
+            </div>
+            {/* Kwota stała po odliczeniu mediów */}
+            <div className="mb-2 mt-4 flex items-center gap-2">
+              <input
+                type="radio"
+                id="final-fixed-minus-utilities"
+                name="final-payout-type"
+                checked={
+                  finalPayoutType ===
+                  LocalPayoutType.FIXED_AMOUNT_MINUS_UTILITIES
+                }
+                onChange={() =>
+                  handleFinalPayoutTypeChange(
+                    LocalPayoutType.FIXED_AMOUNT_MINUS_UTILITIES,
+                  )
+                }
+                className="h-4 w-4 border-green-300 text-green-600 focus:ring-green-500"
+              />
+              <label
+                htmlFor="final-fixed-minus-utilities"
+                className="text-lg font-semibold text-green-800"
+              >
+                Rozliczenie właściciela: kwota stała po odliczeniu mediów
+              </label>
+              {finalPayoutType ===
+                LocalPayoutType.FIXED_AMOUNT_MINUS_UTILITIES && (
+                <span className="ml-2 rounded bg-green-200 px-2 py-0.5 text-xs font-medium text-green-900">
+                  Wybrano jako ostateczne
+                </span>
+              )}
+            </div>
+            {finalPayoutType ===
+              LocalPayoutType.FIXED_AMOUNT_MINUS_UTILITIES && (
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                <div className="rounded-md bg-green-100 p-3">
+                  <p className="text-sm text-green-700">
+                    Kwota bazowa (netto):
+                  </p>
+                  <p className="text-lg font-bold text-green-900">
+                    {(fixedBaseAmount - rentAndUtilities).toFixed(2)} PLN
+                    <span className="block text-xs text-green-600">
+                      (po odliczeniu mediów:{" "}
+                      {(
+                        (report.rentAmount ?? 0) + (report.utilitiesAmount ?? 0)
+                      ).toFixed(2)}{" "}
+                      PLN
+                      {totalAdditionalDeductionsGross > 0 && (
+                        <>
+                          {" "}
+                          + dodatkowych odliczeń:{" "}
+                          {totalAdditionalDeductionsGross.toFixed(2)} PLN brutto
+                        </>
+                      )}
+                      {" = "}
+                      {(
+                        (report.rentAmount ?? 0) +
+                        (report.utilitiesAmount ?? 0) +
+                        totalAdditionalDeductionsGross
+                      ).toFixed(2)}{" "}
+                      PLN)
+                    </span>
+                  </p>
+                </div>
+                {!isVatExempt && (
+                  <div className="rounded-md bg-green-100 p-3">
+                    <p className="text-sm text-green-700">VAT:</p>
+                    <p className="text-lg font-bold text-green-900">
+                      {isVatExempt
+                        ? "zwolniony"
+                        : `${((fixedBaseAmount - rentAndUtilities) * (ownerVatRate / 100)).toFixed(2)} PLN (${ownerVatRate}%)`}
+                    </p>
+                  </div>
+                )}
+                <div className="rounded-md bg-green-100 p-3">
+                  <p className="text-sm text-green-700">DO WYPŁATY:</p>
+                  <p className="text-2xl font-bold text-green-900">
+                    {isVatExempt
+                      ? `${(fixedBaseAmount - rentAndUtilities).toFixed(2)} PLN`
+                      : `${((fixedBaseAmount - rentAndUtilities) * (1 + ownerVatRate / 100)).toFixed(2)} PLN`}
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Dodatkowo prezentujemy wariant prowizyjny pod stałą kwotą */}
+          <div className="mt-6 flex flex-col gap-2 rounded-lg bg-blue-50 p-4">
+            <div className="mb-2 flex items-center gap-2">
+              <input
+                type="radio"
+                id="final-commission"
+                name="final-payout-type"
+                checked={finalPayoutType === LocalPayoutType.COMMISSION}
+                onChange={() =>
+                  handleFinalPayoutTypeChange(LocalPayoutType.COMMISSION)
+                }
+                className="h-4 w-4 border-blue-300 text-blue-600 focus:ring-blue-500"
+              />
+              <label
+                htmlFor="final-commission"
+                className="text-lg font-semibold text-blue-800"
+              >
+                Rozliczenie właściciela: prowizyjne
+              </label>
+              {finalPayoutType === LocalPayoutType.COMMISSION && (
+                <span className="ml-2 rounded bg-blue-200 px-2 py-0.5 text-xs font-medium text-blue-900">
+                  Wybrano jako ostateczne
+                </span>
+              )}
+            </div>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+              <div className="rounded-md bg-blue-100 p-3">
+                <p className="text-sm text-blue-700">
+                  Kwota po prowizji Złote Wynajmy (netto):
+                </p>
+                <p className="text-lg font-bold text-blue-900">
+                  {netIncomeAfterAdminCommission.toFixed(2)} PLN
+                </p>
+              </div>
+              <div className="rounded-md bg-blue-100 p-3">
+                <p className="text-sm text-blue-700">Kwota bazowa (netto):</p>
+                <p className="text-lg font-bold text-blue-900">
+                  {netIncomeAfterAllDeductions.toFixed(2)} PLN
+                  {totalAdditionalDeductionsGross > 0 && (
+                    <span className="block text-xs text-blue-600">
+                      (po odliczeniu {totalAdditionalDeductionsGross.toFixed(2)}{" "}
+                      PLN)
+                    </span>
+                  )}
+                </p>
+              </div>
+              {!isVatExempt && (
+                <div className="rounded-md bg-blue-100 p-3">
+                  <p className="text-sm text-blue-700">VAT:</p>
+                  <p className="text-lg font-bold text-blue-900">
+                    {isVatExempt
+                      ? "zwolniony"
+                      : `${(netIncomeAfterAllDeductions * (ownerVatRate / 100)).toFixed(2)} PLN (${ownerVatRate}%)`}
+                  </p>
+                </div>
+              )}
+              <div className="rounded-md bg-blue-100 p-3">
+                <p className="text-sm text-blue-700">DO WYPŁATY:</p>
+                <p className="text-2xl font-bold text-blue-900">
+                  {isVatExempt
+                    ? `${netIncomeAfterAllDeductions.toFixed(2)} PLN`
+                    : `${(netIncomeAfterAllDeductions * (1 + ownerVatRate / 100)).toFixed(2)} PLN`}
+                </p>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+      {/* Ostateczne rozliczenie z właścicielem (Prowizyjne) */}
+      {report.owner.paymentType === PaymentType.COMMISSION && (
+        <div className="rounded-lg bg-green-50 p-4">
+          <h5 className="mb-2 text-lg font-medium text-green-800">
+            Ostateczna wypłata dla właściciela (Prowizyjne)
+          </h5>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+            <div className="rounded-md bg-green-100 p-3">
+              <p className="text-sm text-green-700">
+                Kwota po prowizji Złote Wynajmy (netto):
+              </p>
+              <p className="text-lg font-bold text-green-900">
+                {netIncomeAfterAdminCommission.toFixed(2)} PLN
+              </p>
+            </div>
+            <div className="rounded-md bg-green-100 p-3">
+              <p className="text-sm text-green-700">Kwota bazowa (netto):</p>
+              <p className="text-lg font-bold text-green-900">
+                {netIncomeAfterAllDeductions.toFixed(2)} PLN
+                {totalAdditionalDeductionsGross > 0 && (
+                  <span className="block text-xs text-green-600">
+                    (po odliczeniu {totalAdditionalDeductionsGross.toFixed(2)}{" "}
+                    PLN)
+                  </span>
+                )}
+              </p>
+            </div>
+            {!isVatExempt && (
+              <div className="rounded-md bg-green-100 p-3">
+                <p className="text-sm text-green-700">VAT:</p>
+                <p className="text-lg font-bold text-green-900">
+                  {isVatExempt
+                    ? "zwolniony"
+                    : `${(netIncomeAfterAllDeductions * (ownerVatRate / 100)).toFixed(2)} PLN (${ownerVatRate}%)`}
+                </p>
+              </div>
+            )}
+            <div className="rounded-md bg-green-100 p-3">
+              <p className="text-sm text-green-700">DO WYPŁATY:</p>
+              <p className="text-2xl font-bold text-green-900">
+                {isVatExempt
+                  ? `${netIncomeAfterAllDeductions.toFixed(2)} PLN`
+                  : `${(netIncomeAfterAllDeductions * (1 + ownerVatRate / 100)).toFixed(2)} PLN`}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
