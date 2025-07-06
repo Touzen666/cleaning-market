@@ -2,6 +2,7 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { createHash } from "crypto";
+import { UserType } from "@prisma/client";
 
 // Funkcja do generowania system_key zgodnie z dokumentacją idobooking
 function generateSystemKey(password: string): string {
@@ -79,7 +80,7 @@ export const idobookingRouter = createTRPCRouter({
     // Pobierz listę apartamentów z idobooking
     getApartmentsList: protectedProcedure
         .query(async ({ ctx }) => {
-            if (ctx.session.user.type !== "ADMIN") {
+            if (ctx.session.user.type !== UserType.ADMIN) {
                 throw new TRPCError({
                     code: "FORBIDDEN",
                     message: "Only admins can access idobooking data",
@@ -163,7 +164,7 @@ export const idobookingRouter = createTRPCRouter({
             dateTo: z.string(),   // YYYY-MM-DD
         }))
         .query(async ({ input, ctx }) => {
-            if (ctx.session.user.type !== "ADMIN") {
+            if (ctx.session.user.type !== UserType.ADMIN) {
                 throw new TRPCError({
                     code: "FORBIDDEN",
                     message: "Only admins can access idobooking data",
@@ -211,7 +212,7 @@ export const idobookingRouter = createTRPCRouter({
             objectId: z.number().optional(),
         }))
         .query(async ({ input, ctx }) => {
-            if (ctx.session.user.type !== "ADMIN") {
+            if (ctx.session.user.type !== UserType.ADMIN) {
                 throw new TRPCError({
                     code: "FORBIDDEN",
                     message: "Only admins can access idobooking data",
@@ -252,7 +253,7 @@ export const idobookingRouter = createTRPCRouter({
     // Synchronizuj dane z idobooking do naszej bazy
     syncDataFromIdobooking: protectedProcedure
         .mutation(async ({ ctx }) => {
-            if (ctx.session.user.type !== "ADMIN") {
+            if (ctx.session.user.type !== UserType.ADMIN) {
                 throw new TRPCError({
                     code: "FORBIDDEN",
                     message: "Only admins can sync data",

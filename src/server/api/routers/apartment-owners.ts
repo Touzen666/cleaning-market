@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
-import { type PrismaClient } from '@prisma/client';
+import { type PrismaClient, UserType, PaymentType, VATOption } from '@prisma/client';
 
 const apartmentOwnerSchema = z.object({
     id: z.string(),
@@ -33,7 +33,7 @@ export const apartmentOwnersRouter = createTRPCRouter({
         .output(z.array(apartmentOwnerSchema))
         .query(async ({ ctx }) => {
             // Check if user is admin
-            if (ctx.session.user.type !== "ADMIN") {
+            if (ctx.session.user.type !== UserType.ADMIN) {
                 throw new TRPCError({
                     code: "FORBIDDEN",
                     message: "Only admins can view apartment owners",
@@ -82,13 +82,13 @@ export const apartmentOwnersRouter = createTRPCRouter({
             lastName: z.string().min(1),
             phone: z.string().optional(),
             apartmentIds: z.array(z.number()).optional(),
-            paymentType: z.enum(["COMMISSION", "FIXED_AMOUNT"]).default("COMMISSION"),
+            paymentType: z.enum([PaymentType.COMMISSION, PaymentType.FIXED_AMOUNT]).default(PaymentType.COMMISSION),
             fixedPaymentAmount: z.number().optional(),
-            vatOption: z.enum(["NO_VAT", "VAT_8", "VAT_23"]).default("NO_VAT"),
+            vatOption: z.enum([VATOption.NO_VAT, VATOption.VAT_8, VATOption.VAT_23]).default(VATOption.NO_VAT),
         }))
         .mutation(async ({ input, ctx }) => {
             // Check if user is admin
-            if (ctx.session.user.type !== "ADMIN") {
+            if (ctx.session.user.type !== UserType.ADMIN) {
                 throw new TRPCError({
                     code: "FORBIDDEN",
                     message: "Only admins can create apartment owners",
@@ -154,7 +154,7 @@ export const apartmentOwnersRouter = createTRPCRouter({
         }))
         .mutation(async ({ input, ctx }) => {
             // Check if user is admin
-            if (ctx.session.user.type !== "ADMIN") {
+            if (ctx.session.user.type !== UserType.ADMIN) {
                 throw new TRPCError({
                     code: "FORBIDDEN",
                     message: "Only admins can update apartment owners",
@@ -175,7 +175,7 @@ export const apartmentOwnersRouter = createTRPCRouter({
         }))
         .mutation(async ({ input, ctx }) => {
             // Check if user is admin
-            if (ctx.session.user.type !== "ADMIN") {
+            if (ctx.session.user.type !== UserType.ADMIN) {
                 throw new TRPCError({
                     code: "FORBIDDEN",
                     message: "Only admins can assign apartments",
@@ -208,7 +208,7 @@ export const apartmentOwnersRouter = createTRPCRouter({
         }))
         .mutation(async ({ input, ctx }) => {
             // Check if user is admin
-            if (ctx.session.user.type !== "ADMIN") {
+            if (ctx.session.user.type !== UserType.ADMIN) {
                 throw new TRPCError({
                     code: "FORBIDDEN",
                     message: "Only admins can reset passwords",
@@ -242,7 +242,7 @@ export const apartmentOwnersRouter = createTRPCRouter({
         }))
         .query(async ({ input, ctx }) => {
             // Check if user is admin
-            if (ctx.session.user.type !== "ADMIN") {
+            if (ctx.session.user.type !== UserType.ADMIN) {
                 throw new TRPCError({
                     code: "FORBIDDEN",
                     message: "Only admins can view owner details",
@@ -287,7 +287,7 @@ export const apartmentOwnersRouter = createTRPCRouter({
         }))
         .mutation(async ({ input, ctx }) => {
             // Check if user is admin
-            if (ctx.session.user.type !== "ADMIN") {
+            if (ctx.session.user.type !== UserType.ADMIN) {
                 throw new TRPCError({
                     code: "FORBIDDEN",
                     message: "Only admins can delete apartment owners",
