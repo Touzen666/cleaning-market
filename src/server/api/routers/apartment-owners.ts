@@ -326,7 +326,197 @@ export const apartmentOwnersRouter = createTRPCRouter({
             });
         }),
 
-    // Delete apartment owner (admin only)
+    // Delete apartment owner only (admin only)
+    deleteOwnerOnly: protectedProcedure
+        .input(z.object({
+            ownerId: z.string(),
+        }))
+        .mutation(async ({ input, ctx }) => {
+            // Check if user is admin
+            if (ctx.session.user.type !== UserType.ADMIN) {
+                throw new TRPCError({
+                    code: "FORBIDDEN",
+                    message: "Only admins can delete apartment owners",
+                });
+            }
+
+            // Check if owner has apartments
+            const ownerWithApartments = await ctx.db.apartmentOwner.findUnique({
+                where: { id: input.ownerId },
+                include: {
+                    ownedApartments: {
+                        include: {
+                            apartment: {
+                                select: {
+                                    id: true,
+                                    name: true,
+                                },
+                            },
+                        },
+                    },
+                },
+            });
+
+            if (!ownerWithApartments) {
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: "Właściciel nie został znaleziony",
+                });
+            }
+
+            if (ownerWithApartments.ownedApartments.length > 0) {
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    message: "Nie można usunąć właściciela, który ma przypisane apartamenty. Użyj opcji 'Usuń właściciela i apartamenty' lub najpierw odłącz apartamenty.",
+                });
+            }
+
+            // Delete apartment ownership assignments first (due to foreign key constraint)
+            await ctx.db.apartmentOwnership.deleteMany({
+                where: { ownerId: input.ownerId },
+            });
+
+            // Delete owner notes
+            await ctx.db.ownerNote.deleteMany({
+                where: { ownerId: input.ownerId },
+            });
+
+            // Delete monthly reports
+            await ctx.db.monthlyReport.deleteMany({
+                where: { ownerId: input.ownerId },
+            });
+
+            // Delete the apartment owner
+            await ctx.db.apartmentOwner.delete({
+                where: { id: input.ownerId },
+            });
+
+            console.log(`🗑️ Owner deleted: ${ownerWithApartments.email}`);
+
+            return { success: true };
+        }),
+
+    // Delete apartment owner with all apartments and reservations (admin only)
+    deleteOwnerWithApartments: protectedProcedure
+        .input(z.object({
+            ownerId: z.string(),
+        }))
+        .mutation(async ({ input, ctx }) => {
+            // Check if user is admin
+            if (ctx.session.user.type !== UserType.ADMIN) {
+                throw new TRPCError({
+                    code: "FORBIDDEN",
+                    message: "Only admins can delete apartment owners",
+                });
+            }
+
+            // Get owner with apartments
+            const ownerWithApartments = await ctx.db.apartmentOwner.findUnique({
+                where: { id: input.ownerId },
+                include: {
+                    ownedApartments: {
+                        include: {
+                            apartment: {
+                                select: {
+                                    id: true,
+                                    name: true,
+                                },
+                            },
+                        },
+                    },
+                },
+            });
+
+            if (!ownerWithApartments) {
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: "Właściciel nie został znaleziony",
+                });
+            }
+
+            const apartmentIds = ownerWithApartments.ownedApartments.map(
+                (ownership) => ownership.apartment.id,
+            );
+
+            // Start transaction to ensure data consistency
+            await ctx.db.$transaction(async (tx) => {
+                // Delete all reservations for these apartments
+                await tx.reservation.deleteMany({
+                    where: {
+                        apartmentId: {
+                            in: apartmentIds,
+                        },
+                    },
+                });
+
+                // Delete all check-in cards for reservations of these apartments
+                await tx.checkInCard.deleteMany({
+                    where: {
+                        reservation: {
+                            apartmentId: {
+                                in: apartmentIds,
+                            },
+                        },
+                    },
+                });
+
+                // Delete all lead applications for these apartments
+                await tx.leadApplication.deleteMany({
+                    where: {
+                        apartmentId: {
+                            in: apartmentIds,
+                        },
+                    },
+                });
+
+                // Delete all apartment images
+                await tx.apartmentImage.deleteMany({
+                    where: {
+                        apartmentId: {
+                            in: apartmentIds,
+                        },
+                    },
+                });
+
+                // Delete all monthly reports for this owner
+                await tx.monthlyReport.deleteMany({
+                    where: { ownerId: input.ownerId },
+                });
+
+                // Delete all owner notes
+                await tx.ownerNote.deleteMany({
+                    where: { ownerId: input.ownerId },
+                });
+
+                // Delete apartment ownership assignments
+                await tx.apartmentOwnership.deleteMany({
+                    where: { ownerId: input.ownerId },
+                });
+
+                // Delete the apartments
+                await tx.apartment.deleteMany({
+                    where: {
+                        id: {
+                            in: apartmentIds,
+                        },
+                    },
+                });
+
+                // Delete the apartment owner
+                await tx.apartmentOwner.delete({
+                    where: { id: input.ownerId },
+                });
+            });
+
+            console.log(`🗑️ Owner and apartments deleted: ${ownerWithApartments.email} with ${apartmentIds.length} apartments`);
+
+            return {
+                success: true,
+                deletedApartments: apartmentIds.length,
+            };
+        }),
+
+    // Delete apartment owner (admin only) - legacy method
     delete: protectedProcedure
         .input(z.object({
             ownerId: z.string(),

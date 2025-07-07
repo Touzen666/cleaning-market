@@ -119,6 +119,10 @@ model Reservation {
   adults        Int?
   children      Int?
 
+  // Pola do śledzenia importu CSV
+  importSource  String?  // np. 'csv'
+  importBatchId String?
+
   apartmentId Int?
   apartment   Apartment? @relation(fields: [apartmentId], references: [id])
 
@@ -159,6 +163,10 @@ model Apartment {
   
   // Dodaj pole do łączenia z idobooking
   idobookingId        Int?     @unique
+
+  // Pola do śledzenia importu CSV
+  importSource     String?  // np. 'csv'
+  importBatchId    String?
 }
 
 model ApartmentImage {

@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
-import { UserType } from "@prisma/client";
+import { UserType, NoteType } from "@prisma/client";
 
 export const ownerNotesRouter = createTRPCRouter({
     // Pobierz wszystkie notatki właściciela
@@ -40,7 +40,7 @@ export const ownerNotesRouter = createTRPCRouter({
     create: protectedProcedure
         .input(z.object({
             ownerId: z.string().min(1),
-            type: z.enum(['GENERAL', 'PAYMENT', 'COMMUNICATION', 'ISSUE', 'REMINDER', 'IMPORTANT']),
+            type: z.nativeEnum(NoteType),
             title: z.string().min(1, "Tytuł jest wymagany"),
             content: z.string().min(1, "Treść jest wymagana"),
             isImportant: z.boolean().optional(),
@@ -92,7 +92,7 @@ export const ownerNotesRouter = createTRPCRouter({
     update: protectedProcedure
         .input(z.object({
             noteId: z.string().min(1),
-            type: z.enum(['GENERAL', 'PAYMENT', 'COMMUNICATION', 'ISSUE', 'REMINDER', 'IMPORTANT']).optional(),
+            type: z.nativeEnum(NoteType).optional(),
             title: z.string().min(1, "Tytuł jest wymagany").optional(),
             content: z.string().min(1, "Treść jest wymagana").optional(),
             isImportant: z.boolean().optional(),

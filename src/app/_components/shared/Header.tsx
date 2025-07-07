@@ -97,6 +97,9 @@ export function HeaderAdmin() {
           <Link href="/admin/apartments" className="hover:text-gray-300">
             Apartamenty
           </Link>
+          <Link href="/admin/reservations-list" className="hover:text-gray-300">
+            Rezerwacje
+          </Link>
         </div>
         <div className="flex flex-1 justify-center">
           <Image

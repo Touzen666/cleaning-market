@@ -184,6 +184,11 @@ export const ownerAuthRouter = createTRPCRouter({
                                     name: true,
                                     slug: true,
                                     address: true,
+                                    defaultRentAmount: true,
+                                    defaultUtilitiesAmount: true,
+                                    hasBalcony: true,
+                                    hasParking: true,
+                                    maxGuests: true,
                                     images: {
                                         select: {
                                             id: true,

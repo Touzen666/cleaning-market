@@ -20,17 +20,27 @@ const createReservationSchema = z.object({
 
 export const reservationsRouter = createTRPCRouter({
   getAll: publicProcedure
+    .input(z.object({
+      status: z.string().optional(),
+    }).optional())
     .output(z.object({
       reservations: z.array(z.custom<Reservation>()),
       ok: z.boolean(),
       count: z.number(),
     }))
-    .query(async ({ ctx }) => {
+    .query(async ({ input, ctx }) => {
       try {
         console.log('tRPC reservations.getAll called');
 
+        // Przygotuj warunki filtrowania
+        const where: { status?: string } = {};
+        if (input?.status && input.status !== 'all') {
+          where.status = input.status;
+        }
+
         // Pobierz rezerwacje z bazy danych przez Prisma
         const reservations = await ctx.db.reservation.findMany({
+          where,
           orderBy: { createDate: 'desc' }
         });
 
@@ -43,6 +53,22 @@ export const reservationsRouter = createTRPCRouter({
       } catch (error) {
         console.error('Error fetching reservations:', error);
         throw new Error('Failed to fetch reservations');
+      }
+    }),
+
+  // Pobierz unikalne statusy rezerwacji
+  getStatuses: publicProcedure
+    .query(async ({ ctx }) => {
+      try {
+        const statuses = await ctx.db.reservation.findMany({
+          select: { status: true },
+          distinct: ['status'],
+        });
+
+        return statuses.map(s => s.status).sort();
+      } catch (error) {
+        console.error('Error fetching reservation statuses:', error);
+        throw new Error('Failed to fetch reservation statuses');
       }
     }),
 

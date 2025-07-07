@@ -549,4 +549,75 @@ export const apartmentsRouter = createTRPCRouter({
                 throw new Error("Błąd podczas zmiany kolejności zdjęć");
             }
         }),
+
+    // Dodaj wiele zdjęć jednocześnie
+    addMultipleImages: publicProcedure
+        .input(z.object({
+            apartmentId: z.string().min(1),
+            images: z.array(z.object({
+                url: z.string().url(),
+                alt: z.string().optional(),
+            })),
+        }))
+        .mutation(async ({ input, ctx }) => {
+            try {
+                // Sprawdź czy apartament istnieje
+                const apartment = await ctx.db.apartment.findUnique({
+                    where: { id: parseInt(input.apartmentId) },
+                    include: {
+                        images: {
+                            orderBy: {
+                                order: 'desc',
+                            },
+                            take: 1,
+                        },
+                    },
+                });
+
+                if (!apartment) {
+                    throw new Error("Apartament nie został znaleziony");
+                }
+
+                // Określ kolejność (ostatnia + 1)
+                const nextOrder = apartment.images.length > 0
+                    ? (apartment.images[0]?.order ?? 0) + 1
+                    : 1;
+
+                // Sprawdź czy to pierwsze zdjęcie (będzie główne)
+                const isPrimary = apartment.images.length === 0;
+
+                // Dodaj wszystkie zdjęcia
+                const createdImages = [];
+                for (let i = 0; i < input.images.length; i++) {
+                    const imageData = input.images[i];
+                    if (!imageData) continue;
+
+                    const image = await ctx.db.apartmentImage.create({
+                        data: {
+                            apartmentId: parseInt(input.apartmentId),
+                            url: imageData.url,
+                            alt: imageData.alt ?? null,
+                            isPrimary: isPrimary && i === 0, // Tylko pierwsze zdjęcie będzie główne
+                            order: nextOrder + i,
+                        },
+                    });
+
+                    createdImages.push({
+                        id: image.id.toString(),
+                        url: image.url,
+                        alt: image.alt,
+                        isPrimary: image.isPrimary,
+                        order: image.order,
+                    });
+                }
+
+                return {
+                    success: true,
+                    images: createdImages,
+                };
+            } catch (error) {
+                console.error("❌ Error adding multiple images:", error);
+                throw new Error("Błąd podczas dodawania zdjęć");
+            }
+        }),
 }); 

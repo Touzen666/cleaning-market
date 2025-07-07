@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/trpc/react";
 import { type ReportStatus } from "@prisma/client";
+import Image from "next/image";
 
 export default function OwnerReportsPage() {
   const router = useRouter();
@@ -195,12 +196,55 @@ export default function OwnerReportsPage() {
                   {reports.map((report) => (
                     <tr key={report.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 text-sm text-gray-900">
-                        <div>
-                          <div className="font-medium">
-                            {report.apartment.name}
+                        <div className="flex items-center space-x-4">
+                          {/* Zdjęcie apartamentu */}
+                          <div className="flex-shrink-0">
+                            <div className="relative h-16 w-16 overflow-hidden rounded-lg bg-gray-100">
+                              {report.apartment.images &&
+                              report.apartment.images.length > 0 ? (
+                                <Image
+                                  src={report.apartment.images[0]?.url ?? ""}
+                                  alt={
+                                    report.apartment.images[0]?.alt ??
+                                    "Zdjęcie apartamentu"
+                                  }
+                                  fill
+                                  className="object-cover"
+                                  sizes="64px"
+                                  onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.src =
+                                      "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial' font-size='10' fill='%236b7280'%3EBrak zdjęcia%3C/text%3E%3C/svg%3E";
+                                  }}
+                                />
+                              ) : (
+                                <div className="flex h-full w-full items-center justify-center">
+                                  <svg
+                                    className="h-8 w-8 text-gray-400"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 002 2z"
+                                    />
+                                  </svg>
+                                </div>
+                              )}
+                            </div>
                           </div>
-                          <div className="text-gray-500">
-                            {report.apartment.address}
+
+                          {/* Informacje o apartamencie */}
+                          <div>
+                            <div className="font-medium">
+                              {report.apartment.name}
+                            </div>
+                            <div className="text-gray-500">
+                              {report.apartment.address}
+                            </div>
                           </div>
                         </div>
                       </td>

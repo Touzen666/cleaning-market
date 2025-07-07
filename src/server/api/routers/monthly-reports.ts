@@ -567,7 +567,16 @@ export const monthlyReportsRouter = createTRPCRouter({
                 },
                 include: {
                     apartment: {
-                        select: { id: true, name: true, address: true },
+                        select: {
+                            id: true,
+                            name: true,
+                            address: true,
+                            images: {
+                                where: { isPrimary: true },
+                                select: { url: true, alt: true },
+                                take: 1,
+                            },
+                        },
                     },
                     items: {
                         include: {
