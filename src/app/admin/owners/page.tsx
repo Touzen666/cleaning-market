@@ -11,7 +11,6 @@ type ApartmentOwner = RouterOutputs["apartmentOwners"]["getAll"][0];
 export default function AdminOwnersPage() {
   const router = useRouter();
   const [showAddForm, setShowAddForm] = useState(false);
-  const [selectedOwner, setSelectedOwner] = useState<string | null>(null);
 
   // tRPC queries
   const ownersQuery = api.apartmentOwners.getAll.useQuery();
@@ -316,8 +315,6 @@ export default function AdminOwnersPage() {
                       <OwnerCard
                         key={owner.id}
                         owner={owner}
-                        onSelect={() => setSelectedOwner(owner.id)}
-                        isSelected={selectedOwner === owner.id}
                         onRefetch={refetchOwners}
                       />
                     ))}
@@ -329,23 +326,15 @@ export default function AdminOwnersPage() {
 
           {/* Sidebar */}
           <div className="lg:col-span-1">
-            {selectedOwner ? (
-              <OwnerDetails
-                ownerId={selectedOwner}
-                onClose={() => setSelectedOwner(null)}
-                apartments={apartments?.apartments ?? []}
-              />
-            ) : (
-              <div className="rounded-lg bg-white p-6 shadow">
-                <h3 className="mb-4 text-lg font-medium text-gray-900">
-                  Informacje
-                </h3>
-                <p className="text-sm text-gray-600">
-                  Wybierz właściciela z listy, aby zobaczyć szczegóły i
-                  zarządzać jego apartamentami.
-                </p>
-              </div>
-            )}
+            <div className="rounded-lg bg-white p-6 shadow">
+              <h3 className="mb-4 text-lg font-medium text-gray-900">
+                Informacje
+              </h3>
+              <p className="text-sm text-gray-600">
+                Kliknij na właściciela z listy, aby zobaczyć szczegóły i
+                zarządzać jego apartamentami.
+              </p>
+            </div>
           </div>
         </div>
 
@@ -416,16 +405,12 @@ export default function AdminOwnersPage() {
 // Owner Card Component
 function OwnerCard({
   owner,
-  onSelect,
-  isSelected,
-  onRefetch: _onRefetch,
 }: {
   owner: ApartmentOwner;
-  onSelect: () => void;
-  isSelected: boolean;
   onRefetch: () => void;
 }) {
   const [copied, setCopied] = useState(false);
+  const router = useRouter();
 
   const copyToClipboard = (text: string) => {
     void navigator.clipboard
@@ -441,12 +426,8 @@ function OwnerCard({
 
   return (
     <div
-      className={`cursor-pointer rounded-lg border p-4 transition-colors ${
-        isSelected
-          ? "border-indigo-500 bg-indigo-50"
-          : "border-gray-200 hover:border-gray-300"
-      }`}
-      onClick={onSelect}
+      className="cursor-pointer rounded-lg border border-gray-200 p-4 transition-colors hover:border-gray-300 hover:bg-gray-50"
+      onClick={() => router.push(`/admin/owners/${owner.id}`)}
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
@@ -523,50 +504,6 @@ function OwnerCard({
             </span>
           )}
         </div>
-      </div>
-    </div>
-  );
-}
-
-// Owner Details Component (placeholder)
-function OwnerDetails({
-  ownerId: _ownerId,
-  onClose,
-  apartments: _apartments,
-}: {
-  ownerId: string;
-  onClose: () => void;
-  apartments: Array<{ id: string; name: string; slug: string }>;
-}) {
-  return (
-    <div className="rounded-lg bg-white shadow">
-      <div className="px-4 py-5 sm:p-6">
-        <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-lg font-medium text-gray-900">
-            Szczegóły właściciela
-          </h3>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-500"
-          >
-            <svg
-              className="h-5 w-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
-        </div>
-        <p className="text-sm text-gray-600">
-          Szczegóły będą dostępne wkrótce...
-        </p>
       </div>
     </div>
   );

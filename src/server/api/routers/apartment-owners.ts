@@ -67,6 +67,7 @@ export const apartmentOwnersRouter = createTRPCRouter({
                     },
                 });
             } catch (error) {
+                console.error("❌ Error fetching apartment owners:", error);
                 throw new TRPCError({
                     code: "INTERNAL_SERVER_ERROR",
                     message: "Failed to fetch apartment owners",
@@ -164,6 +165,51 @@ export const apartmentOwnersRouter = createTRPCRouter({
             return await ctx.db.apartmentOwner.update({
                 where: { id: input.ownerId },
                 data: { isActive: input.isActive },
+            });
+        }),
+
+    // Update apartment owner
+    update: protectedProcedure
+        .input(z.object({
+            ownerId: z.string(),
+            firstName: z.string().min(1),
+            lastName: z.string().min(1),
+            email: z.string().email(),
+            phone: z.string().optional(),
+            isActive: z.boolean(),
+            paymentType: z.enum([PaymentType.COMMISSION, PaymentType.FIXED_AMOUNT]),
+            fixedPaymentAmount: z.number().optional(),
+            vatOption: z.enum([VATOption.NO_VAT, VATOption.VAT_8, VATOption.VAT_23]),
+        }))
+        .mutation(async ({ input, ctx }) => {
+            // Check if user is admin
+            if (ctx.session.user.type !== UserType.ADMIN) {
+                throw new TRPCError({
+                    code: "FORBIDDEN",
+                    message: "Only admins can update apartment owners",
+                });
+            }
+
+            const { ownerId, ...updateData } = input;
+
+            // Check if email already exists for another owner
+            const existingOwner = await ctx.db.apartmentOwner.findFirst({
+                where: {
+                    email: input.email,
+                    NOT: { id: ownerId },
+                },
+            });
+
+            if (existingOwner) {
+                throw new TRPCError({
+                    code: "CONFLICT",
+                    message: "Właściciel z tym adresem email już istnieje",
+                });
+            }
+
+            return await ctx.db.apartmentOwner.update({
+                where: { id: ownerId },
+                data: updateData,
             });
         }),
 
@@ -305,6 +351,92 @@ export const apartmentOwnersRouter = createTRPCRouter({
             });
 
             return { success: true };
+        }),
+
+    // Get apartments for specific owner
+    getOwnerApartments: protectedProcedure
+        .input(z.object({
+            ownerId: z.string().min(1),
+        }))
+        .output(z.array(z.object({
+            id: z.string(),
+            name: z.string(),
+            slug: z.string(),
+            address: z.string(),
+            defaultRentAmount: z.number().nullable(),
+            defaultUtilitiesAmount: z.number().nullable(),
+            hasBalcony: z.boolean(),
+            hasParking: z.boolean(),
+            maxGuests: z.number().nullable(),
+            images: z.array(z.object({
+                id: z.string(),
+                url: z.string(),
+                alt: z.string().nullable(),
+                isPrimary: z.boolean(),
+                order: z.number(),
+            })),
+        })))
+        .query(async ({ input, ctx }) => {
+            // Check if user is admin
+            if (ctx.session.user.type !== UserType.ADMIN) {
+                throw new TRPCError({
+                    code: "FORBIDDEN",
+                    message: "Only admins can view owner apartments",
+                });
+            }
+
+            try {
+                const ownerships = await ctx.db.apartmentOwnership.findMany({
+                    where: { ownerId: input.ownerId },
+                    include: {
+                        apartment: {
+                            select: {
+                                id: true,
+                                name: true,
+                                slug: true,
+                                address: true,
+                                defaultRentAmount: true,
+                                defaultUtilitiesAmount: true,
+                                hasBalcony: true,
+                                hasParking: true,
+                                maxGuests: true,
+                                images: {
+                                    select: {
+                                        id: true,
+                                        url: true,
+                                        alt: true,
+                                        isPrimary: true,
+                                        order: true,
+                                    },
+                                    orderBy: {
+                                        order: 'asc',
+                                    },
+                                },
+                            },
+                        },
+                    },
+                    orderBy: {
+                        apartment: {
+                            name: 'asc',
+                        },
+                    },
+                });
+
+                return ownerships.map(ownership => ({
+                    ...ownership.apartment,
+                    id: ownership.apartment.id.toString(),
+                    images: ownership.apartment.images.map(img => ({
+                        ...img,
+                        id: img.id,
+                    })),
+                }));
+            } catch (error) {
+                console.error("❌ Error fetching owner apartments:", error);
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    message: "Failed to fetch owner apartments",
+                });
+            }
         }),
 });
 

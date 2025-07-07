@@ -2,7 +2,6 @@ import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { randomBytes, createHash } from "crypto";
-import { type Session } from 'next-auth';
 
 // Simple password hashing using Node.js crypto
 function hashPassword(password: string): string {
@@ -35,6 +34,18 @@ export const ownerAuthRouter = createTRPCRouter({
                                     name: true,
                                     slug: true,
                                     address: true,
+                                    images: {
+                                        select: {
+                                            id: true,
+                                            url: true,
+                                            alt: true,
+                                            isPrimary: true,
+                                            order: true,
+                                        },
+                                        orderBy: {
+                                            order: 'asc',
+                                        },
+                                    },
                                 },
                             },
                         },
@@ -82,15 +93,8 @@ export const ownerAuthRouter = createTRPCRouter({
 
             // Generate session token
             const sessionToken = randomBytes(32).toString("hex");
-            const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
 
-            // Create owner session (you might want to create a separate table for this)
-            const sessionData = {
-                ownerId: owner.id,
-                sessionToken,
-                expiresAt,
-                createdAt: new Date(),
-            };
+
 
             return {
                 sessionToken,
@@ -114,7 +118,7 @@ export const ownerAuthRouter = createTRPCRouter({
             email: z.string().email(),
         }))
         .mutation(async ({ input, ctx }) => {
-            const { sessionToken, newPassword, email } = input;
+            const { newPassword, email } = input;
 
             // Find the owner by email (simplified approach)
             const owner = await ctx.db.apartmentOwner.findUnique({
@@ -153,7 +157,7 @@ export const ownerAuthRouter = createTRPCRouter({
         .input(z.object({
             sessionToken: z.string(),
         }))
-        .query(async ({ input, ctx }) => {
+        .query(async ({ }) => {
             // Implement session verification
             throw new TRPCError({
                 code: "NOT_IMPLEMENTED",
@@ -180,6 +184,18 @@ export const ownerAuthRouter = createTRPCRouter({
                                     name: true,
                                     slug: true,
                                     address: true,
+                                    images: {
+                                        select: {
+                                            id: true,
+                                            url: true,
+                                            alt: true,
+                                            isPrimary: true,
+                                            order: true,
+                                        },
+                                        orderBy: {
+                                            order: 'asc',
+                                        },
+                                    },
                                 },
                             },
                         },
@@ -199,7 +215,13 @@ export const ownerAuthRouter = createTRPCRouter({
                 email: owner.email,
                 firstName: owner.firstName,
                 lastName: owner.lastName,
-                apartments: owner.ownedApartments.map(ownership => ownership.apartment),
+                apartments: owner.ownedApartments.map(ownership => ({
+                    ...ownership.apartment,
+                    images: ownership.apartment.images.map(img => ({
+                        ...img,
+                        id: img.id,
+                    })),
+                })),
             };
         }),
 
@@ -272,7 +294,7 @@ export const ownerAuthRouter = createTRPCRouter({
         .input(z.object({
             sessionToken: z.string(),
         }))
-        .mutation(async ({ input, ctx }) => {
+        .mutation(async ({ }) => {
             // Implement logout
             return { success: true };
         }),
