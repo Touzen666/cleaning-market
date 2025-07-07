@@ -448,6 +448,17 @@ function OwnerCard({
       },
     });
 
+  // Mutacja do wysyłania emaila powitalnego
+  const sendWelcomeEmailMutation = api.email.sendWelcomeEmail.useMutation({
+    onSuccess: (data) => {
+      alert(`✅ ${data.message}`);
+      void onRefetch();
+    },
+    onError: (error) => {
+      alert(`❌ Błąd podczas wysyłania emaila: ${error.message}`);
+    },
+  });
+
   const copyToClipboard = (text: string) => {
     void navigator.clipboard
       .writeText(text)
@@ -540,8 +551,39 @@ function OwnerCard({
             </span>
           )}
 
-          {/* Delete buttons */}
+          {/* Action buttons */}
           <div className="flex items-center space-x-2">
+            {/* Email button */}
+            <button
+              onClick={async (e) => {
+                e.stopPropagation();
+                const message = `Czy chcesz wysłać email powitalny do ${owner.firstName} ${owner.lastName}?`;
+
+                if (confirm(message)) {
+                  sendWelcomeEmailMutation.mutate({ ownerId: owner.id });
+                }
+              }}
+              disabled={sendWelcomeEmailMutation.isPending}
+              className="inline-flex items-center rounded-md bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800 hover:bg-blue-200 disabled:cursor-not-allowed disabled:opacity-50"
+              title="Wyślij email powitalny"
+            >
+              <svg
+                className="mr-1 h-3 w-3"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                />
+              </svg>
+              {sendWelcomeEmailMutation.isPending ? "Wysyłanie..." : "Email"}
+            </button>
+
+            {/* Delete buttons */}
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -585,7 +627,7 @@ function OwnerCard({
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1 1v3M4 7h16"
                 />
               </svg>
               Wszystko

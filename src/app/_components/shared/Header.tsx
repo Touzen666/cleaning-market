@@ -33,7 +33,7 @@ export default function Header() {
         {/* LOGO NA ŚRODKU */}
         <div className="flex flex-1 justify-center">
           <Image
-            src="/logo.png"
+            src="/logo.svg"
             alt="Złote Wynajmy logo"
             width={180}
             height={48}
@@ -103,7 +103,7 @@ export function HeaderAdmin() {
         </div>
         <div className="flex flex-1 justify-center">
           <Image
-            src="/logo.png"
+            src="/logo.svg"
             alt="Złote Wynajmy logo"
             width={180}
             height={48}
@@ -141,7 +141,7 @@ export function HeaderOwner() {
         </div>
         <div className="flex flex-1 justify-center">
           <Image
-            src="/logo.png"
+            src="/logo.svg"
             alt="Złote Wynajmy logo"
             width={180}
             height={48}

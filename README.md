@@ -1,6 +1,6 @@
 # 🏢 Book Market - System Zarządzania Apartamentami
 
-**Book Market** to zaawansowana aplikacja full-stack do kompleksowego zarządzania krótkookresowym wynajmem apartamentów. System oferuje wielopoziomową autoryzację, automatyczne generowanie raportów finansowych, zarządzanie rezerwacjami oraz intuicyjne dashboardy dla różnych typów użytkowników.
+**Book Market** to zaawansowana aplikacja full-stack do kompleksowego zarządzania krótkookresowym wynajmem apartamentów. System oferuje wielopoziomową autoryzację, automatyczne generowanie raportów finansowych, zarządzanie rezerwacjami, system email templates oraz intuicyjne dashboardy dla różnych typów użytkowników.
 
 ## 📋 **Główne Funkcjonalności**
 
@@ -11,6 +11,7 @@
 - **Wyłączny dostęp** dla głównego administratora (Bartosz) przez Discord OAuth
 - **Weryfikacja email i nazwy użytkownika** - tylko autoryzowane konto może się zalogować
 - **Pełny dostęp** do wszystkich funkcji administracyjnych
+- **Zarządzanie właścicielami** z automatycznym wysyłaniem emaili powitalnych
 
 #### **Właściciele Apartamentów**
 
@@ -18,6 +19,7 @@
 - **First-time setup** - ustawianie hasła przy pierwszym logowaniu
 - **Zarządzanie sesjami** z bezpiecznym przechowywaniem w localStorage
 - **Automatyczne przekierowania** po pomyślnym logowaniu
+- **Otrzymywanie emaili powitalnych** z danymi dostępowymi
 
 #### **Goście**
 
@@ -31,6 +33,7 @@
 - **Relacje właściciel-apartament** - jeden właściciel może mieć wiele apartamentów
 - **Zarządzanie kontaktami** właścicieli (email, telefon, dane osobowe)
 - **Status aktywności** właścicieli i apartamentów
+- **Zarządzanie zdjęciami** apartamentów z systemem kolejności
 
 ### 📅 **System Rezerwacji**
 
@@ -39,6 +42,7 @@
 - **Śledzenie źródeł** rezerwacji dla analityki prowizji
 - **Zarządzanie gośćmi** z danymi kontaktowymi i liczbą osób
 - **Kalendarze rezerwacji** z wizualnym przedstawieniem okresów
+- **Import CSV** rezerwacji z zewnętrznych źródeł
 
 ### 📊 **System Raportów Miesięcznych**
 
@@ -70,6 +74,38 @@
 - **Kontrola dostępu** - blokada edycji po wysłaniu raportu
 - **Historia zmian** statusów z timestampami
 
+### 📧 **System Email Templates**
+
+#### **Modularny System Template'ów**
+
+- **Bazowy template** z wspólnym header/footer i stylami
+- **Reużywalne komponenty UI** (przyciski, boxy, listy, formularze)
+- **Responsywny design** z gradientami i animacjami
+- **Type-safe** z pełnym wsparciem TypeScript
+
+#### **Dostępne Template'y**
+
+- **Welcome Email z hasłem** - dla nowych właścicieli z hasłem tymczasowym
+- **Welcome Email bez hasła** - dla właścicieli z już ustawionym hasłem
+- **Monthly Report Email** - raporty miesięczne z statystykami
+- **Rozszerzalny system** - łatwe dodawanie nowych template'ów
+
+#### **Komponenty UI**
+
+- `createCTAButton()` - Przyciski call-to-action z hover effects
+- `createPasswordBox()` - Box z hasłem tymczasowym (font Courier)
+- `createInfoBox()` - Niebieski box informacyjny
+- `createFeaturesList()` - Lista funkcji z ikonami
+- `createWelcomeText()` - Tekst powitalny z personalizacją
+- `createButtonSection()` - Sekcja z przyciskiem i opisem
+
+#### **Konfiguracja SMTP**
+
+- **Gmail SMTP** z app password authentication
+- **Ethereal Email** dla testów w development
+- **Automatyczne wykrywanie** konfiguracji środowiskowej
+- **Załączniki** z logo firmy w emailach
+
 ### 🎛 **Panel Administracyjny**
 
 #### **Zarządzanie Właścicielami**
@@ -78,6 +114,7 @@
 - **Dodawanie nowych właścicieli** z automatycznym generowaniem haseł tymczasowych
 - **Przypisywanie apartamentów** do właścicieli
 - **Zarządzanie statusami** (aktywny/nieaktywny)
+- **Wysyłanie emaili powitalnych** z danymi dostępowymi
 
 #### **Zarządzanie Raportami**
 
@@ -91,6 +128,13 @@
 - **Centralny przegląd** wszystkich rezerwacji w systemie
 - **Filtry po apartamentach** i okresach
 - **Status tracking** ze szczegółami płatności
+- **Import CSV** rezerwacji z zewnętrznych źródeł
+
+#### **Testowanie Emaili**
+
+- **Test email** w trybie development
+- **Walidacja konfiguracji SMTP** z jasnymi komunikatami błędów
+- **Logowanie szczegółów** wysyłania emaili
 
 ### 🏡 **Panel Właściciela Apartamentu**
 
@@ -133,6 +177,13 @@
 - **Przechowywanie wiadomości** w bazie danych
 - **Panel administratora** do przeglądania zapytań
 
+### 📥 **Import Danych**
+
+- **Import CSV rezerwacji** z zewnętrznych platform
+- **Walidacja danych** z obsługą polskich znaków
+- **Automatyczne mapowanie** kolumn CSV na pola systemu
+- **Bulk operations** dla masowego importu danych
+
 ## 🛠 **Stack Technologiczny**
 
 ### **Frontend & UI**
@@ -158,6 +209,14 @@
 - **Database sessions** - Persistent session storage
 - **Automatyczne migracje** - Schema versioning
 
+### **Email System**
+
+- **Nodemailer** - Wysyłanie emaili
+- **Gmail SMTP** - Produkcyjny serwer SMTP
+- **Ethereal Email** - Testowy serwer SMTP dla development
+- **Modularne template'y** - System komponentów email
+- **Responsywny design** - Emails działają na wszystkich urządzeniach
+
 ### **Security & Validation**
 
 - **Node.js Crypto** - Hashowanie haseł (SHA-256)
@@ -171,6 +230,7 @@
 - **ESLint + Prettier** - Code quality i formatowanie
 - **TypeScript Compiler** - Static analysis
 - **Hot Reload** - Development experience
+- **T3App** - Type-safe full-stack framework
 
 ## 🏗 **Architektura Aplikacji**
 
@@ -211,15 +271,38 @@ src/
 │   │       ├── apartments.ts           # API apartamentów
 │   │       ├── guest-auth.ts           # Autoryzacja gości
 │   │       ├── guest-checkin.ts        # Check-in gości
-│   │       └── contact.router.ts       # Formularz kontaktowy
+│   │       ├── contact.router.ts       # Formularz kontaktowy
+│   │       ├── csv-import.ts           # Import CSV rezerwacji
+│   │       └── email.ts                # System email templates
 │   ├── auth/                     # 🔐 NextAuth Configuration
 │   │   ├── config.ts             # NextAuth setup z callbackami
 │   │   └── index.ts              # Auth exports
 │   └── db.ts                     # Prisma Client instance
 ├── lib/                          # 🛠 Utilities & Validations
-│   └── validations/              # Zod schemas
-│       └── guest.ts              # Walidacja danych gościa
+│   ├── email/                    # 📧 Email Templates System
+│   │   ├── components/           # Reużywalne komponenty email
+│   │   │   ├── base-template.ts  # Bazowy template z header/footer
+│   │   │   ├── ui-components.ts  # Komponenty UI (przyciski, boxy)
+│   │   │   └── index.ts          # Eksport komponentów
+│   │   ├── templates/            # Email templates
+│   │   │   ├── welcome-with-password.ts
+│   │   │   ├── welcome-without-password.ts
+│   │   │   ├── monthly-report.ts
+│   │   │   └── index.ts          # Eksport template'ów
+│   │   ├── email-service.ts      # Serwis emailowy
+│   │   └── README.md             # Dokumentacja systemu email
+│   ├── validations/              # Zod schemas
+│   │   └── guest.ts              # Walidacja danych gościa
+│   ├── types.ts                  # Wspólne typy TypeScript
+│   ├── vat.ts                    # Kalkulacje VAT
+│   └── cron.ts                   # Zadania cykliczne
 ├── components/                   # 🧩 Reusable Components
+│   ├── ApartmentImageManager.tsx # Zarządzanie zdjęciami apartamentów
+│   ├── ApartmentList.tsx         # Lista apartamentów
+│   ├── CsvImport.tsx             # Komponent importu CSV
+│   ├── ReservationList.tsx       # Lista rezerwacji
+│   └── ui/                       # UI Components
+│       └── Modal.tsx             # Modal dialog
 ├── styles/                       # 🎨 Global Styles
 └── trpc/                         # 📡 tRPC Client Setup
     ├── react.tsx                 # React Query integration
@@ -235,6 +318,7 @@ src/
 - PostgreSQL 14+
 - npm/yarn/pnpm
 - Discord OAuth App (dla autoryzacji administratora)
+- Gmail account z app password (dla emaili)
 
 ### **Instalacja**
 
@@ -255,6 +339,7 @@ cp .env.example .env
 ```env
 # Database
 DATABASE_URL="postgresql://user:password@localhost:5432/book_market"
+DIRECT_URL="postgresql://user:password@localhost:5432/book_market"
 
 # NextAuth.js
 NEXTAUTH_URL="http://localhost:3000"
@@ -266,6 +351,16 @@ DISCORD_CLIENT_SECRET="your-discord-client-secret"
 
 # Admin Configuration
 ADMIN_EMAIL="ochedowski.bartosz@gmail.com"
+
+# SMTP Configuration (Gmail)
+SMTP_HOST="smtp.gmail.com"
+SMTP_PORT="587"
+SMTP_USER="your-email@gmail.com"
+SMTP_PASS="your-app-password"
+
+# Development (opcjonalne)
+ETHEREAL_USER="test@ethereal.email"
+ETHEREAL_PASS="test123"
 ```
 
 ### **Konfiguracja Bazy Danych**
@@ -308,6 +403,7 @@ npm run dev
 - **ReportItem** - Pozycje w raportach (przychody, koszty, prowizje)
 - **CheckInCard** - Karty meldunkowe gości
 - **Contact** - Wiadomości kontaktowe
+- **LeadApplication** - Zgłoszenia leadów
 
 #### **Relacje**
 
@@ -346,19 +442,22 @@ npx prisma db seed
 
 1. **Logowanie** przez Discord OAuth (tylko autoryzowane konto Bartosz)
 2. **Dodawanie właścicieli** apartamentów z automatyczną generacją haseł tymczasowych
-3. **Przypisywanie apartamentów** do właścicieli
-4. **Tworzenie raportów miesięcznych** z automatycznym pobieraniem rezerwacji
-5. **Zarządzanie cyklem zatwierdzania** raportów
-6. **Monitorowanie wszystkich rezerwacji** w systemie
+3. **Wysyłanie emaili powitalnych** z danymi dostępowymi
+4. **Przypisywanie apartamentów** do właścicieli
+5. **Import rezerwacji** z plików CSV
+6. **Tworzenie raportów miesięcznych** z automatycznym pobieraniem rezerwacji
+7. **Zarządzanie cyklem zatwierdzania** raportów
+8. **Monitorowanie wszystkich rezerwacji** w systemie
 
 ### **Flow Właściciela Apartamentu**
 
-1. **Pierwsze logowanie** z hasłem tymczasowym otrzymanym od administratora
-2. **Ustawienie bezpiecznego hasła** podczas pierwszego logowania
-3. **Przegląd dashboardu** z aktualnymi statystykami przychodów i rezerwacji
-4. **Kalendarz rezerwacji** z wizualnym statusem każdej rezerwacji
-5. **Dostęp do zatwierdzonych raportów** miesięcznych z szczegółami finansowymi
-6. **Monitorowanie swoich apartamentów** i aktywnych pobytów
+1. **Otrzymanie emaila powitalnego** z danymi dostępowymi
+2. **Pierwsze logowanie** z hasłem tymczasowym otrzymanym od administratora
+3. **Ustawienie bezpiecznego hasła** podczas pierwszego logowania
+4. **Przegląd dashboardu** z aktualnymi statystykami przychodów i rezerwacji
+5. **Kalendarz rezerwacji** z wizualnym statusem każdej rezerwacji
+6. **Dostęp do zatwierdzonych raportów** miesięcznych z szczegółami finansowymi
+7. **Monitorowanie swoich apartamentów** i aktywnych pobytów
 
 ### **Flow Gościa**
 
@@ -366,6 +465,66 @@ npx prisma db seed
 2. **Wypełnienie karty meldunkowej** z danymi osobowymi i dokumentu
 3. **Automatyczne powiązanie** z aktywną rezerwacją w systemie
 4. **Potwierdzenie check-in** i rozpoczęcie pobytu
+
+## 📧 **System Email Templates**
+
+### **Struktura Systemu**
+
+```
+src/lib/email/
+├── components/
+│   ├── base-template.ts      # Wspólny header/footer/styl
+│   ├── ui-components.ts      # Reużywalne komponenty UI
+│   └── index.ts              # Eksport komponentów
+├── templates/
+│   ├── welcome-with-password.ts
+│   ├── welcome-without-password.ts
+│   ├── monthly-report.ts     # Przykład nowego template'a
+│   └── index.ts              # Eksport template'ów
+├── email-service.ts          # Serwis emailowy
+└── README.md                 # Dokumentacja
+```
+
+### **Dodawanie Nowych Template'ów**
+
+```typescript
+import {
+  createBaseTemplate,
+  createWelcomeText,
+  createInfoBox,
+  createButtonSection,
+} from "../components";
+
+export const createNewEmailTemplate = (data: any) => {
+  const content = `
+        ${createWelcomeText(data.name, "Wiadomość powitalna")}
+        ${createInfoBox("Tytuł", "Treść")}
+        ${createButtonSection("Akcja", "Kliknij", data.url)}
+    `;
+
+  return createBaseTemplate({
+    title: "Tytuł emaila",
+    content,
+    baseUrl: data.baseUrl,
+  });
+};
+```
+
+### **Konfiguracja SMTP**
+
+1. **Gmail Setup**:
+
+   - Włącz 2FA na koncie Gmail
+   - Wygeneruj "App Password" w ustawieniach Google Account
+   - Użyj app password w `SMTP_PASS`
+
+2. **Environment Variables**:
+   ```env
+   SMTP_HOST="smtp.gmail.com"
+   SMTP_PORT="587"
+   SMTP_USER="your-email@gmail.com"
+   SMTP_PASS="your-app-password"
+   ```
 
 ## 🔒 **Bezpieczeństwo**
 
@@ -376,6 +535,7 @@ npx prisma db seed
 - **Input validation** na wszystkich poziomach (Zod schemas)
 - **CSRF protection** przez NextAuth.js
 - **Type safety** na całej długości aplikacji (TypeScript + tRPC)
+- **SMTP security** z app passwords dla Gmail
 
 ## 🚀 **Roadmap i Rozwój**
 
@@ -388,15 +548,30 @@ npx prisma db seed
 - **Analytics dashboard** z zaawansowanymi metrykami biznesowymi
 - **Multi-currency support** dla międzynarodowych rezerwacji
 - **Automated cleaning schedules** z integracją z kalendarzem rezerwacji
+- **Advanced email templates** z personalizacją i A/B testing
+- **Real-time notifications** (WebSocket/Server-Sent Events)
 
 ### **Optymalizacje Techniczne**
 
 - **Redis caching** dla poprawy wydajności
 - **Background jobs** dla heavy operations
-- **Real-time notifications** (WebSocket/Server-Sent Events)
 - **Advanced search** z full-text search capabilities
 - **API rate limiting** i advanced security measures
+- **Email queue system** dla niezawodnego wysyłania
+- **Template preview** w panelu administracyjnym
+
+## 📊 **Statystyki Projektu**
+
+- **~15,000 linii kodu** TypeScript
+- **20+ komponentów React**
+- **10+ tRPC routerów**
+- **8 głównych tabel** w bazie danych
+- **3 typy użytkowników** z różnymi uprawnieniami
+- **Modularny system email** z 6+ komponentów UI
+- **100% type safety** z TypeScript i tRPC
 
 ---
 
-**Book Market** to kompleksowe rozwiązanie dla zarządzania krótkookresowym wynajmem, łączące nowoczesne technologie z intuicyjnym interfejsem użytkownika. System zapewnia pełną kontrolę nad procesami biznesowymi, automatyzuje rutynowe zadania i dostarcza szczegółowych analiz finansowych.
+**Book Market** to kompleksowe rozwiązanie dla zarządzania krótkookresowym wynajmem, łączące nowoczesne technologie z intuicyjnym interfejsem użytkownika. System zapewnia pełną kontrolę nad procesami biznesowymi, automatyzuje rutynowe zadania, dostarcza szczegółowych analiz finansowych oraz oferuje profesjonalny system komunikacji email z właścicielami apartamentów.
+
+**Technologie:** Next.js 15, TypeScript, tRPC, Prisma, PostgreSQL, Tailwind CSS, NextAuth.js, Nodemailer, T3App Stack

@@ -3,6 +3,7 @@ import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { type PrismaClient, UserType, PaymentType, VATOption } from '@prisma/client';
 
+
 const apartmentOwnerSchema = z.object({
     id: z.string(),
     email: z.string(),
