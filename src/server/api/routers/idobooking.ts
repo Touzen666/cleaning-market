@@ -28,45 +28,76 @@ const reservationDetailsSchema = z.object({
   dateAdd: z.string(),
   dateFrom: z.string(),
   dateTo: z.string(),
-  status: z.string(),
+  reservationSourceTypeId: z.number().optional(),
+  reservationSourceId: z.number().optional(),
+  externalReservationId: z.string().optional(),
+  reservationManager: z.enum(["external", "own"]).optional(),
+  internalSource: z
+    .enum(["other", "email", "phone", "faceToFaceConversation", "socialMedia"])
+    .optional(),
+  clientId: z.number().optional(),
+  status: z.enum([
+    "unconfirmed",
+    "confirmed",
+    "paymentInProgress",
+    "accepted",
+    "inProgress",
+    "completed",
+    "canceled",
+    "withdrawn",
+    "waitingForPayment",
+    "invalidCardNumber",
+    "toClarify",
+  ]),
   internalNote: z.string(),
-  clientNote: z.string(),
-  externalNote: z.string(),
   apiNote: z.string(),
-  modificationStatus: z.string(),
+  externalNote: z.string(),
+  clientNote: z.string(),
+  discount: z.number().optional(),
+  balance: z.number().optional(),
+  modificationStatus: z.enum(["new", "modified"]).optional(),
   modificationDate: z.string().optional(),
   note: z.string(),
-  languageCode: z.string(),
-  isSurplus: z.number(),
+  languageCode: z.string().optional(),
+  isSurplus: z.number().optional(),
 });
 
 const reservationItemSchema = z.object({
   objectItemId: z.number(),
-  itemId: z.number(),
-  objectName: z.string(),
-  itemCode: z.string(),
-  objectId: z.number(),
+  itemId: z.number().optional(),
+  objectName: z.string().optional(),
+  itemCode: z.string().optional(),
+  objectId: z.number().optional(),
+  numberOfAdults: z.number().optional(),
+  numberOfBigChildren: z.number().optional(),
+  numberOfSmallChildren: z.number().optional(),
   priceCorrection: z.number(),
   price: z.number(),
   vat: z.number(),
-  numberOfGuests: z.number(),
-  isSurplus: z.number(),
-  prices: z.array(z.unknown()),
-  addons: z.array(z.unknown()),
+  numberOfGuests: z.number().optional(),
+  isSurplus: z.number().optional(), // API returns number, not enum
+  prices: z.array(z.unknown()).optional(),
+  addons: z.array(z.unknown()).optional(),
 });
 
-const reservationGuestSchema = z
-  .object({
-    age: z.number().optional(),
-    firstName: z.string().optional(),
-    lastName: z.string().optional(),
-  })
-  .passthrough();
+const reservationGuestSchema = z.object({
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+  street: z.string().optional(),
+  zipcode: z.string().optional(),
+  city: z.string().optional(),
+  countryCode: z.string().optional(),
+  phone: z.string().optional(),
+  email: z.string().optional(),
+  language: z.string().optional(),
+  age: z.number().optional(),
+});
 
 const reservationClientSchema = z.object({
   id: z.number(),
   login: z.string(),
-  clientType: z.string(),
+  clientType: z.enum(["person", "company"]),
+  status: z.enum(["active", "blocked"]).optional(),
   companyName: z.string(),
   taxNumber: z.string(),
   firstName: z.string(),
@@ -74,13 +105,30 @@ const reservationClientSchema = z.object({
   street: z.string(),
   zipcode: z.string(),
   city: z.string(),
+  countryCode: z.string(),
   phone: z.string(),
   email: z.string(),
-  countryCode: z.string(),
   language: z.string(),
-  langDescription: z.string(),
+  langDescription: z.string().optional(),
   currency: z.string(),
   guests: z.array(reservationGuestSchema),
+  invoiceData: z
+    .object({
+      firstName: z.string().optional(),
+      lastName: z.string().optional(),
+      companyName: z.string().optional(),
+      taxNumber: z.string().optional(),
+      street: z.string().optional(),
+      zipcode: z.string().optional(),
+      city: z.string().optional(),
+      countryCode: z.string().optional(),
+    })
+    .optional(),
+  notification: z.enum(["y", "n"]).optional(),
+  sendNewsletter: z.enum(["y", "n"]).optional(),
+  note: z.string().optional(),
+  discountForItemsInPromotion: z.number().optional(),
+  discountForItemsNotInPromotion: z.number().optional(),
 });
 
 const reservationSchema = z.object({
@@ -251,7 +299,13 @@ async function mapToDBReservations(
     const dbReservations = batch
       .map((reservation) => {
         try {
-          const adultsCount = reservation.items[0]?.numberOfGuests ?? 1;
+          const firstItem = reservation.items[0];
+
+          const adultsCount =
+            firstItem?.numberOfAdults ?? firstItem?.numberOfGuests ?? 1;
+          const bigChildrenCount = firstItem?.numberOfBigChildren ?? 0;
+          const smallChildrenCount = firstItem?.numberOfSmallChildren ?? 0;
+          const totalChildrenCount = bigChildrenCount + smallChildrenCount;
 
           return {
             idobookingId: reservation.id,
@@ -267,12 +321,12 @@ async function mapToDBReservations(
                 ? "CONFIRMED"
                 : "PENDING",
             createDate: new Date(reservation.reservationDetails.dateAdd),
-            apartmentName: reservation.items[0]?.objectName ?? "",
-            address: reservation.items[0]?.objectName ?? "",
+            apartmentName: firstItem?.objectName ?? "",
+            address: firstItem?.objectName ?? "",
             payment: reservation.reservationDetails.price.toString(),
             apartmentId: null, // You'll need to map this based on objectId
             adults: adultsCount,
-            children: 0, // todo fixme from api
+            children: totalChildrenCount,
           } as const;
         } catch (error) {
           console.error(`Error mapping reservation ${reservation.id}:`, error);
