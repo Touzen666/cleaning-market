@@ -3,6 +3,8 @@ import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { createHash } from "crypto";
 import { UserType } from "@prisma/client";
+import { type inferAsyncReturnType } from "@trpc/server";
+import { type createTRPCContext } from "@/server/api/trpc";
 
 // Zod schemas dla API responses
 const objectsGetAllResponseSchema = z.object({
@@ -32,7 +34,7 @@ const reservationDetailsSchema = z.object({
   externalNote: z.string(),
   apiNote: z.string(),
   modificationStatus: z.string(),
-  modificationDate: z.string(),
+  modificationDate: z.string().optional(),
   note: z.string(),
   languageCode: z.string(),
   isSurplus: z.number(),
@@ -55,7 +57,9 @@ const reservationItemSchema = z.object({
 
 const reservationGuestSchema = z
   .object({
-    // Add guest properties as needed
+    age: z.number().optional(),
+    firstName: z.string().optional(),
+    lastName: z.string().optional(),
   })
   .passthrough();
 
@@ -153,55 +157,159 @@ async function getApartmentsList(): Promise<
   return apartments;
 }
 
-async function getReservations(
-  apartment: z.infer<typeof objectsGetAllResponseSchema>,
-): Promise<z.infer<typeof reservationSchema>[]> {
-  const response = await fetch(
-    `https://zlote-wynajmy.pl/api/reservations/get/${apartment.id}/json`,
-    {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json;charset=UTF-8",
-      },
-      body: JSON.stringify({
-        authenticate: getAuth(),
-        paramsSearch: {
-          objectIds: [apartment.id],
-          fromDateRange: {
-            startDate: "2025-06-01T00:00:00",
-            endDate: "2025-07-07T00:00:00",
-          },
+async function getReservations(): Promise<z.infer<typeof reservationSchema>[]> {
+  const allReservations: z.infer<typeof reservationSchema>[] = [];
+  let currentPage = 1;
+  let totalPages = 1;
+
+  do {
+    console.log(`Fetching page ${currentPage}...`);
+
+    const response = await fetch(
+      `https://zlote-wynajmy.pl/api/reservations/get/1/json`,
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json;charset=UTF-8",
         },
-      }),
-    },
-  );
+        body: JSON.stringify({
+          authenticate: getAuth(),
+          paramsSearch: {
+            // fromDateRange: {
+            //   startDate: "2024-11-01T00:00:00",
+            //   endDate: "2026-07-07T00:00:00",
+            // },
+          },
+          result: {
+            page: currentPage,
+          },
+        }),
+      },
+    );
 
-  const responseData = (await response.json()) as unknown;
-  // Parse the entire response structure
-  const responseSchema = z.object({
-    result: z
-      .object({
+    const responseData = (await response.json()) as unknown;
+
+    // Parse the entire response structure with pagination
+    const responseSchema = z.object({
+      result: z.object({
+        authenticate: z.object({
+          systemLogin: z.string(),
+          systemKey: z.string(),
+        }),
         reservations: z.array(reservationSchema),
-      })
-      .optional(),
-  });
+        result: z.object({
+          page: z.number(),
+          countOnPage: z.number(),
+          pageAll: z.number(),
+          countAll: z.number(),
+        }),
+      }),
+      id: z.string(),
+    });
 
-  console.log(responseData);
-  const parsedResponse = responseSchema.parse(responseData);
-  const reservations = parsedResponse.result?.reservations ?? [];
+    const parsedResponse = responseSchema.parse(responseData);
+    const pageReservations = parsedResponse.result.reservations;
+    const pagination = parsedResponse.result.result;
 
-  console.log("Parsed reservations:", reservations.length);
-  if (reservations.length > 0) {
-    console.log("First reservation:", reservations[0]);
+    allReservations.push(...pageReservations);
+    totalPages = pagination.pageAll;
+
+    console.log(
+      `Page ${currentPage}: ${pageReservations.length} reservations (${allReservations.length}/${pagination.countAll} total)`,
+    );
+
+    currentPage++;
+  } while (currentPage <= totalPages);
+
+  console.log(
+    `Fetched all ${allReservations.length} reservations from ${totalPages} pages`,
+  );
+  return allReservations;
+}
+
+async function mapToDBReservations(
+  reservations: z.infer<typeof reservationSchema>[],
+  ctx: inferAsyncReturnType<typeof createTRPCContext>,
+) {
+  console.log(`Mapping ${reservations.length} reservations to database...`);
+
+  const batchSize = 100;
+  const batches = [];
+
+  for (let i = 0; i < reservations.length; i += batchSize) {
+    batches.push(reservations.slice(i, i + batchSize));
   }
 
-  return reservations;
+  let totalProcessed = 0;
+
+  for (const [batchIndex, batch] of batches.entries()) {
+    console.log(
+      `Processing batch ${batchIndex + 1}/${batches.length} (${batch.length} reservations)`,
+    );
+
+    const dbReservations = batch
+      .map((reservation) => {
+        try {
+          const adultsCount = reservation.items[0]?.numberOfGuests ?? 1;
+
+          return {
+            idobookingId: reservation.id,
+            guest:
+              `${reservation.client.firstName ?? ""} ${reservation.client.lastName ?? ""}`.trim(),
+            start: new Date(reservation.reservationDetails.dateFrom),
+            end: new Date(reservation.reservationDetails.dateTo),
+            paymantValue: reservation.reservationDetails.price,
+            currency: reservation.reservationDetails.currency,
+            source: "idobooking",
+            status:
+              reservation.reservationDetails.status === "completed"
+                ? "CONFIRMED"
+                : "PENDING",
+            createDate: new Date(reservation.reservationDetails.dateAdd),
+            apartmentName: reservation.items[0]?.objectName ?? "",
+            address: reservation.items[0]?.objectName ?? "",
+            payment: reservation.reservationDetails.price.toString(),
+            apartmentId: null, // You'll need to map this based on objectId
+            adults: adultsCount,
+            children: 0, // todo fixme from api
+          } as const;
+        } catch (error) {
+          console.error(`Error mapping reservation ${reservation.id}:`, error);
+          return null;
+        }
+      })
+      .filter((item): item is NonNullable<typeof item> => item !== null);
+
+    // Batch upsert to database
+    try {
+      const upsertPromises = dbReservations.map((dbReservation) =>
+        ctx.db.reservation.upsert({
+          where: { idobookingId: dbReservation.idobookingId },
+          update: dbReservation,
+          create: dbReservation,
+        }),
+      );
+
+      await Promise.all(upsertPromises);
+      totalProcessed += dbReservations.length;
+
+      console.log(
+        `Batch ${batchIndex + 1} completed: ${dbReservations.length} reservations saved`,
+      );
+    } catch (error) {
+      console.error(`Error saving batch ${batchIndex + 1}:`, error);
+    }
+  }
+
+  console.log(
+    `Finished processing ${totalProcessed} reservations in ${batches.length} batches`,
+  );
 }
 
 export const idobookingRouter = createTRPCRouter({
   // Pobierz listę apartamentów z idobooking
-  getApartmentsList: protectedProcedure.query(async ({ ctx }) => {
+  syncReservations: protectedProcedure.query(async ({ ctx }) => {
     if (ctx.session.user.type !== UserType.ADMIN) {
       throw new TRPCError({
         code: "FORBIDDEN",
@@ -209,15 +317,9 @@ export const idobookingRouter = createTRPCRouter({
       });
     }
 
-    const apartments = await getApartmentsList();
+    const reservations = await getReservations();
+    await mapToDBReservations(reservations, ctx);
 
-    if (apartments.length > 0) {
-      const firstApartment = apartments[0];
-      if (firstApartment) {
-        const reservations = await getReservations(firstApartment);
-      }
-    }
-
-    return apartments;
+    return true;
   }),
 });

@@ -56,7 +56,7 @@ describe("idobookingRouter.getApartmentsList", () => {
     const caller = idobookingRouter.createCaller(mockContext);
 
     // Call the endpoint
-    const result = await caller.getApartmentsList();
+    const result = await caller.syncReservations();
 
     // Assertions
     // expect(result).toEqual([
@@ -75,5 +75,5 @@ describe("idobookingRouter.getApartmentsList", () => {
     //     maxGuests: 6,
     //   },
     // ]);
-  });
+  }, 300000); // 5 minute timeout
 });
