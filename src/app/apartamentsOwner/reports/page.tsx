@@ -123,12 +123,6 @@ export default function OwnerReportsPage() {
                 </svg>
                 Panel Główny
               </button>
-              <button
-                onClick={handleLogout}
-                className="inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-3 py-2 text-sm font-medium leading-4 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-              >
-                Wyloguj
-              </button>
             </div>
           </div>
         </div>
@@ -187,7 +181,7 @@ export default function OwnerReportsPage() {
                       Apartament
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                      Zysk Netto
+                      Data
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                       Status
@@ -211,11 +205,7 @@ export default function OwnerReportsPage() {
                         </div>
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 text-sm font-medium">
-                        <span
-                          className={`${report.netIncome >= 0 ? "text-green-600" : "text-red-600"}`}
-                        >
-                          {report.netIncome.toFixed(2)} PLN
-                        </span>
+                        {String(report.month).padStart(2, "0")}/{report.year}
                       </td>
                       <td className="px-6 py-4">
                         <span
