@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
-import { type PrismaClient, UserType, PaymentType, VATOption } from '@prisma/client';
+import { UserType, PaymentType, VATOption } from '@prisma/client';
+import { _sendWelcomeEmail } from "./email";
 
 
 const apartmentOwnerSchema = z.object({
@@ -153,6 +154,20 @@ export const apartmentOwnersRouter = createTRPCRouter({
             }
 
             console.log(`🏢 New apartment owner created: ${newOwner.email} with temp password: ${temporaryPassword}`);
+
+            // Send welcome email automatically
+            try {
+                await _sendWelcomeEmail({ ownerId: newOwner.id, db: ctx.db });
+                console.log(`✅ Welcome email sent to ${newOwner.email}`);
+            } catch (error) {
+                console.error(`❌ Failed to send welcome email to ${newOwner.email}:`, error);
+                // Zwracamy błąd do frontendu, ale owner i tak jest stworzony
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    message: `Właściciel został utworzony, ale nie udało się wysłać e-maila powitalnego. Błąd: ${error instanceof Error ? error.message : String(error)}`,
+                    cause: error,
+                });
+            }
 
             return {
                 owner: newOwner,

@@ -25,6 +25,14 @@ export const apartmentsRouter = createTRPCRouter({
                     isPrimary: z.boolean(),
                     order: z.number(),
                 })),
+                ownerships: z.array(z.object({
+                    ownerId: z.string(),
+                    owner: z.object({
+                        id: z.string(),
+                        firstName: z.string(),
+                        lastName: z.string(),
+                    })
+                })).optional(),
             }))
         }))
         .query(async ({ ctx }) => {
@@ -54,6 +62,18 @@ export const apartmentsRouter = createTRPCRouter({
                                 order: 'asc',
                             },
                         },
+                        ownerships: {
+                            select: {
+                                ownerId: true,
+                                owner: {
+                                    select: {
+                                        id: true,
+                                        firstName: true,
+                                        lastName: true,
+                                    }
+                                }
+                            }
+                        }
                     },
                     orderBy: {
                         name: 'asc',
@@ -69,6 +89,13 @@ export const apartmentsRouter = createTRPCRouter({
                             ...img,
                             id: img.id,
                         })),
+                        ownerships: apt.ownerships.map(own => ({
+                            ...own,
+                            owner: {
+                                ...own.owner,
+                                id: own.owner.id.toString(),
+                            }
+                        }))
                     })),
                 };
             } catch (error) {

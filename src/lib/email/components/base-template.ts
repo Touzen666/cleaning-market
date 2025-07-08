@@ -1,10 +1,9 @@
 export interface BaseTemplateProps {
     title: string;
     content: string;
-    baseUrl: string;
 }
 
-export const createBaseTemplate = ({ title, content, baseUrl }: BaseTemplateProps) => {
+export const createBaseTemplate = ({ title, content }: BaseTemplateProps) => {
     return `
 <!DOCTYPE html>
 <html lang="pl">
@@ -29,22 +28,14 @@ export const createBaseTemplate = ({ title, content, baseUrl }: BaseTemplateProp
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         .header {
-            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            background: linear-gradient(303deg, #0a0801db 0%, #6f4600 100%);
             color: white;
             padding: 40px 30px;
             text-align: center;
             position: relative;
         }
         .header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('${baseUrl}/logo.svg') center/cover;
-            opacity: 0.1;
-            z-index: 0;
+            display: none;
         }
         .header h1 {
             position: relative;
@@ -65,7 +56,7 @@ export const createBaseTemplate = ({ title, content, baseUrl }: BaseTemplateProp
             background: white;
         }
         .footer {
-            background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+                background: linear-gradient(303deg, #0a0801db 0%, #6f4600 100%);
             color: white;
             padding: 30px;
             text-align: center;
@@ -117,7 +108,8 @@ export const createBaseTemplate = ({ title, content, baseUrl }: BaseTemplateProp
 <body>
     <div class="email-container">
         <div class="header">
-            <h1><img src="cid:logo@zlote-wynajmy.pl" alt="Złote Wynajmy" style="max-width:180px; height:auto; margin-bottom:20px; border-radius:8px;"> Złote Wynajmy - Apartamenty z Klasą</h1>
+            <img src="cid:logo@zlote-wynajmy.pl" alt="Złote Wynajmy" style="max-width:400px; height:auto; margin-bottom:20px;">
+            <h1>Złote Wynajmy - Apartamenty z Klasą</h1>
             <p>Witamy w gronie naszych Partnerów!</p>
         </div>
         
@@ -126,7 +118,7 @@ export const createBaseTemplate = ({ title, content, baseUrl }: BaseTemplateProp
         </div>
         
         <div class="footer">
-            <img src="cid:logo@zlote-wynajmy.pl" alt="Złote Wynajmy" style="max-width:180px; height:auto; margin-bottom:20px; border-radius:8px;">
+            <img src="cid:logo@zlote-wynajmy.pl" alt="Złote Wynajmy" style="max-width:240px; height:auto; margin-bottom:20px;">
             <div class="footer-info">
                 <p><strong>Złote Wynajmy - Apartamenty z Klasą</strong></p>
                 <p>Z wyrazami szacunku,</p>

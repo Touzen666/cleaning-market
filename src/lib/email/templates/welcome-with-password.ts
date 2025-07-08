@@ -29,7 +29,6 @@ export const createWelcomeEmailWithPasswordTemplate = (ownerName: string, tempor
 
     return createBaseTemplate({
         title: 'Witamy w Złote Wynajmy - Apartamenty z Klasą',
-        content,
-        baseUrl
+        content
     });
 }; 

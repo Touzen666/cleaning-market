@@ -25,7 +25,7 @@ export default function Header() {
         {/* LOGO NA LEWEJ STRONIE */}
         <div className="flex-shrink-0">
           <Image
-            src="/logo.svg"
+            src="/logo.png"
             alt="Złote Wynajmy logo"
             width={360}
             height={96}
@@ -92,7 +92,7 @@ export function HeaderAdmin() {
         {/* LOGO NA LEWEJ STRONIE */}
         <div className="flex-shrink-0">
           <Image
-            src="/logo.svg"
+            src="/logo.png"
             alt="Złote Wynajmy logo"
             width={360}
             height={96}
@@ -151,7 +151,7 @@ export function HeaderOwner() {
         {/* LOGO NA LEWEJ STRONIE */}
         <div className="flex-shrink-0">
           <Image
-            src="/logo.svg"
+            src="/logo.png"
             alt="Złote Wynajmy logo"
             width={360}
             height={96}

@@ -6,6 +6,7 @@ import { api } from "@/trpc/react";
 import { PaymentType, VATOption } from "@/lib/types";
 import { NoteType } from "@prisma/client";
 import ApartmentList from "@/components/ApartmentList";
+import ManageOwnerApartmentsModal from "@/app/_components/ManageOwnerApartmentsModal";
 
 export default function OwnerDetailsPage({
   params,
@@ -31,6 +32,7 @@ export default function OwnerDetailsPage({
   });
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [showNoteForm, setShowNoteForm] = useState(false);
+  const [isManageModalOpen, setIsManageModalOpen] = useState(false);
 
   // tRPC queries
   const ownerQuery = api.apartmentOwners.getById.useQuery({ ownerId });
@@ -38,6 +40,7 @@ export default function OwnerDetailsPage({
     ownerId,
   });
   const ownerNotesQuery = api.ownerNotes.getByOwnerId.useQuery({ ownerId });
+  const allApartmentsQuery = api.apartments.getAll.useQuery();
 
   // Sprawdź czy wróciliśmy z tworzenia apartamentu
   useEffect(() => {
@@ -45,17 +48,19 @@ export default function OwnerDetailsPage({
     if (fromApartmentCreation === "true") {
       // Odśwież listę apartamentów
       void ownerApartmentsQuery.refetch();
+      void ownerQuery.refetch();
       // Usuń parametr z URL
       const newUrl = new URL(window.location.href);
       newUrl.searchParams.delete("fromApartmentCreation");
       router.replace(newUrl.pathname + newUrl.search);
     }
-  }, [searchParams, ownerApartmentsQuery, router]);
+  }, [searchParams, ownerApartmentsQuery, router, ownerQuery]);
 
   // Mutacje
   const deleteApartmentMutation = api.apartments.delete.useMutation({
     onSuccess: () => {
       void ownerApartmentsQuery.refetch();
+      void ownerQuery.refetch();
     },
   });
 
@@ -78,7 +83,7 @@ export default function OwnerDetailsPage({
     },
   });
 
-  if (ownerQuery.isLoading) {
+  if (ownerQuery.isLoading || allApartmentsQuery.isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="text-center">
@@ -89,13 +94,15 @@ export default function OwnerDetailsPage({
     );
   }
 
-  if (ownerQuery.isError || !ownerQuery.data) {
+  if (ownerQuery.isError || !ownerQuery.data || allApartmentsQuery.isError) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="text-center">
           <h2 className="mb-2 text-xl font-bold text-red-600">Błąd</h2>
           <p className="mb-4 text-gray-600">
-            {ownerQuery.error?.message ?? "Właściciel nie został znaleziony"}
+            {ownerQuery.error?.message ??
+              allApartmentsQuery.error?.message ??
+              "Właściciel nie został znaleziony"}
           </p>
           <button
             onClick={() => router.push("/admin/owners")}
@@ -110,6 +117,7 @@ export default function OwnerDetailsPage({
 
   const owner = ownerQuery.data;
   const ownerApartments = ownerApartmentsQuery.data ?? [];
+  const allApartments = allApartmentsQuery.data?.apartments ?? [];
 
   const handleDeleteApartment = (apartmentId: string) => {
     if (confirm("Czy na pewno chcesz usunąć ten apartament?")) {
@@ -236,6 +244,26 @@ export default function OwnerDetailsPage({
                   />
                 </svg>
                 Edytuj właściciela
+              </button>
+              <button
+                onClick={() => setIsManageModalOpen(true)}
+                className="inline-flex items-center rounded-md bg-teal-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-teal-500"
+              >
+                <svg
+                  className="-ml-0.5 mr-1.5 h-5 w-5"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21"
+                  />
+                </svg>
+                Zarządzaj apartamentami
               </button>
             </div>
           </div>
@@ -680,6 +708,18 @@ export default function OwnerDetailsPage({
           </div>
         </div>
       </div>
+      {isManageModalOpen && (
+        <ManageOwnerApartmentsModal
+          owner={owner}
+          allApartments={allApartments}
+          onClose={() => setIsManageModalOpen(false)}
+          onSuccess={() => {
+            void ownerQuery.refetch();
+            void ownerApartmentsQuery.refetch();
+            void allApartmentsQuery.refetch();
+          }}
+        />
+      )}
     </div>
   );
 }

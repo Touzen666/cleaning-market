@@ -4,7 +4,6 @@ import {
   expect,
   beforeEach,
   afterAll,
-  vi,
   beforeAll,
 } from "vitest";
 import { db } from "@/server/db";
@@ -16,7 +15,7 @@ import { type User } from "@prisma/client";
 
 let testUserId: string | undefined;
 
-describe("idobookingRouter.getApartmentsList", () => {
+describe("idobookingRouter.syncReservations", () => {
   beforeAll(() => {
     // Stop MSW server to avoid interference with our fetch mock
     server.close();
@@ -40,7 +39,7 @@ describe("idobookingRouter.getApartmentsList", () => {
     }
   });
 
-  it("should return apartments list when API call is successful", async () => {
+  it("should sync reservations successfully", async () => {
     // Import the actual router
     const { idobookingRouter } = await import("./idobooking");
 
@@ -59,21 +58,6 @@ describe("idobookingRouter.getApartmentsList", () => {
     const result = await caller.syncReservations();
 
     // Assertions
-    // expect(result).toEqual([
-    //   {
-    //     id: 1,
-    //     name: "Test Apartment 1",
-    //     address: "Test Address 1",
-    //     description: "Test Description 1",
-    //     maxGuests: 4,
-    //   },
-    //   {
-    //     id: 2,
-    //     name: "Test Apartment 2",
-    //     address: "Test Address 2",
-    //     description: "Test Description 2",
-    //     maxGuests: 6,
-    //   },
-    // ]);
+    expect(result).toBe(true);
   }, 300000); // 5 minute timeout
 });

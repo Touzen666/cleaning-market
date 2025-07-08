@@ -29,7 +29,7 @@ export const createPasswordBox = (password: string) => {
     return `
         <style>
             .password-box {
-                background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+                    background: linear-gradient(303deg, #0a0801db 0%, #6f4600 100%);
                 border: 2px solid #f59e0b;
                 border-radius: 12px;
                 padding: 25px;
@@ -70,7 +70,7 @@ export const createPasswordBox = (password: string) => {
         </style>
         <div class="password-box">
             <div class="password-label">🔑 Twoje tymczasowe hasło:</div>
-            <div class="password-value">${password}</div>
+            <div class="password-value"><strong>${password}</strong></div>
             <div class="password-note">Hasło jest ważne przez 7 dni</div>
         </div>
     `;
@@ -81,7 +81,7 @@ export const createInfoBox = (title: string, content: string) => {
     return `
         <style>
             .info-box {
-                background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+                    background: linear-gradient(303deg, #0a0801db 0%, #6f4600 100%);
                 border: 2px solid #3b82f6;
                 border-radius: 12px;
                 padding: 25px;

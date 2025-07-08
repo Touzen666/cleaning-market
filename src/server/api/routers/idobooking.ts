@@ -7,20 +7,6 @@ import { type inferAsyncReturnType } from "@trpc/server";
 import { type createTRPCContext } from "@/server/api/trpc";
 
 // Zod schemas dla API responses
-const objectsGetAllResponseSchema = z.object({
-    id: z.number(),
-    name: z.string(),
-    capacity: z.number(),
-    area: z.number(),
-    items: z.array(
-        z.object({
-            id: z.number(),
-            code: z.string(),
-            name: z.string(),
-        }),
-    ),
-});
-
 const reservationDetailsSchema = z.object({
     price: z.number(),
     advance: z.number(),
@@ -169,40 +155,6 @@ function getAuth() {
         systemKey: systemKey,
         lang: "pol",
     };
-}
-
-async function getApartmentsList(): Promise<
-    z.infer<typeof objectsGetAllResponseSchema>[]
-> {
-    const apartments: z.infer<typeof objectsGetAllResponseSchema>[] = [];
-
-    // Bezpośrednie zapytanie do API idobooking
-    const response = await fetch(
-        "https://zlote-wynajmy.pl/api/objects/getAll/1/json",
-        {
-            method: "POST",
-            headers: {
-                Accept: "application/json",
-                "Content-Type": "application/json;charset=UTF-8",
-            },
-            body: JSON.stringify({
-                authenticate: getAuth(),
-            }),
-        },
-    );
-
-    const responseData = (await response.json()) as {
-        result?: { objects?: unknown[] };
-    };
-
-    for (const object of responseData.result?.objects ?? []) {
-        const objectParsed = objectsGetAllResponseSchema.parse(object);
-        apartments.push(objectParsed);
-    }
-
-    console.log(apartments);
-
-    return apartments;
 }
 
 async function getReservations(): Promise<z.infer<typeof reservationSchema>[]> {
@@ -363,7 +315,7 @@ async function mapToDBReservations(
 
 export const idobookingRouter = createTRPCRouter({
     // Pobierz listę apartamentów z idobooking
-    syncReservations: protectedProcedure.query(async ({ ctx }) => {
+    syncReservations: protectedProcedure.mutation(async ({ ctx }) => {
         if (ctx.session.user.type !== UserType.ADMIN) {
             throw new TRPCError({
                 code: "FORBIDDEN",

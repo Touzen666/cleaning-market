@@ -38,8 +38,7 @@ export const createMonthlyReportTemplate = (data: MonthlyReportData) => {
     `;
 
     return createBaseTemplate({
-        title: `Raport miesięczny - ${data.month} ${data.year}`,
+        title: `Raport miesięczny dla ${data.ownerName}`,
         content,
-        baseUrl: data.baseUrl
     });
 }; 

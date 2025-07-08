@@ -2,12 +2,10 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { api, type RouterOutputs } from "@/trpc/react";
+import { api } from "@/trpc/react";
 import CsvImport from "@/components/CsvImport";
 import { toast } from "react-hot-toast";
-
-type ReservationAdmin =
-  RouterOutputs["reservation"]["getAll"]["reservations"][0];
+import { IdobookingSync } from "@/app/_components/IdobookingSync";
 
 export default function AdminReservationsListPage() {
   const router = useRouter();
@@ -35,19 +33,6 @@ export default function AdminReservationsListPage() {
   const isLoading = reservationsLoading ?? statusesLoading;
   const error = reservationsError;
 
-  const getStatusClass = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "confirmed":
-        return "bg-green-100 text-green-800";
-      case "pending":
-        return "bg-yellow-100 text-yellow-800";
-      case "cancelled":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
-
   const handleStatusChange = (status: string) => {
     setSelectedStatus(status === "all" ? null : status);
   };
@@ -57,16 +42,6 @@ export default function AdminReservationsListPage() {
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
-    });
-  };
-
-  const formatDateTime = (date: Date) => {
-    return new Date(date).toLocaleDateString("pl-PL", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
     });
   };
 
@@ -142,6 +117,7 @@ export default function AdminReservationsListPage() {
             </div>
             <div className="mt-4 sm:mt-0">
               <div className="flex gap-3">
+                <IdobookingSync refetch={refetchReservations} />
                 <button
                   onClick={() => setShowImport(!showImport)}
                   className="inline-flex items-center rounded-md bg-brand-gold px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-yellow-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-gold"

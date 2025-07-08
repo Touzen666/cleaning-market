@@ -9,10 +9,10 @@ export const env = createEnv({
   server: {
     AUTH_SECRET:
       process.env.NODE_ENV === "production"
-        ? z.string()
-        : z.string().optional(),
-    AUTH_DISCORD_ID: z.string(),
-    AUTH_DISCORD_SECRET: z.string(),
+        ? z.string().min(1)
+        : z.string().min(1).optional(),
+    AUTH_DISCORD_ID: z.string().min(1),
+    AUTH_DISCORD_SECRET: z.string().min(1),
     DATABASE_URL: z.string().url(),
     NODE_ENV: z
       .enum(["development", "test", "production"])
@@ -24,6 +24,7 @@ export const env = createEnv({
     SMTP_PASS: z.string().optional(),
     ETHEREAL_USER: z.string().optional(),
     ETHEREAL_PASS: z.string().optional(),
+    EMAIL_PROVIDER: z.enum(["smtp", "ethereal"]).optional(),
     NEXTAUTH_URL: z.string().url().optional(),
   },
 
@@ -54,6 +55,7 @@ export const env = createEnv({
     ETHEREAL_USER: process.env.ETHEREAL_USER,
     ETHEREAL_PASS: process.env.ETHEREAL_PASS,
     NEXTAUTH_URL: process.env.NEXTAUTH_URL,
+    EMAIL_PROVIDER: process.env.EMAIL_PROVIDER,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

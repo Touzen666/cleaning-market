@@ -2,12 +2,76 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
-import { UserType } from "@prisma/client";
+import { UserType, type PrismaClient } from "@prisma/client";
 import {
     createWelcomeEmailWithPasswordTemplate,
     createWelcomeEmailWithoutPasswordTemplate
 } from "@/lib/email/templates";
 import { sendEmail, getBaseUrl } from "@/lib/email/email-service";
+import path from "path";
+
+export async function _sendWelcomeEmail({ ownerId, db }: { ownerId: string, db: PrismaClient }) {
+    // Pobierz dane właściciela
+    const owner = await db.apartmentOwner.findUnique({
+        where: { id: ownerId },
+        select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            temporaryPassword: true,
+            passwordHash: true,
+        },
+    });
+
+    if (!owner) {
+        throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Właściciel nie został znaleziony",
+        });
+    }
+
+    // Przygotuj wiadomość w zależności od tego, czy właściciel ma hasło permanentne
+    const ownerName = `${owner.firstName} ${owner.lastName}`;
+    const baseUrl = getBaseUrl();
+    let htmlContent: string;
+    let subject: string;
+
+    if (owner.passwordHash && !owner.temporaryPassword) {
+        // Właściciel ma hasło permanentne - wyślij email bez hasła tymczasowego
+        htmlContent = createWelcomeEmailWithoutPasswordTemplate(ownerName, baseUrl);
+        subject = "🏠 Witamy w Złote Wynajmy - Dostęp do panelu";
+    } else if (owner.temporaryPassword) {
+        // Właściciel ma hasło tymczasowe - wyślij email z hasłem
+        htmlContent = createWelcomeEmailWithPasswordTemplate(ownerName, owner.temporaryPassword, baseUrl);
+        subject = "🏠 Witamy w Złote Wynajmy - Twoje dane dostępowe";
+    } else {
+        throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Właściciel nie ma ustawionego żadnego hasła",
+        });
+    }
+
+    // Wyślij email
+    const info = await sendEmail({
+        to: owner.email,
+        subject: subject,
+        html: htmlContent,
+        attachments: [
+            {
+                filename: 'logo.png',
+                path: path.join(process.cwd(), 'public', 'logo.png'),
+                contentType: 'image/png',
+                cid: 'logo@zlote-wynajmy.pl'
+            }
+        ]
+    });
+
+    return {
+        messageId: info.messageId,
+        email: owner.email,
+    };
+}
 
 export const emailRouter = createTRPCRouter({
     // Wysyłanie wiadomości powitalnej do właściciela
@@ -25,65 +89,12 @@ export const emailRouter = createTRPCRouter({
             }
 
             try {
-                // Pobierz dane właściciela
-                const owner = await ctx.db.apartmentOwner.findUnique({
-                    where: { id: input.ownerId },
-                    select: {
-                        id: true,
-                        email: true,
-                        firstName: true,
-                        lastName: true,
-                        temporaryPassword: true,
-                        passwordHash: true,
-                    },
-                });
-
-                if (!owner) {
-                    throw new TRPCError({
-                        code: "NOT_FOUND",
-                        message: "Właściciel nie został znaleziony",
-                    });
-                }
-
-                // Przygotuj wiadomość w zależności od tego, czy właściciel ma hasło permanentne
-                const ownerName = `${owner.firstName} ${owner.lastName}`;
-                const baseUrl = getBaseUrl();
-                let htmlContent: string;
-                let subject: string;
-
-                if (owner.passwordHash && !owner.temporaryPassword) {
-                    // Właściciel ma hasło permanentne - wyślij email bez hasła tymczasowego
-                    htmlContent = createWelcomeEmailWithoutPasswordTemplate(ownerName, baseUrl);
-                    subject = "🏠 Witamy w Złote Wynajmy - Dostęp do panelu";
-                } else if (owner.temporaryPassword) {
-                    // Właściciel ma hasło tymczasowe - wyślij email z hasłem
-                    htmlContent = createWelcomeEmailWithPasswordTemplate(ownerName, owner.temporaryPassword, baseUrl);
-                    subject = "🏠 Witamy w Złote Wynajmy - Twoje dane dostępowe";
-                } else {
-                    throw new TRPCError({
-                        code: "BAD_REQUEST",
-                        message: "Właściciel nie ma ustawionego żadnego hasła",
-                    });
-                }
-
-                // Wyślij email
-                const info = await sendEmail({
-                    to: owner.email,
-                    subject: subject,
-                    html: htmlContent,
-                    attachments: [
-                        {
-                            filename: 'logo.png',
-                            path: './public/logo.png',
-                            cid: 'logo@zlote-wynajmy.pl'
-                        }
-                    ]
-                });
+                const { messageId, email } = await _sendWelcomeEmail({ ownerId: input.ownerId, db: ctx.db });
 
                 return {
                     success: true,
-                    messageId: info.messageId,
-                    message: `Email powitalny został wysłany do ${owner.email}`,
+                    messageId: messageId,
+                    message: `Email powitalny został wysłany do ${email}`,
                 };
 
             } catch (error) {

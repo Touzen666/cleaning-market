@@ -584,30 +584,39 @@ function OwnerCard({
             </button>
 
             {/* Delete buttons */}
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setDeleteType("owner-only");
-                setShowDeleteModal(true);
-              }}
-              className="inline-flex items-center rounded-md bg-orange-100 px-2 py-1 text-xs font-medium text-orange-800 hover:bg-orange-200"
-              title="Usuń tylko właściciela"
+            <div
+              className="relative"
+              title={
+                owner.ownedApartments.length > 0
+                  ? "Najpierw odłącz apartamenty od właściciela"
+                  : "Usuń tylko właściciela"
+              }
             >
-              <svg
-                className="mr-1 h-3 w-3"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setDeleteType("owner-only");
+                  setShowDeleteModal(true);
+                }}
+                disabled={owner.ownedApartments.length > 0}
+                className="inline-flex items-center rounded-md bg-orange-100 px-2 py-1 text-xs font-medium text-orange-800 hover:bg-orange-200 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                />
-              </svg>
-              Tylko właściciel
-            </button>
+                <svg
+                  className="mr-1 h-3 w-3"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  />
+                </svg>
+                Tylko właściciel
+              </button>
+            </div>
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -704,6 +713,8 @@ function OwnerCard({
                           <p>
                             Ta operacja usunie tylko właściciela. Apartamenty
                             pozostaną w systemie bez przypisanego właściciela.
+                            Ta opcja jest dostępna tylko jeśli właściciel nie ma
+                            przypisanych żadnych apartamentów.
                           </p>
                         </div>
                       </div>
@@ -739,12 +750,36 @@ function OwnerCard({
                           Operacja nieodwracalna
                         </h3>
                         <div className="mt-2 text-sm text-red-700">
-                          <p>Ta operacja usunie:</p>
+                          <p>Ta operacja usunie następujące dane:</p>
                           <ul className="mt-1 list-inside list-disc">
-                            <li>Właściciela</li>
-                            <li>Wszystkie apartamenty</li>
-                            <li>Wszystkie rezerwacje</li>
-                            <li>Wszystkie dane związane z apartamentami</li>
+                            <li>
+                              Właściciela:{" "}
+                              <strong>
+                                {owner.firstName} {owner.lastName}
+                              </strong>
+                            </li>
+                            {owner.ownedApartments.length > 0 && (
+                              <li>
+                                Apartamenty ({owner.ownedApartments.length}):
+                                <ul className="ml-4 list-inside list-disc text-xs">
+                                  {owner.ownedApartments.map(
+                                    ({ apartment }) => (
+                                      <li key={apartment.id}>
+                                        {apartment.name}
+                                      </li>
+                                    ),
+                                  )}
+                                </ul>
+                              </li>
+                            )}
+                            <li>
+                              Wszystkie rezerwacje powiązane z apartamentami.
+                            </li>
+                            <li>Wszystkie karty meldunkowe.</li>
+                            <li>Wszystkie notatki i raporty właściciela.</li>
+                            <li>
+                              Wszystkie zdjęcia i dane związane z apartamentami.
+                            </li>
                           </ul>
                         </div>
                       </div>

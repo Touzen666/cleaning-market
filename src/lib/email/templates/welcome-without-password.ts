@@ -28,8 +28,7 @@ export const createWelcomeEmailWithoutPasswordTemplate = (ownerName: string, bas
     `;
 
     return createBaseTemplate({
-        title: 'Witamy w Złote Wynajmy - Apartamenty z Klasą',
+        title: 'Witamy w Złote Wynajmy - Dostęp do panelu',
         content,
-        baseUrl
     });
 }; 

@@ -11,12 +11,18 @@ export const createTransporter = (): Transporter => {
         throw new Error("Brak konfiguracji SMTP. Sprawdź zmienne środowiskowe: SMTP_HOST, SMTP_USER, SMTP_PASS");
     }
 
-    // W trybie development używamy Ethereal Email do testowania (jeśli skonfigurowane)
-    if (env.NODE_ENV === "development" && env.ETHEREAL_USER && env.ETHEREAL_PASS) {
+    const emailProvider = env.EMAIL_PROVIDER ?? 'smtp';
+
+    // Użyj Ethereal Email do testowania, jeśli jest jawnie skonfigurowany
+    if (emailProvider === 'ethereal') {
+        if (!env.ETHEREAL_USER || !env.ETHEREAL_PASS) {
+            throw new Error("Brak konfiguracji Ethereal. Sprawdź zmienne środowiskowe: ETHEREAL_USER, ETHEREAL_PASS");
+        }
+        console.log("📨 Using Ethereal email provider for development.");
         return nodemailer.createTransport({
             host: "smtp.ethereal.email",
             port: 587,
-            secure: false,
+            secure: false, // true for 465, false for other ports
             auth: {
                 user: env.ETHEREAL_USER,
                 pass: env.ETHEREAL_PASS,
@@ -24,15 +30,19 @@ export const createTransporter = (): Transporter => {
         }) as Transporter;
     }
 
-    // W produkcji lub gdy nie ma Ethereal - używamy rzeczywistego SMTP
+    // Domyślnie używamy rzeczywistego SMTP
+    console.log("📨 Using SMTP email provider.");
     return nodemailer.createTransport({
         host: env.SMTP_HOST,
         port: parseInt(env.SMTP_PORT ?? "587"),
-        secure: false,
+        secure: (env.SMTP_PORT === "465"), // true for 465, false for other ports
         auth: {
             user: env.SMTP_USER,
             pass: env.SMTP_PASS,
         },
+        tls: {
+            rejectUnauthorized: false
+        }
     }) as Transporter;
 };
 
@@ -55,6 +65,7 @@ export const sendEmail = async (options: {
         filename: string;
         path: string;
         cid?: string;
+        contentType?: string;
     }>;
 }) => {
     const transporter = createTransporter();
