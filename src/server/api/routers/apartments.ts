@@ -305,58 +305,79 @@ export const apartmentsRouter = createTRPCRouter({
                 });
             }
 
+            console.log("▶️ Rozpoczęto mapowanie rezerwacji na apartamenty...");
+
             const allReservations = await ctx.db.reservation.findMany();
             const allApartments = await ctx.db.apartment.findMany();
 
+            console.log(`🔍 Znaleziono ${allReservations.length} rezerwacji i ${allApartments.length} istniejących apartamentów.`);
+
             const apartmentMap = new Map(allApartments.map(apt => [apt.name, apt]));
+
+            console.log("🗺️ Stworzono mapę istniejących apartamentów.");
 
             let createdApartmentsCount = 0;
             let updatedReservationsCount = 0;
 
             for (const reservation of allReservations) {
                 if (!reservation.apartmentName) {
+                    console.log(`⏭️ Pomijam rezerwację o ID: ${reservation.id}, ponieważ nie ma nazwy apartamentu.`);
                     continue;
                 }
+
+                console.log(`🔄 Przetwarzam rezerwację ID: ${reservation.id} dla apartamentu: "${reservation.apartmentName}"`);
 
                 let apartment = apartmentMap.get(reservation.apartmentName);
 
                 if (!apartment) {
-                    // Create a new apartment if it doesn't exist
+                    console.log(`🆕 Apartament "${reservation.apartmentName}" nie istnieje. Próba utworzenia...`);
                     const slug = slugify(reservation.apartmentName);
                     try {
+                        const newApartmentData = {
+                            name: reservation.apartmentName,
+                            slug: slug,
+                            address: reservation.address ?? 'Brak adresu',
+                        };
+                        console.log(`➕ Tworzenie apartamentu z danymi:`, newApartmentData);
+
                         apartment = await ctx.db.apartment.create({
-                            data: {
-                                name: reservation.apartmentName,
-                                slug: slug,
-                                address: reservation.address ?? 'Brak adresu', // Provide a default address
-                            },
+                            data: newApartmentData,
                         });
+
                         apartmentMap.set(apartment.name, apartment);
                         createdApartmentsCount++;
+                        console.log(`✅ Utworzono i zmapowano nowy apartament: ID ${apartment.id}, Nazwa: ${apartment.name}`);
                     } catch (error) {
-                        // Likely a unique constraint violation if two reservations are processed in parallel
-                        // or some other db error. We can try to refetch it.
+                        console.error(`❌ Błąd podczas tworzenia apartamentu "${reservation.apartmentName}".`, error);
                         const existing = await ctx.db.apartment.findFirst({ where: { name: reservation.apartmentName } });
                         if (existing) {
                             apartment = existing;
                             apartmentMap.set(existing.name, existing);
+                            console.log(`🔄 Apartament "${reservation.apartmentName}" już istniał (błąd wyścigu?). Używam istniejącego ID: ${apartment.id}.`);
                         } else {
-                            // If it still doesn't exist, something is wrong.
-                            console.error(`Could not create or find apartment: ${reservation.apartmentName}`, error);
-                            continue; // Skip this reservation
+                            console.error(`🚨 Krytyczny błąd: Nie można utworzyć ani znaleźć apartamentu: "${reservation.apartmentName}". Pomijam rezerwację.`);
+                            continue;
                         }
                     }
+                } else {
+                    console.log(`👍 Apartament "${reservation.apartmentName}" już istnieje. ID: ${apartment.id}`);
                 }
 
-                // If reservation is not linked, link it to the apartment
                 if (apartment && reservation.apartmentId !== apartment.id) {
+                    const oldApartmentId = reservation.apartmentId;
+                    console.log(`✍️ Aktualizuję rezerwację ID: ${reservation.id}. Zmiana apartmentId z ${oldApartmentId ?? 'null'} na ${apartment.id}`);
                     await ctx.db.reservation.update({
                         where: { id: reservation.id },
                         data: { apartmentId: apartment.id },
                     });
                     updatedReservationsCount++;
+                    console.log(`✔️ Rezerwacja ID: ${reservation.id} zaktualizowana.`);
+                } else if (apartment) {
+                    console.log(`👌 Rezerwacja ID: ${reservation.id} jest już poprawnie połączona z apartamentem ID: ${apartment.id}.`);
                 }
             }
+
+            console.log(`🏁 Zakończono mapowanie. Utworzono ${createdApartmentsCount} nowych apartamentów, zaktualizowano ${updatedReservationsCount} rezerwacji.`);
 
             return {
                 success: true,

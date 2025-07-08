@@ -145,6 +145,16 @@ function generateSystemKey(password: string): string {
     return systemKey;
 }
 
+// Funkcja pomocnicza do logowania z tagiem
+const logWithTag = (message: string, data?: unknown) => {
+    const tag = "[syncReservations]";
+    if (data) {
+        console.log(`💬 ${tag} ${message}`, data);
+    } else {
+        console.log(`💬 ${tag} ${message}`);
+    }
+};
+
 function getAuth() {
     const login = "barwil128";
     const password = "Metalcat133c!";
@@ -162,8 +172,10 @@ async function getReservations(): Promise<z.infer<typeof reservationSchema>[]> {
     let currentPage = 1;
     let totalPages = 1;
 
+    logWithTag("Rozpoczęto pobieranie rezerwacji z IdoBooking API...");
+
     do {
-        console.log(`Fetching page ${currentPage}...`);
+        logWithTag(`Pobieranie strony ${currentPage}...`);
 
         const response = await fetch(
             `https://zlote-wynajmy.pl/api/reservations/get/1/json`,
@@ -215,15 +227,15 @@ async function getReservations(): Promise<z.infer<typeof reservationSchema>[]> {
         allReservations.push(...pageReservations);
         totalPages = pagination.pageAll;
 
-        console.log(
-            `Page ${currentPage}: ${pageReservations.length} reservations (${allReservations.length}/${pagination.countAll} total)`,
+        logWithTag(
+            `Strona ${currentPage}: ${pageReservations.length} rezerwacji (łącznie ${allReservations.length}/${pagination.countAll})`
         );
 
         currentPage++;
     } while (currentPage <= totalPages);
 
-    console.log(
-        `Fetched all ${allReservations.length} reservations from ${totalPages} pages`,
+    logWithTag(
+        `Pobrano wszystkie ${allReservations.length} rezerwacji z ${totalPages} stron.`
     );
     return allReservations;
 }
@@ -232,7 +244,7 @@ async function mapToDBReservations(
     reservations: z.infer<typeof reservationSchema>[],
     ctx: inferAsyncReturnType<typeof createTRPCContext>,
 ) {
-    console.log(`Mapping ${reservations.length} reservations to database...`);
+    logWithTag(`Rozpoczęto mapowanie ${reservations.length} rezerwacji do bazy danych.`);
 
     const batchSize = 100;
     const batches = [];
@@ -244,73 +256,91 @@ async function mapToDBReservations(
     let totalProcessed = 0;
 
     for (const [batchIndex, batch] of batches.entries()) {
-        console.log(
-            `Processing batch ${batchIndex + 1}/${batches.length} (${batch.length} reservations)`,
+        logWithTag(
+            `Przetwarzanie partii ${batchIndex + 1}/${batches.length} (${batch.length} rezerwacji)`
         );
 
-        const dbReservations = batch
-            .map((reservation) => {
+        const operations = batch.map(async (reservation) => {
+            const { id: idobookingId, reservationDetails, items, client } = reservation;
+
+            logWithTag(`Przetwarzanie rezerwacji IdoBooking ID: ${idobookingId}`);
+
+            const firstItem = items[0];
+            const adultsCount = firstItem?.numberOfAdults ?? firstItem?.numberOfGuests ?? 1;
+            const bigChildrenCount = firstItem?.numberOfBigChildren ?? 0;
+            const smallChildrenCount = firstItem?.numberOfSmallChildren ?? 0;
+            const totalChildrenCount = bigChildrenCount + smallChildrenCount;
+
+            const reservationData = {
+                idobookingId,
+                status: reservationDetails.status,
+                apartmentName: firstItem?.objectName ?? "N/A",
+                price: reservationDetails.price,
+                advance: reservationDetails.advance,
+                currency: reservationDetails.currency,
+                dateAdd: new Date(reservationDetails.dateAdd),
+                dateTo: new Date(reservationDetails.dateTo),
+                dateFrom: new Date(reservationDetails.dateFrom),
+                clientName: `${client.firstName} ${client.lastName}`,
+                clientEmail: client.email,
+                clientPhone: client.phone,
+                clientAddress: `${client.street}, ${client.zipcode} ${client.city}`,
+                reservationSource: reservationDetails.reservationSourceTypeId?.toString(),
+                // Uzupełnienie brakujących pól
+                source: "idobooking",
+                createDate: new Date(reservationDetails.dateAdd),
+                guest: `${client.firstName} ${client.lastName}`.trim(),
+                start: new Date(reservationDetails.dateFrom),
+                end: new Date(reservationDetails.dateTo),
+                payment: reservationDetails.price.toString(),
+                adults: adultsCount,
+                children: totalChildrenCount,
+                // Uzupełnienie brakujących pól z drugiego błędu
+                address: firstItem?.objectName ?? "Brak adresu",
+                paymantValue: reservationDetails.price,
+            };
+
+            logWithTag(`Dane rezerwacji IdoBooking ID: ${idobookingId} przygotowane do zapisu:`, {
+                status: reservationData.status,
+                apartmentName: reservationData.apartmentName,
+                dates: `${reservationData.dateFrom.toISOString()} - ${reservationData.dateTo.toISOString()}`,
+                client: reservationData.clientName,
+            });
+
+            const existingReservation = await ctx.db.reservation.findUnique({
+                where: { idobookingId },
+            });
+
+            if (existingReservation) {
+                logWithTag(`Rezerwacja o ID ${idobookingId} już istnieje. Aktualizowanie...`);
                 try {
-                    const firstItem = reservation.items[0];
-
-                    const adultsCount =
-                        firstItem?.numberOfAdults ?? firstItem?.numberOfGuests ?? 1;
-                    const bigChildrenCount = firstItem?.numberOfBigChildren ?? 0;
-                    const smallChildrenCount = firstItem?.numberOfSmallChildren ?? 0;
-                    const totalChildrenCount = bigChildrenCount + smallChildrenCount;
-
-                    return {
-                        idobookingId: reservation.id,
-                        guest:
-                            `${reservation.client.firstName ?? ""} ${reservation.client.lastName ?? ""}`.trim(),
-                        start: new Date(reservation.reservationDetails.dateFrom),
-                        end: new Date(reservation.reservationDetails.dateTo),
-                        paymantValue: reservation.reservationDetails.price,
-                        currency: reservation.reservationDetails.currency,
-                        source: "idobooking",
-                        status:
-                            reservation.reservationDetails.status === "completed"
-                                ? "CONFIRMED"
-                                : "PENDING",
-                        createDate: new Date(reservation.reservationDetails.dateAdd),
-                        apartmentName: firstItem?.objectName ?? "",
-                        address: firstItem?.objectName ?? "",
-                        payment: reservation.reservationDetails.price.toString(),
-                        apartmentId: null, // You'll need to map this based on objectId
-                        adults: adultsCount,
-                        children: totalChildrenCount,
-                    } as const;
+                    await ctx.db.reservation.update({
+                        where: { idobookingId },
+                        data: reservationData,
+                    });
+                    logWithTag(`✅ Rezerwacja ${idobookingId} zaktualizowana pomyślnie.`);
                 } catch (error) {
-                    console.error(`Error mapping reservation ${reservation.id}:`, error);
-                    return null;
+                    logWithTag(`❌ Błąd podczas aktualizacji rezerwacji ${idobookingId}:`, error);
                 }
-            })
-            .filter((item): item is NonNullable<typeof item> => item !== null);
+            } else {
+                logWithTag(`Rezerwacja o ID ${idobookingId} nie istnieje. Tworzenie nowej...`);
+                try {
+                    await ctx.db.reservation.create({
+                        data: reservationData,
+                    });
+                    logWithTag(`✅ Rezerwacja ${idobookingId} utworzona pomyślnie.`);
+                } catch (error) {
+                    logWithTag(`❌ Błąd podczas tworzenia rezerwacji ${idobookingId}:`, error);
+                }
+            }
+        });
 
-        // Batch upsert to database
-        try {
-            const upsertPromises = dbReservations.map((dbReservation) =>
-                ctx.db.reservation.upsert({
-                    where: { idobookingId: dbReservation.idobookingId },
-                    update: dbReservation,
-                    create: dbReservation,
-                }),
-            );
-
-            await Promise.all(upsertPromises);
-            totalProcessed += dbReservations.length;
-
-            console.log(
-                `Batch ${batchIndex + 1} completed: ${dbReservations.length} reservations saved`,
-            );
-        } catch (error) {
-            console.error(`Error saving batch ${batchIndex + 1}:`, error);
-        }
+        await Promise.all(operations);
+        totalProcessed += batch.length;
+        logWithTag(`Zakończono przetwarzanie partii ${batchIndex + 1}. Przetworzono łącznie ${totalProcessed} rezerwacji.`);
     }
 
-    console.log(
-        `Finished processing ${totalProcessed} reservations in ${batches.length} batches`,
-    );
+    logWithTag("Zakończono mapowanie wszystkich rezerwacji.");
 }
 
 export const idobookingRouter = createTRPCRouter({
@@ -319,13 +349,26 @@ export const idobookingRouter = createTRPCRouter({
         if (ctx.session.user.type !== UserType.ADMIN) {
             throw new TRPCError({
                 code: "FORBIDDEN",
-                message: "Only admins can access idobooking data",
+                message: "Tylko administratorzy mogą synchronizować rezerwacje.",
             });
         }
 
-        const reservations = await getReservations();
-        await mapToDBReservations(reservations, ctx);
-
-        return true;
+        try {
+            logWithTag("Rozpoczynanie pełnej synchronizacji rezerwacji...");
+            const reservations = await getReservations();
+            await mapToDBReservations(reservations, ctx);
+            logWithTag("🎉 Pełna synchronizacja rezerwacji zakończona pomyślnie.");
+            return {
+                success: true,
+                message: `Synchronizacja zakończona. Pobrano ${reservations.length} rezerwacji.`,
+            };
+        } catch (error) {
+            logWithTag("🚨 Wystąpił błąd podczas synchronizacji rezerwacji:", error);
+            const errorMessage = error instanceof Error ? error.message : "Unknown error";
+            throw new TRPCError({
+                code: "INTERNAL_SERVER_ERROR",
+                message: errorMessage,
+            });
+        }
     }),
 });
