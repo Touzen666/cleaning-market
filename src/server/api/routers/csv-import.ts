@@ -123,6 +123,63 @@ const importCsvSchema = z.object({
 const importProgressMap: Record<string, { processed: number; total: number; done: boolean; errors: number }> = {};
 
 export const csvImportRouter = createTRPCRouter({
+    getImportBatches: protectedProcedure
+        .output(z.array(z.object({
+            importBatchId: z.string(),
+            count: z.number(),
+            minDate: z.date().nullable(),
+        })))
+        .query(async ({ ctx }) => {
+            if (ctx.session.user.type !== UserType.ADMIN) {
+                throw new TRPCError({ code: "FORBIDDEN", message: "Tylko administratorzy." });
+            }
+
+            const batches = await ctx.db.reservation.groupBy({
+                by: ['importBatchId'],
+                where: {
+                    importBatchId: {
+                        not: null,
+                    },
+                },
+                _count: {
+                    id: true,
+                },
+                _min: {
+                    createDate: true,
+                },
+                orderBy: {
+                    _min: {
+                        createDate: 'desc',
+                    },
+                },
+            });
+
+            return batches.map(batch => ({
+                importBatchId: batch.importBatchId!,
+                count: batch._count?.id ?? 0,
+                minDate: batch._min?.createDate ?? null,
+            }));
+        }),
+
+    deleteImportBatch: protectedProcedure
+        .input(z.object({ importBatchId: z.string() }))
+        .mutation(async ({ input, ctx }) => {
+            if (ctx.session.user.type !== UserType.ADMIN) {
+                throw new TRPCError({ code: "FORBIDDEN", message: "Tylko administratorzy." });
+            }
+
+            const { importBatchId } = input;
+
+            const result = await ctx.db.reservation.deleteMany({
+                where: {
+                    importBatchId: importBatchId,
+                },
+            });
+
+            return {
+                deletedCount: result.count
+            };
+        }),
     importReservations: protectedProcedure
         .input(importCsvSchema)
         .mutation(async ({ input, ctx }) => {

@@ -7,20 +7,33 @@ import CsvImport from "@/components/CsvImport";
 import { toast } from "react-hot-toast";
 
 type ReservationAdmin =
-  RouterOutputs["reservation"]["getAllAdmin"]["reservations"][0];
+  RouterOutputs["reservation"]["getAll"]["reservations"][0];
 
 export default function AdminReservationsListPage() {
   const router = useRouter();
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [showImport, setShowImport] = useState(false);
 
-  const { data, isLoading, error } = api.reservation.getAllAdmin.useQuery(
+  const {
+    data: reservationsData,
+    isLoading: reservationsLoading,
+    error: reservationsError,
+    refetch: refetchReservations,
+  } = api.reservation.getAll.useQuery(
     { status: selectedStatus ?? undefined },
-    { keepPreviousData: true },
+    { placeholderData: (previousData) => previousData },
   );
 
-  const reservations = data?.reservations ?? [];
-  const statuses = data?.statuses ?? [];
+  const { data: statusesData, isLoading: statusesLoading } =
+    api.reservation.getStatuses.useQuery();
+
+  const csvBatchesQuery = api.csvImport.getImportBatches.useQuery();
+  const deleteBatchMutation = api.csvImport.deleteImportBatch.useMutation();
+
+  const reservations = reservationsData?.reservations ?? [];
+  const statuses = statusesData ?? [];
+  const isLoading = reservationsLoading ?? statusesLoading;
+  const error = reservationsError;
 
   const getStatusClass = (status: string) => {
     switch (status.toLowerCase()) {
@@ -83,7 +96,7 @@ export default function AdminReservationsListPage() {
       await deleteBatchMutation.mutateAsync({ importBatchId });
       toast.success("Import CSV został usunięty.");
       await csvBatchesQuery.refetch();
-      await reservationsQuery.refetch();
+      await refetchReservations();
     } catch (error) {
       toast.error("Błąd podczas usuwania importu CSV");
       console.error(error);
@@ -96,7 +109,7 @@ export default function AdminReservationsListPage() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="border-brand-gold mx-auto h-12 w-12 animate-spin rounded-full border-b-2"></div>
+          <div className="mx-auto h-12 w-12 animate-spin rounded-full border-b-2 border-brand-gold"></div>
           <p className="mt-4 text-gray-600">Ładowanie rezerwacji...</p>
         </div>
       </div>
@@ -131,7 +144,7 @@ export default function AdminReservationsListPage() {
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowImport(!showImport)}
-                  className="bg-brand-gold focus-visible:outline-brand-gold inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-yellow-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+                  className="inline-flex items-center rounded-md bg-brand-gold px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-yellow-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-gold"
                 >
                   <svg
                     className="-ml-0.5 mr-1.5 h-5 w-5"
@@ -150,7 +163,7 @@ export default function AdminReservationsListPage() {
                 </button>
                 <button
                   onClick={() => router.push("/admin/reservations")}
-                  className="bg-brand-gold focus-visible:outline-brand-gold inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-yellow-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+                  className="inline-flex items-center rounded-md bg-brand-gold px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-yellow-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-gold"
                 >
                   <svg
                     className="-ml-0.5 mr-1.5 h-5 w-5"
@@ -237,9 +250,9 @@ export default function AdminReservationsListPage() {
                   Filtruj po statusie:
                 </label>
                 <select
-                  value={selectedStatus || "all"}
+                  value={selectedStatus ?? "all"}
                   onChange={(e) => handleStatusChange(e.target.value)}
-                  className="focus:border-brand-gold focus:ring-brand-gold rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none"
+                  className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand-gold focus:outline-none focus:ring-brand-gold"
                 >
                   <option value="all">Wszystkie statusy</option>
                   {statuses.map((status) => (
@@ -249,126 +262,143 @@ export default function AdminReservationsListPage() {
                   ))}
                 </select>
               </div>
-              <div className="text-sm text-gray-600">
-                <span className="font-medium">{reservations.length}</span>{" "}
-                rezerwacji
-                {selectedStatus !== "all" && (
-                  <span> ze statusem "{selectedStatus}"</span>
-                )}
+
+              <div className="flex items-center gap-6">
+                <div className="text-center">
+                  <p className="text-sm font-medium text-gray-500">
+                    Liczba rezerwacji
+                  </p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {reservations.length}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Lista rezerwacji */}
-        <div className="overflow-hidden bg-white shadow sm:rounded-md">
-          {reservations.length === 0 ? (
-            <div className="py-12 text-center">
-              <svg
-                className="mx-auto h-12 w-12 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                />
-              </svg>
-              <h3 className="mt-2 text-sm font-medium text-gray-900">
-                Brak rezerwacji
-              </h3>
-              <p className="mt-1 text-sm text-gray-500">
-                {selectedStatus === "all"
-                  ? "Nie ma jeszcze żadnych rezerwacji w systemie."
-                  : `Nie ma rezerwacji ze statusem "${selectedStatus}".`}
-              </p>
-            </div>
-          ) : (
-            <ul className="divide-y divide-gray-200">
-              {reservations.map((reservation: ReservationAdmin) => (
-                <li key={reservation.id} className="px-6 py-4 hover:bg-gray-50">
-                  <div className="flex items-center justify-between">
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <div className="flex-shrink-0">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-yellow-100">
-                              <svg
-                                className="text-brand-gold h-6 w-6"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                                />
-                              </svg>
-                            </div>
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="truncate text-sm font-medium text-gray-900">
-                              {reservation.guest}
-                            </p>
-                            <p className="text-sm text-gray-500">
-                              {reservation.apartmentName}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-4">
-                          <span
-                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusColor(
-                              reservation.status,
-                            )}`}
-                          >
-                            {reservation.status}
-                          </span>
-                          <div className="text-right">
-                            <p className="text-sm font-medium text-gray-900">
-                              {reservation.paymantValue} {reservation.currency}
-                            </p>
-                            <p className="text-xs text-gray-500">
-                              {reservation.source}
-                            </p>
-                          </div>
-                        </div>
+        {/* Tabela rezerwacji */}
+        <div className="overflow-hidden rounded-lg border border-gray-200 shadow-sm">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+                  >
+                    Gość / Apartament
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-3 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+                  >
+                    Status
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-3 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+                  >
+                    Przyjazd
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-3 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+                  >
+                    Wyjazd
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-3 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+                  >
+                    Dorośli
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-3 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+                  >
+                    Dzieci
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-3 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+                  >
+                    Płatność
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-3 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+                  >
+                    Wartość
+                  </th>
+                  <th scope="col" className="relative px-6 py-3">
+                    <span className="sr-only">Akcje</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 bg-white">
+                {reservations.map((reservation) => (
+                  <tr key={reservation.id}>
+                    <td className="whitespace-nowrap px-6 py-4">
+                      <div className="text-sm font-medium text-gray-900">
+                        {reservation.guest}
                       </div>
-                      <div className="mt-2 flex items-center justify-between text-sm text-gray-500">
-                        <div className="flex items-center space-x-4">
-                          <span>
-                            Przyjazd: {formatDateTime(reservation.start)}
-                          </span>
-                          <span>Wyjazd: {formatDateTime(reservation.end)}</span>
-                        </div>
-                        <div className="flex items-center space-x-4">
-                          <span>
-                            Utworzono: {formatDate(reservation.createDate)}
-                          </span>
-                          {reservation.idobookingId && (
-                            <span className="rounded bg-gray-100 px-2 py-1 text-xs">
-                              ID: {reservation.idobookingId}
-                            </span>
-                          )}
-                        </div>
+                      <div className="text-sm text-gray-500">
+                        {reservation.apartmentName}
                       </div>
-                      {reservation.adults || reservation.children ? (
-                        <div className="mt-1 text-xs text-gray-400">
-                          {reservation.adults} dorosłych
-                          {reservation.children > 0 &&
-                            `, ${reservation.children} dzieci`}
-                        </div>
-                      ) : null}
-                    </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
+                    </td>
+                    <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                      <span
+                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusColor(
+                          reservation.status,
+                        )}`}
+                      >
+                        {reservation.status}
+                      </span>
+                    </td>
+                    <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                      {formatDate(reservation.start)}
+                    </td>
+                    <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                      {formatDate(reservation.end)}
+                    </td>
+                    <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                      {reservation.adults ?? 0}
+                    </td>
+                    <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                      {reservation.children ?? 0}
+                    </td>
+                    <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                      <span
+                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                          reservation.payment.toLowerCase().includes("opłacona")
+                            ? "bg-green-100 text-green-800"
+                            : "bg-yellow-100 text-yellow-800"
+                        }`}
+                      >
+                        {reservation.payment}
+                      </span>
+                    </td>
+                    <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                      {reservation.paymantValue.toFixed(2)}{" "}
+                      {reservation.currency}
+                    </td>
+                    <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                      <button
+                        onClick={() =>
+                          router.push(`/admin/reservations/${reservation.id}`)
+                        }
+                        className="text-brand-gold hover:text-yellow-500"
+                      >
+                        Szczegóły
+                        <span className="sr-only">, {reservation.guest}</span>
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
