@@ -112,6 +112,14 @@ export default function ApartmentList({
           </h3>
           <p className="mb-3 text-sm text-gray-600">{apartment.address}</p>
 
+          {/* Liczba rezerwacji */}
+          <div className="mb-3 text-sm">
+            <span className="text-gray-500">Rezerwacje:</span>
+            <span className="ml-1 font-medium text-gray-900">
+              {apartment.reservations}
+            </span>
+          </div>
+
           {/* Ceny */}
           {(apartment.defaultRentAmount ??
             apartment.defaultUtilitiesAmount) && (
@@ -377,9 +385,28 @@ export default function ApartmentList({
         <td className="whitespace-nowrap px-6 py-4">
           <div className="text-sm text-gray-500">{apartment.id}</div>
         </td>
+        <td className="whitespace-nowrap px-4 py-4 text-sm text-gray-500">
+          {apartment.address}
+        </td>
+        <td className="whitespace-nowrap px-4 py-4 text-sm text-gray-500">
+          {apartment.reservations > 0 ? (
+            <button
+              onClick={() =>
+                router.push(
+                  `/admin/reservations-list?apartmentId=${apartment.id}`,
+                )
+              }
+              className="inline-flex items-center rounded-md bg-blue-100 px-2.5 py-1.5 text-sm font-semibold text-blue-800 hover:bg-blue-200"
+            >
+              {apartment.reservations} Reservation
+            </button>
+          ) : (
+            <span className="text-gray-400">0</span>
+          )}
+        </td>
         {showActions && (
-          <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
-            <div className="flex space-x-2">
+          <td className="whitespace-nowrap px-4 py-4 text-right text-sm font-medium">
+            <div className="flex justify-end space-x-2">
               {mode === "admin" && (
                 <>
                   {onEdit && (
@@ -528,17 +555,20 @@ export default function ApartmentList({
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-              Apartament
+            <th className="w-1/4 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+              Nazwa
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+            <th className="w-1/4 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
               Slug
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-              ID
+            <th className="w-1/4 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+              Adres
+            </th>
+            <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+              Rezerwacje
             </th>
             {showActions && (
-              <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+              <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
                 Akcje
               </th>
             )}

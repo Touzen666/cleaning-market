@@ -13,6 +13,7 @@ export const apartmentsRouter = createTRPCRouter({
                 name: z.string(),
                 slug: z.string(),
                 address: z.string(),
+                reservations: z.number(), // Dodajemy pole z liczbą rezerwacji
                 defaultRentAmount: z.number().nullable(),
                 defaultUtilitiesAmount: z.number().nullable(),
                 hasBalcony: z.boolean(),
@@ -45,6 +46,9 @@ export const apartmentsRouter = createTRPCRouter({
                         name: true,
                         slug: true,
                         address: true,
+                        _count: { // Zliczamy rezerwacje
+                            select: { reservations: true },
+                        },
                         defaultRentAmount: true,
                         defaultUtilitiesAmount: true,
                         hasBalcony: true,
@@ -85,6 +89,7 @@ export const apartmentsRouter = createTRPCRouter({
                     apartments: apartments.map(apt => ({
                         ...apt,
                         id: apt.id.toString(),
+                        reservations: apt._count.reservations, // Przekazujemy liczbę rezerwacji
                         images: apt.images.map(img => ({
                             ...img,
                             id: img.id,
