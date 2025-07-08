@@ -2,26 +2,41 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { api } from "@/trpc/react";
+import { api, type RouterOutputs } from "@/trpc/react";
 import CsvImport from "@/components/CsvImport";
 import { toast } from "react-hot-toast";
 
+type ReservationAdmin =
+  RouterOutputs["reservation"]["getAllAdmin"]["reservations"][0];
+
 export default function AdminReservationsListPage() {
   const router = useRouter();
-  const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [showImport, setShowImport] = useState(false);
 
-  // TRPC queries
-  const reservationsQuery = api.reservation.getAll.useQuery(
-    { status: selectedStatus === "all" ? undefined : selectedStatus },
-    { refetchOnWindowFocus: false },
+  const { data, isLoading, error } = api.reservation.getAllAdmin.useQuery(
+    { status: selectedStatus ?? undefined },
+    { keepPreviousData: true },
   );
-  const statusesQuery = api.reservation.getStatuses.useQuery();
-  const csvBatchesQuery = api.csvImport.getCsvImportBatches.useQuery();
-  const deleteBatchMutation = api.csvImport.deleteCsvImportBatch.useMutation();
+
+  const reservations = data?.reservations ?? [];
+  const statuses = data?.statuses ?? [];
+
+  const getStatusClass = (status: string) => {
+    switch (status.toLowerCase()) {
+      case "confirmed":
+        return "bg-green-100 text-green-800";
+      case "pending":
+        return "bg-yellow-100 text-yellow-800";
+      case "cancelled":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
 
   const handleStatusChange = (status: string) => {
-    setSelectedStatus(status);
+    setSelectedStatus(status === "all" ? null : status);
   };
 
   const formatDate = (date: Date) => {
@@ -53,7 +68,7 @@ export default function AdminReservationsListPage() {
       case "anulowana":
         return "bg-red-100 text-red-800";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-yellow-100 text-yellow-800";
     }
   };
 
@@ -77,31 +92,26 @@ export default function AdminReservationsListPage() {
 
   const isDeleting = deleteBatchMutation.status === "pending";
 
-  if (reservationsQuery.isLoading) {
+  if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="mx-auto h-12 w-12 animate-spin rounded-full border-b-2 border-indigo-600"></div>
+          <div className="border-brand-gold mx-auto h-12 w-12 animate-spin rounded-full border-b-2"></div>
           <p className="mt-4 text-gray-600">Ładowanie rezerwacji...</p>
         </div>
       </div>
     );
   }
 
-  if (reservationsQuery.error) {
+  if (error) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="text-center">
-          <p className="text-red-600">
-            Błąd: {reservationsQuery.error.message}
-          </p>
+          <p className="text-red-600">Błąd: {error.message}</p>
         </div>
       </div>
     );
   }
-
-  const reservations = reservationsQuery.data?.reservations ?? [];
-  const statuses = statusesQuery.data ?? [];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -121,7 +131,7 @@ export default function AdminReservationsListPage() {
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowImport(!showImport)}
-                  className="inline-flex items-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600"
+                  className="bg-brand-gold focus-visible:outline-brand-gold inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-yellow-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                 >
                   <svg
                     className="-ml-0.5 mr-1.5 h-5 w-5"
@@ -140,7 +150,7 @@ export default function AdminReservationsListPage() {
                 </button>
                 <button
                   onClick={() => router.push("/admin/reservations")}
-                  className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                  className="bg-brand-gold focus-visible:outline-brand-gold inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-yellow-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                 >
                   <svg
                     className="-ml-0.5 mr-1.5 h-5 w-5"
@@ -227,9 +237,9 @@ export default function AdminReservationsListPage() {
                   Filtruj po statusie:
                 </label>
                 <select
-                  value={selectedStatus}
+                  value={selectedStatus || "all"}
                   onChange={(e) => handleStatusChange(e.target.value)}
-                  className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
+                  className="focus:border-brand-gold focus:ring-brand-gold rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none"
                 >
                   <option value="all">Wszystkie statusy</option>
                   {statuses.map((status) => (
@@ -278,16 +288,16 @@ export default function AdminReservationsListPage() {
             </div>
           ) : (
             <ul className="divide-y divide-gray-200">
-              {reservations.map((reservation) => (
+              {reservations.map((reservation: ReservationAdmin) => (
                 <li key={reservation.id} className="px-6 py-4 hover:bg-gray-50">
                   <div className="flex items-center justify-between">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
                           <div className="flex-shrink-0">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-yellow-100">
                               <svg
-                                className="h-6 w-6 text-indigo-600"
+                                className="text-brand-gold h-6 w-6"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"

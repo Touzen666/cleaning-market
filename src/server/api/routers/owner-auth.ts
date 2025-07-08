@@ -2,6 +2,8 @@ import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { randomBytes, createHash } from "crypto";
+import { sendEmail } from "@/lib/email/email-service";
+import { createResetPasswordEmail } from "@/lib/email/templates/reset-password";
 
 // Simple password hashing using Node.js crypto
 function hashPassword(password: string): string {
@@ -10,6 +12,23 @@ function hashPassword(password: string): string {
 
 function verifyPassword(password: string, hash: string): boolean {
     return hashPassword(password) === hash;
+}
+
+// Helper to generate a secure temporary password
+function generateSecurePassword(length = 10): string {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%';
+    let result = '';
+    for (let i = 0; i < length; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+}
+
+// Placeholder for email sending (replace with your actual implementation)
+async function sendResetPasswordEmail(email: string, tempPassword: string) {
+    // TODO: Use your email service and a proper template
+    // await sendEmail({ ... })
+    console.log(`Send reset password email to ${email} with password: ${tempPassword}`);
 }
 
 export const ownerAuthRouter = createTRPCRouter({
@@ -301,6 +320,82 @@ export const ownerAuthRouter = createTRPCRouter({
         }))
         .mutation(async ({ }) => {
             // Implement logout
+            return { success: true };
+        }),
+
+    requestPasswordReset: publicProcedure
+        .input(z.object({ email: z.string().email() }))
+        .mutation(async ({ input, ctx }) => {
+            try {
+                const { email } = input;
+                const owner = await ctx.db.apartmentOwner.findUnique({ where: { email } });
+
+                if (owner?.isActive) {
+                    const token = randomBytes(32).toString("hex");
+                    const expires = new Date(Date.now() + 1000 * 60 * 60); // 1h
+
+                    await ctx.db.apartmentOwner.update({
+                        where: { id: owner.id },
+                        data: {
+                            resetPasswordToken: token,
+                            resetPasswordTokenExpiresAt: expires,
+                        },
+                    });
+
+                    const resetUrl = `${process.env.NEXTAUTH_URL ?? "http://localhost:3000"}/apartamentsOwner/reset-password?token=${token}`;
+                    await sendEmail({
+                        to: email,
+                        subject: "Reset hasła - Złote Wynajmy",
+                        html: createResetPasswordEmail(owner.firstName, resetUrl),
+                    });
+                }
+                // Always return success to not reveal if an email exists in the database
+                return { success: true };
+
+            } catch (error) {
+                console.error("Błąd podczas resetowania hasła:", error);
+                // Check for specific SMTP configuration errors
+                if (error instanceof Error && error.message.includes("SMTP")) {
+                    throw new TRPCError({
+                        code: "INTERNAL_SERVER_ERROR",
+                        message: "Błąd konfiguracji serwera e-mail. Skontaktuj się z administratorem.",
+                    });
+                }
+                // Generic error for other issues
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    message: "Wystąpił nieoczekiwany błąd. Spróbuj ponownie później.",
+                });
+            }
+        }),
+
+    resetPassword: publicProcedure
+        .input(z.object({
+            token: z.string(),
+            newPassword: z.string().min(8, "Hasło musi mieć minimum 8 znaków"),
+        }))
+        .mutation(async ({ input, ctx }) => {
+            const owner = await ctx.db.apartmentOwner.findFirst({
+                where: {
+                    resetPasswordToken: input.token,
+                    resetPasswordTokenExpiresAt: { gte: new Date() },
+                },
+            });
+            if (!owner) throw new TRPCError({ code: "BAD_REQUEST", message: "Token jest nieprawidłowy lub wygasł." });
+
+            const passwordHash = hashPassword(input.newPassword);
+
+            await ctx.db.apartmentOwner.update({
+                where: { id: owner.id },
+                data: {
+                    passwordHash,
+                    resetPasswordToken: null,
+                    resetPasswordTokenExpiresAt: null,
+                    temporaryPassword: null,
+                    temporaryPasswordExpiresAt: null,
+                },
+            });
+
             return { success: true };
         }),
 }); 

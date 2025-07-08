@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import Link from "next/link";
 import { api } from "@/trpc/react";
 import { useRouter } from "next/navigation";
 
@@ -79,10 +78,13 @@ export default function ApartmentsOwnerLoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-12 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-8">
+    <div
+      className="flex min-h-screen items-center justify-center bg-cover bg-center px-4 py-12 sm:px-6 lg:px-8"
+      style={{ backgroundImage: "url('/login_bg.png')" }}
+    >
+      <div className="w-full max-w-md space-y-8 rounded-xl bg-white/90 p-10 shadow-2xl backdrop-blur-sm">
         <div>
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-indigo-600">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-brand-gold">
             <svg
               className="h-6 w-6 text-white"
               fill="none"
@@ -131,7 +133,7 @@ export default function ApartmentsOwnerLoginPage() {
                   onChange={handleChange}
                   className={`relative block w-full appearance-none border px-3 py-3 ${
                     errors.email ? "border-red-300" : "border-gray-300"
-                  } rounded-lg text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm`}
+                  } rounded-lg text-gray-900 placeholder-gray-500 focus:z-10 focus:border-brand-gold focus:outline-none focus:ring-brand-gold sm:text-sm`}
                   placeholder="właściciel@example.com"
                 />
                 {errors.email && (
@@ -158,7 +160,7 @@ export default function ApartmentsOwnerLoginPage() {
                   onChange={handleChange}
                   className={`relative block w-full appearance-none border px-3 py-3 ${
                     errors.password ? "border-red-300" : "border-gray-300"
-                  } rounded-lg text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm`}
+                  } rounded-lg text-gray-900 placeholder-gray-500 focus:z-10 focus:border-brand-gold focus:outline-none focus:ring-brand-gold sm:text-sm`}
                   placeholder="Wprowadź hasło"
                 />
                 {errors.password && (
@@ -173,7 +175,7 @@ export default function ApartmentsOwnerLoginPage() {
                   id="remember-me"
                   name="remember-me"
                   type="checkbox"
-                  className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                  className="h-4 w-4 rounded border-gray-300 text-brand-gold focus:ring-brand-gold"
                 />
                 <label
                   htmlFor="remember-me"
@@ -185,8 +187,8 @@ export default function ApartmentsOwnerLoginPage() {
 
               <div className="text-sm">
                 <a
-                  href="#"
-                  className="font-medium text-indigo-600 hover:text-indigo-500"
+                  href="/apartamentsOwner/reset-password"
+                  className="font-medium text-brand-gold hover:text-yellow-500"
                 >
                   Zapomniałeś hasła?
                 </a>
@@ -197,7 +199,7 @@ export default function ApartmentsOwnerLoginPage() {
               <button
                 type="submit"
                 disabled={isLoading || loginMutation.isPending}
-                className="group relative flex w-full justify-center rounded-lg border border-transparent bg-indigo-600 px-4 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                className="group relative flex w-full justify-center rounded-lg border border-transparent bg-brand-gold px-4 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isLoading || loginMutation.isPending ? (
                   <svg
@@ -246,22 +248,13 @@ export default function ApartmentsOwnerLoginPage() {
                 logowania
               </p>
               <a
-                href="mailto:admin@example.com"
-                className="mt-2 inline-block font-medium text-indigo-600 hover:text-indigo-500"
+                href="mailto:biuro@zlote-wynajmy.com"
+                className="mt-2 inline-block font-medium text-brand-gold hover:text-yellow-500"
               >
-                admin@example.com
+                biuro@zlote-wynajmy.com
               </a>
             </div>
           </div>
-        </div>
-
-        <div className="text-center">
-          <Link
-            href="/"
-            className="font-medium text-indigo-600 hover:text-indigo-500"
-          >
-            ← Powrót do strony głównej
-          </Link>
         </div>
       </div>
     </div>

@@ -114,16 +114,16 @@ export default function SetupPasswordPage() {
   if (!sessionToken) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div className="h-32 w-32 animate-spin rounded-full border-b-2 border-indigo-600"></div>
+        <div className="border-brand-gold h-32 w-32 animate-spin rounded-full border-b-2"></div>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-12 sm:px-6 lg:px-8">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-yellow-50 to-amber-100 px-4 py-12 sm:px-6 lg:px-8">
       <div className="w-full max-w-md space-y-8">
         <div>
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-indigo-600">
+          <div className="bg-brand-gold mx-auto flex h-12 w-12 items-center justify-center rounded-full">
             <svg
               className="h-6 w-6 text-white"
               fill="none"
@@ -172,7 +172,7 @@ export default function SetupPasswordPage() {
                   onChange={handleChange}
                   className={`relative block w-full appearance-none border px-3 py-3 ${
                     errors.password ? "border-red-300" : "border-gray-300"
-                  } rounded-lg text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm`}
+                  } focus:border-brand-gold focus:ring-brand-gold rounded-lg text-gray-900 placeholder-gray-500 focus:z-10 focus:outline-none sm:text-sm`}
                   placeholder="Wprowadź nowe hasło"
                 />
                 {errors.password && (
@@ -200,7 +200,7 @@ export default function SetupPasswordPage() {
                     errors.confirmPassword
                       ? "border-red-300"
                       : "border-gray-300"
-                  } rounded-lg text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm`}
+                  } focus:border-brand-gold focus:ring-brand-gold rounded-lg text-gray-900 placeholder-gray-500 focus:z-10 focus:outline-none sm:text-sm`}
                   placeholder="Powtórz hasło"
                 />
                 {errors.confirmPassword && (
@@ -212,11 +212,11 @@ export default function SetupPasswordPage() {
             </div>
 
             {/* Password Requirements */}
-            <div className="rounded-lg bg-blue-50 p-4">
-              <h4 className="mb-2 text-sm font-medium text-blue-900">
+            <div className="rounded-lg bg-yellow-50 p-4">
+              <h4 className="mb-2 text-sm font-medium text-yellow-900">
                 Wymagania dotyczące hasła:
               </h4>
-              <ul className="space-y-1 text-sm text-blue-700">
+              <ul className="space-y-1 text-sm text-yellow-700">
                 <li className="flex items-center">
                   <svg
                     className="mr-2 h-4 w-4"
@@ -280,7 +280,7 @@ export default function SetupPasswordPage() {
               <button
                 type="submit"
                 disabled={setPasswordMutation.isPending}
-                className="group relative flex w-full justify-center rounded-lg border border-transparent bg-indigo-600 px-4 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                className="bg-brand-gold focus:ring-brand-gold group relative flex w-full justify-center rounded-lg border border-transparent px-4 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {setPasswordMutation.isPending
                   ? "Ustawianie hasła..."

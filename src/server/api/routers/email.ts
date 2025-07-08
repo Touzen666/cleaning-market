@@ -73,8 +73,8 @@ export const emailRouter = createTRPCRouter({
                     html: htmlContent,
                     attachments: [
                         {
-                            filename: 'okladka-lead-krotkoterminowy.png',
-                            path: './public/okladka-lead-krotkoterminowy.png',
+                            filename: 'logo.png',
+                            path: './public/logo.png',
                             cid: 'logo@zlote-wynajmy.pl'
                         }
                     ]

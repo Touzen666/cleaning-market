@@ -180,7 +180,7 @@ export default function ApartmentImageManager({
           {...getRootProps()}
           className={`relative cursor-pointer rounded-lg border-2 border-dashed p-8 text-center transition-colors ${
             isDragActive || dragOver
-              ? "border-indigo-400 bg-indigo-50"
+              ? "border-brand-gold bg-yellow-50"
               : "border-gray-300 hover:border-gray-400"
           }`}
         >
@@ -188,14 +188,14 @@ export default function ApartmentImageManager({
 
           {isUploading ? (
             <div className="space-y-4">
-              <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-indigo-200 border-t-indigo-600"></div>
+              <div className="border-t-brand-gold mx-auto h-12 w-12 animate-spin rounded-full border-4 border-yellow-200"></div>
               <div>
                 <p className="text-sm font-medium text-gray-900">
                   Uploadowanie zdjęć...
                 </p>
                 <div className="mt-2 h-2 w-full rounded-full bg-gray-200">
                   <div
-                    className="h-2 rounded-full bg-indigo-600 transition-all duration-300"
+                    className="bg-brand-gold h-2 rounded-full transition-all duration-300"
                     style={{ width: `${uploadProgress}%` }}
                   ></div>
                 </div>
@@ -235,7 +235,7 @@ export default function ApartmentImageManager({
           {!isAddingImage ? (
             <button
               onClick={() => setIsAddingImage(true)}
-              className="inline-flex items-center rounded-md bg-gray-600 px-3 py-2 text-sm font-medium text-white hover:bg-gray-700"
+              className="bg-brand-gold inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-yellow-500 disabled:opacity-50"
             >
               <svg
                 className="-ml-0.5 mr-1.5 h-4 w-4"
@@ -266,7 +266,7 @@ export default function ApartmentImageManager({
                   value={newImageUrl}
                   onChange={(e) => setNewImageUrl(e.target.value)}
                   required
-                  className="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
+                  className="focus:border-brand-gold focus:ring-brand-gold mt-1 block w-full rounded-md border-gray-300 px-3 py-2 shadow-sm focus:outline-none"
                   placeholder="https://example.com/image.jpg"
                 />
               </div>
@@ -279,7 +279,7 @@ export default function ApartmentImageManager({
                   type="text"
                   value={newImageAlt}
                   onChange={(e) => setNewImageAlt(e.target.value)}
-                  className="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
+                  className="focus:border-brand-gold focus:ring-brand-gold mt-1 block w-full rounded-md border-gray-300 px-3 py-2 shadow-sm focus:outline-none"
                   placeholder="np. Widok z balkonu"
                 />
               </div>
@@ -288,7 +288,7 @@ export default function ApartmentImageManager({
                 <button
                   type="submit"
                   disabled={addImage.isPending}
-                  className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-50"
+                  className="bg-brand-gold inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-yellow-500 disabled:opacity-50"
                 >
                   {addImage.isPending ? "Dodawanie..." : "Dodaj zdjęcie"}
                 </button>
@@ -343,7 +343,7 @@ export default function ApartmentImageManager({
           </div>
         ) : isReordering ? (
           <div className="py-12 text-center">
-            <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-indigo-200 border-t-indigo-600"></div>
+            <div className="border-t-brand-gold mx-auto h-12 w-12 animate-spin rounded-full border-4 border-yellow-200"></div>
             <h3 className="mt-2 text-sm font-medium text-gray-900">
               Zmienianie kolejności...
             </h3>
@@ -360,8 +360,8 @@ export default function ApartmentImageManager({
                 onDrop={(e) => handleDrop(e, image.id)}
                 className={`group relative cursor-move overflow-hidden rounded-lg border-2 transition-all duration-200 hover:shadow-lg ${
                   image.isPrimary
-                    ? "border-indigo-500 bg-indigo-50 ring-2 ring-indigo-200"
-                    : "border-gray-200 hover:border-gray-300"
+                    ? "border-brand-gold bg-yellow-50 ring-2 ring-yellow-200"
+                    : "border-transparent"
                 }`}
               >
                 {/* Zdjęcie */}
@@ -432,7 +432,7 @@ export default function ApartmentImageManager({
 
                 {/* Badge głównego zdjęcia */}
                 {image.isPrimary && (
-                  <div className="absolute left-2 top-2 rounded-full bg-indigo-600 px-2 py-1 text-xs font-medium text-white shadow-sm">
+                  <div className="bg-brand-gold absolute left-2 top-2 rounded-full px-2 py-1 text-xs font-medium text-white shadow-sm">
                     <svg
                       className="mr-1 inline h-3 w-3"
                       fill="currentColor"
@@ -476,11 +476,11 @@ export default function ApartmentImageManager({
         )}
 
         {images.length > 1 && (
-          <div className="mt-4 rounded-md bg-blue-50 p-4">
+          <div className="mt-4 rounded-md bg-yellow-50 p-4">
             <div className="flex">
               <div className="flex-shrink-0">
                 <svg
-                  className="h-5 w-5 text-blue-400"
+                  className="h-5 w-5 text-yellow-400"
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
@@ -492,10 +492,10 @@ export default function ApartmentImageManager({
                 </svg>
               </div>
               <div className="ml-3">
-                <h3 className="text-sm font-medium text-blue-800">
+                <h3 className="text-sm font-medium text-yellow-800">
                   Zarządzanie galerią
                 </h3>
-                <div className="mt-2 text-sm text-blue-700">
+                <div className="mt-2 text-sm text-yellow-700">
                   <ul className="list-disc space-y-1 pl-5">
                     <li>Przeciągnij zdjęcia, aby zmienić kolejność</li>
                     <li>Kliknij na zdjęcie, aby zobaczyć opcje zarządzania</li>

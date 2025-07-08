@@ -150,25 +150,25 @@ export default function CsvImport() {
 
       {/* Statystyki systemu */}
       {statsQuery.data && (
-        <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
-          <h3 className="mb-2 text-lg font-semibold text-blue-900">
+        <div className="border-brand-gold rounded-lg border bg-yellow-50 p-4">
+          <h3 className="mb-2 text-lg font-semibold text-yellow-900">
             Statystyki systemu
           </h3>
           <div className="grid grid-cols-3 gap-4 text-sm">
             <div>
-              <span className="text-blue-600">Apartamenty:</span>
+              <span className="text-yellow-600">Apartamenty:</span>
               <span className="ml-2 font-medium">
                 {statsQuery.data.totalApartments}
               </span>
             </div>
             <div>
-              <span className="text-blue-600">Rezerwacje:</span>
+              <span className="text-yellow-600">Rezerwacje:</span>
               <span className="ml-2 font-medium">
                 {statsQuery.data.totalReservations}
               </span>
             </div>
             <div>
-              <span className="text-blue-600">Statusy:</span>
+              <span className="text-yellow-600">Statusy:</span>
               <span className="ml-2 font-medium">
                 {statsQuery.data.uniqueStatuses.length}
               </span>
@@ -182,7 +182,7 @@ export default function CsvImport() {
         {...getRootProps()}
         className={`cursor-pointer rounded-lg border-2 border-dashed p-8 text-center transition-colors ${
           isDragActive
-            ? "border-indigo-400 bg-indigo-50"
+            ? "border-brand-gold bg-yellow-50"
             : "border-gray-300 hover:border-gray-400"
         }`}
       >
@@ -262,7 +262,7 @@ export default function CsvImport() {
           <button
             onClick={handleImport}
             disabled={isImporting}
-            className="inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className="bg-brand-gold focus:ring-brand-gold inline-flex items-center rounded-md border border-transparent px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isImporting ? (
               <>
@@ -295,7 +295,7 @@ export default function CsvImport() {
           <button
             onClick={clearData}
             disabled={isImporting}
-            className="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className="focus:ring-brand-gold inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Wyczyść
           </button>
@@ -316,10 +316,10 @@ export default function CsvImport() {
               <div className="text-sm text-green-700">Nowe apartamenty</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">
+              <div className="text-2xl font-bold text-yellow-600">
                 {importSummary.reservationsCreated}
               </div>
-              <div className="text-sm text-blue-700">Nowe rezerwacje</div>
+              <div className="text-sm text-yellow-700">Nowe rezerwacje</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-gray-600">

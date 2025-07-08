@@ -73,7 +73,7 @@ export default function OwnerReportsPage() {
           <p className="mb-4 text-gray-600">{reportsError.message}</p>
           <button
             onClick={handleLogout}
-            className="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700"
+            className="rounded-lg bg-brand-gold px-4 py-2 text-white hover:bg-yellow-500"
           >
             Zaloguj się ponownie
           </button>
@@ -86,7 +86,7 @@ export default function OwnerReportsPage() {
   if (reportsLoading || !reports) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div className="h-32 w-32 animate-spin rounded-full border-b-2 border-indigo-600"></div>
+        <div className="h-32 w-32 animate-spin rounded-full border-b-2 border-brand-gold"></div>
       </div>
     );
   }
@@ -107,7 +107,7 @@ export default function OwnerReportsPage() {
             <div className="flex items-center space-x-4">
               <button
                 onClick={() => router.push("/apartamentsOwner/dashboard")}
-                className="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                className="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:ring-offset-2"
               >
                 <svg
                   className="-ml-0.5 mr-1.5 h-5 w-5"
@@ -261,8 +261,27 @@ export default function OwnerReportsPage() {
                       <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
                         <button
                           onClick={() => handleViewReport(report.id)}
-                          className="text-indigo-600 hover:text-indigo-900"
+                          className="inline-flex items-center rounded-md bg-brand-gold px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:ring-offset-2"
                         >
+                          <svg
+                            className="-ml-0.5 mr-1.5 h-4 w-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                            />
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                            />
+                          </svg>
                           Zobacz szczegóły
                         </button>
                       </td>

@@ -21,14 +21,14 @@ export const createWelcomeEmailWithPasswordTemplate = (ownerName: string, tempor
         ${createPasswordBox(temporaryPassword)}
         ${createFeaturesList('✨ Ważne informacje:', features)}
         ${createButtonSection(
-        'Zaloguj się do swojego panelu właściciela:',
+        'Zaloguj się do swojego Panelu Właściciela:',
         '🚀 Przejdź do panelu',
         `${baseUrl}/apartamentsOwner/login`
     )}
     `;
 
     return createBaseTemplate({
-        title: 'Witamy w Złote Wynajmy',
+        title: 'Witamy w Złote Wynajmy - Apartamenty z Klasą',
         content,
         baseUrl
     });

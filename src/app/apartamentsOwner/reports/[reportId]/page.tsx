@@ -152,7 +152,7 @@ export default function OwnerReportDetailsPage() {
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div className="h-32 w-32 animate-spin rounded-full border-b-2 border-indigo-600"></div>
+        <div className="border-brand-gold h-32 w-32 animate-spin rounded-full border-b-2"></div>
       </div>
     );
   }
@@ -168,7 +168,7 @@ export default function OwnerReportDetailsPage() {
           <p className="mb-4 text-gray-600">{errorMessage}</p>
           <button
             onClick={() => router.push("/apartamentsOwner/reports")}
-            className="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700"
+            className="bg-brand-gold rounded-lg px-4 py-2 text-white hover:bg-yellow-500"
           >
             Powrót do raportów
           </button>
@@ -243,7 +243,7 @@ export default function OwnerReportDetailsPage() {
               </p>
               {/* Informacja o sposobie rozliczenia - placeholder bo nie ma danych */}
               <div className="mt-3 flex items-center space-x-4">
-                <div className="inline-flex items-center rounded-md bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800">
+                <div className="inline-flex items-center rounded-md bg-yellow-100 px-3 py-1 text-sm font-medium text-yellow-800">
                   <svg
                     className="mr-1.5 h-4 w-4"
                     fill="none"
@@ -472,7 +472,7 @@ export default function OwnerReportDetailsPage() {
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-900">
                           {item.reservation?.source ? (
-                            <span className="inline-flex rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800">
+                            <span className="inline-flex rounded-full bg-yellow-100 px-2 py-1 text-xs font-medium text-yellow-800">
                               {item.reservation.source}
                             </span>
                           ) : (
@@ -496,7 +496,7 @@ export default function OwnerReportDetailsPage() {
                         </td>
                         <td className="whitespace-nowrap px-6 py-4 text-center text-sm">
                           {item.reservation ? (
-                            <span className="inline-flex items-center rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-medium text-indigo-800">
+                            <span className="inline-flex items-center rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800">
                               {calculateNights(
                                 item.reservation.start,
                                 item.reservation.end,

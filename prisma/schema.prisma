@@ -294,6 +294,10 @@ model ApartmentOwner {
   // Relations to notes
   notes                 OwnerNote[]
   
+  // Security and Authentication
+  resetPasswordToken         String?
+  resetPasswordTokenExpiresAt DateTime?
+  
   @@index([email])
   @@index([isActive])
 }

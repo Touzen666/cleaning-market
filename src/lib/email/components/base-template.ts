@@ -42,7 +42,7 @@ export const createBaseTemplate = ({ title, content, baseUrl }: BaseTemplateProp
             left: 0;
             right: 0;
             bottom: 0;
-            background: url('${baseUrl}/okladka-lead-krotkoterminowy.png') center/cover;
+            background: url('${baseUrl}/logo.svg') center/cover;
             opacity: 0.1;
             z-index: 0;
         }
@@ -84,6 +84,15 @@ export const createBaseTemplate = ({ title, content, baseUrl }: BaseTemplateProp
             margin: 5px 0;
             font-size: 14px;
         }
+        .footer-info a {
+            color: #fbbf24;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        .footer-info a:hover {
+            color: #f59e0b;
+            text-decoration: underline;
+        }
         .footer-signature {
             margin-top: 20px;
             padding-top: 20px;
@@ -108,8 +117,8 @@ export const createBaseTemplate = ({ title, content, baseUrl }: BaseTemplateProp
 <body>
     <div class="email-container">
         <div class="header">
-            <h1>🏠 Złote Wynajmy - Apartamenty z Klasą</h1>
-            <p>Witamy w gronie naszych partnerów!</p>
+            <h1><img src="cid:logo@zlote-wynajmy.pl" alt="Złote Wynajmy" style="max-width:180px; height:auto; margin-bottom:20px; border-radius:8px;"> Złote Wynajmy - Apartamenty z Klasą</h1>
+            <p>Witamy w gronie naszych Partnerów!</p>
         </div>
         
         <div class="content">
@@ -117,22 +126,49 @@ export const createBaseTemplate = ({ title, content, baseUrl }: BaseTemplateProp
         </div>
         
         <div class="footer">
-            <img src="${baseUrl}/okladka-lead-krotkoterminowy.png" alt="Złote Wynajmy" class="footer-logo">
+            <img src="cid:logo@zlote-wynajmy.pl" alt="Złote Wynajmy" style="max-width:180px; height:auto; margin-bottom:20px; border-radius:8px;">
             <div class="footer-info">
                 <p><strong>Złote Wynajmy - Apartamenty z Klasą</strong></p>
-                <p>Bartosz Ochedowski</p>
-                <p>📧 bartosz@zlote-wynajmy.pl</p>
-                <p>📱 +48 123 456 789</p>
-                <p>🌐 www.zlote-wynajmy.pl</p>
+                <p>Z wyrazami szacunku,</p>
+                <p>Bartosz Wilk</p>
+                <p>Dyrektor ds. Technologi &  Koordynator ds. Obsługi Nieruchomości  </p>
+                <p>📧 <a href="mailto:biuro@zlote-wynajmy.com">biuro@zlote-wynajmy.com</a></p>
+                <p>📱 <a href="tel:+48690884961">+48 690 884 961</a></p>
+                <p>📱 <a href="tel:+48531392423">+48 531 392 423</a></p>
+                <p>🌐 <a href="https://www.zlote-wynajmy.pl" target="_blank">www.zlote-wynajmy.pl</a></p>
             </div>
             <div class="footer-signature">
                 Dziękujemy za zaufanie i życzymy owocnej współpracy!<br>
                 Pozdrawiamy serdecznie,<br>
-                Zespół Złote Wynajmy
+                Zespół Złote Wynajmy - Apartamenty z Klasą
             </div>
         </div>
     </div>
 </body>
 </html>
   `;
-}; 
+};
+
+export const createCTAButton = (text: string, href: string) => `
+  <div style="text-align: center;">
+    <a href="${href}" 
+      style="
+        display: inline-block;
+        text-transform: uppercase;
+        width: 80%;
+        padding: 10px 40px;
+        font-weight: 700;
+        background: #E7AA3D;
+        border: 1px solid #E7AA3D;
+        color: white !important;
+        border-radius: 5px;
+        border-bottom: 2px solid white;
+        transition: all .3s ease-in-out;
+        text-decoration: none;
+        font-size: 16px;
+        margin: 20px 0;
+        text-align: center;
+      "
+    >${text}</a>
+  </div>
+`; 

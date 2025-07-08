@@ -1,32 +1,28 @@
 // Komponent przycisku CTA
-export const createCTAButton = (text: string, href: string) => {
-    return `
-        <style>
-            .cta-button {
-                display: inline-block;
-                background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-                color: white;
-                padding: 16px 32px;
-                text-decoration: none;
-                border-radius: 8px;
-                font-weight: bold;
-                font-size: 16px;
-                margin: 20px 0;
-                box-shadow: 0 4px 6px rgba(245, 158, 11, 0.2);
-                transition: all 0.3s ease;
-            }
-            .cta-button:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 6px 12px rgba(245, 158, 11, 0.3);
-            }
-        </style>
-        <div style="text-align: center;">
-            <a href="${href}" class="cta-button">
-                ${text}
-            </a>
-        </div>
-    `;
-};
+export const createCTAButton = (text: string, href: string) => `
+  <div style="text-align: center;">
+    <a href="${href}" 
+      style="
+        display: inline-block;
+        text-transform: uppercase;
+        width: 80%;
+        padding: 10px 40px;
+        font-weight: 700;
+        background: #E7AA3D;
+        border: 1px solid #E7AA3D;
+        color: white !important;
+        border-radius: 5px;
+        border-bottom: 2px solid white;
+        transition: all .3s ease-in-out;
+        text-decoration: none;
+        font-size: 16px;
+        margin: 20px 0;
+        text-align: center;
+        cursor: pointer;
+      "
+    >${text}</a>
+  </div>
+`;
 
 // Komponent box z hasłem
 export const createPasswordBox = (password: string) => {
