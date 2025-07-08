@@ -21,7 +21,7 @@ const apartmentOwnerSchema = z.object({
     }).nullable(),
     ownedApartments: z.array(z.object({
         apartment: z.object({
-            id: z.number(),
+            id: z.string(), // Corrected from z.number()
             name: z.string(),
             slug: z.string(),
         }),
@@ -42,8 +42,7 @@ export const apartmentOwnersRouter = createTRPCRouter({
             }
 
             try {
-
-                return await (ctx.db as PrismaClient).apartmentOwner.findMany({
+                const owners = await ctx.db.apartmentOwner.findMany({
                     include: {
                         createdByAdmin: {
                             select: {
@@ -67,6 +66,19 @@ export const apartmentOwnersRouter = createTRPCRouter({
                         createdAt: "desc",
                     },
                 });
+
+                // Map the result to match the schema (convert apartment ID to string)
+                return owners.map(owner => ({
+                    ...owner,
+                    ownedApartments: owner.ownedApartments.map(ownership => ({
+                        ...ownership,
+                        apartment: {
+                            ...ownership.apartment,
+                            id: ownership.apartment.id.toString(),
+                        },
+                    })),
+                }));
+
             } catch (error) {
                 console.error("❌ Error fetching apartment owners:", error);
                 throw new TRPCError({

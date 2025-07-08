@@ -963,7 +963,7 @@ export default function ReportDetailsPage({
         {/* Revenue Items (Reservations) */}
         <div className="mb-8 overflow-hidden rounded-lg bg-white shadow">
           <div className="px-6 py-4">
-            <h3 className="text-lg font-medium text-gray-900">
+            <h3 className="text-lg font-semibold leading-6 text-gray-900">
               Rezerwacje i Przychody ({revenueItems.length})
             </h3>
           </div>
@@ -978,19 +978,16 @@ export default function ReportDetailsPage({
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                        Data
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                        Opis
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                         Gość
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                         Źródło
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                        Okres
+                        Data zameldowania
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                        Data wymeldowania
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                         Noce
@@ -1006,12 +1003,6 @@ export default function ReportDetailsPage({
                   <tbody className="divide-y divide-gray-200 bg-white">
                     {revenueItems.map((item) => (
                       <tr key={item.id}>
-                        <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
-                          {new Date(item.date).toLocaleDateString("pl-PL")}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-900">
-                          {item.description}
-                        </td>
                         <td className="px-6 py-4 text-sm text-gray-900">
                           {item.reservation?.guest ?? "-"}
                         </td>
@@ -1024,20 +1015,19 @@ export default function ReportDetailsPage({
                             <span className="text-gray-400">Nieznane</span>
                           )}
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-500">
-                          {item.reservation ? (
-                            <>
-                              {new Date(
-                                item.reservation.start,
-                              ).toLocaleDateString("pl-PL")}{" "}
-                              -{" "}
-                              {new Date(
-                                item.reservation.end,
-                              ).toLocaleDateString("pl-PL")}
-                            </>
-                          ) : (
-                            "-"
-                          )}
+                        <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
+                          {item.reservation
+                            ? new Date(item.reservation.start).toLocaleString(
+                                "pl-PL",
+                              )
+                            : "-"}
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
+                          {item.reservation
+                            ? new Date(item.reservation.end).toLocaleString(
+                                "pl-PL",
+                              )
+                            : "-"}
                         </td>
                         <td className="whitespace-nowrap px-6 py-4 text-center text-sm">
                           {item.reservation ? (
@@ -1148,8 +1138,27 @@ export default function ReportDetailsPage({
                         <td className="px-6 py-4 text-sm text-gray-900">
                           {item.category}
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-900">
-                          {item.description}
+                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                          <div className="font-medium text-gray-900">
+                            {item.description}
+                          </div>
+                          {item.reservation && (
+                            <div className="mt-1 text-xs text-gray-500">
+                              Rezerwacja:{" "}
+                              {new Date(
+                                item.reservation.start,
+                              ).toLocaleDateString()}{" "}
+                              -{" "}
+                              {new Date(
+                                item.reservation.end,
+                              ).toLocaleDateString()}
+                            </div>
+                          )}
+                          {item.notes && (
+                            <div className="text-xs italic text-gray-400">
+                              {item.notes}
+                            </div>
+                          )}
                         </td>
                         <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-red-600">
                           -{item.amount.toFixed(2)} {item.currency}

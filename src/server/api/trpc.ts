@@ -131,3 +131,24 @@ export const protectedProcedure = t.procedure
       },
     });
   });
+
+/**
+ * Admin (authenticated and admin role) procedure
+ *
+ * This procedure verifies that the user is logged in and has the 'ADMIN' role.
+ * It guarantees `ctx.session.user.type` is 'ADMIN'.
+ *
+ * @see https://trpc.io/docs/procedures
+ */
+import { UserType } from "@prisma/client";
+
+export const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
+  if (ctx.session.user.type !== UserType.ADMIN) {
+    throw new TRPCError({ code: "FORBIDDEN" });
+  }
+  return next({
+    ctx: {
+      session: { ...ctx.session, user: ctx.session.user },
+    },
+  });
+});

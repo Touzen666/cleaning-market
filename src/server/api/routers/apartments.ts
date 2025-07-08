@@ -248,18 +248,89 @@ export const apartmentsRouter = createTRPCRouter({
                 data.slug = newSlug;
             }
 
-            const apartment = await ctx.db.apartment.update({
-                where: { id: parseInt(id) },
-                data: data,
+            const updatedApartment = await ctx.db.apartment.update({
+                where: {
+                    id: parseInt(id),
+                },
+                data,
             });
 
             return {
                 success: true,
                 apartment: {
-                    id: apartment.id.toString(),
-                    name: apartment.name,
-                    slug: apartment.slug,
+                    id: updatedApartment.id.toString(),
+                    name: updatedApartment.name,
+                    slug: updatedApartment.slug,
                 },
+            };
+        }),
+    mapFromReservations: protectedProcedure
+        .mutation(async ({ ctx }) => {
+            if (ctx.session.user.type !== UserType.ADMIN) {
+                throw new TRPCError({
+                    code: "FORBIDDEN",
+                    message: "Tylko administratorzy mogą wykonać tę operację",
+                });
+            }
+
+            const allReservations = await ctx.db.reservation.findMany();
+            const allApartments = await ctx.db.apartment.findMany();
+
+            const apartmentMap = new Map(allApartments.map(apt => [apt.name, apt]));
+
+            let createdApartmentsCount = 0;
+            let updatedReservationsCount = 0;
+
+            for (const reservation of allReservations) {
+                if (!reservation.apartmentName) {
+                    continue;
+                }
+
+                let apartment = apartmentMap.get(reservation.apartmentName);
+
+                if (!apartment) {
+                    // Create a new apartment if it doesn't exist
+                    const slug = slugify(reservation.apartmentName);
+                    try {
+                        apartment = await ctx.db.apartment.create({
+                            data: {
+                                name: reservation.apartmentName,
+                                slug: slug,
+                                address: reservation.address ?? 'Brak adresu', // Provide a default address
+                            },
+                        });
+                        apartmentMap.set(apartment.name, apartment);
+                        createdApartmentsCount++;
+                    } catch (error) {
+                        // Likely a unique constraint violation if two reservations are processed in parallel
+                        // or some other db error. We can try to refetch it.
+                        const existing = await ctx.db.apartment.findFirst({ where: { name: reservation.apartmentName } });
+                        if (existing) {
+                            apartment = existing;
+                            apartmentMap.set(existing.name, existing);
+                        } else {
+                            // If it still doesn't exist, something is wrong.
+                            console.error(`Could not create or find apartment: ${reservation.apartmentName}`, error);
+                            continue; // Skip this reservation
+                        }
+                    }
+                }
+
+                // If reservation is not linked, link it to the apartment
+                if (apartment && reservation.apartmentId !== apartment.id) {
+                    await ctx.db.reservation.update({
+                        where: { id: reservation.id },
+                        data: { apartmentId: apartment.id },
+                    });
+                    updatedReservationsCount++;
+                }
+            }
+
+            return {
+                success: true,
+                message: `Operacja zakończona. Utworzono ${createdApartmentsCount} nowych apartamentów i zaktualizowano ${updatedReservationsCount} rezerwacji.`,
+                createdApartments: createdApartmentsCount,
+                updatedReservations: updatedReservationsCount,
             };
         }),
 

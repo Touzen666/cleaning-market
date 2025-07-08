@@ -139,7 +139,7 @@ model Reservation {
 
 model Apartment {
   id               Int               @id @default(autoincrement())
-  name             String
+  name             String            @unique
   slug             String            @unique // New unique identifier for apartments
   address          String
   reservations     Reservation[]
