@@ -80,7 +80,7 @@ export default function GuestLoginPage({ params }: GuestLoginPageProps) {
             Logowanie Gościa
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            <span className="font-mono text-indigo-600">
+            <span className="text-brand-gold font-mono">
               {displayApartmentName ?? "Ładuję nazwę..."}
             </span>
           </p>
@@ -93,7 +93,7 @@ export default function GuestLoginPage({ params }: GuestLoginPageProps) {
                 name="firstName"
                 value={formData.firstName}
                 onChange={handleChange}
-                className="relative block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                className="focus:border-brand-gold focus:ring-brand-gold relative block w-full appearance-none rounded-none rounded-t-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:outline-none sm:text-sm"
                 placeholder="Imię"
               />
               {errors.firstName && (
@@ -105,7 +105,7 @@ export default function GuestLoginPage({ params }: GuestLoginPageProps) {
                 name="lastName"
                 value={formData.lastName}
                 onChange={handleChange}
-                className="relative block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                className="focus:border-brand-gold focus:ring-brand-gold relative block w-full appearance-none rounded-none border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:outline-none sm:text-sm"
                 placeholder="Nazwisko"
               />
               {errors.lastName && (
@@ -117,7 +117,7 @@ export default function GuestLoginPage({ params }: GuestLoginPageProps) {
                 name="documentNumber"
                 value={formData.documentNumber}
                 onChange={handleChange}
-                className="relative block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                className="focus:border-brand-gold focus:ring-brand-gold relative block w-full appearance-none rounded-none rounded-b-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:outline-none sm:text-sm"
                 placeholder="Numer dokumentu"
               />
               {errors.documentNumber && (
@@ -141,7 +141,7 @@ export default function GuestLoginPage({ params }: GuestLoginPageProps) {
             <button
               type="submit"
               disabled={loginMutation.isPending}
-              className="group relative flex w-full justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
+              className="bg-brand-gold focus:ring-brand-gold group relative flex w-full justify-center rounded-md border border-transparent px-4 py-2 text-sm font-medium text-white hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50"
             >
               {loginMutation.isPending ? "Logowanie..." : "Zaloguj się"}
             </button>
@@ -152,7 +152,7 @@ export default function GuestLoginPage({ params }: GuestLoginPageProps) {
               Nie masz dostępu?{" "}
               <a
                 href={`/check-in-card/${apartmentSlug}`}
-                className="font-medium text-indigo-600 hover:text-indigo-500"
+                className="text-brand-gold font-medium hover:text-yellow-500"
               >
                 Wypełnij kartę meldunkową
               </a>

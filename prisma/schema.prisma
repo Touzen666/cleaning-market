@@ -90,6 +90,9 @@ model User {
   createdReports        MonthlyReport[]       @relation("AdminCreatedReports")
   approvedReports       MonthlyReport[]       @relation("AdminApprovedReports")
   reportHistoryActions  ReportHistory[]       @relation("AdminReportHistory")
+  
+  // Relations to owner notes (admin functionality)
+  createdOwnerNotes     OwnerNote[]           @relation("AdminCreatedNotes")
 }
 
 model VerificationToken {
@@ -116,6 +119,10 @@ model Reservation {
   adults        Int?
   children      Int?
 
+  // Pola do śledzenia importu CSV
+  importSource  String?  // np. 'csv'
+  importBatchId String?
+
   apartmentId Int?
   apartment   Apartment? @relation(fields: [apartmentId], references: [id])
 
@@ -132,7 +139,7 @@ model Reservation {
 
 model Apartment {
   id               Int               @id @default(autoincrement())
-  name             String
+  name             String            @unique
   slug             String            @unique // New unique identifier for apartments
   address          String
   reservations     Reservation[]
@@ -151,8 +158,28 @@ model Apartment {
   hasParking            Boolean  @default(false) // Czy ma parking
   maxGuests             Int?     @default(4)     // Maksymalna liczba gości
 
+  // Zdjęcia apartamentu
+  images              ApartmentImage[]
+  
   // Dodaj pole do łączenia z idobooking
   idobookingId        Int?     @unique
+
+  // Pola do śledzenia importu CSV
+  importSource     String?  // np. 'csv'
+  importBatchId    String?
+}
+
+model ApartmentImage {
+  id          String    @id @default(uuid())
+  apartmentId Int
+  apartment   Apartment @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
+  url         String    // URL do zdjęcia
+  alt         String?   // Opis alternatywny
+  isPrimary   Boolean   @default(false) // Czy to główne zdjęcie
+  order       Int       @default(0)     // Kolejność wyświetlania
+  createdAt   DateTime  @default(now())
+  
+  @@index([apartmentId])
 }
 
 model LeadApplication {
@@ -263,6 +290,13 @@ model ApartmentOwner {
   
   // Relations to monthly reports
   monthlyReports        MonthlyReport[]
+  
+  // Relations to notes
+  notes                 OwnerNote[]
+  
+  // Security and Authentication
+  resetPasswordToken         String?
+  resetPasswordTokenExpiresAt DateTime?
   
   @@index([email])
   @@index([isActive])
@@ -465,4 +499,37 @@ model ReportHistory {
   notes           String?
   
   @@index([reportId, createdAt])
+}
+
+enum NoteType {
+  GENERAL       // Ogólne notatki
+  PAYMENT       // Notatki o płatnościach
+  COMMUNICATION // Notatki o komunikacji
+  ISSUE         // Problemy/issue'y
+  REMINDER      // Przypomnienia
+  IMPORTANT     // Ważne informacje
+}
+
+model OwnerNote {
+  id              String   @id @default(uuid())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  ownerId         String
+  owner           ApartmentOwner @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  
+  // Admin who created this note
+  createdByAdminId String
+  createdByAdmin   User @relation("AdminCreatedNotes", fields: [createdByAdminId], references: [id])
+  
+  // Note details
+  type            NoteType
+  title           String
+  content         String
+  isImportant     Boolean  @default(false) // Czy to ważna notatka
+  
+  @@index([ownerId, type])
+  @@index([ownerId, isImportant])
+  @@index([createdAt])
 }

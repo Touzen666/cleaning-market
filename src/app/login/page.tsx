@@ -27,7 +27,7 @@ function LoginContent() {
       }
       // Dla innych typów użytkowników przekieruj do apartamentów
       else {
-        redirectUrl = "/apartments";
+        redirectUrl = "/admin/owners";
       }
 
       console.log(
@@ -59,7 +59,7 @@ function LoginContent() {
     }
     // Nie możemy tutaj sprawdzić typu użytkownika przed logowaniem,
     // więc użyjemy domyślnej strony, a logika przekierowania zadziała w useEffect
-    return "/apartments";
+    return "/admin/owners";
   };
 
   return (

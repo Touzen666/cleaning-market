@@ -87,7 +87,7 @@ export default function GuestDashboardPage() {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
-          <div className="h-32 w-32 animate-spin rounded-full border-b-2 border-indigo-600"></div>
+          <div className="border-brand-gold h-32 w-32 animate-spin rounded-full border-b-2"></div>
           <p className="mt-4 text-gray-600">Inicjalizacja...</p>
         </div>
       </div>
@@ -99,7 +99,7 @@ export default function GuestDashboardPage() {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
-          <div className="h-32 w-32 animate-spin rounded-full border-b-2 border-indigo-600"></div>
+          <div className="border-brand-gold h-32 w-32 animate-spin rounded-full border-b-2"></div>
           <p className="mt-4 text-gray-600">Sprawdzam autoryzację...</p>
         </div>
       </div>
@@ -135,7 +135,7 @@ export default function GuestDashboardPage() {
             <h1 className="text-3xl font-bold text-gray-800">Panel Gościa</h1>
             <p className="mt-2 text-gray-600">
               Apartament:{" "}
-              <span className="font-mono text-indigo-600">
+              <span className="text-brand-gold font-mono">
                 {displayApartmentName}
               </span>
             </p>
@@ -149,17 +149,17 @@ export default function GuestDashboardPage() {
 
           {guestData.shouldShowCheckIn && (
             <div className="mb-6">
-              <div className="rounded-lg bg-blue-50 p-4 text-center">
-                <h3 className="mb-2 text-lg font-semibold text-blue-800">
+              <div className="rounded-lg bg-yellow-50 p-4 text-center">
+                <h3 className="mb-2 text-lg font-semibold text-yellow-800">
                   Czas na meldowanie!
                 </h3>
-                <p className="mb-4 text-sm text-blue-600">
+                <p className="mb-4 text-sm text-yellow-600">
                   Możesz teraz dokonać oficjalnego meldowania w apartamencie
                 </p>
                 <button
                   onClick={handleCheckIn}
                   disabled={guestCheckinMutation.isPending}
-                  className="rounded-md bg-blue-600 px-6 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
+                  className="bg-brand-gold focus:ring-brand-gold rounded-md px-6 py-2 text-white hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50"
                 >
                   {guestCheckinMutation.isPending
                     ? "Meldowanie..."
@@ -237,17 +237,17 @@ export default function GuestDashboardPage() {
           </div>
 
           <div className="mt-8">
-            <div className="rounded-lg bg-indigo-50 p-6">
-              <h2 className="mb-4 text-xl font-semibold text-indigo-800">
+            <div className="rounded-lg bg-yellow-50 p-6">
+              <h2 className="mb-4 text-xl font-semibold text-yellow-800">
                 Zespół Złote Wynajmy - Apartamenty z Klasą wita w Twoim Panelu
                 Gościa!
               </h2>
-              <p className="text-indigo-700">
+              <p className="text-yellow-700">
                 Twoja karta meldunkowa została pomyślnie zarejestrowana. Ten
                 panel będzie dostępny przez cały czas Twojego pobytu.
               </p>
               <br></br>
-              <p className="text-indigo-700">
+              <p className="text-yellow-700">
                 Dokończyć meldunek można na 30min przed planowanym rozpoczęciem
                 rezerwacji. Jeśli przyjeżdżasz wsześniej lub chcesz wymeldować
                 się później upewnij się że dokonałeś opłaty za przedłużenie
@@ -256,7 +256,7 @@ export default function GuestDashboardPage() {
                 Hostem.
               </p>
               <br></br>
-              <p className="text-indigo-700">
+              <p className="text-yellow-700">
                 Jeśli wylogujesz się lub zamkniesz przeglądarkę, będziesz mógł
                 wrócić tutaj używając linku logowania dla gości. Link wysłaliśmy
                 do ciebie na podany wcześniej adres email. Link znajdziesz
@@ -265,7 +265,7 @@ export default function GuestDashboardPage() {
               </p>
               <br></br>
               {guestData.canCheckInFrom && (
-                <p className="mt-2 text-sm text-indigo-600">
+                <p className="mt-2 text-sm text-yellow-600">
                   Meldowanie możliwe od: {formatDate(guestData.canCheckInFrom)}
                 </p>
               )}

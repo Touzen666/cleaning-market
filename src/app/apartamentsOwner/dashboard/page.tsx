@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/trpc/react";
 import type { RouterOutputs } from "@/trpc/react";
+import ApartmentList from "@/components/ApartmentList";
 
 export default function OwnerDashboardPage() {
   const router = useRouter();
@@ -53,9 +54,18 @@ export default function OwnerDashboardPage() {
     router.push("/apartamentsOwner/login");
   };
 
-  const handleViewReservations = (apartmentId: number) => {
-    setSelectedApartmentId(apartmentId);
+  const handleViewReservations = (apartmentId: string) => {
+    setSelectedApartmentId(parseInt(apartmentId));
     setShowReservationsModal(true);
+  };
+
+  const handleViewReports = () => {
+    router.push("/apartamentsOwner/reports");
+  };
+
+  const handleManage = (apartmentId: string) => {
+    // Można dodać dodatkowe funkcje zarządzania w przyszłości
+    console.log("Manage apartment:", apartmentId);
   };
 
   const handleCloseReservationsModal = () => {
@@ -96,32 +106,6 @@ export default function OwnerDashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <h1 className="text-xl font-bold text-gray-900">
-                  Panel Właściciela
-                </h1>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-700">
-                {ownerData.firstName} {ownerData.lastName}
-              </span>
-              <button
-                onClick={handleLogout}
-                className="inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-3 py-2 text-sm font-medium leading-4 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-              >
-                Wyloguj
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
       {/* Main Content */}
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {/* Welcome Section */}
@@ -313,49 +297,18 @@ export default function OwnerDashboardPage() {
               Twoje apartamenty
             </h3>
           </div>
-          <div className="divide-y divide-gray-200">
-            {ownerData.apartments.map((apartment) => (
-              <div key={apartment.id} className="px-6 py-4 hover:bg-gray-50">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-900">
-                      {apartment.name}
-                    </h4>
-                    <p className="text-sm text-gray-500">{apartment.address}</p>
-                  </div>
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => handleViewReservations(apartment.id)}
-                      className="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                    >
-                      Zobacz rezerwacje
-                    </button>
-                    <button
-                      onClick={() => router.push("/apartamentsOwner/reports")}
-                      className="inline-flex items-center rounded-md border border-transparent bg-green-600 px-3 py-2 text-sm font-medium leading-4 text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-                    >
-                      <svg
-                        className="-ml-0.5 mr-1.5 h-4 w-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                        />
-                      </svg>
-                      Raporty
-                    </button>
-                    <button className="inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-3 py-2 text-sm font-medium leading-4 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-                      Zarządzaj
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
+          <div className="p-6">
+            <ApartmentList
+              apartments={ownerData.apartments.map((apt) => ({
+                ...apt,
+                id: apt.id.toString(),
+              }))}
+              mode="owner"
+              onViewReservations={handleViewReservations}
+              onViewReports={handleViewReports}
+              onManage={handleManage}
+              showActions={true}
+            />
           </div>
         </div>
       </main>

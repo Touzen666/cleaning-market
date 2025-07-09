@@ -60,7 +60,7 @@ export default function Form() {
         className="h-24 rounded border p-2 text-black"
       />
 
-      <button type="submit" className="rounded bg-blue-500 p-2 text-white">
+      <button type="submit" className="bg-brand-gold rounded p-2 text-white">
         Wyślij wiadomość
       </button>
     </form>

@@ -100,6 +100,8 @@ export const getPaymentTypeText = (paymentType: PaymentType): string => {
     }
 };
 
+
+
 // Eksportujemy enumy z Prisma dla łatwego dostępu
 export {
     ReportStatus,
@@ -109,4 +111,13 @@ export {
     UserType,
     ExpenseCategory,
     ReservationPortal,
-}; 
+};
+
+export function slugify(str: string): string {
+    return str
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, '-')
+        .replace(/[^a-z0-9-]/g, '')
+        .replace(/-+/g, '-');
+} 

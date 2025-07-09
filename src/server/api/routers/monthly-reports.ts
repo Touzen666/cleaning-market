@@ -194,40 +194,23 @@ export const monthlyReportsRouter = createTRPCRouter({
                 });
             }
 
-            // Get reservations for this month to auto-generate revenue items
-            const startDate = new Date(year, month - 1, 1); // pierwszy dzień miesiąca
-            const endDate = new Date(year, month, 0, 23, 59, 59); // ostatni dzień miesiąca, 23:59:59
+            // --- Robust Date Calculation ---
+            // Start of the month in UTC
+            const startDate = new Date(Date.UTC(year, month - 1, 1));
+            // Start of the *next* month in UTC
+            const nextMonthStartDate = new Date(Date.UTC(year, month, 1));
 
-            // Uwzględniamy rezerwacje które:
-            // 1. Zaczynają się w tym miesiącu LUB
-            // 2. Kończą się w tym miesiącu LUB  
-            // 3. Trwają przez cały miesiąc (start przed, end po)
+            // Zgodnie z nowymi zasadami, raport za dany miesiąc uwzględnia tylko
+            // rezerwacje, które KOŃCZĄ SIĘ w tym miesiącu.
+            // Używamy >= startDate i < nextMonthStartDate, aby uniknąć problemów
+            // ze strefami czasowymi i godziną zakończenia rezerwacji (np. 23:59).
             const reservations = await ctx.db.reservation.findMany({
                 where: {
                     apartmentId,
-                    OR: [
-                        // Zaczyna się w tym miesiącu
-                        {
-                            start: {
-                                gte: startDate,
-                                lte: endDate,
-                            },
-                        },
-                        // Kończy się w tym miesiącu
-                        {
-                            end: {
-                                gte: startDate,
-                                lte: endDate,
-                            },
-                        },
-                        // Trwa przez cały miesiąc (start przed, end po)
-                        {
-                            AND: [
-                                { start: { lt: startDate } },
-                                { end: { gt: endDate } },
-                            ],
-                        },
-                    ],
+                    end: {
+                        gte: startDate,
+                        lt: nextMonthStartDate, // Używamy "less than" startu kolejnego miesiąca
+                    },
                 },
             });
 
@@ -567,7 +550,16 @@ export const monthlyReportsRouter = createTRPCRouter({
                 },
                 include: {
                     apartment: {
-                        select: { id: true, name: true, address: true },
+                        select: {
+                            id: true,
+                            name: true,
+                            address: true,
+                            images: {
+                                where: { isPrimary: true },
+                                select: { url: true, alt: true },
+                                take: 1,
+                            },
+                        },
                     },
                     items: {
                         include: {
