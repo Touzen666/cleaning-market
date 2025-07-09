@@ -65,6 +65,9 @@ export const ownerAuthRouter = createTRPCRouter({
                                             order: 'asc',
                                         },
                                     },
+                                    _count: {
+                                        select: { reservations: true },
+                                    }
                                 },
                             },
                         },
@@ -123,7 +126,13 @@ export const ownerAuthRouter = createTRPCRouter({
                     firstName: owner.firstName,
                     lastName: owner.lastName,
                     isFirstLogin: owner.isFirstLogin,
-                    apartments: owner.ownedApartments.map(ownership => ownership.apartment),
+                    apartments: owner.ownedApartments.map(ownership => {
+                        const { _count, ...apartmentData } = ownership.apartment;
+                        return {
+                            ...apartmentData,
+                            reservations: _count.reservations,
+                        }
+                    }),
                 },
                 isFirstLogin: owner.isFirstLogin,
             };
@@ -220,6 +229,9 @@ export const ownerAuthRouter = createTRPCRouter({
                                             order: 'asc',
                                         },
                                     },
+                                    _count: {
+                                        select: { reservations: true },
+                                    }
                                 },
                             },
                         },
@@ -239,13 +251,17 @@ export const ownerAuthRouter = createTRPCRouter({
                 email: owner.email,
                 firstName: owner.firstName,
                 lastName: owner.lastName,
-                apartments: owner.ownedApartments.map(ownership => ({
-                    ...ownership.apartment,
-                    images: ownership.apartment.images.map(img => ({
-                        ...img,
-                        id: img.id,
-                    })),
-                })),
+                apartments: owner.ownedApartments.map(ownership => {
+                    const { _count, ...apartmentData } = ownership.apartment;
+                    return {
+                        ...apartmentData,
+                        reservations: _count.reservations,
+                        images: apartmentData.images.map(img => ({
+                            ...img,
+                            id: img.id,
+                        })),
+                    }
+                }),
             };
         }),
 
