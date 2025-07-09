@@ -28,6 +28,23 @@ export default function AdminReservationsListPage() {
   const csvBatchesQuery = api.csvImport.getImportBatches.useQuery();
   const deleteBatchMutation = api.csvImport.deleteImportBatch.useMutation();
 
+  const getSourcesMutation = api.idobooking.getReservationSources.useMutation({
+    onSuccess: (data) => {
+      console.log("Źródła rezerwacji:", data.sources);
+      toast.success(
+        "Pobrano źródła rezerwacji! Sprawdź konsolę, aby zobaczyć wyniki.",
+      );
+    },
+    onError: (error) => {
+      console.error("Błąd podczas pobierania źródeł rezerwacji:", error);
+      toast.error(`Błąd: ${error.message}`);
+    },
+  });
+
+  const handleGetSources = () => {
+    getSourcesMutation.mutate();
+  };
+
   const reservations = reservationsData?.reservations ?? [];
   const statuses = statusesData ?? [];
   const isLoading = reservationsLoading ?? statusesLoading;
@@ -118,6 +135,15 @@ export default function AdminReservationsListPage() {
             <div className="mt-4 sm:mt-0">
               <div className="flex gap-3">
                 <IdobookingSync refetch={refetchReservations} />
+                <button
+                  onClick={handleGetSources}
+                  disabled={getSourcesMutation.isPending}
+                  className="inline-flex items-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:opacity-50"
+                >
+                  {getSourcesMutation.isPending
+                    ? "Pobieranie..."
+                    : "Pobierz źródła rezerwacji (Ido)"}
+                </button>
                 <button
                   onClick={() => setShowImport(!showImport)}
                   className="inline-flex items-center rounded-md bg-brand-gold px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-yellow-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-gold"

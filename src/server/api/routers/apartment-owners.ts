@@ -571,16 +571,15 @@ export const apartmentOwnersRouter = createTRPCRouter({
             return { success: true };
         }),
 
-    // Get apartments for specific owner
+    // Get apartments for a specific owner
     getOwnerApartments: protectedProcedure
-        .input(z.object({
-            ownerId: z.string().min(1),
-        }))
-        .output(z.array(z.object({
+        .input(z.object({ ownerId: z.string() }))
+        .output(z.array(z.object({ // Adding output validator
             id: z.string(),
             name: z.string(),
             slug: z.string(),
             address: z.string(),
+            reservations: z.number(),
             defaultRentAmount: z.number().nullable(),
             defaultUtilitiesAmount: z.number().nullable(),
             hasBalcony: z.boolean(),
@@ -595,66 +594,46 @@ export const apartmentOwnersRouter = createTRPCRouter({
             })),
         })))
         .query(async ({ input, ctx }) => {
-            // Check if user is admin
-            if (ctx.session.user.type !== UserType.ADMIN) {
-                throw new TRPCError({
-                    code: "FORBIDDEN",
-                    message: "Only admins can view owner apartments",
-                });
-            }
-
-            try {
-                const ownerships = await ctx.db.apartmentOwnership.findMany({
-                    where: { ownerId: input.ownerId },
-                    include: {
-                        apartment: {
-                            select: {
-                                id: true,
-                                name: true,
-                                slug: true,
-                                address: true,
-                                defaultRentAmount: true,
-                                defaultUtilitiesAmount: true,
-                                hasBalcony: true,
-                                hasParking: true,
-                                maxGuests: true,
-                                images: {
-                                    select: {
-                                        id: true,
-                                        url: true,
-                                        alt: true,
-                                        isPrimary: true,
-                                        order: true,
-                                    },
-                                    orderBy: {
-                                        order: 'asc',
-                                    },
+            const ownerships = await ctx.db.apartmentOwnership.findMany({
+                where: { ownerId: input.ownerId },
+                include: {
+                    apartment: {
+                        select: {
+                            id: true,
+                            name: true,
+                            slug: true,
+                            address: true,
+                            defaultRentAmount: true,
+                            defaultUtilitiesAmount: true,
+                            hasBalcony: true,
+                            hasParking: true,
+                            maxGuests: true,
+                            images: {
+                                select: {
+                                    id: true,
+                                    url: true,
+                                    alt: true,
+                                    isPrimary: true,
+                                    order: true,
                                 },
+                                orderBy: { order: 'asc' },
+                            },
+                            _count: {
+                                select: { reservations: true },
                             },
                         },
                     },
-                    orderBy: {
-                        apartment: {
-                            name: 'asc',
-                        },
-                    },
-                });
+                },
+            });
 
-                return ownerships.map(ownership => ({
-                    ...ownership.apartment,
-                    id: ownership.apartment.id.toString(),
-                    images: ownership.apartment.images.map(img => ({
-                        ...img,
-                        id: img.id,
-                    })),
-                }));
-            } catch (error) {
-                console.error("❌ Error fetching owner apartments:", error);
-                throw new TRPCError({
-                    code: "INTERNAL_SERVER_ERROR",
-                    message: "Failed to fetch owner apartments",
-                });
-            }
+            return ownerships.map(own => {
+                const { _count, ...apartmentData } = own.apartment;
+                return {
+                    ...apartmentData,
+                    id: apartmentData.id.toString(),
+                    reservations: _count.reservations,
+                };
+            });
         }),
 });
 

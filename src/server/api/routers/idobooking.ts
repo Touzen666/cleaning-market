@@ -3,7 +3,6 @@ import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { createHash } from "crypto";
 import { UserType } from "@prisma/client";
-import { type inferAsyncReturnType } from "@trpc/server";
 import { type createTRPCContext } from "@/server/api/trpc";
 
 // Zod schemas dla API responses
@@ -14,14 +13,14 @@ const reservationDetailsSchema = z.object({
     dateAdd: z.string(),
     dateFrom: z.string(),
     dateTo: z.string(),
-    reservationSourceTypeId: z.number().optional(),
-    reservationSourceId: z.number().optional(),
+    reservationSourceTypeId: z.coerce.number().optional(),
+    reservationSourceId: z.coerce.number().optional(),
     externalReservationId: z.string().optional(),
     reservationManager: z.enum(["external", "own"]).optional(),
     internalSource: z
         .enum(["other", "email", "phone", "faceToFaceConversation", "socialMedia"])
         .optional(),
-    clientId: z.number().optional(),
+    clientId: z.coerce.number().optional(),
     status: z.enum([
         "unconfirmed",
         "confirmed",
@@ -39,13 +38,13 @@ const reservationDetailsSchema = z.object({
     apiNote: z.string(),
     externalNote: z.string(),
     clientNote: z.string(),
-    discount: z.number().optional(),
+    discount: z.coerce.number().optional(),
     balance: z.number().optional(),
     modificationStatus: z.enum(["new", "modified"]).optional(),
     modificationDate: z.string().optional(),
-    note: z.string(),
+    note: z.string().optional(),
     languageCode: z.string().optional(),
-    isSurplus: z.number().optional(),
+    isSurplus: z.coerce.number().optional(),
 });
 
 const reservationItemSchema = z.object({
@@ -61,7 +60,7 @@ const reservationItemSchema = z.object({
     price: z.number(),
     vat: z.number(),
     numberOfGuests: z.number().optional(),
-    isSurplus: z.number().optional(), // API returns number, not enum
+    isSurplus: z.coerce.number().optional(), // API returns number, not enum
     prices: z.array(z.unknown()).optional(),
     addons: z.array(z.unknown()).optional(),
 });
@@ -84,8 +83,8 @@ const reservationClientSchema = z.object({
     login: z.string(),
     clientType: z.enum(["person", "company"]),
     status: z.enum(["active", "blocked"]).optional(),
-    companyName: z.string(),
-    taxNumber: z.string(),
+    companyName: z.string().optional(),
+    taxNumber: z.string().optional(),
     firstName: z.string(),
     lastName: z.string(),
     street: z.string(),
@@ -123,6 +122,28 @@ const reservationSchema = z.object({
     items: z.array(reservationItemSchema),
     client: reservationClientSchema,
 });
+
+const reservationSourceDescriptionSchema = z.object({
+    reservationSourceTypeId: z.number(),
+    reservationSourceTypeName: z.string(),
+    reservationSourceId: z.number(),
+    reservationSourceName: z.string(),
+});
+
+const sourcesApiResponseSchema = z.object({
+    authenticate: z.any(),
+    errors: z.array(z.object({
+        faultCode: z.number(),
+        faultString: z.string(),
+    })).optional(),
+    sources: z.array(reservationSourceDescriptionSchema).optional(), // Made optional to handle cases where it might not be present
+});
+
+const sourcesApiResponseSchemaV2 = z.object({
+    result: sourcesApiResponseSchema,
+    id: z.string().optional(),
+});
+
 
 // Funkcja do generowania system_key zgodnie z dokumentacją idobooking
 function generateSystemKey(password: string): string {
@@ -195,6 +216,7 @@ async function getReservations(): Promise<z.infer<typeof reservationSchema>[]> {
                     },
                     result: {
                         page: currentPage,
+                        number: 100,
                     },
                 }),
             },
@@ -209,26 +231,56 @@ async function getReservations(): Promise<z.infer<typeof reservationSchema>[]> {
                     systemLogin: z.string(),
                     systemKey: z.string(),
                 }),
-                reservations: z.array(reservationSchema),
-                result: z.object({
-                    page: z.number(),
-                    countOnPage: z.number(),
-                    pageAll: z.number(),
-                    countAll: z.number(),
-                }),
+                errors: z
+                    .array(
+                        z.object({
+                            faultCode: z.number(),
+                            faultString: z.string(),
+                        }),
+                    )
+                    .optional(),
+                reservations: z.array(reservationSchema).optional(),
+                result: z
+                    .object({
+                        page: z.number(),
+                        countOnPage: z.number(),
+                        pageAll: z.number(),
+                        countAll: z.number(),
+                    })
+                    .optional(),
             }),
             id: z.string(),
         });
 
         const parsedResponse = responseSchema.parse(responseData);
-        const pageReservations = parsedResponse.result.reservations;
+
+        if (
+            parsedResponse.result.errors &&
+            parsedResponse.result.errors.length > 0
+        ) {
+            const errorMessage = `API IdoBooking zwróciło błąd: ${JSON.stringify(
+                parsedResponse.result.errors,
+            )}`;
+            logWithTag(errorMessage);
+            throw new Error(errorMessage);
+        }
+
+        const pageReservations = parsedResponse.result.reservations ?? [];
         const pagination = parsedResponse.result.result;
 
         allReservations.push(...pageReservations);
+
+        if (!pagination) {
+            logWithTag(
+                "Brak informacji o paginacji. Zakładam, że to jedyna strona.",
+            );
+            break;
+        }
+
         totalPages = pagination.pageAll;
 
         logWithTag(
-            `Strona ${currentPage}: ${pageReservations.length} rezerwacji (łącznie ${allReservations.length}/${pagination.countAll})`
+            `Strona ${currentPage}: ${pageReservations.length} rezerwacji (łącznie ${allReservations.length}/${pagination.countAll})`,
         );
 
         currentPage++;
@@ -242,7 +294,7 @@ async function getReservations(): Promise<z.infer<typeof reservationSchema>[]> {
 
 async function mapToDBReservations(
     reservations: z.infer<typeof reservationSchema>[],
-    ctx: inferAsyncReturnType<typeof createTRPCContext>,
+    ctx: Awaited<ReturnType<typeof createTRPCContext>>,
 ) {
     logWithTag(`Rozpoczęto mapowanie ${reservations.length} rezerwacji do bazy danych.`);
 
@@ -260,10 +312,38 @@ async function mapToDBReservations(
             `Przetwarzanie partii ${batchIndex + 1}/${batches.length} (${batch.length} rezerwacji)`
         );
 
-        const operations = batch.map(async (reservation) => {
+        const operations = batch.map(async (reservation, index) => {
             const { id: idobookingId, reservationDetails, items, client } = reservation;
 
-            logWithTag(`Przetwarzanie rezerwacji IdoBooking ID: ${idobookingId}`);
+            if (batchIndex === 0 && index < 5) {
+                logWithTag(`Szczegóły surowej rezerwacji (ID: ${idobookingId}):`, reservation);
+            }
+
+            const details = reservation.reservationDetails;
+            let sourceName: string;
+
+            if (details.internalSource && details.internalSource !== 'other') {
+                const internalSourceMapping: Record<string, string> = {
+                    email: "Email",
+                    phone: "Telefon",
+                    faceToFaceConversation: "Osobiście",
+                    socialMedia: "Social Media"
+                };
+                sourceName = internalSourceMapping[details.internalSource] ?? details.internalSource;
+            } else if (details.reservationSourceId) {
+                sourceName = `Idobooking (ID: ${details.reservationSourceId})`;
+            } else if (details.reservationSourceTypeId) {
+                sourceName = `Idobooking (Typ ID: ${details.reservationSourceTypeId})`;
+            } else {
+                sourceName = "Brak";
+            }
+
+            logWithTag(`Mapowanie rezerwacji ${idobookingId}:`, {
+                internalSource: reservationDetails.internalSource,
+                sourceId: reservationDetails.reservationSourceId,
+                sourceTypeId: reservationDetails.reservationSourceTypeId,
+                finalSourceName: sourceName,
+            });
 
             const firstItem = items[0];
             const adultsCount = firstItem?.numberOfAdults ?? firstItem?.numberOfGuests ?? 1;
@@ -275,19 +355,8 @@ async function mapToDBReservations(
                 idobookingId,
                 status: reservationDetails.status,
                 apartmentName: firstItem?.objectName ?? "N/A",
-                price: reservationDetails.price,
-                advance: reservationDetails.advance,
                 currency: reservationDetails.currency,
-                dateAdd: new Date(reservationDetails.dateAdd),
-                dateTo: new Date(reservationDetails.dateTo),
-                dateFrom: new Date(reservationDetails.dateFrom),
-                clientName: `${client.firstName} ${client.lastName}`,
-                clientEmail: client.email,
-                clientPhone: client.phone,
-                clientAddress: `${client.street}, ${client.zipcode} ${client.city}`,
-                reservationSource: reservationDetails.reservationSourceTypeId?.toString(),
-                // Uzupełnienie brakujących pól
-                source: "idobooking",
+                source: sourceName,
                 createDate: new Date(reservationDetails.dateAdd),
                 guest: `${client.firstName} ${client.lastName}`.trim(),
                 start: new Date(reservationDetails.dateFrom),
@@ -295,17 +364,11 @@ async function mapToDBReservations(
                 payment: reservationDetails.price.toString(),
                 adults: adultsCount,
                 children: totalChildrenCount,
-                // Uzupełnienie brakujących pól z drugiego błędu
                 address: firstItem?.objectName ?? "Brak adresu",
                 paymantValue: reservationDetails.price,
             };
 
-            logWithTag(`Dane rezerwacji IdoBooking ID: ${idobookingId} przygotowane do zapisu:`, {
-                status: reservationData.status,
-                apartmentName: reservationData.apartmentName,
-                dates: `${reservationData.dateFrom.toISOString()} - ${reservationData.dateTo.toISOString()}`,
-                client: reservationData.clientName,
-            });
+            logWithTag(`Przygotowane dane dla rezerwacji ${idobookingId}:`, reservationData);
 
             const existingReservation = await ctx.db.reservation.findUnique({
                 where: { idobookingId },
@@ -343,6 +406,59 @@ async function mapToDBReservations(
     logWithTag("Zakończono mapowanie wszystkich rezerwacji.");
 }
 
+async function getSources(): Promise<z.infer<typeof reservationSourceDescriptionSchema>[]> {
+    logWithTag("Pobieranie źródeł rezerwacji z IdoBooking API...");
+
+    const response = await fetch(
+        `https://zlote-wynajmy.pl/api/reservations/getSources/34/json`,
+        {
+            method: "POST",
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json;charset=UTF-8",
+            },
+            body: JSON.stringify({
+                authenticate: getAuth(),
+                result: {
+                    page: 1,
+                    number: 100,
+                },
+            }),
+        },
+    );
+
+    const responseText = await response.text();
+    logWithTag("Otrzymano surową odpowiedź z API źródeł rezerwacji:", responseText);
+
+    let responseData: unknown;
+    try {
+        responseData = JSON.parse(responseText);
+    } catch (error) {
+        logWithTag("Błąd parsowania JSON:", { error, responseText });
+        throw new Error("Błąd parsowania odpowiedzi JSON z IdoBooking API.");
+    }
+
+    const parsedResponse = sourcesApiResponseSchemaV2.parse(responseData);
+    const result = parsedResponse.result;
+
+
+    if (result.errors && result.errors.length > 0) {
+        const errorMessage = `API IdoBooking zwróciło błąd: ${JSON.stringify(result.errors)}`;
+        logWithTag(errorMessage);
+        throw new Error(errorMessage);
+    }
+
+    if (!result.sources) {
+        const errorMessage = "Odpowiedź z API nie zawierała źródeł rezerwacji.";
+        logWithTag(errorMessage, { parsedResponse });
+        throw new Error(errorMessage);
+    }
+
+    logWithTag(`Pobrano ${result.sources.length} źródeł rezerwacji.`);
+    return result.sources;
+}
+
+
 export const idobookingRouter = createTRPCRouter({
     // Pobierz listę apartamentów z idobooking
     syncReservations: protectedProcedure.mutation(async ({ ctx }) => {
@@ -364,6 +480,30 @@ export const idobookingRouter = createTRPCRouter({
             };
         } catch (error) {
             logWithTag("🚨 Wystąpił błąd podczas synchronizacji rezerwacji:", error);
+            const errorMessage = error instanceof Error ? error.message : "Unknown error";
+            throw new TRPCError({
+                code: "INTERNAL_SERVER_ERROR",
+                message: errorMessage,
+            });
+        }
+    }),
+    getReservationSources: protectedProcedure.mutation(async ({ ctx }) => {
+        if (ctx.session.user.type !== UserType.ADMIN) {
+            throw new TRPCError({
+                code: "FORBIDDEN",
+                message: "Tylko administratorzy mogą wykonywać tę akcję.",
+            });
+        }
+
+        try {
+            const sources = await getSources();
+            return {
+                success: true,
+                sources: sources,
+            };
+
+        } catch (error) {
+            logWithTag("🚨 Wystąpił błąd podczas pobierania źródeł rezerwacji:", error);
             const errorMessage = error instanceof Error ? error.message : "Unknown error";
             throw new TRPCError({
                 code: "INTERNAL_SERVER_ERROR",
