@@ -19,6 +19,12 @@ interface ApartmentImageManagerProps {
   onImagesChange: () => void;
 }
 
+interface UploadResponse {
+  success: boolean;
+  url?: string;
+  error?: string;
+}
+
 export default function ApartmentImageManager({
   apartmentId,
   images,
@@ -72,27 +78,51 @@ export default function ApartmentImageManager({
     (acceptedFiles: File[]) => {
       if (acceptedFiles.length === 0) return;
 
-      setIsUploading(true);
-      setUploadProgress(0);
+      const uploadFiles = async () => {
+        setIsUploading(true);
+        setUploadProgress(0);
 
-      // Symulacja uploadu - w rzeczywistości tutaj byłby upload do serwera
-      for (let i = 0; i < acceptedFiles.length; i++) {
-        const file = acceptedFiles[i];
-        if (!file) continue;
+        for (let i = 0; i < acceptedFiles.length; i++) {
+          const file = acceptedFiles[i];
+          if (!file) continue;
 
-        // Symulacja progress
-        setUploadProgress(((i + 1) / acceptedFiles.length) * 100);
+          try {
+            const formData = new FormData();
+            formData.append("file", file);
 
-        // Konwertuj plik na URL (w rzeczywistości byłby upload)
-        const fileUrl = URL.createObjectURL(file);
+            const response = await fetch("/api/upload", {
+              method: "POST",
+              body: formData,
+            });
 
-        // Dodaj zdjęcie pojedynczo
-        addImage.mutate({
-          apartmentId,
-          url: fileUrl,
-          alt: file.name.replace(/\.[^/.]+$/, ""), // Usuń rozszerzenie
-        });
-      }
+            const result = (await response.json()) as UploadResponse;
+
+            if (response.ok && result.success && result.url) {
+              // Mamy publiczny URL, teraz dodajemy do bazy danych
+              addImage.mutate({
+                apartmentId,
+                url: result.url,
+                alt: file.name.replace(/\.[^/.]+$/, ""),
+              });
+            } else {
+              console.error("Upload failed:", result.error);
+              // Można dodać obsługę błędów dla użytkownika
+            }
+          } catch (error) {
+            console.error("Error uploading file:", error);
+          } finally {
+            setUploadProgress(((i + 1) / acceptedFiles.length) * 100);
+          }
+        }
+
+        // Reset po zakończeniu wszystkich uploadów
+        setTimeout(() => {
+          setIsUploading(false);
+          setUploadProgress(0);
+        }, 1000);
+      };
+
+      void uploadFiles();
     },
     [apartmentId, addImage],
   );
@@ -188,14 +218,14 @@ export default function ApartmentImageManager({
 
           {isUploading ? (
             <div className="space-y-4">
-              <div className="border-t-brand-gold mx-auto h-12 w-12 animate-spin rounded-full border-4 border-yellow-200"></div>
+              <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-yellow-200 border-t-brand-gold"></div>
               <div>
                 <p className="text-sm font-medium text-gray-900">
                   Uploadowanie zdjęć...
                 </p>
                 <div className="mt-2 h-2 w-full rounded-full bg-gray-200">
                   <div
-                    className="bg-brand-gold h-2 rounded-full transition-all duration-300"
+                    className="h-2 rounded-full bg-brand-gold transition-all duration-300"
                     style={{ width: `${uploadProgress}%` }}
                   ></div>
                 </div>
@@ -235,7 +265,7 @@ export default function ApartmentImageManager({
           {!isAddingImage ? (
             <button
               onClick={() => setIsAddingImage(true)}
-              className="bg-brand-gold inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-yellow-500 disabled:opacity-50"
+              className="inline-flex items-center rounded-md bg-brand-gold px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-yellow-500 disabled:opacity-50"
             >
               <svg
                 className="-ml-0.5 mr-1.5 h-4 w-4"
@@ -266,7 +296,7 @@ export default function ApartmentImageManager({
                   value={newImageUrl}
                   onChange={(e) => setNewImageUrl(e.target.value)}
                   required
-                  className="focus:border-brand-gold focus:ring-brand-gold mt-1 block w-full rounded-md border-gray-300 px-3 py-2 shadow-sm focus:outline-none"
+                  className="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 shadow-sm focus:border-brand-gold focus:outline-none focus:ring-brand-gold"
                   placeholder="https://example.com/image.jpg"
                 />
               </div>
@@ -279,7 +309,7 @@ export default function ApartmentImageManager({
                   type="text"
                   value={newImageAlt}
                   onChange={(e) => setNewImageAlt(e.target.value)}
-                  className="focus:border-brand-gold focus:ring-brand-gold mt-1 block w-full rounded-md border-gray-300 px-3 py-2 shadow-sm focus:outline-none"
+                  className="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 shadow-sm focus:border-brand-gold focus:outline-none focus:ring-brand-gold"
                   placeholder="np. Widok z balkonu"
                 />
               </div>
@@ -288,7 +318,7 @@ export default function ApartmentImageManager({
                 <button
                   type="submit"
                   disabled={addImage.isPending}
-                  className="bg-brand-gold inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-yellow-500 disabled:opacity-50"
+                  className="inline-flex items-center rounded-md bg-brand-gold px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-yellow-500 disabled:opacity-50"
                 >
                   {addImage.isPending ? "Dodawanie..." : "Dodaj zdjęcie"}
                 </button>
@@ -343,7 +373,7 @@ export default function ApartmentImageManager({
           </div>
         ) : isReordering ? (
           <div className="py-12 text-center">
-            <div className="border-t-brand-gold mx-auto h-12 w-12 animate-spin rounded-full border-4 border-yellow-200"></div>
+            <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-yellow-200 border-t-brand-gold"></div>
             <h3 className="mt-2 text-sm font-medium text-gray-900">
               Zmienianie kolejności...
             </h3>
@@ -432,7 +462,7 @@ export default function ApartmentImageManager({
 
                 {/* Badge głównego zdjęcia */}
                 {image.isPrimary && (
-                  <div className="bg-brand-gold absolute left-2 top-2 rounded-full px-2 py-1 text-xs font-medium text-white shadow-sm">
+                  <div className="absolute left-2 top-2 rounded-full bg-brand-gold px-2 py-1 text-xs font-medium text-white shadow-sm">
                     <svg
                       className="mr-1 inline h-3 w-3"
                       fill="currentColor"

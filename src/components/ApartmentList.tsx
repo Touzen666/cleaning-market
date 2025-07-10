@@ -375,18 +375,14 @@ export default function ApartmentList({
             {/* Informacje o apartamencie */}
             <div>
               <div className="font-medium">{apartment.name}</div>
-              <div className="text-gray-500">{apartment.address}</div>
             </div>
           </div>
         </td>
         <td className="whitespace-nowrap px-6 py-4">
-          <div className="text-sm text-gray-900">{apartment.slug}</div>
+          <div className="text-sm text-gray-500">{apartment.address}</div>
         </td>
         <td className="whitespace-nowrap px-6 py-4">
-          <div className="text-sm text-gray-500">{apartment.id}</div>
-        </td>
-        <td className="whitespace-nowrap px-4 py-4 text-sm text-gray-500">
-          {apartment.address}
+          <div className="text-sm text-gray-900">{apartment.slug}</div>
         </td>
         <td className="whitespace-nowrap px-4 py-4 text-sm text-gray-500">
           {apartment.reservations > 0 ? (
@@ -398,7 +394,7 @@ export default function ApartmentList({
               }
               className="inline-flex items-center rounded-md bg-blue-100 px-2.5 py-1.5 text-sm font-semibold text-blue-800 hover:bg-blue-200"
             >
-              {apartment.reservations} Reservation
+              {apartment.reservations} Reservation(s)
             </button>
           ) : (
             <span className="text-gray-400">0</span>
@@ -548,6 +544,56 @@ export default function ApartmentList({
   }
 
   // Renderuj jako tabelę dla trybów admin i owner
+  if (mode === "admin") {
+    return (
+      <div className={`rounded-lg bg-white p-6 shadow ${className}`}>
+        <div className="overflow-x-auto rounded-lg border border-gray-200">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th
+                  scope="col"
+                  className="w-1/3 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+                >
+                  Nazwa
+                </th>
+                <th
+                  scope="col"
+                  className="w-1/4 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+                >
+                  Adres
+                </th>
+                <th
+                  scope="col"
+                  className="w-1/4 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+                >
+                  Slug
+                </th>
+                <th
+                  scope="col"
+                  className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+                >
+                  Rezerwacje
+                </th>
+                {showActions && (
+                  <th
+                    scope="col"
+                    className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500"
+                  >
+                    Akcje
+                  </th>
+                )}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200 bg-white">
+              {apartments.map(renderTableRow)}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       className={`overflow-hidden rounded-lg border border-gray-200 ${className}`}
@@ -555,16 +601,34 @@ export default function ApartmentList({
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
-            <th className="w-1/4 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-              Nazwa
+            <th
+              scope="col"
+              className="w-1/4 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+            >
+              Nazwa apartamentu i adres
             </th>
-            <th className="w-1/4 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+            <th
+              scope="col"
+              className="w-1/4 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+            >
               Slug
             </th>
-            <th className="w-1/4 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-              Adres
+            <th
+              scope="col"
+              className="w-1/4 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+            >
+              Właściciel
             </th>
-            <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+            <th
+              scope="col"
+              className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+            >
+              ID
+            </th>
+            <th
+              scope="col"
+              className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+            >
               Rezerwacje
             </th>
             {showActions && (
