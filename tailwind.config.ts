@@ -3,6 +3,7 @@ import { fontFamily } from "tailwindcss/defaultTheme";
 import scrollbar from "tailwind-scrollbar";
 
 const config: Config = {
+  safelist: ["bg-brand-gold"],
   content: ["./src/**/*.tsx"],
   theme: {
     extend: {
