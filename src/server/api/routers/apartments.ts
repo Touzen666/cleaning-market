@@ -495,7 +495,7 @@ export const apartmentsRouter = createTRPCRouter({
     addImage: publicProcedure
         .input(z.object({
             apartmentId: z.string().min(1),
-            url: z.string().url(),
+            url: z.string().min(1),
             alt: z.string().optional(),
         }))
         .mutation(async ({ input, ctx }) => {

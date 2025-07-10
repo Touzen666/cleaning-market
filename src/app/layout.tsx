@@ -29,7 +29,10 @@ export default function RootLayout({
       {/*    <title>Sprzątanie app</title>*/}
       {/*</Head>*/}
 
-      <body suppressHydrationWarning={true}>
+      <body
+        suppressHydrationWarning={true}
+        className="flex min-h-screen flex-col"
+      >
         <SessionProvider>
           <TRPCReactProvider>
             {!isHomePage &&
@@ -40,7 +43,7 @@ export default function RootLayout({
               ) : (
                 <Header />
               ))}
-            <main>{children}</main>
+            <main className="flex-grow">{children}</main>
             {!isHomePage && <Footer />}
           </TRPCReactProvider>
         </SessionProvider>
