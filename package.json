@@ -1,6 +1,6 @@
 {
   "name": "cleaning-market",
-  "version": "0.1.133",
+  "version": "0.1.137",
   "private": true,
   "type": "module",
   "scripts": {
@@ -26,6 +26,9 @@
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.10.0",
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
     "@hookform/resolvers": "^5.1.1",
     "@prisma/client": "^5.14.0",
     "@t3-oss/env-nextjs": "^0.10.1",

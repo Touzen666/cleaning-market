@@ -70,8 +70,10 @@ export const sendEmail = async (options: {
 }) => {
     const transporter = createTransporter();
 
+    const fromUser = env.SMTP_FROM_USER ?? env.SMTP_USER;
+
     const mailOptions = {
-        from: options.from ?? `"Złote Wynajmy" <${env.SMTP_USER}>`,
+        from: options.from ?? `"Złote Wynajmy" <${fromUser}>`,
         to: options.to,
         subject: options.subject,
         html: options.html,

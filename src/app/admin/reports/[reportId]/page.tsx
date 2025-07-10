@@ -7,6 +7,23 @@ import type { RouterOutputs } from "@/trpc/react";
 import { PaymentType, VATOption, ReportStatus } from "@prisma/client";
 import { Modal } from "@/components/ui/Modal";
 import { getVatAmount, getGrossAmount } from "@/lib/vat";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 type ReportDetails = RouterOutputs["monthlyReports"]["getById"];
 
@@ -16,13 +33,24 @@ const expenseCategories = [
     vatRate: 23,
     description: "Usługi sprzątania apartamentu",
   },
-  { name: "Pranie", vatRate: 8, description: "Pranie pościeli i ręczników" },
+  { name: "Pranie", vatRate: 23, description: "Pranie pościeli i ręczników" },
   {
     name: "Zakupy środków czystości",
     vatRate: 23,
     description: "Środki czyszczące i higiena",
   },
   { name: "Inne", vatRate: 23, description: "Inne wydatki" },
+];
+
+const quickAddOptions = [
+  { name: "Sprzątanie", vatRate: 23, description: "Sprzątanie apartamentu" },
+  { name: "Pranie", vatRate: 23, description: "Pranie pościeli i ręczników" },
+  { name: "Zakupy", vatRate: 23, description: "Zakupy środków czystości" },
+  {
+    name: "Tekstylia",
+    vatRate: 8,
+    description: "Zakup nowych tekstyliów (ręczniki, pościel)",
+  },
 ];
 
 export default function ReportDetailsPage({
@@ -80,6 +108,10 @@ export default function ReportDetailsPage({
     RouterOutputs["monthlyReports"]["getById"]["additionalDeductions"][0] | null
   >(null);
 
+  const [orderedDeductions, setOrderedDeductions] = useState<
+    ReportDetails["additionalDeductions"]
+  >([]);
+
   // Dodaj mutację
   const updateRentUtilitiesMutation =
     api.monthlyReports.updateRentAndUtilities.useMutation({
@@ -113,6 +145,30 @@ export default function ReportDetailsPage({
     api.monthlyReports.deleteAdditionalDeduction.useMutation({
       onSuccess: () => {
         void reportQuery.refetch();
+      },
+    });
+
+  const deleteReportItemMutation =
+    api.monthlyReports.deleteReportItem.useMutation({
+      onSuccess: () => {
+        void reportQuery.refetch();
+        // Optionally show a success toast
+      },
+      onError: (error) => {
+        // Optionally show an error toast
+        alert(`Błąd podczas usuwania pozycji: ${error.message}`);
+      },
+    });
+
+  const updateDeductionsOrderMutation =
+    api.monthlyReports.updateDeductionsOrder.useMutation({
+      onSuccess: () => {
+        void reportQuery.refetch();
+      },
+      onError: (error) => {
+        alert(`Błąd podczas aktualizacji kolejności: ${error.message}`);
+        // Optionally revert local state if server update fails
+        void reportQuery.refetch(); // Refetch to get original order
       },
     });
 
@@ -161,8 +217,46 @@ export default function ReportDetailsPage({
         rentAmount: report.rentAmount ?? 0,
         utilitiesAmount: report.utilitiesAmount ?? 0,
       });
+      // Sort deductions by order and set them to local state
+      const sortedDeductions = [...report.additionalDeductions].sort(
+        (a, b) => a.order - b.order,
+      );
+      setOrderedDeductions(sortedDeductions);
     }
   }, [report]);
+
+  // dnd-kit sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      setOrderedDeductions((items) => {
+        const oldIndex = items.findIndex((item) => item.id === active.id);
+        const newIndex = items.findIndex((item) => item.id === over.id);
+        const newOrder = arrayMove(items, oldIndex, newIndex);
+
+        // Update order property for each item
+        const updatedOrderForApi = newOrder.map((item, index) => ({
+          id: item.id,
+          order: index,
+        }));
+
+        updateDeductionsOrderMutation.mutate({
+          reportId: reportId,
+          orderedDeductions: updatedOrderForApi,
+        });
+
+        return newOrder;
+      });
+    }
+  }
 
   // Dodaj funkcję do zapisywania
   const handleSaveRentUtilities = async () => {
@@ -251,7 +345,7 @@ export default function ReportDetailsPage({
     },
     pranie: {
       name: "Pranie",
-      vatRate: 8,
+      vatRate: 23,
       description: "Pranie pościeli i ręczników",
     },
   };
@@ -520,6 +614,12 @@ export default function ReportDetailsPage({
 
   const [showDeleteModal, setShowDeleteModal] = React.useState(false);
   const deleteReportMutation = api.monthlyReports.deleteReport.useMutation();
+
+  const handleDeleteItem = (itemId: string) => {
+    if (confirm("Czy na pewno chcesz usunąć tę pozycję z raportu?")) {
+      deleteReportItemMutation.mutate({ reportItemId: itemId });
+    }
+  };
 
   if (reportQuery.isLoading) {
     return (
@@ -1269,6 +1369,9 @@ export default function ReportDetailsPage({
                       <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                         Notatki
                       </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                        Akcje
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 bg-white">
@@ -1322,6 +1425,36 @@ export default function ReportDetailsPage({
                         </td>
                         <td className="max-w-sm whitespace-normal px-6 py-4 text-sm text-gray-500">
                           {item.notes ?? "-"}
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4 text-sm font-medium">
+                          {(item.type === "EXPENSE" ||
+                            item.type === "COMMISSION") &&
+                            !item.isAutoGenerated && (
+                              <button
+                                onClick={() => handleDeleteItem(item.id)}
+                                disabled={
+                                  report.status === "APPROVED" ||
+                                  report.status === "SENT" ||
+                                  deleteReportItemMutation.isPending
+                                }
+                                className="text-red-600 hover:text-red-900 disabled:cursor-not-allowed disabled:text-gray-400"
+                                title="Usuń pozycję"
+                              >
+                                <svg
+                                  className="h-5 w-5"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                  />
+                                </svg>
+                              </button>
+                            )}
                         </td>
                       </tr>
                     ))}
@@ -1471,144 +1604,61 @@ export default function ReportDetailsPage({
                 Dodatkowe Odliczenia
               </h3>
               <p className="mt-1 text-sm text-purple-700">
-                Dodatkowe koszty odejmowane od ostatecznej wypłaty właściciela
+                Dodatkowe koszty odejmowane od ostatecznej wypłaty właściciela.
+                Możesz zmieniać kolejność przeciągając elementy.
               </p>
             </div>
             <div className="bg-white p-6">
               {/* Lista istniejących odliczeń */}
-              {report.additionalDeductions &&
-                report.additionalDeductions.length > 0 && (
-                  <div className="mb-6">
-                    <h4 className="text-md mb-3 font-medium text-gray-800">
-                      Istniejące odliczenia:
-                    </h4>
-                    <div className="mb-3 space-y-2">
-                      {report.additionalDeductions.map((deduction) => {
-                        const vatAmount =
-                          deduction.vatOption === "VAT_23"
-                            ? deduction.amount * 0.23
-                            : deduction.vatOption === "VAT_8"
-                              ? deduction.amount * 0.08
-                              : 0;
-                        const grossAmount = deduction.amount + vatAmount;
-                        const vatLabel =
-                          deduction.vatOption === "VAT_23"
-                            ? "23%"
-                            : deduction.vatOption === "VAT_8"
-                              ? "8%"
-                              : "zwolniony";
-                        return (
-                          <div
+              {orderedDeductions && orderedDeductions.length > 0 && (
+                <div className="mb-6">
+                  <h4 className="text-md mb-3 font-medium text-gray-800">
+                    Istniejące odliczenia:
+                  </h4>
+                  <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleDragEnd}
+                  >
+                    <SortableContext
+                      items={orderedDeductions}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      <div className="mb-3 space-y-2">
+                        {orderedDeductions.map((deduction) => (
+                          <SortableDeductionItem
                             key={deduction.id}
-                            className="mb-2 rounded-md bg-purple-100 p-3"
-                          >
-                            <div className="mb-2 text-sm font-medium text-purple-900">
-                              {deduction.name}
-                            </div>
-                            <div className="grid grid-cols-5 items-center gap-2 text-center text-sm">
-                              <div>
-                                <div className="font-semibold text-purple-700">
-                                  Kwota netto
-                                </div>
-                                <div className="font-medium text-purple-900">
-                                  -{deduction.amount.toFixed(2)} PLN
-                                </div>
-                              </div>
-                              <div>
-                                <div className="font-semibold text-purple-700">
-                                  Stawka VAT
-                                </div>
-                                <div className="font-medium text-purple-900">
-                                  {vatLabel}
-                                </div>
-                              </div>
-                              <div>
-                                <div className="font-semibold text-purple-700">
-                                  Kwota VAT
-                                </div>
-                                <div className="font-medium text-purple-900">
-                                  {vatAmount === 0
-                                    ? "-"
-                                    : `-${vatAmount.toFixed(2)} PLN`}
-                                </div>
-                              </div>
-                              <div>
-                                <div className="font-semibold text-purple-700">
-                                  Kwota brutto
-                                </div>
-                                <div className="font-bold text-purple-900">
-                                  -{grossAmount.toFixed(2)} PLN
-                                </div>
-                              </div>
-                              <div className="flex h-full items-center justify-center gap-2">
-                                <button
-                                  onClick={() => setEditingDeduction(deduction)}
-                                  className="rounded-md bg-yellow-100 p-2 text-yellow-600 transition hover:bg-yellow-200"
-                                  title="Edytuj odliczenie"
-                                >
-                                  <svg
-                                    className="h-5 w-5"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M15.232 5.232l3.536 3.536M9 13l6-6m2 2l-6 6m-2 2h2v2H7v-2h2zm0 0v-2H7v2h2z"
-                                    />
-                                  </svg>
-                                </button>
-                                <button
-                                  onClick={() =>
-                                    handleDeleteDeduction(deduction.id)
-                                  }
-                                  className="rounded-md bg-red-100 p-2 text-red-600 transition hover:bg-red-200"
-                                  title="Usuń odliczenie"
-                                >
-                                  <svg
-                                    className="h-5 w-5"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                    />
-                                  </svg>
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                    {/* Podsumowanie sumy odliczeń */}
-                    <div className="mt-4 rounded-md bg-purple-200 p-3">
-                      <p className="mb-1 text-sm font-semibold text-purple-800">
-                        Suma wszystkich odliczeń:
-                      </p>
-                      <div className="flex gap-8">
-                        <span className="text-sm text-purple-900">
-                          Netto:{" "}
-                          <span className="font-bold">
-                            -{totalAdditionalDeductions.toFixed(2)} PLN
-                          </span>
-                        </span>
-                        <span className="text-sm text-purple-900">
-                          Brutto:{" "}
-                          <span className="font-bold">
-                            -{totalAdditionalDeductionsGross.toFixed(2)} PLN
-                          </span>
-                        </span>
+                            id={deduction.id}
+                            deduction={deduction}
+                            onEdit={setEditingDeduction}
+                            onDelete={handleDeleteDeduction}
+                          />
+                        ))}
                       </div>
+                    </SortableContext>
+                  </DndContext>
+                  {/* Podsumowanie sumy odliczeń */}
+                  <div className="mt-4 rounded-md bg-purple-200 p-3">
+                    <p className="mb-1 text-sm font-semibold text-purple-800">
+                      Suma wszystkich odliczeń:
+                    </p>
+                    <div className="flex gap-8">
+                      <span className="text-sm text-purple-900">
+                        Netto:{" "}
+                        <span className="font-bold">
+                          -{totalAdditionalDeductions.toFixed(2)} PLN
+                        </span>
+                      </span>
+                      <span className="text-sm text-purple-900">
+                        Brutto:{" "}
+                        <span className="font-bold">
+                          -{totalAdditionalDeductionsGross.toFixed(2)} PLN
+                        </span>
+                      </span>
                     </div>
                   </div>
-                )}
+                </div>
+              )}
 
               {/* Formularz dodawania nowego odliczenia */}
               <div className="border-t border-purple-200 pt-4">
@@ -1752,6 +1802,7 @@ export default function ReportDetailsPage({
               additionalDeductionData={additionalDeductionData}
               onDeleteDeduction={handleDeleteDeduction}
               onEditDeduction={setEditingDeduction}
+              sortedDeductions={orderedDeductions}
             />
           </div>
         </div>
@@ -2314,6 +2365,7 @@ function OwnerPayoutCalculation({
   additionalDeductionData,
   onDeleteDeduction,
   onEditDeduction,
+  sortedDeductions,
 }: {
   report: ReportDetails;
   onRefetch: () => void;
@@ -2326,6 +2378,7 @@ function OwnerPayoutCalculation({
   onEditDeduction: (
     deduction: NonNullable<ReportDetails>["additionalDeductions"][number],
   ) => void;
+  sortedDeductions: ReportDetails["additionalDeductions"];
 }) {
   const [deductRentAndUtilities, setDeductRentAndUtilities] =
     React.useState(true);
@@ -2346,8 +2399,18 @@ function OwnerPayoutCalculation({
   const setFinalSettlementTypeMutation =
     api.monthlyReports.setFinalSettlementType.useMutation({
       onSuccess: () => {
-        // Refetch report data after successful update
         onRefetch();
+      },
+      onError: (error) => {
+        console.error("Error saving final settlement type:", error);
+        // Revert the state change if save failed
+        setFinalPayoutType(
+          report.finalSettlementType === "FIXED"
+            ? LocalPayoutType.FIXED_AMOUNT
+            : report.finalSettlementType === "FIXED_MINUS_UTILITIES"
+              ? LocalPayoutType.FIXED_AMOUNT_MINUS_UTILITIES
+              : LocalPayoutType.COMMISSION,
+        );
       },
     });
 
@@ -2391,15 +2454,13 @@ function OwnerPayoutCalculation({
   const isVatExempt = report.owner.vatOption === VATOption.NO_VAT;
 
   // Suma dodatkowych odliczeń (netto)
-  const totalAdditionalDeductions = (report.additionalDeductions ?? []).reduce(
+  const totalAdditionalDeductions = (sortedDeductions ?? []).reduce(
     (sum, d) => sum + d.amount,
     0,
   );
 
   // Suma dodatkowych odliczeń (brutto)
-  const totalAdditionalDeductionsGross = (
-    report.additionalDeductions ?? []
-  ).reduce(
+  const totalAdditionalDeductionsGross = (sortedDeductions ?? []).reduce(
     (sum, d) =>
       sum +
       (d.vatOption === "VAT_23"
@@ -2528,136 +2589,129 @@ function OwnerPayoutCalculation({
       </div>
 
       {/* Dodatkowe odliczenia */}
-      {report.additionalDeductions &&
-        report.additionalDeductions.length > 0 && (
-          <div className="rounded-lg bg-purple-50 p-4">
-            <h5 className="mb-2 text-lg font-medium text-purple-800">
-              Dodatkowe odliczenia
-            </h5>
-            <div className="mb-3 space-y-2">
-              {report.additionalDeductions.map((deduction) => {
-                const vatAmount =
-                  deduction.vatOption === "VAT_23"
-                    ? deduction.amount * 0.23
-                    : deduction.vatOption === "VAT_8"
-                      ? deduction.amount * 0.08
-                      : 0;
-                const grossAmount = deduction.amount + vatAmount;
-                const vatLabel =
-                  deduction.vatOption === "VAT_23"
-                    ? "23%"
-                    : deduction.vatOption === "VAT_8"
-                      ? "8%"
-                      : "zwolniony";
-                return (
-                  <div
-                    key={deduction.id}
-                    className="mb-2 rounded-md bg-purple-100 p-3"
-                  >
-                    <div className="mb-2 text-sm font-medium text-purple-900">
-                      {deduction.name}
+      {sortedDeductions && sortedDeductions.length > 0 && (
+        <div className="rounded-lg bg-purple-50 p-4">
+          <h5 className="mb-2 text-lg font-medium text-purple-800">
+            Dodatkowe odliczenia
+          </h5>
+          <div className="mb-3 space-y-2">
+            {sortedDeductions.map((deduction) => {
+              const vatAmount =
+                deduction.vatOption === "VAT_23"
+                  ? deduction.amount * 0.23
+                  : deduction.vatOption === "VAT_8"
+                    ? deduction.amount * 0.08
+                    : 0;
+              const grossAmount = deduction.amount + vatAmount;
+              const vatLabel =
+                deduction.vatOption === "VAT_23"
+                  ? "23%"
+                  : deduction.vatOption === "VAT_8"
+                    ? "8%"
+                    : "zwolniony";
+              return (
+                <div
+                  key={deduction.id}
+                  className="mb-2 rounded-md bg-purple-100 p-3"
+                >
+                  <div className="mb-2 text-sm font-medium text-purple-900">
+                    {deduction.name}
+                  </div>
+                  <div className="grid grid-cols-5 items-center gap-2 text-center text-sm">
+                    <div>
+                      <div className="font-semibold text-purple-700">
+                        Kwota netto
+                      </div>
+                      <div className="font-medium text-purple-900">
+                        -{deduction.amount.toFixed(2)} PLN
+                      </div>
                     </div>
-                    <div className="grid grid-cols-5 items-center gap-2 text-center text-sm">
-                      <div>
-                        <div className="font-semibold text-purple-700">
-                          Kwota netto
-                        </div>
-                        <div className="font-medium text-purple-900">
-                          -{deduction.amount.toFixed(2)} PLN
-                        </div>
+                    <div>
+                      <div className="font-semibold text-purple-700">
+                        Stawka VAT
                       </div>
-                      <div>
-                        <div className="font-semibold text-purple-700">
-                          Stawka VAT
-                        </div>
-                        <div className="font-medium text-purple-900">
-                          {vatLabel}
-                        </div>
+                      <div className="font-medium text-purple-900">
+                        {vatLabel}
                       </div>
-                      <div>
-                        <div className="font-semibold text-purple-700">
-                          Kwota VAT
-                        </div>
-                        <div className="font-medium text-purple-900">
-                          {vatAmount === 0
-                            ? "-"
-                            : `-${vatAmount.toFixed(2)} PLN`}
-                        </div>
+                    </div>
+                    <div>
+                      <div className="font-semibold text-purple-700">
+                        Kwota VAT
                       </div>
-                      <div>
-                        <div className="font-semibold text-purple-700">
-                          Kwota brutto
-                        </div>
-                        <div className="font-bold text-purple-900">
-                          -{grossAmount.toFixed(2)} PLN
-                        </div>
+                      <div className="font-medium text-purple-900">
+                        {vatAmount === 0 ? "-" : `-${vatAmount.toFixed(2)} PLN`}
                       </div>
-                      <div className="flex h-full items-center justify-center gap-2">
-                        <button
-                          onClick={() => onEditDeduction(deduction)}
-                          className="rounded-md bg-yellow-100 p-2 text-yellow-600 transition hover:bg-yellow-200"
-                          title="Edytuj odliczenie"
+                    </div>
+                    <div>
+                      <div className="font-semibold text-purple-700">
+                        Kwota brutto
+                      </div>
+                      <div className="font-bold text-purple-900">
+                        -{grossAmount.toFixed(2)} PLN
+                      </div>
+                    </div>
+                    <div className="flex h-full items-center justify-center gap-2">
+                      <button
+                        onClick={() => onEditDeduction(deduction)}
+                        className="rounded-md bg-yellow-100 p-2 text-yellow-600 transition hover:bg-yellow-200"
+                        title="Edytuj odliczenie"
+                      >
+                        <svg
+                          className="h-5 w-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
                         >
-                          <svg
-                            className="h-5 w-5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M15.232 5.232l3.536 3.536M9 13l6-6m2 2l-6 6m-2 2h2v2H7v-2h2zm0 0v-2H7v2h2z"
-                            />
-                          </svg>
-                        </button>
-                        <button
-                          onClick={() => onDeleteDeduction(deduction.id)}
-                          className="rounded-md bg-red-100 p-2 text-red-600 transition hover:bg-red-200"
-                          title="Usuń odliczenie"
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M15.232 5.232l3.536 3.536M9 13l6-6m2 2l-6 6m-2 2h2v2H7v-2h2zm0 0v-2H7v2h2z"
+                          />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => onDeleteDeduction(deduction.id)}
+                        className="rounded-md bg-red-100 p-2 text-red-600 transition hover:bg-red-200"
+                        title="Usuń odliczenie"
+                      >
+                        <svg
+                          className="h-5 w-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
                         >
-                          <svg
-                            className="h-5 w-5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                            />
-                          </svg>
-                        </button>
-                      </div>
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                          />
+                        </svg>
+                      </button>
                     </div>
                   </div>
-                );
-              })}
-            </div>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-              <div className="rounded-md bg-purple-100 p-3">
-                <p className="text-sm text-purple-700">
-                  Suma odliczeń (netto):
-                </p>
-                <p className="text-lg font-bold text-purple-900">
-                  -{totalAdditionalDeductions.toFixed(2)} PLN
-                </p>
-              </div>
-              <div className="rounded-md bg-purple-100 p-3">
-                <p className="text-sm text-purple-700">
-                  Suma odliczeń (brutto):
-                </p>
-                <p className="text-lg font-bold text-purple-900">
-                  -{totalAdditionalDeductionsGross.toFixed(2)} PLN
-                </p>
-              </div>
-              {/* Usunięto pole 'Pozostało:' */}
-            </div>
+                </div>
+              );
+            })}
           </div>
-        )}
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div className="rounded-md bg-purple-100 p-3">
+              <p className="text-sm text-purple-700">Suma odliczeń (netto):</p>
+              <p className="text-lg font-bold text-purple-900">
+                -{totalAdditionalDeductions.toFixed(2)} PLN
+              </p>
+            </div>
+            <div className="rounded-md bg-purple-100 p-3">
+              <p className="text-sm text-purple-700">Suma odliczeń (brutto):</p>
+              <p className="text-lg font-bold text-purple-900">
+                -{totalAdditionalDeductionsGross.toFixed(2)} PLN
+              </p>
+            </div>
+            {/* Usunięto pole 'Pozostało:' */}
+          </div>
+        </div>
+      )}
 
       {/* Dodatkowe odliczenie */}
       {additionalDeductionData.name && additionalDeductionData.amount > 0 && (
@@ -2978,6 +3032,137 @@ function OwnerPayoutCalculation({
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// Sortable Item Component for Deductions
+function SortableDeductionItem({
+  id,
+  deduction,
+  onEdit,
+  onDelete,
+}: {
+  id: string;
+  deduction: ReportDetails["additionalDeductions"][0];
+  onEdit: (deduction: ReportDetails["additionalDeductions"][0]) => void;
+  onDelete: (id: string) => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition } =
+    useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  const vatAmount =
+    deduction.vatOption === "VAT_23"
+      ? deduction.amount * 0.23
+      : deduction.vatOption === "VAT_8"
+        ? deduction.amount * 0.08
+        : 0;
+  const grossAmount = deduction.amount + vatAmount;
+  const vatLabel =
+    deduction.vatOption === "VAT_23"
+      ? "23%"
+      : deduction.vatOption === "VAT_8"
+        ? "8%"
+        : "zwolniony";
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="mb-2 flex items-center gap-2 rounded-md bg-purple-100 p-3"
+    >
+      <div
+        {...attributes}
+        {...listeners}
+        className="cursor-grab touch-none p-2"
+        title="Przeciągnij, aby zmienić kolejność"
+      >
+        <svg
+          className="h-5 w-5 text-gray-500"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path
+            fillRule="evenodd"
+            d="M5 4a1 1 0 011 1v10a1 1 0 11-2 0V5a1 1 0 011-1zm10 0a1 1 0 011 1v10a1 1 0 11-2 0V5a1 1 0 011-1zM8 5a1 1 0 10-2 0v10a1 1 0 102 0V5zm4 0a1 1 0 10-2 0v10a1 1 0 102 0V5z"
+            clipRule="evenodd"
+          />
+        </svg>
+      </div>
+      <div className="flex-grow">
+        <div className="mb-2 text-sm font-medium text-purple-900">
+          {deduction.name}
+        </div>
+        <div className="grid grid-cols-5 items-center gap-2 text-center text-sm">
+          <div>
+            <div className="font-semibold text-purple-700">Kwota netto</div>
+            <div className="font-medium text-purple-900">
+              -{deduction.amount.toFixed(2)} PLN
+            </div>
+          </div>
+          <div>
+            <div className="font-semibold text-purple-700">Stawka VAT</div>
+            <div className="font-medium text-purple-900">{vatLabel}</div>
+          </div>
+          <div>
+            <div className="font-semibold text-purple-700">Kwota VAT</div>
+            <div className="font-medium text-purple-900">
+              {vatAmount === 0 ? "-" : `-${vatAmount.toFixed(2)} PLN`}
+            </div>
+          </div>
+          <div>
+            <div className="font-semibold text-purple-700">Kwota brutto</div>
+            <div className="font-bold text-purple-900">
+              -{grossAmount.toFixed(2)} PLN
+            </div>
+          </div>
+          <div className="flex h-full items-center justify-center gap-2">
+            <button
+              onClick={() => onEdit(deduction)}
+              className="rounded-md bg-yellow-100 p-2 text-yellow-600 transition hover:bg-yellow-200"
+              title="Edytuj odliczenie"
+            >
+              <svg
+                className="h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15.232 5.232l3.536 3.536M9 13l6-6m2 2l-6 6m-2 2h2v2H7v-2h2zm0 0v-2H7v2h2z"
+                />
+              </svg>
+            </button>
+            <button
+              onClick={() => onDelete(deduction.id)}
+              className="rounded-md bg-red-100 p-2 text-red-600 transition hover:bg-red-200"
+              title="Usuń odliczenie"
+            >
+              <svg
+                className="h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
