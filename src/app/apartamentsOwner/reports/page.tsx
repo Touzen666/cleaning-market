@@ -73,7 +73,7 @@ export default function OwnerReportsPage() {
           <p className="mb-4 text-gray-600">{reportsError.message}</p>
           <button
             onClick={handleLogout}
-            className="rounded-lg bg-brand-gold px-4 py-2 text-white hover:bg-yellow-500"
+            className="bg-brand-gold rounded-lg px-4 py-2 text-white hover:bg-yellow-500"
           >
             Zaloguj się ponownie
           </button>
@@ -86,7 +86,7 @@ export default function OwnerReportsPage() {
   if (reportsLoading || !reports) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div className="h-32 w-32 animate-spin rounded-full border-b-2 border-brand-gold"></div>
+        <div className="border-brand-gold h-32 w-32 animate-spin rounded-full border-b-2"></div>
       </div>
     );
   }
@@ -96,21 +96,19 @@ export default function OwnerReportsPage() {
       {/* Header */}
       <header className="bg-white shadow-sm">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <h1 className="text-xl font-bold text-gray-900">
-                  Moje Raporty Finansowe
-                </h1>
-              </div>
+          <div className="flex h-auto min-h-[4rem] flex-col items-start justify-center py-2 sm:h-16 sm:flex-row sm:items-center sm:justify-between">
+            <div className="mb-2 flex-shrink-0 sm:mb-0">
+              <h1 className="text-xl font-bold text-gray-900">
+                Moje Raporty Finansowe
+              </h1>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center">
               <button
                 onClick={() => router.push("/apartamentsOwner/dashboard")}
-                className="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:ring-offset-2"
+                className="focus:ring-brand-gold inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2"
               >
                 <svg
-                  className="-ml-0.5 mr-1.5 h-5 w-5"
+                  className="h-5 w-5 sm:mr-1.5"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -122,7 +120,7 @@ export default function OwnerReportsPage() {
                     d="M10 19l-7-7m0 0l7-7m-7 7h18"
                   />
                 </svg>
-                Panel Główny
+                <span className="hidden sm:inline">Panel Główny</span>
               </button>
             </div>
           </div>
@@ -261,7 +259,7 @@ export default function OwnerReportsPage() {
                       <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
                         <button
                           onClick={() => handleViewReport(report.id)}
-                          className="inline-flex items-center rounded-md bg-brand-gold px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:ring-offset-2"
+                          className="bg-brand-gold focus:ring-brand-gold inline-flex items-center rounded-md px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-offset-2"
                         >
                           <svg
                             className="-ml-0.5 mr-1.5 h-4 w-4"
