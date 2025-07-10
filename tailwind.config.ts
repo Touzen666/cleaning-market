@@ -1,7 +1,8 @@
-import { type Config } from "tailwindcss";
+import type { Config } from "tailwindcss";
 import { fontFamily } from "tailwindcss/defaultTheme";
+import scrollbar from "tailwind-scrollbar";
 
-export default {
+const config: Config = {
   content: ["./src/**/*.tsx"],
   theme: {
     extend: {
@@ -13,5 +14,6 @@ export default {
       },
     },
   },
-  plugins: [],
-} satisfies Config;
+  plugins: [scrollbar],
+};
+export default config;

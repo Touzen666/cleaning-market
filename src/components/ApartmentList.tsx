@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { useRouter } from "next/navigation";
 import Image from "next/image";
 import type { RouterOutputs } from "@/trpc/react";
 
@@ -32,8 +31,6 @@ export default function ApartmentList({
   className = "",
   deletingApartmentId = null,
 }: ApartmentListProps) {
-  const router = useRouter();
-
   const getPrimaryImage = (apartment: Apartment) => {
     if (!apartment.images || apartment.images.length === 0) {
       return null;
@@ -294,34 +291,6 @@ export default function ApartmentList({
                   )}
                 </>
               )}
-
-              {mode === "public" && (
-                <button
-                  onClick={() => router.push(`/apartments/${apartment.slug}`)}
-                  className="inline-flex w-full items-center justify-center rounded-md bg-brand-gold px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:ring-offset-2"
-                >
-                  <svg
-                    className="-ml-0.5 mr-1.5 h-4 w-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                    />
-                  </svg>
-                  Zobacz szczegóły
-                </button>
-              )}
             </div>
           )}
         </div>
@@ -336,7 +305,6 @@ export default function ApartmentList({
       <tr key={apartment.id} className="hover:bg-gray-50">
         <td className="px-6 py-4 text-sm text-gray-900">
           <div className="flex items-center space-x-4">
-            {/* Zdjęcie apartamentu */}
             <div className="flex-shrink-0">
               <div className="relative h-16 w-16 overflow-hidden rounded-lg bg-gray-100">
                 {primaryImage ? (
@@ -346,11 +314,6 @@ export default function ApartmentList({
                     fill
                     className="object-cover"
                     sizes="64px"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.src =
-                        "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial' font-size='10' fill='%236b7280'%3EBrak zdjęcia%3C/text%3E%3C/svg%3E";
-                    }}
                   />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center">
@@ -364,15 +327,13 @@ export default function ApartmentList({
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth={2}
-                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 002 2z"
+                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                       />
                     </svg>
                   </div>
                 )}
               </div>
             </div>
-
-            {/* Informacje o apartamencie */}
             <div>
               <div className="font-medium">{apartment.name}</div>
             </div>
@@ -385,20 +346,9 @@ export default function ApartmentList({
           <div className="text-sm text-gray-900">{apartment.slug}</div>
         </td>
         <td className="whitespace-nowrap px-4 py-4 text-sm text-gray-500">
-          {apartment.reservations > 0 ? (
-            <button
-              onClick={() =>
-                router.push(
-                  `/admin/reservations-list?apartmentId=${apartment.id}`,
-                )
-              }
-              className="inline-flex items-center rounded-md bg-blue-100 px-2.5 py-1.5 text-sm font-semibold text-blue-800 hover:bg-blue-200"
-            >
-              {apartment.reservations} Reservation(s)
-            </button>
-          ) : (
-            <span className="text-gray-400">0</span>
-          )}
+          <button className="inline-flex items-center rounded-md bg-blue-100 px-2.5 py-1.5 text-sm font-semibold text-blue-800 hover:bg-blue-200">
+            {apartment.reservations} Reservation(s)
+          </button>
         </td>
         {showActions && (
           <td className="whitespace-nowrap px-4 py-4 text-right text-sm font-medium">
@@ -408,7 +358,7 @@ export default function ApartmentList({
                   {onEdit && (
                     <button
                       onClick={() => onEdit(apartment.id)}
-                      className="inline-flex items-center rounded-md bg-brand-gold px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:ring-offset-2"
+                      className="inline-flex items-center rounded-md bg-yellow-500 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2"
                     >
                       <svg
                         className="-ml-0.5 mr-1.5 h-4 w-4"
@@ -429,22 +379,12 @@ export default function ApartmentList({
                   {onDelete && (
                     <button
                       onClick={() => onDelete(apartment.id)}
-                      className="inline-flex items-center rounded-md bg-brand-gold px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:ring-offset-2"
+                      disabled={deletingApartmentId === apartment.id}
+                      className="inline-flex items-center rounded-md bg-red-500 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      <svg
-                        className="-ml-0.5 mr-1.5 h-4 w-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                        />
-                      </svg>
-                      Usuń
+                      {deletingApartmentId === apartment.id
+                        ? "Usuwanie..."
+                        : "Usuń"}
                     </button>
                   )}
                 </>
@@ -468,7 +408,7 @@ export default function ApartmentList({
                           strokeLinejoin="round"
                           strokeWidth={2}
                           d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                        ></path>
+                        />
                       </svg>
                       Rezerwacje
                     </button>
@@ -489,7 +429,7 @@ export default function ApartmentList({
                           strokeLinejoin="round"
                           strokeWidth={2}
                           d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                        ></path>
+                        />
                       </svg>
                       Raporty
                     </button>
@@ -596,7 +536,7 @@ export default function ApartmentList({
 
   return (
     <div
-      className={`overflow-hidden rounded-lg border border-gray-200 ${className}`}
+      className={`scrollbar-thin scrollbar-track-gray-100 scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400 overflow-x-auto rounded-lg border border-gray-200 ${className}`}
     >
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">

@@ -6,7 +6,7 @@ import {
     createButtonSection
 } from '../components';
 
-export const createWelcomeEmailWithPasswordTemplate = (ownerName: string, temporaryPassword: string, baseUrl: string) => {
+export const createWelcomeEmailWithPasswordTemplate = (ownerName: string, temporaryPassword: string, _baseUrl: string) => {
     const welcomeMessage = `Miło nam powitać Cię w gronie właścicieli apartamentów współpracujących z firmą <strong>Złote Wynajmy - Apartamenty z Klasą</strong>!<br><br>Twój profil został pomyślnie utworzony w naszym systemie zarządzania. Oto Twoje dane dostępowe:`;
 
     const features = [
@@ -23,7 +23,7 @@ export const createWelcomeEmailWithPasswordTemplate = (ownerName: string, tempor
         ${createButtonSection(
         'Zaloguj się do swojego Panelu Właściciela:',
         '🚀 Przejdź do panelu',
-        `${baseUrl}/apartamentsOwner/login`
+        `https://app.zlote-wynajmy.pl/apartamentsOwner/login`
     )}
     `;
 
