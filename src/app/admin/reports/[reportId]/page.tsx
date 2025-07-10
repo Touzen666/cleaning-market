@@ -76,11 +76,23 @@ export default function ReportDetailsPage({
     vatOption: VATOption.NO_VAT,
   });
 
+  const [editingDeduction, setEditingDeduction] = useState<
+    RouterOutputs["monthlyReports"]["getById"]["additionalDeductions"][0] | null
+  >(null);
+
   // Dodaj mutację
   const updateRentUtilitiesMutation =
     api.monthlyReports.updateRentAndUtilities.useMutation({
       onSuccess: () => {
         void reportQuery.refetch();
+      },
+    });
+
+  const updateAdditionalDeductionMutation =
+    api.monthlyReports.updateAdditionalDeduction.useMutation({
+      onSuccess: () => {
+        void reportQuery.refetch();
+        setEditingDeduction(null);
       },
     });
 
@@ -189,6 +201,21 @@ export default function ReportDetailsPage({
       } catch (error) {
         console.error("Error deleting additional deduction:", error);
       }
+    }
+  };
+
+  const handleUpdateAdditionalDeduction = async () => {
+    if (!editingDeduction) return;
+
+    try {
+      await updateAdditionalDeductionMutation.mutateAsync({
+        deductionId: editingDeduction.id,
+        name: editingDeduction.name,
+        amount: editingDeduction.amount,
+        vatOption: editingDeduction.vatOption,
+      });
+    } catch (error) {
+      console.error("Error updating additional deduction:", error);
     }
   };
 
@@ -373,6 +400,7 @@ export default function ReportDetailsPage({
       amount: number;
       date: Date;
       notes: string;
+      totalRevenue?: number;
     },
     index: number,
   ) => {
@@ -380,14 +408,38 @@ export default function ReportDetailsPage({
       setLoadingCommissionIndex(index);
       await addItemMutation.mutateAsync({
         reportId: reportId,
-        ...suggestion,
+        type: suggestion.type,
+        category: suggestion.category,
+        description: suggestion.description,
+        amount: suggestion.amount,
+        date: suggestion.date,
+        notes: suggestion.notes,
       });
+
       // Refetch suggestions after adding
       void suggestedCommissionsQuery.refetch();
     } catch (error) {
       console.error("Error adding suggested commission:", error);
     } finally {
       setLoadingCommissionIndex(null);
+    }
+  };
+
+  const addDiscountMutation =
+    api.monthlyReports.addReservationDiscount.useMutation({
+      onSuccess: () => {
+        void reportQuery.refetch();
+      },
+      onError: (error) => {
+        alert(`Błąd podczas dodawania rabatu: ${error.message}`);
+      },
+    });
+
+  const handleAddDiscount = (reservationId: number) => {
+    if (
+      confirm("Czy na pewno chcesz dodać rabat 10% (+VAT) dla tej rezerwacji?")
+    ) {
+      addDiscountMutation.mutate({ reportId, reservationId });
     }
   };
 
@@ -628,6 +680,87 @@ export default function ReportDetailsPage({
             </div>
           </div>
         </div>
+        {editingDeduction && (
+          <Modal onClose={() => setEditingDeduction(null)}>
+            <div className="p-6">
+              <h3 className="mb-4 text-lg font-medium text-gray-900">
+                Edytuj odliczenie
+              </h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Nazwa odliczenia
+                  </label>
+                  <input
+                    type="text"
+                    value={editingDeduction.name}
+                    onChange={(e) =>
+                      setEditingDeduction({
+                        ...editingDeduction,
+                        name: e.target.value,
+                      })
+                    }
+                    className="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 shadow-sm focus:border-purple-500 focus:outline-none focus:ring-purple-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Kwota netto (PLN)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={editingDeduction.amount}
+                    onChange={(e) =>
+                      setEditingDeduction({
+                        ...editingDeduction,
+                        amount: parseFloat(e.target.value) || 0,
+                      })
+                    }
+                    className="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 shadow-sm focus:border-purple-500 focus:outline-none focus:ring-purple-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Stawka VAT
+                  </label>
+                  <select
+                    value={editingDeduction.vatOption}
+                    onChange={(e) =>
+                      setEditingDeduction({
+                        ...editingDeduction,
+                        vatOption: e.target.value as VATOption,
+                      })
+                    }
+                    className="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 shadow-sm focus:border-purple-500 focus:outline-none focus:ring-purple-500"
+                  >
+                    <option value={VATOption.NO_VAT}>Bez VAT (0%)</option>
+                    <option value={VATOption.VAT_8}>VAT 8%</option>
+                    <option value={VATOption.VAT_23}>VAT 23%</option>
+                  </select>
+                </div>
+              </div>
+              <div className="mt-6 flex justify-end gap-3">
+                <button
+                  onClick={() => setEditingDeduction(null)}
+                  className="rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300"
+                >
+                  Anuluj
+                </button>
+                <button
+                  onClick={handleUpdateAdditionalDeduction}
+                  className="rounded-md bg-purple-600 px-4 py-2 text-white hover:bg-purple-700"
+                  disabled={updateAdditionalDeductionMutation.isPending}
+                >
+                  {updateAdditionalDeductionMutation.isPending
+                    ? "Zapisywanie..."
+                    : "Zapisz zmiany"}
+                </button>
+              </div>
+            </div>
+          </Modal>
+        )}
         {showDeleteModal && (
           <Modal onClose={() => setShowDeleteModal(false)}>
             <div className="p-6">
@@ -998,6 +1131,9 @@ export default function ReportDetailsPage({
                       <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                         Kategoria
                       </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                        Akcje
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 bg-white">
@@ -1017,15 +1153,16 @@ export default function ReportDetailsPage({
                         </td>
                         <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
                           {item.reservation
-                            ? new Date(item.reservation.start).toLocaleString(
-                                "pl-PL",
-                              )
+                            ? new Date(
+                                item.reservation.start,
+                              ).toLocaleDateString("pl-PL", { timeZone: "UTC" })
                             : "-"}
                         </td>
                         <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
                           {item.reservation
-                            ? new Date(item.reservation.end).toLocaleString(
+                            ? new Date(item.reservation.end).toLocaleDateString(
                                 "pl-PL",
+                                { timeZone: "UTC" },
                               )
                             : "-"}
                         </td>
@@ -1058,6 +1195,20 @@ export default function ReportDetailsPage({
                           >
                             {item.category}
                           </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          {item.reservation?.source?.toLowerCase() ===
+                            "airbnb" && (
+                            <button
+                              onClick={() =>
+                                handleAddDiscount(item.reservation!.id)
+                              }
+                              className="rounded bg-orange-100 px-2 py-1 text-xs font-medium text-orange-700 hover:bg-orange-200 disabled:opacity-50"
+                              disabled={addDiscountMutation.isPending}
+                            >
+                              Dodaj Rabat 10%
+                            </button>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -1124,7 +1275,9 @@ export default function ReportDetailsPage({
                     {expenseItems.map((item) => (
                       <tr key={item.id}>
                         <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
-                          {new Date(item.date).toLocaleDateString("pl-PL")}
+                          {new Date(item.date).toLocaleDateString("pl-PL", {
+                            timeZone: "UTC",
+                          })}
                         </td>
                         <td className="px-6 py-4">
                           <span
@@ -1138,7 +1291,7 @@ export default function ReportDetailsPage({
                         <td className="px-6 py-4 text-sm text-gray-900">
                           {item.category}
                         </td>
-                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                        <td className="px-3 py-4 text-sm text-gray-500">
                           <div className="font-medium text-gray-900">
                             {item.description}
                           </div>
@@ -1147,15 +1300,19 @@ export default function ReportDetailsPage({
                               Rezerwacja:{" "}
                               {new Date(
                                 item.reservation.start,
-                              ).toLocaleDateString()}{" "}
+                              ).toLocaleDateString("pl-PL", {
+                                timeZone: "UTC",
+                              })}{" "}
                               -{" "}
                               {new Date(
                                 item.reservation.end,
-                              ).toLocaleDateString()}
+                              ).toLocaleDateString("pl-PL", {
+                                timeZone: "UTC",
+                              })}
                             </div>
                           )}
                           {item.notes && (
-                            <div className="text-xs italic text-gray-400">
+                            <div className="max-w-sm text-xs italic text-gray-400">
                               {item.notes}
                             </div>
                           )}
@@ -1163,7 +1320,7 @@ export default function ReportDetailsPage({
                         <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-red-600">
                           -{item.amount.toFixed(2)} {item.currency}
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-500">
+                        <td className="max-w-sm whitespace-normal px-6 py-4 text-sm text-gray-500">
                           {item.notes ?? "-"}
                         </td>
                       </tr>
@@ -1385,9 +1542,7 @@ export default function ReportDetailsPage({
                               </div>
                               <div className="flex h-full items-center justify-center gap-2">
                                 <button
-                                  onClick={() =>
-                                    alert("Edycja wkrótce dostępna")
-                                  }
+                                  onClick={() => setEditingDeduction(deduction)}
                                   className="rounded-md bg-yellow-100 p-2 text-yellow-600 transition hover:bg-yellow-200"
                                   title="Edytuj odliczenie"
                                 >
@@ -1596,6 +1751,7 @@ export default function ReportDetailsPage({
               onRefetch={() => void reportQuery.refetch()}
               additionalDeductionData={additionalDeductionData}
               onDeleteDeduction={handleDeleteDeduction}
+              onEditDeduction={setEditingDeduction}
             />
           </div>
         </div>
@@ -1881,22 +2037,49 @@ function SuggestedCommissionsSection({
       amount: number;
       date: Date;
       notes: string;
+      totalRevenue?: number;
     },
     index: number,
   ) => Promise<void>;
   loadingIndex: number | null;
 }) {
-  const [percentages, setPercentages] = useState<Record<number, string>>({});
+  const [percentages, setPercentages] = useState<Record<string, string>>({});
 
-  const handlePercentageChange = (index: number, value: string) => {
-    setPercentages((prev) => ({ ...prev, [index]: value }));
+  useEffect(() => {
+    const defaultPercentages: Record<string, string> = {};
+    suggestions.forEach((suggestion) => {
+      const categoryLower = suggestion.category.toLowerCase();
+      if (categoryLower === "airbnb") {
+        defaultPercentages[suggestion.category] = "15";
+      } else if (categoryLower.startsWith("booking")) {
+        defaultPercentages[suggestion.category] = "12";
+      }
+    });
+    setPercentages((prev) => ({ ...defaultPercentages, ...prev }));
+  }, [suggestions]);
+
+  const handlePercentageChange = (channel: string, value: string) => {
+    setPercentages((prev) => ({ ...prev, [channel]: value }));
   };
 
   const calculateCommissionAmount = (
     totalRevenue: number,
     percentage: number,
+    channel: string,
   ): number => {
-    return (totalRevenue * percentage) / 100;
+    const categoryLower = channel.toLowerCase();
+    const commission = (totalRevenue * percentage) / 100;
+
+    if (categoryLower === "airbnb") {
+      return commission * 1.23; // Dodaj 23% VAT
+    }
+
+    if (categoryLower.startsWith("booking")) {
+      const transactionFee = totalRevenue * 0.016; // 1.6% opłaty transakcyjnej
+      return commission + transactionFee;
+    }
+
+    return commission;
   };
 
   const handleAddClick = (
@@ -1910,39 +2093,39 @@ function SuggestedCommissionsSection({
     },
     index: number,
   ) => {
-    const percentage = parseFloat(percentages[index] ?? "0");
+    const percentage = parseFloat(percentages[suggestion.category] ?? "0");
     if (!isNaN(percentage) && percentage > 0 && suggestion.totalRevenue) {
       const amount = calculateCommissionAmount(
         suggestion.totalRevenue,
         percentage,
+        suggestion.category,
       );
+
+      let notes = `${suggestion.notes} - ${percentage}% od ${suggestion.totalRevenue.toFixed(2)} PLN`;
+      const categoryLower = suggestion.category.toLowerCase();
+
+      if (categoryLower === "airbnb") {
+        const commissionNet = (suggestion.totalRevenue * percentage) / 100;
+        const vat = commissionNet * 0.23;
+        notes = `Prowizja Airbnb (netto): ${commissionNet.toFixed(2)} PLN (${percentage}%) + VAT (23%): ${vat.toFixed(2)} PLN.`;
+      } else if (categoryLower.startsWith("booking")) {
+        const commissionGross = amount;
+        const commissionNet = commissionGross / 1.08;
+        const vat = commissionGross - commissionNet;
+        const standardCommissionValue =
+          (suggestion.totalRevenue * percentage) / 100;
+        const transactionFeeValue = suggestion.totalRevenue * 0.016;
+        notes = `Prowizja Booking (brutto): ${commissionGross.toFixed(2)} PLN. Składowe: Prowizja (${percentage}%): ${standardCommissionValue.toFixed(2)} PLN + Opłata transakcyjna (1.6%): ${transactionFeeValue.toFixed(2)} PLN. W kwocie brutto zawarty jest VAT (8%): ${vat.toFixed(2)} PLN. Kwota netto: ${commissionNet.toFixed(2)} PLN.`;
+      }
+
       void onAddCommission(
         {
           ...suggestion,
           amount,
-          notes: `${suggestion.notes} - ${percentage}% od ${suggestion.totalRevenue.toFixed(2)} PLN`,
+          notes: notes,
         },
         index,
       );
-      // Clear the input after successful add
-      setPercentages((prev) => ({ ...prev, [index]: "" }));
-    }
-  };
-
-  const handleKeyDown = (
-    e: React.KeyboardEvent,
-    suggestion: {
-      type: "COMMISSION";
-      category: string;
-      description: string;
-      date: Date;
-      notes: string;
-      totalRevenue?: number;
-    },
-    index: number,
-  ) => {
-    if (e.key === "Enter") {
-      handleAddClick(suggestion, index);
     }
   };
 
@@ -1972,10 +2155,24 @@ function SuggestedCommissionsSection({
       <div className="border-t border-blue-200 bg-white">
         <div className="divide-y divide-gray-200">
           {suggestions.map((suggestion, index) => {
-            const percentage = parseFloat(percentages[index] ?? "0");
+            const categoryLower = suggestion.category.toLowerCase();
+            const isAirbnb = categoryLower === "airbnb";
+            const isBooking = categoryLower.startsWith("booking");
+
+            const percentage = parseFloat(
+              percentages[suggestion.category] ?? "0",
+            );
             const calculatedAmount =
               suggestion.totalRevenue && percentage > 0
-                ? calculateCommissionAmount(suggestion.totalRevenue, percentage)
+                ? calculateCommissionAmount(
+                    suggestion.totalRevenue,
+                    percentage,
+                    suggestion.category,
+                  )
+                : 0;
+            const transactionFeeDisplay =
+              isBooking && suggestion.totalRevenue
+                ? suggestion.totalRevenue * 0.016
                 : 0;
 
             return (
@@ -2008,9 +2205,23 @@ function SuggestedCommissionsSection({
                         Przychód z kanału: {suggestion.totalRevenue?.toFixed(2)}{" "}
                         PLN
                       </p>
+                      {transactionFeeDisplay > 0 && (
+                        <p className="text-sm text-gray-500">
+                          Opłata transakcyjna (1.6%):{" "}
+                          {transactionFeeDisplay.toFixed(2)} PLN
+                        </p>
+                      )}
                       {calculatedAmount > 0 && (
                         <p className="text-sm font-medium text-blue-600">
-                          Prowizja: {calculatedAmount.toFixed(2)} PLN
+                          Prowizja (brutto): {calculatedAmount.toFixed(2)} PLN
+                          {isAirbnb && " (z 23% VAT)"}
+                          {isBooking &&
+                            " (z wliczonym 8% VAT i opłatą transakcyjną 1.6%)"}
+                        </p>
+                      )}
+                      {isAirbnb && (
+                        <p className="text-xs italic text-gray-500">
+                          Rabat 10% + 23% VAT
                         </p>
                       )}
                     </div>
@@ -2024,11 +2235,18 @@ function SuggestedCommissionsSection({
                       step="0.1"
                       min="0"
                       max="100"
-                      value={percentages[index] ?? ""}
+                      value={percentages[suggestion.category] ?? ""}
                       onChange={(e) =>
-                        handlePercentageChange(index, e.target.value)
+                        handlePercentageChange(
+                          suggestion.category,
+                          e.target.value,
+                        )
                       }
-                      onKeyDown={(e) => handleKeyDown(e, suggestion, index)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          handleAddClick(suggestion, index);
+                        }
+                      }}
                       className="w-16 rounded-md border-gray-300 px-2 py-1 text-sm"
                       disabled={loadingIndex === index}
                     />
@@ -2038,8 +2256,9 @@ function SuggestedCommissionsSection({
                     onClick={() => handleAddClick(suggestion, index)}
                     disabled={
                       loadingIndex === index ||
-                      !percentages[index] ||
-                      parseFloat(percentages[index] ?? "0") <= 0 ||
+                      !percentages[suggestion.category] ||
+                      parseFloat(percentages[suggestion.category] ?? "0") <=
+                        0 ||
                       !suggestion.totalRevenue
                     }
                     className="inline-flex items-center rounded-md bg-blue-600 px-3 py-1 text-xs font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
@@ -2094,6 +2313,7 @@ function OwnerPayoutCalculation({
   onRefetch,
   additionalDeductionData,
   onDeleteDeduction,
+  onEditDeduction,
 }: {
   report: ReportDetails;
   onRefetch: () => void;
@@ -2103,6 +2323,9 @@ function OwnerPayoutCalculation({
     vatOption: VATOption;
   };
   onDeleteDeduction: (deductionId: string) => Promise<void>;
+  onEditDeduction: (
+    deduction: NonNullable<ReportDetails>["additionalDeductions"][number],
+  ) => void;
 }) {
   const [deductRentAndUtilities, setDeductRentAndUtilities] =
     React.useState(true);
@@ -2371,7 +2594,7 @@ function OwnerPayoutCalculation({
                       </div>
                       <div className="flex h-full items-center justify-center gap-2">
                         <button
-                          onClick={() => alert("Edycja wkrótce dostępna")}
+                          onClick={() => onEditDeduction(deduction)}
                           className="rounded-md bg-yellow-100 p-2 text-yellow-600 transition hover:bg-yellow-200"
                           title="Edytuj odliczenie"
                         >

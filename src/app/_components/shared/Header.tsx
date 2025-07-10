@@ -29,7 +29,7 @@ export default function Header() {
             alt="Złote Wynajmy logo"
             width={360}
             height={96}
-            style={{ objectFit: "contain" }}
+            style={{ objectFit: "contain", width: "auto" }}
             priority
           />
         </div>
@@ -96,7 +96,7 @@ export function HeaderAdmin() {
             alt="Złote Wynajmy logo"
             width={360}
             height={96}
-            style={{ objectFit: "contain" }}
+            style={{ objectFit: "contain", width: "auto" }}
             priority
           />
         </div>
@@ -155,7 +155,7 @@ export function HeaderOwner() {
             alt="Złote Wynajmy logo"
             width={360}
             height={96}
-            style={{ objectFit: "contain" }}
+            style={{ objectFit: "contain", width: "auto" }}
             priority
           />
         </div>

@@ -1,14 +1,20 @@
-import {db} from "@/server/db";
-
-
-
+import { db } from "@/server/db";
+import { UserType } from "@prisma/client";
 
 async function main() {
+    const adminUser = await db.user.create({
+        data: {
+            name: "Admin",
+            email: "admin@example.com",
+            type: UserType.ADMIN,
+        },
+    });
+
     await db.post.create({
         data: {
-            title: 'tytuł1',
-            createdBy: {connect: {id: 'cm7gl1y0j0000vbfrlqbdvd7x'}},
-        }
+            title: "tytuł1",
+            createdBy: { connect: { id: adminUser.id } },
+        },
     });
 }
 

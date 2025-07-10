@@ -1,48 +1,39 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
   provider  = "postgresql"
-  // NOTE: When using mysql or sqlserver, uncomment the @db.Text annotations in model Account below
-  // Further reading:
-  // https://next-auth.js.org/adapters/prisma#create-the-prisma-schema
-  // https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference#string
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
 model Post {
-  id        Int      @id @default(autoincrement())
-  title     String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  createdBy   User   @relation(fields: [createdById], references: [id])
+  id          Int      @id @default(autoincrement())
+  title       String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
   createdById String
+  createdBy   User     @relation(fields: [createdById], references: [id])
 
   @@index([title])
 }
 
-// Necessary for Next auth
 model Account {
   id                       String  @id @default(cuid())
   userId                   String
   type                     String
   provider                 String
   providerAccountId        String
-  refresh_token            String? // @db.Text
-  access_token             String? // @db.Text
+  refresh_token            String?
+  access_token             String?
   expires_at               Int?
   token_type               String?
   scope                    String?
-  id_token                 String? // @db.Text
+  id_token                 String?
   session_state            String?
-  user                     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   refresh_token_expires_in Int?
+  user                     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
@@ -63,36 +54,22 @@ model Session {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-enum UserType {
-  ADMIN
-  UNKNOWN
-  GUEST
-  OWNER
-  CLEANER
-}
-
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  accounts      Account[]
-  sessions      Session[]
-  posts         Post[]
-  type          UserType  @default(UNKNOWN)
-  
-  // Relations to apartment owners (admin functionality)
-  createdOwners         ApartmentOwner[]      @relation("AdminCreatedOwners")
-  assignedOwnerships    ApartmentOwnership[]  @relation("AdminAssignedOwnerships")
-  
-  // Relations to monthly reports (admin functionality)
-  createdReports        MonthlyReport[]       @relation("AdminCreatedReports")
-  approvedReports       MonthlyReport[]       @relation("AdminApprovedReports")
-  reportHistoryActions  ReportHistory[]       @relation("AdminReportHistory")
-  
-  // Relations to owner notes (admin functionality)
-  createdOwnerNotes     OwnerNote[]           @relation("AdminCreatedNotes")
+  id                   String               @id @default(cuid())
+  name                 String?
+  email                String?              @unique
+  emailVerified        DateTime?
+  image                String?
+  type                 UserType             @default(UNKNOWN)
+  accounts             Account[]
+  createdOwners        ApartmentOwner[]     @relation("AdminCreatedOwners")
+  assignedOwnerships   ApartmentOwnership[] @relation("AdminAssignedOwnerships")
+  approvedReports      MonthlyReport[]      @relation("AdminApprovedReports")
+  createdReports       MonthlyReport[]      @relation("AdminCreatedReports")
+  createdOwnerNotes    OwnerNote[]          @relation("AdminCreatedNotes")
+  posts                Post[]
+  reportHistoryActions ReportHistory[]      @relation("AdminReportHistory")
+  sessions             Session[]
 }
 
 model VerificationToken {
@@ -104,13 +81,12 @@ model VerificationToken {
 }
 
 model Reservation {
-  id            Int      @id @default(autoincrement())
   source        String
-  createDate    DateTime @db.Date
-  guest         String // Name of the person who made the reservation
+  createDate    DateTime     @db.Date
+  guest         String
   start         DateTime
   end           DateTime
-  apartmentName String 
+  apartmentName String
   address       String
   status        String
   payment       String
@@ -118,210 +94,260 @@ model Reservation {
   currency      String
   adults        Int?
   children      Int?
-
-  // Pola do śledzenia importu CSV
-  importSource  String?  // np. 'csv'
+  importSource  String?
   importBatchId String?
-
-  apartmentId Int?
-  apartment   Apartment? @relation(fields: [apartmentId], references: [id])
-
-  // A reservation can have multiple check-in cards if multiple guests check in under it,
-  // or if the person checking in isn't the primary booker.
-  checkInCards  CheckInCard[]
-  
-  // Relations to monthly reports
+  id            Int          @id @default(autoincrement())
+  apartmentId   Int?
+  idobookingId  Int?         @unique
+  checkInCards  CheckInCard?
   reportItems   ReportItem[]
-
-  // Dodaj pole do łączenia z idobooking  
-  idobookingId        Int?     @unique
+  rateCorrection Float?
+  apartment     Apartment?   @relation(fields: [apartmentId], references: [id])
 }
 
 model Apartment {
-  id               Int               @id @default(autoincrement())
-  name             String            @unique
-  slug             String            @unique // New unique identifier for apartments
-  address          String
-  reservations     Reservation[]
-  leadApplications LeadApplication[]
-  
-  // Relations to ownership
-  ownerships       ApartmentOwnership[]
-  
-  // Relations to monthly reports
-  monthlyReports   MonthlyReport[]
-  
-  // Nowe pola dla ustawień apartamentu
-  defaultRentAmount      Float?   @default(0)    // Domyślny czynsz miesięczny
-  defaultUtilitiesAmount Float?   @default(0)    // Domyślne media miesięczne
-  hasBalcony            Boolean  @default(false) // Czy ma balkon
-  hasParking            Boolean  @default(false) // Czy ma parking
-  maxGuests             Int?     @default(4)     // Maksymalna liczba gości
-
-  // Zdjęcia apartamentu
-  images              ApartmentImage[]
-  
-  // Dodaj pole do łączenia z idobooking
-  idobookingId        Int?     @unique
-
-  // Pola do śledzenia importu CSV
-  importSource     String?  // np. 'csv'
-  importBatchId    String?
+  name                   String               @unique
+  slug                   String               @unique
+  address                String
+  defaultRentAmount      Float?               @default(0)
+  defaultUtilitiesAmount Float?               @default(0)
+  hasBalcony             Boolean              @default(false)
+  hasParking             Boolean              @default(false)
+  maxGuests              Int?                 @default(4)
+  importSource           String?
+  importBatchId          String?
+  id                     Int                  @id @default(autoincrement())
+  idobookingId           Int?                 @unique
+  images                 ApartmentImage[]
+  ownerships             ApartmentOwnership[]
+  leadApplications       LeadApplication[]
+  monthlyReports         MonthlyReport[]
+  reservations           Reservation[]
 }
 
 model ApartmentImage {
   id          String    @id @default(uuid())
+  url         String
+  alt         String?
+  isPrimary   Boolean   @default(false)
+  order       Int       @default(0)
+  createdAt   DateTime  @default(now())
   apartmentId Int
   apartment   Apartment @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
-  url         String    // URL do zdjęcia
-  alt         String?   // Opis alternatywny
-  isPrimary   Boolean   @default(false) // Czy to główne zdjęcie
-  order       Int       @default(0)     // Kolejność wyświetlania
-  createdAt   DateTime  @default(now())
-  
+
   @@index([apartmentId])
 }
 
 model LeadApplication {
-  id        String   @id @default(uuid())
-  name      String
-  surname   String
-  phone     String
-  email     String
-  message   String?
-  createdAt DateTime @default(now())
-
-  // Optional relation to an apartment (future guest booking or interest)
+  id          String     @id @default(uuid())
+  name        String
+  surname     String
+  phone       String
+  email       String
+  message     String?
+  createdAt   DateTime   @default(now())
   apartmentId Int?
   apartment   Apartment? @relation(fields: [apartmentId], references: [id])
 }
 
 model CheckInCard {
-  id        String   @id @default(uuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Personal Details of the person checking in
-  firstName        String
-  lastName         String
-  dateOfBirth      DateTime @db.Date
-  nationality      String
-  documentType     String
-  documentNumber   String
-
-  // Booking Holder Details (if different from the guest checking in)
-  bookingHolderFirstName String? // Optional: Name of the person who made the booking
-  bookingHolderLastName  String? // Optional: Last name of the person who made the booking
-  isDifferentGuest       Boolean @default(false) // Was the booking made by a different person?
-
-  // Guest Address
-  addressStreet    String
-  addressCity      String
-  addressZipCode   String
-  addressCountry   String
-
-  // Information used for lookup and context
-  submittedApartmentIdentifier String   // e.g., "przytulny-paris"
-  checkInDate                DateTime @db.Date // The date this check-in is for
-  isPrimaryGuest             Boolean  // Is this the person who booked the reservation?
-  actualCheckInTime          DateTime? // Actual time the guest performed the online check-in
-
-  // Link to a Reservation if one is matched
-  reservationId    Int?        
-  reservation      Reservation? @relation(fields: [reservationId], references: [id])
-
-  // Guest sessions for this check-in
-  guestSessions    GuestSession[]
-  @@unique([reservationId])
-  // @@unique([submittedApartmentIdentifier, checkInDate], name: "apartmentDayUnique")
+  id                           String         @id @default(uuid())
+  createdAt                    DateTime       @default(now())
+  updatedAt                    DateTime       @updatedAt
+  firstName                    String
+  lastName                     String
+  dateOfBirth                  DateTime       @db.Date
+  nationality                  String
+  documentType                 String
+  documentNumber               String
+  bookingHolderFirstName       String?
+  bookingHolderLastName        String?
+  isDifferentGuest             Boolean        @default(false)
+  addressStreet                String
+  addressCity                  String
+  addressZipCode               String
+  addressCountry               String
+  submittedApartmentIdentifier String
+  checkInDate                  DateTime       @db.Date
+  isPrimaryGuest               Boolean
+  actualCheckInTime            DateTime?
+  reservationId                Int?           @unique
+  reservation                  Reservation?   @relation(fields: [reservationId], references: [id])
+  guestSessions                GuestSession[]
 }
 
 model GuestSession {
-  id                String   @id @default(uuid())
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  expiresAt         DateTime
-  lastActivity      DateTime @default(now())
-  
-  // Session metadata
-  apartmentSlug     String
-  isActive          Boolean  @default(true)
-  
-  // Link to check-in card
-  checkInCardId     String
-  checkInCard       CheckInCard @relation(fields: [checkInCardId], references: [id], onDelete: Cascade)
-  
+  id            String      @id @default(uuid())
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  expiresAt     DateTime
+  lastActivity  DateTime    @default(now())
+  apartmentSlug String
+  isActive      Boolean     @default(true)
+  checkInCardId String
+  checkInCard   CheckInCard @relation(fields: [checkInCardId], references: [id], onDelete: Cascade)
+
   @@index([apartmentSlug, isActive])
   @@index([expiresAt])
 }
 
 model ApartmentOwner {
-  id                    String   @id @default(uuid())
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-  
-  // Basic info
-  email                 String   @unique
-  firstName             String
-  lastName              String
-  phone                 String?
-  
-  // Authentication
-  passwordHash          String?   // Will be null until owner sets their password
-  temporaryPassword     String?   // Generated by admin, expires after first use
-  temporaryPasswordExpiresAt DateTime? // When temp password expires
-  isFirstLogin          Boolean  @default(true) // Flag to force password change
-  
-  // Payment configuration
-  paymentType           PaymentType @default(COMMISSION) // Commission or fixed amount
-  fixedPaymentAmount    Decimal?    // Monthly fixed payment amount (only for FIXED_AMOUNT type)
-  vatOption             VATOption   @default(NO_VAT)     // VAT configuration for owner payments
-  
-  // Status
-  isActive              Boolean  @default(true)
-  lastLoginAt           DateTime?
-  
-  // Admin who created this owner
-  createdByAdminId      String
-  createdByAdmin        User     @relation("AdminCreatedOwners", fields: [createdByAdminId], references: [id])
-  
-  // Relations to apartments they manage
-  ownedApartments       ApartmentOwnership[]
-  
-  // Relations to monthly reports
-  monthlyReports        MonthlyReport[]
-  
-  // Relations to notes
-  notes                 OwnerNote[]
-  
-  // Security and Authentication
-  resetPasswordToken         String?
+  id                          String               @id @default(uuid())
+  createdAt                   DateTime             @default(now())
+  updatedAt                   DateTime             @updatedAt
+  email                       String               @unique
+  firstName                   String
+  lastName                    String
+  phone                       String?
+  passwordHash                String?
+  temporaryPassword           String?
+  temporaryPasswordExpiresAt  DateTime?
+  isFirstLogin                Boolean              @default(true)
+  paymentType                 PaymentType          @default(COMMISSION)
+  fixedPaymentAmount          Decimal?
+  vatOption                   VATOption            @default(NO_VAT)
+  isActive                    Boolean              @default(true)
+  lastLoginAt                 DateTime?
+  createdByAdminId            String
+  resetPasswordToken          String?
   resetPasswordTokenExpiresAt DateTime?
-  
+  createdByAdmin              User                 @relation("AdminCreatedOwners", fields: [createdByAdminId], references: [id])
+  ownedApartments             ApartmentOwnership[]
+  monthlyReports              MonthlyReport[]
+  notes                       OwnerNote[]
+
   @@index([email])
   @@index([isActive])
 }
 
 model ApartmentOwnership {
-  id           String   @id @default(uuid())
-  createdAt    DateTime @default(now())
-  
-  // Relations
-  ownerId      String
-  owner        ApartmentOwner @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  
-  apartmentId  Int
-  apartment    Apartment @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
-  
-  // Ownership details
-  isActive     Boolean  @default(true)
-  assignedAt   DateTime @default(now())
+  id                String         @id @default(uuid())
+  createdAt         DateTime       @default(now())
+  ownerId           String
+  isActive          Boolean        @default(true)
+  assignedAt        DateTime       @default(now())
   assignedByAdminId String
-  assignedByAdmin   User @relation("AdminAssignedOwnerships", fields: [assignedByAdminId], references: [id])
-  
+  apartmentId       Int
+  apartment         Apartment      @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
+  assignedByAdmin   User           @relation("AdminAssignedOwnerships", fields: [assignedByAdminId], references: [id])
+  owner             ApartmentOwner @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
   @@unique([ownerId, apartmentId])
   @@index([ownerId, isActive])
   @@index([apartmentId, isActive])
+}
+
+model AdditionalDeduction {
+  id        String        @id @default(uuid())
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  reportId  String
+  name      String
+  amount    Float
+  vatOption VATOption     @default(NO_VAT)
+  report    MonthlyReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  @@index([reportId])
+}
+
+model MonthlyReport {
+  id                   String                @id @default(uuid())
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  year                 Int
+  month                Int
+  ownerId              String
+  createdByAdminId     String
+  status               ReportStatus          @default(DRAFT)
+  draftNotes           String?
+  approvedAt           DateTime?
+  approvedByAdminId    String?
+  sentAt               DateTime?
+  totalRevenue         Float                 @default(0)
+  totalExpenses        Float                 @default(0)
+  netIncome            Float                 @default(0)
+  ownerPayoutAmount    Float                 @default(0)
+  currency             String                @default("PLN")
+  rentAmount           Float?                @default(0)
+  utilitiesAmount      Float?                @default(0)
+  suggestedRent        Float?                @default(0)
+  suggestedUtilities   Float?                @default(0)
+  finalSettlementType  SettlementType?
+  apartmentId          Int
+  additionalDeductions AdditionalDeduction[]
+  apartment            Apartment             @relation(fields: [apartmentId], references: [id])
+  approvedByAdmin      User?                 @relation("AdminApprovedReports", fields: [approvedByAdminId], references: [id])
+  createdByAdmin       User                  @relation("AdminCreatedReports", fields: [createdByAdminId], references: [id])
+  owner                ApartmentOwner        @relation(fields: [ownerId], references: [id])
+  history              ReportHistory[]
+  items                ReportItem[]
+
+  @@unique([apartmentId, year, month])
+  @@index([status])
+  @@index([ownerId, status])
+}
+
+model ReportItem {
+  id              String             @id @default(uuid())
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  reportId        String
+  type            ReportItemType
+  category        String
+  description     String
+  amount          Float
+  currency        String             @default("PLN")
+  expenseCategory ExpenseCategory?
+  portal          ReservationPortal?
+  date            DateTime           @db.Date
+  notes           String?
+  isAutoGenerated Boolean            @default(false)
+  reservationId   Int?
+  report          MonthlyReport      @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  reservation     Reservation?       @relation(fields: [reservationId], references: [id])
+
+  @@index([reportId, type])
+}
+
+model ReportHistory {
+  id             String        @id @default(uuid())
+  createdAt      DateTime      @default(now())
+  reportId       String
+  adminId        String
+  action         String
+  previousStatus ReportStatus?
+  newStatus      ReportStatus?
+  notes          String?
+  admin          User          @relation("AdminReportHistory", fields: [adminId], references: [id])
+  report         MonthlyReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  @@index([reportId, createdAt])
+}
+
+model OwnerNote {
+  id               String         @id @default(uuid())
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  ownerId          String
+  createdByAdminId String
+  type             NoteType
+  title            String
+  content          String
+  isImportant      Boolean        @default(false)
+  createdByAdmin   User           @relation("AdminCreatedNotes", fields: [createdByAdminId], references: [id])
+  owner            ApartmentOwner @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([ownerId, type])
+  @@index([ownerId, isImportant])
+  @@index([createdAt])
+}
+
+enum UserType {
+  ADMIN
+  UNKNOWN
+  GUEST
+  OWNER
+  CLEANER
 }
 
 enum PaymentType {
@@ -330,9 +356,9 @@ enum PaymentType {
 }
 
 enum VATOption {
-  NO_VAT      // Zwolniony z VAT
-  VAT_8       // VAT 8%
-  VAT_23      // VAT 23%
+  NO_VAT
+  VAT_8
+  VAT_23
 }
 
 enum ReportStatus {
@@ -375,161 +401,11 @@ enum SettlementType {
   FIXED_MINUS_UTILITIES
 }
 
-model AdditionalDeduction {
-  id              String   @id @default(uuid())
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
-  // Relations
-  reportId        String
-  report          MonthlyReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
-  
-  // Deduction details
-  name            String   // Nazwa odliczenia
-  amount          Float    // Kwota netto
-  vatOption       VATOption @default(NO_VAT) // Stawka VAT
-  
-  @@index([reportId])
-}
-
-model MonthlyReport {
-  id              String   @id @default(uuid())
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
-  // Report period
-  year            Int
-  month           Int      // 1-12
-  
-  // Relations
-  apartmentId     Int
-  apartment       Apartment @relation(fields: [apartmentId], references: [id])
-  
-  ownerId         String
-  owner           ApartmentOwner @relation(fields: [ownerId], references: [id])
-  
-  // Admin who created/manages this report
-  createdByAdminId String
-  createdByAdmin   User @relation("AdminCreatedReports", fields: [createdByAdminId], references: [id])
-  
-  // Status and workflow
-  status          ReportStatus @default(DRAFT)
-  draftNotes      String?      // Admin notes for draft version
-  approvedAt      DateTime?
-  approvedByAdminId String?
-  approvedByAdmin   User? @relation("AdminApprovedReports", fields: [approvedByAdminId], references: [id])
-  sentAt          DateTime?
-  
-  // Financial summary (calculated fields)
-  totalRevenue    Float @default(0)
-  totalExpenses   Float @default(0)
-  netIncome       Float @default(0)
-  ownerPayoutAmount Float @default(0)  // Amount to be paid to owner (with VAT if applicable)
-  
-  // Currency
-  currency        String @default("PLN")
-  
-  // Report items
-  items           ReportItem[]
-  history         ReportHistory[]
-  
-  // Nowe pola dla czynszu i mediów
-  rentAmount          Float?   @default(0)    // Czynsz za mieszkanie
-  utilitiesAmount     Float?   @default(0)    // Media (prąd, gaz, woda, internet)
-  suggestedRent       Float?   @default(0)    // Sugerowany czynsz na podstawie poprzednich raportów
-  suggestedUtilities  Float?   @default(0)    // Sugerowane media na podstawie poprzednich raportów
-  
-  // Final settlement type chosen by admin
-  finalSettlementType SettlementType?
-  
-  // Additional deductions (relation to separate model)
-  additionalDeductions AdditionalDeduction[]
-  
-  @@unique([apartmentId, year, month])
-  @@index([status])
-  @@index([ownerId, status])
-}
-
-model ReportItem {
-  id              String   @id @default(uuid())
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
-  // Relations
-  reportId        String
-  report          MonthlyReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
-  
-  // Item details
-  type            ReportItemType
-  category        String   // "Booking", "Cleaning", "Utilities", "Commission", etc.
-  description     String
-  amount          Float
-  currency        String @default("PLN")
-  
-  expenseCategory ExpenseCategory?
-  portal          ReservationPortal?
-  
-  // Optional link to reservation for revenue items
-  reservationId   Int?
-  reservation     Reservation? @relation(fields: [reservationId], references: [id])
-  
-  // Metadata
-  date            DateTime @db.Date
-  notes           String?
-  isAutoGenerated Boolean @default(false) // Auto-generated from reservations vs manually added
-  
-  @@index([reportId, type])
-}
-
-model ReportHistory {
-  id              String   @id @default(uuid())
-  createdAt       DateTime @default(now())
-  
-  // Relations
-  reportId        String
-  report          MonthlyReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
-  
-  adminId         String
-  admin           User @relation("AdminReportHistory", fields: [adminId], references: [id])
-  
-  // Action details
-  action          String   // "created", "updated", "approved", "sent", "rejected"
-  previousStatus  ReportStatus?
-  newStatus       ReportStatus?
-  notes           String?
-  
-  @@index([reportId, createdAt])
-}
-
 enum NoteType {
-  GENERAL       // Ogólne notatki
-  PAYMENT       // Notatki o płatnościach
-  COMMUNICATION // Notatki o komunikacji
-  ISSUE         // Problemy/issue'y
-  REMINDER      // Przypomnienia
-  IMPORTANT     // Ważne informacje
-}
-
-model OwnerNote {
-  id              String   @id @default(uuid())
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
-  // Relations
-  ownerId         String
-  owner           ApartmentOwner @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  
-  // Admin who created this note
-  createdByAdminId String
-  createdByAdmin   User @relation("AdminCreatedNotes", fields: [createdByAdminId], references: [id])
-  
-  // Note details
-  type            NoteType
-  title           String
-  content         String
-  isImportant     Boolean  @default(false) // Czy to ważna notatka
-  
-  @@index([ownerId, type])
-  @@index([ownerId, isImportant])
-  @@index([createdAt])
+  GENERAL
+  PAYMENT
+  COMMUNICATION
+  ISSUE
+  REMINDER
+  IMPORTANT
 }

@@ -15,21 +15,21 @@ function verifyPassword(password: string, hash: string): boolean {
 }
 
 // Helper to generate a secure temporary password
-function generateSecurePassword(length = 10): string {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%';
-    let result = '';
-    for (let i = 0; i < length; i++) {
-        result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return result;
-}
+// function generateSecurePassword(length = 10): string {
+//     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%';
+//     let result = '';
+//     for (let i = 0; i < length; i++) {
+//         result += chars.charAt(Math.floor(Math.random() * chars.length));
+//     }
+//     return result;
+// }
 
-// Placeholder for email sending (replace with your actual implementation)
-async function sendResetPasswordEmail(email: string, tempPassword: string) {
-    // TODO: Use your email service and a proper template
-    // await sendEmail({ ... })
-    console.log(`Send reset password email to ${email} with password: ${tempPassword}`);
-}
+// // Placeholder for email sending (replace with your actual implementation)
+// async function sendResetPasswordEmail(email: string, tempPassword: string) {
+//     // TODO: Use your email service and a proper template
+//     // await sendEmail({ ... })
+//     console.log(`Send reset password email to ${email} with password: ${tempPassword}`);
+// }
 
 export const ownerAuthRouter = createTRPCRouter({
     // Login with email and password/temporary password
