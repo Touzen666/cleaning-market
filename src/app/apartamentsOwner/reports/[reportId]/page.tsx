@@ -128,6 +128,17 @@ function calculateNights(start: Date | string, end: Date | string) {
   );
 }
 
+const obfuscateGuest = (name: string | null | undefined): string => {
+  if (!name) {
+    return "-";
+  }
+  return name
+    .split(" ")
+    .filter((p) => p.length > 0)
+    .map((p) => `${p.substring(0, 2)}...`)
+    .join(" ");
+};
+
 function FinalBadge() {
   return (
     <span className="ml-2 inline-block rounded bg-green-200 px-2 py-0.5 align-middle text-xs font-semibold text-green-800">
@@ -438,19 +449,16 @@ export default function OwnerReportDetailsPage() {
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                        Data
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                        Opis
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                         Gość
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                         Źródło
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                        Okres
+                        Data zameldowania
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                        Data wymeldowania
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                         Noce
@@ -466,42 +474,36 @@ export default function OwnerReportDetailsPage() {
                   <tbody className="divide-y divide-gray-200 bg-white">
                     {reservationItems.map((item) => (
                       <tr key={item.id}>
-                        <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
-                          {new Date(item.date).toLocaleDateString("pl-PL")}
-                        </td>
                         <td className="px-6 py-4 text-sm text-gray-900">
-                          {item.description}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-900">
-                          {item.reservation?.guest ?? "-"}
+                          {obfuscateGuest(item.reservation?.guest)}
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-900">
                           {item.reservation?.source ? (
-                            <span className="inline-flex rounded-full bg-yellow-100 px-2 py-1 text-xs font-medium text-yellow-800">
+                            <span className="inline-flex rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800">
                               {item.reservation.source}
                             </span>
                           ) : (
                             <span className="text-gray-400">Nieznane</span>
                           )}
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-500">
-                          {item.reservation ? (
-                            <>
-                              {new Date(
+                        <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
+                          {item.reservation
+                            ? new Date(
                                 item.reservation.start,
-                              ).toLocaleDateString("pl-PL")}{" "}
-                              -{" "}
-                              {new Date(
-                                item.reservation.end,
-                              ).toLocaleDateString("pl-PL")}
-                            </>
-                          ) : (
-                            "-"
-                          )}
+                              ).toLocaleDateString("pl-PL", { timeZone: "UTC" })
+                            : "-"}
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
+                          {item.reservation
+                            ? new Date(item.reservation.end).toLocaleDateString(
+                                "pl-PL",
+                                { timeZone: "UTC" },
+                              )
+                            : "-"}
                         </td>
                         <td className="whitespace-nowrap px-6 py-4 text-center text-sm">
                           {item.reservation ? (
-                            <span className="inline-flex items-center rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800">
+                            <span className="inline-flex items-center rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-medium text-indigo-800">
                               {calculateNights(
                                 item.reservation.start,
                                 item.reservation.end,
@@ -565,9 +567,6 @@ export default function OwnerReportDetailsPage() {
                         Kategoria
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                        Opis
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                         Kwota
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
@@ -592,9 +591,6 @@ export default function OwnerReportDetailsPage() {
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-900">
                           {item.category}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-900">
-                          {item.description}
                         </td>
                         <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-red-600">
                           -{item.amount.toFixed(2)} {item.currency}
