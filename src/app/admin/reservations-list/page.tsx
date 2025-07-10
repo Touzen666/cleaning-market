@@ -7,6 +7,85 @@ import CsvImport from "@/components/CsvImport";
 import { toast } from "react-hot-toast";
 import { IdobookingSync } from "@/app/_components/IdobookingSync";
 
+function UpdateReservationDetails({
+  refetchReservations,
+}: {
+  refetchReservations: () => void;
+}) {
+  const [guestName, setGuestName] = useState("");
+  const [newAmount, setNewAmount] = useState<number | undefined>(undefined);
+
+  const updateDetailsMutation =
+    api.reservation.updateReservationDetails.useMutation({
+      onSuccess: (data) => {
+        toast.success(data.message);
+        refetchReservations();
+        setGuestName("");
+        setNewAmount(undefined);
+      },
+      onError: (error) => {
+        toast.error(`Błąd: ${error.message}`);
+      },
+    });
+
+  const handleUpdate = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (guestName.trim()) {
+      updateDetailsMutation.mutate({
+        guestName: guestName.trim(),
+        newAmount: newAmount,
+      });
+    } else {
+      toast.error("Proszę podać imię i nazwisko gościa.");
+    }
+  };
+
+  return (
+    <div className="rounded-lg border border-gray-200 bg-white p-4">
+      <h3 className="mb-2 text-lg font-semibold text-gray-900">
+        Zmień źródło i kwotę rezerwacji
+      </h3>
+      <p className="mb-4 text-sm text-gray-600">
+        Wprowadź imię i nazwisko gościa, aby ustawić źródło rezerwacji na
+        &quot;Airbnb&quot; i opcjonalnie zaktualizuj kwotę rezerwacji. Pozostałe
+        rezerwacje o tym samym pierwotnym źródle zostaną ustawione na
+        &quot;Booking&quot;.
+      </p>
+      <form onSubmit={handleUpdate} className="flex flex-col gap-4">
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={guestName}
+            onChange={(e) => setGuestName(e.target.value)}
+            placeholder="Imię i nazwisko gościa"
+            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-gold focus:ring-brand-gold sm:text-sm"
+            disabled={updateDetailsMutation.isPending}
+          />
+          <input
+            type="number"
+            value={newAmount ?? ""}
+            onChange={(e) =>
+              setNewAmount(
+                e.target.value ? parseFloat(e.target.value) : undefined,
+              )
+            }
+            placeholder="Nowa kwota rezerwacji (opcjonalnie)"
+            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-gold focus:ring-brand-gold sm:text-sm"
+            disabled={updateDetailsMutation.isPending}
+          />
+        </div>
+        <button
+          type="submit"
+          className="inline-flex items-center self-end rounded-md bg-brand-gold px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-yellow-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-gold disabled:opacity-50"
+          disabled={updateDetailsMutation.isPending}
+        >
+          {updateDetailsMutation.isPending ? "Aktualizowanie..." : "Aktualizuj"}
+        </button>
+      </form>
+    </div>
+  );
+}
+
 export default function AdminReservationsListPage() {
   const router = useRouter();
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
@@ -193,6 +272,11 @@ export default function AdminReservationsListPage() {
             <CsvImport />
           </div>
         )}
+
+        {/* Update source section */}
+        <div className="mb-8">
+          <UpdateReservationDetails refetchReservations={refetchReservations} />
+        </div>
 
         {/* Sekcja: Batchy importów CSV */}
         <div className="mb-8">

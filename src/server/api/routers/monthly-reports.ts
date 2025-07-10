@@ -232,7 +232,7 @@ export const monthlyReportsRouter = createTRPCRouter({
                 type: ReportItemType.REVENUE,
                 category: "Booking",
                 description: `Rezerwacja - ${reservation.guest}`,
-                amount: reservation.paymantValue,
+                amount: reservation.rateCorrection ?? reservation.paymantValue,
                 currency: reservation.currency ?? "PLN",
                 date: reservation.start,
                 reservationId: reservation.id,
@@ -654,6 +654,68 @@ export const monthlyReportsRouter = createTRPCRouter({
             };
         }),
 
+    addAirbnbCommissionWithDiscount: protectedProcedure
+        .input(
+            z.object({
+                reportId: z.string().uuid(),
+                reservationId: z.number(),
+                commission: z.object({
+                    category: z.string(),
+                    description: z.string(),
+                    amount: z.number(),
+                    date: z.date(),
+                    notes: z.string(),
+                }),
+            }),
+        )
+        .mutation(async ({ input, ctx }) => {
+            if (ctx.session.user.type !== UserType.ADMIN) {
+                throw new TRPCError({
+                    code: "FORBIDDEN",
+                    message: "Only admins can perform this action",
+                });
+            }
+            const { reportId, commission, reservationId } = input;
+
+            const reservation = await ctx.db.reservation.findUnique({
+                where: { id: reservationId },
+            });
+
+            if (!reservation) {
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: "Nie znaleziono rezerwacji.",
+                });
+            }
+
+            const discountAmount = reservation.paymantValue + (reservation.paymantValue * 0.1 * 1.23);
+
+            // Use a transaction to ensure both items are created or neither
+            return ctx.db.$transaction(async (prisma) => {
+                // Add commission
+                await prisma.reportItem.create({
+                    data: {
+                        reportId,
+                        ...commission,
+                        type: "COMMISSION",
+                    },
+                });
+
+                // Add discount
+                await prisma.reportItem.create({
+                    data: {
+                        reportId,
+                        type: "EXPENSE",
+                        category: "Rabat 10%",
+                        description: "Rabat 10% + 23% VAT (Airbnb)",
+                        amount: discountAmount,
+                        date: new Date(commission.date),
+                        notes: "Rabat od przychodu z Airbnb oferta bezzwrotna",
+                    },
+                });
+            });
+        }),
+
     // Dodaj nową mutację do zapisywania czynszu i mediów
     updateRentAndUtilities: publicProcedure
         .input(z.object({
@@ -820,6 +882,47 @@ export const monthlyReportsRouter = createTRPCRouter({
             return { success: true };
         }),
 
+    updateAdditionalDeduction: protectedProcedure
+        .input(
+            z.object({
+                deductionId: z.string().uuid(),
+                name: z.string().min(1, "Nazwa jest wymagana"),
+                amount: z.number().positive("Kwota musi być dodatnia"),
+                vatOption: z.nativeEnum(VATOption),
+            }),
+        )
+        .mutation(async ({ input, ctx }) => {
+            if (ctx.session.user.type !== UserType.ADMIN) {
+                throw new TRPCError({
+                    code: "FORBIDDEN",
+                    message: "Tylko administratorzy mogą aktualizować odliczenia.",
+                });
+            }
+
+            const { deductionId, name, amount, vatOption } = input;
+
+            const deduction = await ctx.db.additionalDeduction.findUnique({
+                where: { id: deductionId },
+            });
+            if (!deduction) {
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: "Odliczenie nie zostało znalezione",
+                });
+            }
+
+            const updatedDeduction = await ctx.db.additionalDeduction.update({
+                where: { id: deductionId },
+                data: {
+                    name,
+                    amount,
+                    vatOption,
+                },
+            });
+
+            return updatedDeduction;
+        }),
+
     deleteAdditionalDeduction: protectedProcedure
         .input(z.object({
             deductionId: z.string().uuid(),
@@ -828,6 +931,51 @@ export const monthlyReportsRouter = createTRPCRouter({
             await ctx.db.additionalDeduction.delete({
                 where: { id: input.deductionId },
             });
+            return { success: true };
+        }),
+
+    addReservationDiscount: protectedProcedure
+        .input(z.object({
+            reportId: z.string().uuid(),
+            reservationId: z.number(),
+        }))
+        .mutation(async ({ input, ctx }) => {
+            if (ctx.session.user.type !== UserType.ADMIN) {
+                throw new TRPCError({
+                    code: "FORBIDDEN",
+                    message: "Only admins can perform this action",
+                });
+            }
+
+            const { reportId, reservationId } = input;
+
+            const reservation = await ctx.db.reservation.findUnique({
+                where: { id: reservationId },
+            });
+
+            if (!reservation) {
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: "Nie znaleziono rezerwacji.",
+                });
+            }
+
+            // Calculate 10% discount + 23% VAT on the discount amount
+            const discountAmount = reservation.paymantValue * 0.1 * 1.23;
+
+            await ctx.db.reportItem.create({
+                data: {
+                    reportId,
+                    type: "EXPENSE",
+                    category: "Rabat 10%",
+                    description: `Rabat 10% + 23% VAT (dla rezerwacji #${reservation.id})`,
+                    amount: discountAmount,
+                    date: new Date(),
+                    notes: `Rabat od przychodu z Airbnb (oferta bezzwrotna) dla rezerwacji gościa: ${reservation.guest}`,
+                    reservationId: reservation.id,
+                },
+            });
+
             return { success: true };
         }),
 }); 

@@ -1,7 +1,8 @@
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
+import { createTRPCRouter, publicProcedure, protectedProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { type Reservation } from "@prisma/client";
+import { UserType } from "@prisma/client";
 
 // Schema for creating a new reservation
 const createReservationSchema = z.object({
@@ -168,5 +169,79 @@ export const reservationsRouter = createTRPCRouter({
       });
 
       return reservation;
+    }),
+
+  updateReservationDetails: protectedProcedure
+    .input(z.object({
+      guestName: z.string().min(1, "Guest name cannot be empty."),
+      newAmount: z.number().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.session.user.type !== UserType.ADMIN) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only administrators can perform this action.",
+        });
+      }
+
+      const reservations = await ctx.db.reservation.findMany({
+        where: {
+          guest: {
+            equals: input.guestName,
+            mode: 'insensitive',
+          },
+        }
+      });
+
+      if (reservations.length === 0) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: `No reservation found for guest: ${input.guestName}`,
+        });
+      }
+
+      if (reservations.length > 1) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: `Multiple reservations found for guest: ${input.guestName}. Please provide a more specific name.`
+        })
+      }
+
+      const reservation = reservations[0]!;
+      const originalSource = reservation.source;
+
+      await ctx.db.$transaction(async (prisma) => {
+        const updateData: { source: string; paymantValue?: number } = {
+          source: "Airbnb",
+        };
+
+        if (input.newAmount !== undefined) {
+          updateData.paymantValue = input.newAmount;
+        }
+
+        await prisma.reservation.update({
+          where: {
+            id: reservation.id,
+          },
+          data: updateData,
+        });
+
+        await prisma.reservation.updateMany({
+          where: {
+            source: originalSource,
+            NOT: {
+              id: reservation.id,
+            },
+          },
+          data: {
+            source: "Booking",
+          },
+        });
+      });
+
+      return {
+        success: true,
+        message: `Details for ${reservation.guest}'s reservation updated.`,
+      };
     }),
 });
