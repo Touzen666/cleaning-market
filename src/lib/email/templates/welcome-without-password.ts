@@ -6,7 +6,7 @@ import {
     createButtonSection
 } from '../components';
 
-export const createWelcomeEmailWithoutPasswordTemplate = (ownerName: string, baseUrl: string) => {
+export const createWelcomeEmailWithoutPasswordTemplate = (ownerName: string, _baseUrl: string) => {
     const welcomeMessage = `Miło nam powitać Cię w gronie właścicieli apartamentów współpracujących z firmą <strong>Złote Wynajmy - Apartamenty z Klasą</strong>!<br><br>Twój profil w naszym systemie zarządzania jest aktywny i gotowy do użycia.`;
 
     const features = [

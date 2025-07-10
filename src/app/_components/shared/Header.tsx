@@ -23,19 +23,9 @@ const useBodyScrollLock = (isLocked: boolean) => {
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   useBodyScrollLock(isMenuOpen);
 
-  const {
-    data: apartmentsData,
-    isLoading,
-    error,
-  } = api.apartments.getAll.useQuery();
-
-  const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
-
-  const apartments = apartmentsData?.apartments ?? [];
 
   const navLinks = (
     <>

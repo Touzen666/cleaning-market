@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { useRouter } from "next/navigation";
 import Image from "next/image";
 import type { RouterOutputs } from "@/trpc/react";
 
@@ -32,8 +31,6 @@ export default function ApartmentList({
   className = "",
   deletingApartmentId = null,
 }: ApartmentListProps) {
-  const router = useRouter();
-
   const getPrimaryImage = (apartment: Apartment) => {
     if (!apartment.images || apartment.images.length === 0) {
       return null;
