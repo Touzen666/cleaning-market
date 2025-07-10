@@ -23,7 +23,7 @@ export const createWelcomeEmailWithoutPasswordTemplate = (ownerName: string, bas
         ${createButtonSection(
         'Zaloguj się do swojego Panelu Właściciela:',
         '🚀 Przejdź do panelu',
-        `${baseUrl}/apartamentsOwner/login`
+        `https://app.zlote-wynajmy.pl/apartamentsOwner/login`
     )}
     `;
 
