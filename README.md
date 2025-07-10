@@ -56,7 +56,7 @@
 
 - **Predefiniowane kategorie kosztów** z automatyczną kalkulacją VAT:
   - Sprzątanie (23% VAT)
-  - Pranie pościeli (8% VAT)
+  - Pranie pościeli (23% VAT)
   - Zakupy środków czystości (23% VAT)
   - Tekstylia i inne wydatki
 - **Szybkie dodawanie kosztów** z interfejsem kwota netto → kwota brutto
@@ -356,6 +356,7 @@ ADMIN_EMAIL="ochedowski.bartosz@gmail.com"
 SMTP_HOST="smtp.gmail.com"
 SMTP_PORT="587"
 SMTP_USER="your-email@gmail.com"
+SMTP_FROM_USER="your-send-as-email@gmail.com" # Opcjonalnie, do wysyłania z innego adresu
 SMTP_PASS="your-app-password"
 
 # Development (opcjonalne)
@@ -523,6 +524,7 @@ export const createNewEmailTemplate = (data: any) => {
    SMTP_HOST="smtp.gmail.com"
    SMTP_PORT="587"
    SMTP_USER="your-email@gmail.com"
+   SMTP_FROM_USER="your-send-as-email@gmail.com" # Opcjonalnie, do wysyłania z innego adresu
    SMTP_PASS="your-app-password"
    ```
 

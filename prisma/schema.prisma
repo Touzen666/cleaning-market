@@ -245,6 +245,7 @@ model AdditionalDeduction {
   name      String
   amount    Float
   vatOption VATOption     @default(NO_VAT)
+  order     Int           @default(0)
   report    MonthlyReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
 
   @@index([reportId])
