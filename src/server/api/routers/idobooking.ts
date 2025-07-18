@@ -402,18 +402,35 @@ async function mapToDBReservations(
 
     if (reservationsToUpdate.length > 0) {
         logWithTag(`Aktualizowanie statusu dla ${reservationsToUpdate.length} rezerwacji...`);
-        const updatePromises = reservationsToUpdate.map(r => {
-            logWithTag(`Aktualizowanie rezerwacji ${r.idobookingId} ze statusu "${r.oldStatus}" na "${r.status}"`);
-            return ctx.db.reservation.update({
-                where: { idobookingId: r.idobookingId },
-                data: { status: r.status },
+
+        // Grupuj rezerwacje do aktualizacji po nowym statusie
+        const updatesByStatus: Record<string, { idobookingId: number; oldStatus: string }[]> = {};
+        for (const res of reservationsToUpdate) {
+            (updatesByStatus[res.status] ??= []).push({ idobookingId: res.idobookingId, oldStatus: res.oldStatus });
+        }
+
+        const updatePromises = Object.entries(updatesByStatus).map(async ([status,
+            reservationsGroup]) => {
+            const idsToUpdate = reservationsGroup.map(r => r.idobookingId);
+            logWithTag(`Aktualizowanie ${idsToUpdate.length} rezerwacji na status "${status}"`);
+            return ctx.db.reservation.updateMany({
+                where: {
+                    idobookingId: {
+                        in: idsToUpdate
+                    }
+                },
+                data: {
+                    status: status
+                },
             });
         });
+
         try {
-            await Promise.all(updatePromises);
-            logWithTag(`✅ Zaktualizowano status dla ${reservationsToUpdate.length} rezerwacji.`);
+            const results = await Promise.all(updatePromises);
+            const totalUpdated = results.reduce((acc, result) => acc + result.count, 0);
+            logWithTag(`✅ Zaktualizowano status dla ${totalUpdated} rezerwacji w ${results.length} grupach.`);
         } catch (error) {
-            logWithTag(`❌ Błąd podczas aktualizacji statusów rezerwacji:`, error);
+            logWithTag(`❌ Błąd podczas hurtowej aktualizacji statusów rezerwacji:`, error);
         }
     } else {
         logWithTag("Brak rezerwacji do zaktualizowania.");
