@@ -244,4 +244,43 @@ export const reservationsRouter = createTRPCRouter({
         message: `Details for ${reservation.guest}'s reservation updated.`,
       };
     }),
+
+  getForOwner: protectedProcedure.query(async ({ ctx }) => {
+    const ownerEmail = ctx.session?.user?.email;
+    if (!ownerEmail) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "Musisz być zalogowany, aby zobaczyć swoje rezerwacje.",
+      });
+    }
+
+    const owner = await ctx.db.apartmentOwner.findUnique({
+      where: { email: ownerEmail },
+      select: { id: true },
+    });
+
+    if (!owner) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Nie znaleziono właściciela.",
+      });
+    }
+
+    const reservations = await ctx.db.reservation.findMany({
+      where: {
+        apartment: {
+          ownerships: {
+            some: {
+              ownerId: owner.id,
+            },
+          },
+        },
+      },
+      orderBy: {
+        start: "desc",
+      },
+    });
+
+    return reservations;
+  }),
 });

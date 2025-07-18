@@ -3,6 +3,7 @@ import { createTRPCRouter, protectedProcedure, publicProcedure } from "@/server/
 import { TRPCError } from "@trpc/server";
 import { type Decimal } from "@prisma/client/runtime/library";
 import { ReportStatus, ReportItemType, PaymentType, VATOption, UserType, ExpenseCategory, ReservationPortal } from "@prisma/client";
+import { getVatAmount } from "@/lib/vat";
 
 // Zod schemas
 const createReportSchema = z.object({
@@ -247,12 +248,18 @@ export const monthlyReportsRouter = createTRPCRouter({
 
             // Calculate totals
             const totalRevenue = revenueItems.reduce((sum, item) => sum + item.amount, 0);
+            const ownerPayoutAmount = calculateOwnerPayout(
+                totalRevenue,
+                owner.paymentType,
+                owner.fixedPaymentAmount,
+                owner.vatOption
+            );
 
             await ctx.db.monthlyReport.update({
                 where: { id: report.id },
                 data: {
                     totalRevenue,
-                    netIncome: totalRevenue,
+                    ownerPayoutAmount,
                 },
             });
 
@@ -267,7 +274,7 @@ export const monthlyReportsRouter = createTRPCRouter({
                 },
             });
 
-            return { success: true, reportId: report.id };
+            return { success: true, reportId: report.id, totalRevenue, ownerPayoutAmount };
         }),
 
     // Admin: Get single report details
@@ -832,91 +839,107 @@ export const monthlyReportsRouter = createTRPCRouter({
             const report = await ctx.db.monthlyReport.findUnique({
                 where: { id: input.reportId },
                 include: {
-                    apartment: { select: { id: true, name: true, address: true } },
-                    owner: { select: { id: true, isActive: true, paymentType: true, fixedPaymentAmount: true, vatOption: true } },
+                    apartment: {
+                        select: { id: true, name: true, address: true },
+                    },
+                    owner: {
+                        select: {
+                            id: true,
+                            isActive: true,
+                            paymentType: true,
+                            fixedPaymentAmount: true,
+                            vatOption: true,
+                        },
+                    },
                     items: {
                         include: {
-                            reservation: {
-                                select: { id: true, guest: true, start: true, end: true, source: true },
-                            },
+                            reservation: true,
                         },
-                        orderBy: [{ type: "asc" }, { date: "asc" }],
+                        orderBy: {
+                            date: 'asc',
+                        },
                     },
                     additionalDeductions: {
-                        orderBy: { createdAt: "asc" },
+                        orderBy: {
+                            order: 'asc',
+                        },
                     },
                 },
             });
-            if (!report?.owner?.isActive || !([ReportStatus.APPROVED, ReportStatus.SENT] as string[]).includes(report.status as string)) {
-                throw new TRPCError({ code: "NOT_FOUND", message: "Raport nie został znaleziony lub nie jest dostępny." });
+
+            if (!report) {
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: "Raport nie został znaleziony",
+                });
             }
 
-            // Wyliczenia identyczne jak w panelu admina
+            // Calculations
             const revenueItems = report.items.filter((i) => i.type === "REVENUE");
             const expenseItems = report.items.filter((i) => ["EXPENSE", "FEE", "TAX", "COMMISSION"].includes(i.type));
+
             const totalRevenue = revenueItems.reduce((sum, i) => sum + i.amount, 0);
             const totalExpenses = expenseItems.reduce((sum, i) => sum + i.amount, 0);
             const netIncome = totalRevenue - totalExpenses;
+
             const adminCommissionRate = 0.25;
-            const commissionNetBase = Number((netIncome - netIncome * adminCommissionRate).toFixed(2));
-            const commissionVat = report.owner.vatOption === "VAT_23" ? Number((commissionNetBase * 0.23).toFixed(2)) : report.owner.vatOption === "VAT_8" ? Number((commissionNetBase * 0.08).toFixed(2)) : 0;
-            const commissionGross = Number((commissionNetBase + commissionVat).toFixed(2));
-
-            // SUMA DODATKOWYCH ODPISÓW (netto)
-            const totalAdditionalDeductions = (report.additionalDeductions ?? []).reduce((sum, d) => sum + d.amount, 0);
-
-            let fixedNetBase: number | undefined = undefined;
-            let fixedVat: number | undefined = undefined;
-            let fixedGross: number | undefined = undefined;
-            let fixedMinusUtilitiesNetBase: number | undefined = undefined;
-            let fixedMinusUtilitiesVat: number | undefined = undefined;
-            let fixedMinusUtilitiesGross: number | undefined = undefined;
-
-            if (report.owner.fixedPaymentAmount !== null && report.owner.fixedPaymentAmount !== undefined) {
-                fixedNetBase = Number(report.owner.fixedPaymentAmount) - totalAdditionalDeductions;
-                fixedVat = report.owner.vatOption === "VAT_23" ? Number((fixedNetBase * 0.23).toFixed(2)) : report.owner.vatOption === "VAT_8" ? Number((fixedNetBase * 0.08).toFixed(2)) : 0;
-                fixedGross = Number((fixedNetBase + fixedVat).toFixed(2));
-                if (report.utilitiesAmount !== null && report.utilitiesAmount !== undefined) {
-                    fixedMinusUtilitiesNetBase = Number((fixedNetBase - report.utilitiesAmount).toFixed(2));
-                    fixedMinusUtilitiesVat = report.owner.vatOption === "VAT_23" ? Number((fixedMinusUtilitiesNetBase * 0.23).toFixed(2)) : report.owner.vatOption === "VAT_8" ? Number((fixedMinusUtilitiesNetBase * 0.08).toFixed(2)) : 0;
-                    fixedMinusUtilitiesGross = Number((fixedMinusUtilitiesNetBase + fixedMinusUtilitiesVat).toFixed(2));
-                }
-            }
-
-            // Dodatkowe obliczenia dla podsumowania
             const adminCommissionAmount = netIncome * adminCommissionRate;
+
             const afterCommission = netIncome - adminCommissionAmount;
+
+            const totalAdditionalDeductions = (report.additionalDeductions ?? []).reduce(
+                (sum, d) => sum + getVatAmount(d.amount, d.vatOption),
+                0
+            );
+
             const rentAndUtilitiesTotal = (report.rentAmount ?? 0) + (report.utilitiesAmount ?? 0);
             const afterRentAndUtilities = afterCommission - rentAndUtilitiesTotal;
 
-            // Nowe: kwota prowizyjna po odjęciu czynszu i mediów ORAZ dodatkowych odliczeń
-            const commissionNetBaseAfterUtilities = commissionNetBase - rentAndUtilitiesTotal - totalAdditionalDeductions;
-            const commissionVatAfterUtilities = report.owner.vatOption === "VAT_23"
-                ? Number((commissionNetBaseAfterUtilities * 0.23).toFixed(2))
-                : report.owner.vatOption === "VAT_8"
-                    ? Number((commissionNetBaseAfterUtilities * 0.08).toFixed(2))
-                    : 0;
-            const commissionGrossAfterUtilities = Number((commissionNetBaseAfterUtilities + commissionVatAfterUtilities).toFixed(2));
+            const commissionNetBase = afterRentAndUtilities - totalAdditionalDeductions;
+            const commissionVat = getVatAmount(commissionNetBase, report.owner.vatOption);
+            const commissionGross = commissionNetBase + commissionVat;
+
+            const commissionNetBaseAfterUtilities = netIncome * (1 - adminCommissionRate) - rentAndUtilitiesTotal - totalAdditionalDeductions;
+            const commissionVatAfterUtilities = getVatAmount(commissionNetBaseAfterUtilities, report.owner.vatOption);
+            const commissionGrossAfterUtilities = commissionNetBaseAfterUtilities + commissionVatAfterUtilities;
+
+            let fixedNetBase: number | undefined;
+            let fixedVat: number | undefined;
+            let fixedGross: number | undefined;
+            let fixedMinusUtilitiesNetBase: number | undefined;
+            let fixedMinusUtilitiesVat: number | undefined;
+            let fixedMinusUtilitiesGross: number | undefined;
+
+            if (report.owner.fixedPaymentAmount) {
+                const fixedAmount = Number(report.owner.fixedPaymentAmount);
+
+                fixedNetBase = fixedAmount - totalAdditionalDeductions;
+                fixedVat = getVatAmount(fixedNetBase, report.owner.vatOption);
+                fixedGross = fixedNetBase + fixedVat;
+
+                fixedMinusUtilitiesNetBase = fixedNetBase - rentAndUtilitiesTotal;
+                fixedMinusUtilitiesVat = getVatAmount(fixedMinusUtilitiesNetBase, report.owner.vatOption);
+                fixedMinusUtilitiesGross = fixedMinusUtilitiesNetBase + fixedMinusUtilitiesVat;
+            }
 
             return {
                 ...report,
-                finalSettlementType: report.finalSettlementType,
+                netIncome,
+                adminCommissionAmount,
+                afterCommission,
+                afterRentAndUtilities,
                 commissionNetBase,
                 commissionVat,
                 commissionGross,
+                commissionNetBaseAfterUtilities,
+                commissionVatAfterUtilities,
+                commissionGrossAfterUtilities,
                 fixedNetBase,
                 fixedVat,
                 fixedGross,
                 fixedMinusUtilitiesNetBase,
                 fixedMinusUtilitiesVat,
                 fixedMinusUtilitiesGross,
-                adminCommissionAmount,
-                afterCommission,
-                afterRentAndUtilities,
-                commissionNetBaseAfterUtilities,
-                commissionVatAfterUtilities,
-                commissionGrossAfterUtilities,
-                additionalDeductions: report.additionalDeductions,
                 totalAdditionalDeductions,
             };
         }),

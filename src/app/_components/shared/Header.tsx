@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { api } from "@/trpc/react";
 import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react"; // Import icons

@@ -4,6 +4,8 @@ import { TRPCError } from "@trpc/server";
 import { randomBytes, createHash } from "crypto";
 import { sendEmail } from "@/lib/email/email-service";
 import { createResetPasswordEmail } from "@/lib/email/templates/reset-password";
+import * as jwt from "jsonwebtoken";
+import { ReportStatus } from "@prisma/client";
 
 // Simple password hashing using Node.js crypto
 function hashPassword(password: string): string {
@@ -32,6 +34,38 @@ function verifyPassword(password: string, hash: string): boolean {
 // }
 
 export const ownerAuthRouter = createTRPCRouter({
+    loginAsOwner: publicProcedure
+        .input(z.object({ ownerId: z.string() }))
+        .mutation(async ({ input, ctx }) => {
+            const { ownerId } = input;
+            const owner = await ctx.db.apartmentOwner.findUnique({
+                where: { id: ownerId },
+            });
+
+            if (!owner) {
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: "Właściciel nie został znaleziony.",
+                });
+            }
+
+            const secret = process.env.NEXTAUTH_SECRET;
+            if (!secret) {
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    message: "Brak sekretu do podpisania tokena.",
+                });
+            }
+
+            const payload = { id: owner.id, email: owner.email, role: "OWNER" };
+            const token = jwt.sign(
+                payload,
+                secret,
+                { expiresIn: "1h" },
+            );
+
+            return { success: true, token };
+        }),
     // Login with email and password/temporary password
     login: publicProcedure
         .input(z.object({
@@ -135,6 +169,78 @@ export const ownerAuthRouter = createTRPCRouter({
                     }),
                 },
                 isFirstLogin: owner.isFirstLogin,
+            };
+        }),
+
+    getDashboardData: publicProcedure
+        .input(z.undefined())
+        .query(async ({ ctx }) => {
+            const ownerEmail = ctx.headers.get("X-Owner-Email");
+
+            if (!ownerEmail) {
+                throw new TRPCError({
+                    code: "UNAUTHORIZED",
+                    message: "Brak autoryzacji",
+                });
+            }
+
+            const owner = await ctx.db.apartmentOwner.findUnique({
+                where: { email: ownerEmail },
+                select: {
+                    firstName: true,
+                    lastName: true,
+                    id: true,
+                },
+            });
+
+            if (!owner) {
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: "Nie znaleziono właściciela",
+                });
+            }
+
+            const totalApartments = await ctx.db.apartmentOwnership.count({
+                where: {
+                    ownerId: owner.id,
+                    isActive: true,
+                },
+            });
+
+            const activeReservations = await ctx.db.reservation.count({
+                where: {
+                    apartment: {
+                        ownerships: {
+                            some: {
+                                ownerId: owner.id,
+                            },
+                        },
+                    },
+                    end: { gte: new Date() },
+                    status: { notIn: ["CANCELLED", "NOSHOW"] },
+                },
+            });
+
+            const startOfYear = new Date(new Date().getFullYear(), 0, 1);
+
+            const revenue = await ctx.db.monthlyReport.aggregate({
+                where: {
+                    ownerId: owner.id,
+                    year: startOfYear.getFullYear(),
+                    status: ReportStatus.APPROVED,
+                },
+                _sum: {
+                    ownerPayoutAmount: true,
+                },
+            });
+
+            return {
+                owner,
+                stats: {
+                    totalApartments,
+                    activeReservations,
+                    currentYearProfit: revenue._sum.ownerPayoutAmount ?? 0,
+                },
             };
         }),
 

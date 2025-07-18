@@ -934,8 +934,12 @@ export default function OwnerReportDetailsPage() {
               <div className="flex flex-col gap-2 rounded-lg bg-blue-50 p-4">
                 <div className="mb-2 flex items-center text-lg font-semibold text-blue-800">
                   Rozliczenie właściciela: prowizyjne
-                  {report.finalSettlementType === "COMMISSION" && (
+                  {report.finalSettlementType === "COMMISSION" ? (
                     <FinalBadge />
+                  ) : (
+                    <span className="ml-2 inline-block rounded bg-blue-200 px-2 py-0.5 align-middle text-xs font-semibold text-blue-800">
+                      poglądowo
+                    </span>
                   )}
                 </div>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
@@ -1013,6 +1017,9 @@ export default function OwnerReportDetailsPage() {
                   </div>
                 </div>
               </div>
+
+              {/* Sekcja rozliczenia */}
+              <div className="mt-8 space-y-6"></div>
             </div>
           </div>
         </div>

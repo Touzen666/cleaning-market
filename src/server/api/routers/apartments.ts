@@ -109,6 +109,36 @@ export const apartmentsRouter = createTRPCRouter({
             }
         }),
 
+    getForOwner: protectedProcedure.query(async ({ ctx }) => {
+        const ownerEmail = ctx.session?.user?.email;
+        if (!ownerEmail) {
+            throw new TRPCError({
+                code: "UNAUTHORIZED",
+                message: "Musisz być zalogowany, aby zobaczyć swoje apartamenty.",
+            });
+        }
+
+        const owner = await ctx.db.apartmentOwner.findUnique({
+            where: { email: ownerEmail },
+            include: {
+                ownedApartments: {
+                    include: {
+                        apartment: true,
+                    },
+                },
+            },
+        });
+
+        if (!owner) {
+            throw new TRPCError({
+                code: "NOT_FOUND",
+                message: "Nie znaleziono właściciela.",
+            });
+        }
+
+        return owner.ownedApartments.map((oa) => oa.apartment);
+    }),
+
     getDetails: publicProcedure
         .input(z.object({
             slug: z.string().min(1, "Apartment slug is required")

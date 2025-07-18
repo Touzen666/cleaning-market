@@ -375,15 +375,24 @@ async function mapToDBReservations(
             });
 
             if (existingReservation) {
-                logWithTag(`Rezerwacja o ID ${idobookingId} już istnieje. Aktualizowanie...`);
-                try {
-                    await ctx.db.reservation.update({
-                        where: { idobookingId },
-                        data: reservationData,
-                    });
-                    logWithTag(`✅ Rezerwacja ${idobookingId} zaktualizowana pomyślnie.`);
-                } catch (error) {
-                    logWithTag(`❌ Błąd podczas aktualizacji rezerwacji ${idobookingId}:`, error);
+                const newStatus = reservationDetails.status;
+                const oldStatus = existingReservation.status;
+
+                // Sprawdzamy, czy status istniejącej rezerwacji jest inny niż "canceled"
+                // i czy nowy status to "canceled". Tylko wtedy aktualizujemy.
+                if (oldStatus.toLowerCase() !== 'canceled' && newStatus.toLowerCase() === 'canceled') {
+                    logWithTag(`Rezerwacja o ID ${idobookingId} (status: ${oldStatus}) zmienia status na "${newStatus}". Aktualizowanie...`);
+                    try {
+                        await ctx.db.reservation.update({
+                            where: { idobookingId },
+                            data: reservationData,
+                        });
+                        logWithTag(`✅ Rezerwacja ${idobookingId} zaktualizowana pomyślnie.`);
+                    } catch (error) {
+                        logWithTag(`❌ Błąd podczas aktualizacji rezerwacji ${idobookingId}:`, error);
+                    }
+                } else {
+                    logWithTag(`Pominięto aktualizację dla istniejącej rezerwacji ${idobookingId}. Status w DB: "${oldStatus}", nowy status: "${newStatus}".`);
                 }
             } else {
                 logWithTag(`Rezerwacja o ID ${idobookingId} nie istnieje. Tworzenie nowej...`);

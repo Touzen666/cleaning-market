@@ -1,23 +1,30 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { api } from "@/trpc/react";
 import type { RouterOutputs } from "@/trpc/react";
 
-type Owner = NonNullable<RouterOutputs["apartmentOwners"]["getById"]>;
 type Apartment = RouterOutputs["apartments"]["getAll"]["apartments"][0];
 
 interface ManageOwnerApartmentsModalProps {
-  owner: Owner;
-  allApartments: Apartment[];
+  ownerId: string;
   onClose: () => void;
   onSuccess: () => void;
 }
 
-export default function ManageOwnerApartmentsModal({
+function ManageOwnerApartmentsModalInner({
   owner,
-  allApartments,
   onClose,
   onSuccess,
-}: ManageOwnerApartmentsModalProps) {
+}: {
+  owner: NonNullable<RouterOutputs["apartmentOwners"]["getById"]>;
+  onClose: () => void;
+  onSuccess: () => void;
+}) {
+  const { data: allApartmentsData } = api.apartments.getAll.useQuery();
+  const allApartments = useMemo(
+    () => allApartmentsData?.apartments ?? [],
+    [allApartmentsData],
+  );
+
   const initiallyOwnedIds = useMemo(
     () =>
       new Set(owner.ownedApartments.map((oa) => oa.apartment.id.toString())),
@@ -26,6 +33,10 @@ export default function ManageOwnerApartmentsModal({
 
   const [selectedApartmentIds, setSelectedApartmentIds] =
     useState<Set<string>>(initiallyOwnedIds);
+
+  useEffect(() => {
+    setSelectedApartmentIds(initiallyOwnedIds);
+  }, [initiallyOwnedIds]);
 
   const assignApartmentsMutation =
     api.apartmentOwners.assignApartments.useMutation({
@@ -53,7 +64,7 @@ export default function ManageOwnerApartmentsModal({
   const handleSelectAll = (apartmentsToSelect: Apartment[]) => {
     setSelectedApartmentIds((prev) => {
       const newSet = new Set(prev);
-      apartmentsToSelect.forEach((apt) => newSet.add(apt.id));
+      apartmentsToSelect.forEach((apt) => newSet.add(apt.id.toString()));
       return newSet;
     });
   };
@@ -61,7 +72,7 @@ export default function ManageOwnerApartmentsModal({
   const handleDeselectAll = (apartmentsToDeselect: Apartment[]) => {
     setSelectedApartmentIds((prev) => {
       const newSet = new Set(prev);
-      apartmentsToDeselect.forEach((apt) => newSet.delete(apt.id));
+      apartmentsToDeselect.forEach((apt) => newSet.delete(apt.id.toString()));
       return newSet;
     });
   };
@@ -76,7 +87,10 @@ export default function ManageOwnerApartmentsModal({
   };
 
   const assignedApartments = useMemo(
-    () => allApartments.filter((apt) => selectedApartmentIds.has(apt.id)),
+    () =>
+      allApartments.filter((apt) =>
+        selectedApartmentIds.has(apt.id.toString()),
+      ),
     [allApartments, selectedApartmentIds],
   );
 
@@ -84,7 +98,7 @@ export default function ManageOwnerApartmentsModal({
     () =>
       allApartments.filter(
         (apt) =>
-          !selectedApartmentIds.has(apt.id) &&
+          !selectedApartmentIds.has(apt.id.toString()) &&
           (!apt.ownerships ||
             apt.ownerships.length === 0 ||
             (apt.ownerships.length === 1 &&
@@ -118,8 +132,8 @@ export default function ManageOwnerApartmentsModal({
                   <input
                     type="checkbox"
                     id={`apt-avail-${apt.id}`}
-                    checked={selectedApartmentIds.has(apt.id)}
-                    onChange={() => handleToggleApartment(apt.id)}
+                    checked={selectedApartmentIds.has(apt.id.toString())}
+                    onChange={() => handleToggleApartment(apt.id.toString())}
                     className="mr-2"
                   />
                   <label htmlFor={`apt-avail-${apt.id}`}>{apt.name}</label>
@@ -145,8 +159,8 @@ export default function ManageOwnerApartmentsModal({
                   <input
                     type="checkbox"
                     id={`apt-assign-${apt.id}`}
-                    checked={selectedApartmentIds.has(apt.id)}
-                    onChange={() => handleToggleApartment(apt.id)}
+                    checked={selectedApartmentIds.has(apt.id.toString())}
+                    onChange={() => handleToggleApartment(apt.id.toString())}
                     className="mr-2"
                   />
                   <label htmlFor={`apt-assign-${apt.id}`}>{apt.name}</label>
@@ -172,5 +186,51 @@ export default function ManageOwnerApartmentsModal({
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ManageOwnerApartmentsModal({
+  ownerId,
+  onClose,
+  onSuccess,
+}: ManageOwnerApartmentsModalProps) {
+  const {
+    data: owner,
+    isLoading,
+    isError,
+  } = api.apartmentOwners.getById.useQuery({ ownerId: ownerId });
+
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="rounded-lg bg-white p-6">Ładowanie danych...</div>
+      </div>
+    );
+  }
+
+  if (isError || !owner) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="rounded-lg bg-white p-6">
+          <p className="text-red-500">
+            Wystąpił błąd podczas ładowania danych właściciela.
+          </p>
+          <button
+            onClick={onClose}
+            className="mt-4 rounded-md border px-4 py-2"
+          >
+            Zamknij
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <ManageOwnerApartmentsModalInner
+      owner={owner}
+      onClose={onClose}
+      onSuccess={onSuccess}
+    />
   );
 }

@@ -3,6 +3,7 @@ import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { UserType, PaymentType, VATOption } from '@prisma/client';
 import { _sendWelcomeEmail } from "./email";
+import { randomBytes } from "crypto";
 
 
 const apartmentOwnerSchema = z.object({
@@ -271,6 +272,34 @@ export const apartmentOwnersRouter = createTRPCRouter({
                     })),
                 });
             }
+
+            return { success: true };
+        }),
+
+    // Remove apartment from owner
+    removeApartmentFromOwner: protectedProcedure
+        .input(z.object({
+            ownerId: z.string(),
+            apartmentId: z.number(),
+        }))
+        .mutation(async ({ input, ctx }) => {
+            if (ctx.session.user.type !== UserType.ADMIN) {
+                throw new TRPCError({
+                    code: "FORBIDDEN",
+                    message: "Only admins can remove apartments from owners",
+                });
+            }
+
+            const { ownerId, apartmentId } = input;
+
+            await ctx.db.apartmentOwnership.delete({
+                where: {
+                    ownerId_apartmentId: {
+                        ownerId,
+                        apartmentId,
+                    },
+                },
+            });
 
             return { success: true };
         }),
@@ -634,6 +663,77 @@ export const apartmentOwnersRouter = createTRPCRouter({
                     reservations: _count.reservations,
                 };
             });
+        }),
+
+    impersonate: protectedProcedure
+        .input(z.object({ ownerId: z.string() }))
+        .mutation(async ({ input, ctx }) => {
+            if (ctx.session.user.type !== "ADMIN") {
+                throw new TRPCError({
+                    code: "FORBIDDEN",
+                    message: "Tylko administrator może używać tej funkcji.",
+                });
+            }
+
+            const ownerToImpersonate = await ctx.db.apartmentOwner.findUnique({
+                where: { id: input.ownerId },
+                include: {
+                    ownedApartments: {
+                        include: {
+                            apartment: {
+                                select: {
+                                    id: true,
+                                    name: true,
+                                    slug: true,
+                                    address: true,
+                                    images: {
+                                        select: {
+                                            id: true,
+                                            url: true,
+                                            alt: true,
+                                            isPrimary: true,
+                                            order: true,
+                                        },
+                                        orderBy: {
+                                            order: "asc",
+                                        },
+                                    },
+                                    _count: {
+                                        select: { reservations: true },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            });
+
+            if (!ownerToImpersonate) {
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: "Właściciel nie został znaleziony.",
+                });
+            }
+
+            const sessionToken = randomBytes(32).toString("hex");
+
+            return {
+                sessionToken,
+                owner: {
+                    id: ownerToImpersonate.id,
+                    email: ownerToImpersonate.email,
+                    firstName: ownerToImpersonate.firstName,
+                    lastName: ownerToImpersonate.lastName,
+                    isFirstLogin: ownerToImpersonate.isFirstLogin,
+                    apartments: ownerToImpersonate.ownedApartments.map((ownership) => {
+                        const { _count, ...apartmentData } = ownership.apartment;
+                        return {
+                            ...apartmentData,
+                            reservations: _count.reservations,
+                        };
+                    }),
+                },
+            };
         }),
 });
 
