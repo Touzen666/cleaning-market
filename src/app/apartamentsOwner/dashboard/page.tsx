@@ -132,7 +132,11 @@ export default function OwnerDashboard() {
                 Zysk w tym roku
               </dt>
               <dd className="mt-1 text-3xl font-semibold tracking-tight text-gray-900">
-                {stats.currentYearProfit.toFixed(2)} PLN
+                {(typeof stats.currentYearProfit === "number"
+                  ? stats.currentYearProfit
+                  : 0
+                ).toFixed(2)}{" "}
+                PLN
               </dd>
             </div>
           </div>
@@ -154,10 +158,17 @@ export default function OwnerDashboard() {
             </Link>
             <Link
               href="/apartamentsOwner/reports"
-              className="flex flex-col items-center justify-center rounded-lg bg-white p-6 text-center shadow transition hover:bg-gray-50"
+              className="group flex flex-col items-center justify-center rounded-lg bg-white p-6 text-center shadow"
+              style={{ perspective: "1000px" }}
             >
-              <CurrencyDollarIcon className="h-12 w-12 text-brand-gold" />
+              <div className="relative h-12 w-12 transition-transform duration-500 [transform-style:preserve-3d] group-hover:[transform:rotateY(180deg)]">
+                <CurrencyDollarIcon className="absolute inset-0 h-full w-full text-brand-gold [backface-visibility:hidden]" />
+                <CurrencyDollarIcon className="absolute inset-0 h-full w-full text-brand-gold [backface-visibility:hidden] [transform:rotateY(180deg)]" />
+              </div>
               <p className="mt-2 font-semibold">Raporty Finansowe</p>
+              <p className="text-sm text-gray-500">
+                ({dashboardData.stats.totalReports} raporty)
+              </p>
             </Link>
           </div>
         </div>

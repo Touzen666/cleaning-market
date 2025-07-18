@@ -274,6 +274,12 @@ model MonthlyReport {
   suggestedRent        Float?                @default(0)
   suggestedUtilities   Float?                @default(0)
   finalSettlementType  SettlementType?
+  finalOwnerPayout     Float?
+  finalVatAmount       Float?
+  adminCommissionAmount Float?
+  afterCommission      Float?
+  afterRentAndUtilities Float?
+  totalAdditionalDeductions Float?
   apartmentId          Int
   additionalDeductions AdditionalDeduction[]
   apartment            Apartment             @relation(fields: [apartmentId], references: [id])
@@ -369,6 +375,12 @@ enum ReportStatus {
   SENT
 }
 
+enum SettlementType {
+  COMMISSION
+  FIXED
+  FIXED_MINUS_UTILITIES
+}
+
 enum ReportItemType {
   REVENUE
   EXPENSE
@@ -394,12 +406,6 @@ enum ReservationPortal {
   AIRBNB
   IDOBOOKING
   CHANEL_MANAGER
-}
-
-enum SettlementType {
-  COMMISSION
-  FIXED
-  FIXED_MINUS_UTILITIES
 }
 
 enum NoteType {

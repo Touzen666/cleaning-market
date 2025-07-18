@@ -25,6 +25,8 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
+import { toast } from "react-hot-toast";
+
 type ReportDetails = RouterOutputs["monthlyReports"]["getById"];
 
 const expenseCategories = [
@@ -40,17 +42,6 @@ const expenseCategories = [
     description: "Środki czyszczące i higiena",
   },
   { name: "Inne", vatRate: 23, description: "Inne wydatki" },
-];
-
-const quickAddOptions = [
-  { name: "Sprzątanie", vatRate: 23, description: "Sprzątanie apartamentu" },
-  { name: "Pranie", vatRate: 23, description: "Pranie pościeli i ręczników" },
-  { name: "Zakupy", vatRate: 23, description: "Zakupy środków czystości" },
-  {
-    name: "Tekstylia",
-    vatRate: 8,
-    description: "Zakup nowych tekstyliów (ręczniki, pościel)",
-  },
 ];
 
 export default function ReportDetailsPage({
@@ -148,17 +139,15 @@ export default function ReportDetailsPage({
       },
     });
 
-  const deleteReportItemMutation =
-    api.monthlyReports.deleteReportItem.useMutation({
-      onSuccess: () => {
-        void reportQuery.refetch();
-        // Optionally show a success toast
-      },
-      onError: (error) => {
-        // Optionally show an error toast
-        alert(`Błąd podczas usuwania pozycji: ${error.message}`);
-      },
-    });
+  const deleteReportItemMutation = api.monthlyReports.deleteItem.useMutation({
+    onSuccess: () => {
+      toast.success("Pozycja została usunięta.");
+      void reportQuery.refetch();
+    },
+    onError: (error) => {
+      toast.error(`Błąd: ${error.message}`);
+    },
+  });
 
   const updateDeductionsOrderMutation =
     api.monthlyReports.updateDeductionsOrder.useMutation({
@@ -185,6 +174,7 @@ export default function ReportDetailsPage({
   // TRPC mutations
   const addItemMutation = api.monthlyReports.addItem.useMutation({
     onSuccess: () => {
+      toast.success("Pozycja została dodana.");
       void reportQuery.refetch();
       setShowAddItemForm(false);
       setItemFormData({
@@ -199,6 +189,9 @@ export default function ReportDetailsPage({
         customExpenseName: "",
         customVatRate: 0,
       });
+    },
+    onError: (error) => {
+      toast.error(`Błąd: ${error.message}`);
     },
   });
 
@@ -482,7 +475,11 @@ export default function ReportDetailsPage({
         date: new Date(itemFormData.date!),
       });
     } catch (error) {
-      console.error("Error adding item:", error);
+      if (error instanceof Error) {
+        toast.error(`Błąd: ${error.message}`);
+      } else {
+        toast.error("Wystąpił nieznany błąd podczas dodawania pozycji.");
+      }
     }
   };
 
@@ -537,15 +534,8 @@ export default function ReportDetailsPage({
     }
   };
 
-  const handleStatusChange = async (newStatus: string) => {
-    try {
-      await updateStatusMutation.mutateAsync({
-        reportId: reportId,
-        status: newStatus as ReportStatus,
-      });
-    } catch (error) {
-      console.error("Error updating status:", error);
-    }
+  const handleStatusChange = (status: ReportStatus, notes?: string) => {
+    updateStatusMutation.mutate({ reportId, status, notes });
   };
 
   const getStatusColor = (status: ReportStatus) => {
@@ -617,7 +607,7 @@ export default function ReportDetailsPage({
 
   const handleDeleteItem = (itemId: string) => {
     if (confirm("Czy na pewno chcesz usunąć tę pozycję z raportu?")) {
-      deleteReportItemMutation.mutate({ reportItemId: itemId });
+      deleteReportItemMutation.mutate({ itemId });
     }
   };
 
@@ -1010,7 +1000,9 @@ export default function ReportDetailsPage({
                 {report.status !== ReportStatus.SENT && (
                   <select
                     value={report.status}
-                    onChange={(e) => handleStatusChange(e.target.value)}
+                    onChange={(e) =>
+                      handleStatusChange(e.target.value as ReportStatus)
+                    }
                     className="block w-full rounded-md border-gray-300 text-sm"
                     disabled={updateStatusMutation.isPending}
                   >
@@ -1139,7 +1131,7 @@ export default function ReportDetailsPage({
                             quickExpenses[key as keyof typeof quickExpenses]
                               .net <= 0
                           }
-                          className="inline-flex w-full items-center justify-center rounded-md bg-green-600 px-3 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+                          className="inline-flex w-full items-center justify-center rounded-md bg-green-600 px-3 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50 hover:bg-green-700"
                         >
                           {addingQuickExpense === key ? (
                             <>
@@ -1303,7 +1295,7 @@ export default function ReportDetailsPage({
                               onClick={() =>
                                 handleAddDiscount(item.reservation!.id)
                               }
-                              className="rounded bg-orange-100 px-2 py-1 text-xs font-medium text-orange-700 hover:bg-orange-200 disabled:opacity-50"
+                              className="rounded bg-orange-100 px-2 py-1 text-xs font-medium text-orange-700 disabled:opacity-50 hover:bg-orange-200"
                               disabled={addDiscountMutation.isPending}
                             >
                               Dodaj Rabat 10%
@@ -1437,7 +1429,7 @@ export default function ReportDetailsPage({
                                   report.status === "SENT" ||
                                   deleteReportItemMutation.isPending
                                 }
-                                className="text-red-600 hover:text-red-900 disabled:cursor-not-allowed disabled:text-gray-400"
+                                className="text-red-600 disabled:cursor-not-allowed disabled:text-gray-400 hover:text-red-900"
                                 title="Usuń pozycję"
                               >
                                 <svg
@@ -1572,7 +1564,7 @@ export default function ReportDetailsPage({
                   type="button"
                   onClick={handleSaveRentUtilities}
                   disabled={updateRentUtilitiesMutation.isPending}
-                  className="inline-flex items-center rounded-md bg-yellow-600 px-4 py-2 text-sm font-medium text-white hover:bg-yellow-700 disabled:opacity-50"
+                  className="inline-flex items-center rounded-md bg-yellow-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50 hover:bg-yellow-700"
                 >
                   {updateRentUtilitiesMutation.isPending
                     ? "Zapisywanie..."
@@ -1759,7 +1751,7 @@ export default function ReportDetailsPage({
                     type="button"
                     onClick={handleSaveAdditionalDeduction}
                     disabled={addAdditionalDeductionMutation.isPending}
-                    className="inline-flex items-center rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700 disabled:opacity-50"
+                    className="inline-flex items-center rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50 hover:bg-purple-700"
                   >
                     {addAdditionalDeductionMutation.isPending
                       ? "Zapisywanie..."
@@ -2052,7 +2044,7 @@ export default function ReportDetailsPage({
                   <button
                     type="submit"
                     disabled={addItemMutation.isPending}
-                    className="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 hover:bg-indigo-700"
                   >
                     {addItemMutation.isPending ? "Dodawanie..." : "Dodaj"}
                   </button>
@@ -2312,7 +2304,7 @@ function SuggestedCommissionsSection({
                         0 ||
                       !suggestion.totalRevenue
                     }
-                    className="inline-flex items-center rounded-md bg-blue-600 px-3 py-1 text-xs font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="inline-flex items-center rounded-md bg-blue-600 px-3 py-1 text-xs font-medium text-white disabled:cursor-not-allowed disabled:opacity-50 hover:bg-blue-700"
                   >
                     {loadingIndex === index ? (
                       <>

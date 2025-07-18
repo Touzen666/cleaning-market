@@ -227,10 +227,16 @@ export const ownerAuthRouter = createTRPCRouter({
                 where: {
                     ownerId: owner.id,
                     year: startOfYear.getFullYear(),
-                    status: ReportStatus.APPROVED,
+                    status: { in: [ReportStatus.APPROVED, ReportStatus.SENT] },
                 },
                 _sum: {
-                    ownerPayoutAmount: true,
+                    finalOwnerPayout: true,
+                },
+            });
+
+            const totalReports = await ctx.db.monthlyReport.count({
+                where: {
+                    ownerId: owner.id,
                 },
             });
 
@@ -239,7 +245,8 @@ export const ownerAuthRouter = createTRPCRouter({
                 stats: {
                     totalApartments,
                     activeReservations,
-                    currentYearProfit: revenue._sum.ownerPayoutAmount ?? 0,
+                    currentYearProfit: revenue._sum.finalOwnerPayout ?? 0,
+                    totalReports,
                 },
             };
         }),
