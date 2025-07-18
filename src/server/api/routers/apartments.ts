@@ -360,7 +360,7 @@ export const apartmentsRouter = createTRPCRouter({
                         }
                     }
                 } else {
-                    console.log(`👍 Apartament "${reservation.apartmentName}" już istnieje. ID: ${apartment.id}`);
+                    console.log(`👍 Apartament "${reservation.apartmentName}" już istnieje. Adres nie zostanie zaktualizowany.`);
                 }
 
                 if (apartment && reservation.apartmentId !== apartment.id) {

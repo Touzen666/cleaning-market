@@ -375,15 +375,21 @@ async function mapToDBReservations(
             });
 
             if (existingReservation) {
-                logWithTag(`Rezerwacja o ID ${idobookingId} już istnieje. Aktualizowanie...`);
-                try {
-                    await ctx.db.reservation.update({
-                        where: { idobookingId },
-                        data: reservationData,
-                    });
-                    logWithTag(`✅ Rezerwacja ${idobookingId} zaktualizowana pomyślnie.`);
-                } catch (error) {
-                    logWithTag(`❌ Błąd podczas aktualizacji rezerwacji ${idobookingId}:`, error);
+                logWithTag(`Rezerwacja o ID ${idobookingId} już istnieje. Aktualizowanie statusu...`);
+                if (existingReservation.status !== reservationDetails.status) {
+                    try {
+                        await ctx.db.reservation.update({
+                            where: { idobookingId },
+                            data: {
+                                status: reservationDetails.status
+                            },
+                        });
+                        logWithTag(`✅ Status rezerwacji ${idobookingId} zaktualizowany z "${existingReservation.status}" na "${reservationDetails.status}".`);
+                    } catch (error) {
+                        logWithTag(`❌ Błąd podczas aktualizacji statusu rezerwacji ${idobookingId}:`, error);
+                    }
+                } else {
+                    logWithTag(`Status rezerwacji ${idobookingId} jest już aktualny. Pomijanie.`);
                 }
             } else {
                 logWithTag(`Rezerwacja o ID ${idobookingId} nie istnieje. Tworzenie nowej...`);
