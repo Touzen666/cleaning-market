@@ -6,6 +6,25 @@ import { api } from "@/trpc/react";
 import type { RouterOutputs } from "@/trpc/react";
 import ApartmentList from "@/components/ApartmentList";
 
+const anonymizeGuestName = (fullName: string) => {
+  if (!fullName || typeof fullName !== "string") {
+    return "Gość";
+  }
+
+  const parts = fullName.trim().split(" ");
+  if (parts.length < 2) {
+    return `${parts[0]?.substring(0, 2) ?? ""}...`;
+  }
+
+  const firstName = parts[0] ?? "";
+  const lastName = parts.slice(1).join(" ");
+
+  const anonymizedFirstName = `${firstName.substring(0, 2)}...`;
+  const anonymizedLastName = `${lastName.substring(0, 2)}...`;
+
+  return `${anonymizedFirstName} ${anonymizedLastName}`;
+};
+
 export default function OwnerDashboardPage() {
   const router = useRouter();
   const [ownerEmail, setOwnerEmail] = useState<string | null>(null);
@@ -320,6 +339,7 @@ export default function OwnerDashboardPage() {
           reservations={apartmentReservations}
           isLoading={reservationsLoading}
           onClose={handleCloseReservationsModal}
+          anonymizeGuestName={anonymizeGuestName}
         />
       )}
     </div>
@@ -337,25 +357,21 @@ function ReservationCalendarModal({
   reservations = [],
   isLoading,
   onClose,
+  anonymizeGuestName,
 }: {
   apartment: Apartment | undefined;
   reservations: Reservation[] | undefined;
   isLoading: boolean;
   onClose: () => void;
+  anonymizeGuestName: (name: string) => string;
 }) {
+  const [showAll, setShowAll] = useState(false);
   // Generuj 30 dni od dzisiaj
-  const generateCalendarDays = () => {
-    const days = [];
-    const today = new Date();
-    for (let i = 0; i < 30; i++) {
-      const date = new Date(today);
-      date.setDate(today.getDate() + i);
-      days.push(date);
-    }
-    return days;
-  };
-
-  const calendarDays = generateCalendarDays();
+  const days = Array.from({ length: 30 }, (_, i) => {
+    const date = new Date();
+    date.setDate(date.getDate() + i);
+    return date;
+  });
 
   // Funkcja do obliczania szerokości bloku rezerwacji
   const getReservationBlockStyle = (
@@ -420,7 +436,7 @@ function ReservationCalendarModal({
               {/* Calendar Header */}
               <div className="mb-4 flex">
                 <div className="w-48 flex-shrink-0"></div>
-                {calendarDays.map((day, index) => (
+                {days.map((day, index) => (
                   <div key={index} className="w-10 text-center">
                     <div className="text-xs font-medium text-gray-500">
                       {day.toLocaleDateString("pl-PL", { weekday: "short" })}
@@ -447,7 +463,7 @@ function ReservationCalendarModal({
 
                   {/* Calendar Grid */}
                   <div className="relative flex">
-                    {calendarDays.map((day, dayIndex) => (
+                    {days.map((day, dayIndex) => (
                       <div
                         key={dayIndex}
                         className="relative h-12 w-10 border-r border-gray-100"
@@ -460,7 +476,7 @@ function ReservationCalendarModal({
                     {/* Reservation Blocks */}
                     {reservations?.map((reservation) => {
                       const start = new Date(reservation.start);
-                      const startIndex = calendarDays.findIndex((day) => {
+                      const startIndex = days.findIndex((day) => {
                         const dayDate = new Date(day);
                         return dayDate.toDateString() === start.toDateString();
                       });
@@ -498,12 +514,28 @@ function ReservationCalendarModal({
                           key={reservation.id}
                           className={`absolute top-1 h-10 rounded px-1 py-1 text-xs font-medium ${bgColor} ${textColor} flex cursor-pointer items-center justify-between transition-opacity hover:opacity-80`}
                           style={style}
-                          title={`${reservation.guest} (${new Date(reservation.start).toLocaleDateString()} - ${new Date(reservation.end).toLocaleDateString()})`}
+                          title={`${anonymizeGuestName(reservation.guest)} (${new Date(
+                            reservation.start,
+                          ).toLocaleDateString()} - ${new Date(
+                            reservation.end,
+                          ).toLocaleDateString()})`}
                         >
-                          <span className="truncate">{reservation.guest}</span>
+                          <span className="truncate">
+                            {anonymizeGuestName(reservation.guest)}
+                          </span>
                           <div className="ml-1 flex-shrink-0">
                             {status === "checked-in" && (
-                              <div className="h-2 w-2 animate-pulse rounded-full bg-white"></div>
+                              <svg
+                                className="h-3 w-3 text-white"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                              >
+                                <path
+                                  fillRule="evenodd"
+                                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                  clipRule="evenodd"
+                                />
+                              </svg>
                             )}
                             {status === "checked-out" && (
                               <svg
