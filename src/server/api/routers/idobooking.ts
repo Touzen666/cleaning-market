@@ -211,10 +211,10 @@ export async function getReservations(): Promise<z.infer<typeof reservationSchem
                 body: JSON.stringify({
                     authenticate: getAuth(),
                     paramsSearch: {
-                        // fromDateRange: {
-                        //   startDate: "2024-11-01T00:00:00",
-                        //   endDate: "2026-07-07T00:00:00",
-                        // },
+                        fromDateRange: {
+                            startDate: "2024-11-01T00:00:00",
+                            endDate: "2026-07-07T00:00:00",
+                        },
                     },
                     result: {
                         page: currentPage,

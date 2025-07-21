@@ -1,9 +1,8 @@
-import { db } from "@/server/db";
 import {
     getReservations,
     mapToDBReservations,
 } from "@/server/api/routers/idobooking";
-import { type createTRPCContext } from "@/server/api/trpc";
+import { createTRPCContext } from "@/server/api/trpc";
 
 /**
  * Funkcja do synchronizacji rezerwacji z IdoBooking.
