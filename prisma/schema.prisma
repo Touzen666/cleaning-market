@@ -10,10 +10,10 @@ datasource db {
 
 model Post {
   id          Int      @id @default(autoincrement())
-  title       String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   createdById String
+  title       String
   createdBy   User     @relation(fields: [createdById], references: [id])
 
   @@index([title])
@@ -81,28 +81,28 @@ model VerificationToken {
 }
 
 model Reservation {
-  source        String
-  createDate    DateTime     @db.Date
-  guest         String
-  start         DateTime
-  end           DateTime
-  apartmentName String
-  address       String
-  status        String
-  payment       String
-  paymantValue  Float
-  currency      String
-  adults        Int?
-  children      Int?
-  importSource  String?
-  importBatchId String?
-  id            Int          @id @default(autoincrement())
-  apartmentId   Int?
-  idobookingId  Int?         @unique
-  checkInCards  CheckInCard?
-  reportItems   ReportItem[]
+  source         String
+  createDate     DateTime     @db.Date
+  guest          String
+  start          DateTime
+  end            DateTime
+  apartmentName  String
+  address        String
+  status         String
+  payment        String
+  paymantValue   Float
+  currency       String
+  adults         Int?
+  children       Int?
+  importSource   String?
+  importBatchId  String?
+  id             Int          @id @default(autoincrement())
+  apartmentId    Int?
+  idobookingId   Int?         @unique
   rateCorrection Float?
-  apartment     Apartment?   @relation(fields: [apartmentId], references: [id])
+  checkInCards   CheckInCard?
+  reportItems    ReportItem[]
+  apartment      Apartment?   @relation(fields: [apartmentId], references: [id])
 }
 
 model Apartment {
