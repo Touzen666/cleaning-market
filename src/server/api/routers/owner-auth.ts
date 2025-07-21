@@ -49,7 +49,7 @@ export const ownerAuthRouter = createTRPCRouter({
                 });
             }
 
-            const secret = process.env.NEXTAUTH_SECRET;
+            const secret = process.env.AUTH_SECRET;
             if (!secret) {
                 throw new TRPCError({
                     code: "INTERNAL_SERVER_ERROR",
