@@ -189,7 +189,9 @@ function getAuth() {
     };
 }
 
-export async function getReservations(): Promise<z.infer<typeof reservationSchema>[]> {
+export async function getReservations(
+    params?: { modificationDateFrom?: string }
+): Promise<z.infer<typeof reservationSchema>[]> {
     const allReservations: z.infer<typeof reservationSchema>[] = [];
     let currentPage = 1;
     let totalPages = 1;
@@ -210,10 +212,11 @@ export async function getReservations(): Promise<z.infer<typeof reservationSchem
                 body: JSON.stringify({
                     authenticate: getAuth(),
                     paramsSearch: {
-                        // fromDateRange: {
-                        //   startDate: "2024-11-01T00:00:00",
-                        //   endDate: "2026-07-07T00:00:00",
-                        // },
+                        ...(params?.modificationDateFrom && {
+                            modificationDateRange: {
+                                startDate: params.modificationDateFrom,
+                            },
+                        }),
                     },
                     result: {
                         page: currentPage,
@@ -501,20 +504,26 @@ export const idobookingRouter = createTRPCRouter({
                 message: "Tylko administratorzy mogą synchronizować rezerwacje.",
             });
         }
+
         try {
-            console.log("▶️ Rozpoczęto synchroniczną synchronizację rezerwacji...");
-            const result = await syncIdobookingReservations();
-            console.log("✅ Synchronizacja zakończona.");
+            console.log("▶️ Rozpoczęto szybką, ręczną synchronizację rezerwacji...");
+            // Ustaw datę na 24 godziny temu
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            const result = await syncIdobookingReservations({
+                modificationDateFrom: yesterday.toISOString(),
+            });
+            console.log("✅ Szybka synchronizacja zakończona.");
             return {
                 success: true,
-                message: "Synchronizacja rezerwacji zakończona pomyślnie.",
-                data: result, // Opcjonalnie zwróć wynik
+                message: "Szybka synchronizacja zakończona pomyślnie.",
+                data: result,
             };
         } catch (error) {
-            console.error("❌ Błąd podczas synchronicznej synchronizacji:", error);
+            console.error("❌ Błąd podczas szybkiej synchronizacji:", error);
             throw new TRPCError({
                 code: "INTERNAL_SERVER_ERROR",
-                message: "Wystąpił błąd podczas synchronizacji rezerwacji.",
+                message: "Wystąpił błąd podczas szybkiej synchronizacji rezerwacji.",
                 cause: error,
             });
         }
