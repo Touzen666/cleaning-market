@@ -10,10 +10,10 @@ datasource db {
 
 model Post {
   id          Int      @id @default(autoincrement())
-  title       String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   createdById String
+  title       String
   createdBy   User     @relation(fields: [createdById], references: [id])
 
   @@index([title])
@@ -81,28 +81,28 @@ model VerificationToken {
 }
 
 model Reservation {
-  source        String
-  createDate    DateTime     @db.Date
-  guest         String
-  start         DateTime
-  end           DateTime
-  apartmentName String
-  address       String
-  status        String
-  payment       String
-  paymantValue  Float
-  currency      String
-  adults        Int?
-  children      Int?
-  importSource  String?
-  importBatchId String?
-  id            Int          @id @default(autoincrement())
-  apartmentId   Int?
-  idobookingId  Int?         @unique
-  checkInCards  CheckInCard?
-  reportItems   ReportItem[]
+  source         String
+  createDate     DateTime     @db.Date
+  guest          String
+  start          DateTime
+  end            DateTime
+  apartmentName  String
+  address        String
+  status         String
+  payment        String
+  paymantValue   Float
+  currency       String
+  adults         Int?
+  children       Int?
+  importSource   String?
+  importBatchId  String?
+  id             Int          @id @default(autoincrement())
+  apartmentId    Int?
+  idobookingId   Int?         @unique
   rateCorrection Float?
-  apartment     Apartment?   @relation(fields: [apartmentId], references: [id])
+  checkInCards   CheckInCard?
+  reportItems    ReportItem[]
+  apartment      Apartment?   @relation(fields: [apartmentId], references: [id])
 }
 
 model Apartment {
@@ -252,36 +252,42 @@ model AdditionalDeduction {
 }
 
 model MonthlyReport {
-  id                   String                @id @default(uuid())
-  createdAt            DateTime              @default(now())
-  updatedAt            DateTime              @updatedAt
-  year                 Int
-  month                Int
-  ownerId              String
-  createdByAdminId     String
-  status               ReportStatus          @default(DRAFT)
-  draftNotes           String?
-  approvedAt           DateTime?
-  approvedByAdminId    String?
-  sentAt               DateTime?
-  totalRevenue         Float                 @default(0)
-  totalExpenses        Float                 @default(0)
-  netIncome            Float                 @default(0)
-  ownerPayoutAmount    Float                 @default(0)
-  currency             String                @default("PLN")
-  rentAmount           Float?                @default(0)
-  utilitiesAmount      Float?                @default(0)
-  suggestedRent        Float?                @default(0)
-  suggestedUtilities   Float?                @default(0)
-  finalSettlementType  SettlementType?
-  apartmentId          Int
-  additionalDeductions AdditionalDeduction[]
-  apartment            Apartment             @relation(fields: [apartmentId], references: [id])
-  approvedByAdmin      User?                 @relation("AdminApprovedReports", fields: [approvedByAdminId], references: [id])
-  createdByAdmin       User                  @relation("AdminCreatedReports", fields: [createdByAdminId], references: [id])
-  owner                ApartmentOwner        @relation(fields: [ownerId], references: [id])
-  history              ReportHistory[]
-  items                ReportItem[]
+  id                        String                @id @default(uuid())
+  createdAt                 DateTime              @default(now())
+  updatedAt                 DateTime              @updatedAt
+  year                      Int
+  month                     Int
+  ownerId                   String
+  createdByAdminId          String
+  status                    ReportStatus          @default(DRAFT)
+  draftNotes                String?
+  approvedAt                DateTime?
+  approvedByAdminId         String?
+  sentAt                    DateTime?
+  totalRevenue              Float                 @default(0)
+  totalExpenses             Float                 @default(0)
+  netIncome                 Float                 @default(0)
+  ownerPayoutAmount         Float                 @default(0)
+  currency                  String                @default("PLN")
+  rentAmount                Float?                @default(0)
+  utilitiesAmount           Float?                @default(0)
+  suggestedRent             Float?                @default(0)
+  suggestedUtilities        Float?                @default(0)
+  finalOwnerPayout          Float?
+  adminCommissionAmount     Float?
+  afterCommission           Float?
+  afterRentAndUtilities     Float?
+  totalAdditionalDeductions Float?
+  apartmentId               Int
+  finalSettlementType       SettlementType?
+  finalVatAmount            Float?
+  additionalDeductions      AdditionalDeduction[]
+  apartment                 Apartment             @relation(fields: [apartmentId], references: [id])
+  approvedByAdmin           User?                 @relation("AdminApprovedReports", fields: [approvedByAdminId], references: [id])
+  createdByAdmin            User                  @relation("AdminCreatedReports", fields: [createdByAdminId], references: [id])
+  owner                     ApartmentOwner        @relation(fields: [ownerId], references: [id])
+  history                   ReportHistory[]
+  items                     ReportItem[]
 
   @@unique([apartmentId, year, month])
   @@index([status])

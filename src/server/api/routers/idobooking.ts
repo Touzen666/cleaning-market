@@ -4,6 +4,7 @@ import { TRPCError } from "@trpc/server";
 import { createHash } from "crypto";
 import { UserType, type Prisma } from "@prisma/client";
 import { type createTRPCContext } from "@/server/api/trpc";
+import { syncIdobookingReservations } from "@/lib/cron";
 
 // Zod schemas dla API responses
 const reservationDetailsSchema = z.object({
@@ -188,7 +189,7 @@ function getAuth() {
     };
 }
 
-async function getReservations(): Promise<z.infer<typeof reservationSchema>[]> {
+export async function getReservations(): Promise<z.infer<typeof reservationSchema>[]> {
     const allReservations: z.infer<typeof reservationSchema>[] = [];
     let currentPage = 1;
     let totalPages = 1;
@@ -292,7 +293,7 @@ async function getReservations(): Promise<z.infer<typeof reservationSchema>[]> {
     return allReservations;
 }
 
-async function mapToDBReservations(
+export async function mapToDBReservations(
     reservations: z.infer<typeof reservationSchema>[],
     ctx: Awaited<ReturnType<typeof createTRPCContext>>,
 ) {
@@ -493,7 +494,6 @@ async function getSources(): Promise<z.infer<typeof reservationSourceDescription
 
 
 export const idobookingRouter = createTRPCRouter({
-    // Pobierz listę apartamentów z idobooking
     syncReservations: protectedProcedure.mutation(async ({ ctx }) => {
         if (ctx.session.user.type !== UserType.ADMIN) {
             throw new TRPCError({
@@ -501,22 +501,21 @@ export const idobookingRouter = createTRPCRouter({
                 message: "Tylko administratorzy mogą synchronizować rezerwacje.",
             });
         }
-
         try {
-            logWithTag("Rozpoczynanie pełnej synchronizacji rezerwacji...");
-            const reservations = await getReservations();
-            await mapToDBReservations(reservations, ctx);
-            logWithTag("🎉 Pełna synchronizacja rezerwacji zakończona pomyślnie.");
+            console.log("▶️ Rozpoczęto synchroniczną synchronizację rezerwacji...");
+            const result = await syncIdobookingReservations();
+            console.log("✅ Synchronizacja zakończona.");
             return {
                 success: true,
-                message: `Synchronizacja zakończona. Pobrano ${reservations.length} rezerwacji.`,
+                message: "Synchronizacja rezerwacji zakończona pomyślnie.",
+                data: result, // Opcjonalnie zwróć wynik
             };
         } catch (error) {
-            logWithTag("🚨 Wystąpił błąd podczas synchronizacji rezerwacji:", error);
-            const errorMessage = error instanceof Error ? error.message : "Unknown error";
+            console.error("❌ Błąd podczas synchronicznej synchronizacji:", error);
             throw new TRPCError({
                 code: "INTERNAL_SERVER_ERROR",
-                message: errorMessage,
+                message: "Wystąpił błąd podczas synchronizacji rezerwacji.",
+                cause: error,
             });
         }
     }),
