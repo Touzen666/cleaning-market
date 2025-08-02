@@ -300,6 +300,13 @@ export const reservationsRouter = createTRPCRouter({
                     orderBy: {
                       start: "asc",
                     },
+                    select: {
+                      id: true,
+                      guest: true,
+                      start: true,
+                      end: true,
+                      status: true,
+                    },
                   },
                   images: {
                     where: { isPrimary: true },

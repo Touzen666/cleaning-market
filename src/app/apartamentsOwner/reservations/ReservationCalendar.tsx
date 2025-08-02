@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, forwardRef } from "react";
 import {
   format,
   addDays,
@@ -12,19 +12,53 @@ import { pl } from "date-fns/locale";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { type RouterOutputs } from "@/trpc/react";
+import { useRipple } from "@/app/components/ui/Ripple";
+import { Tooltip } from "@/app/components/ui/Tooltip";
+
+const getInitials = (name: string): string => {
+  if (!name) return "";
+  const parts = name.trim().split(" ").filter(Boolean);
+
+  if (parts.length === 0) {
+    return "";
+  }
+  if (parts.length === 1) {
+    const part = parts[0]!;
+    return `${part.charAt(0).toUpperCase()}`;
+  }
+
+  const firstName = parts[0]!;
+  const lastName = parts[parts.length - 1]!;
+  return `${firstName.charAt(0).toUpperCase()}.${lastName.charAt(0).toUpperCase()}`;
+};
+
+const formatGuestName = (name: string): string => {
+  if (!name) return "";
+  const parts = name.trim().split(" ").filter(Boolean);
+
+  if (parts.length === 0) {
+    return "";
+  }
+  if (parts.length === 1) {
+    return parts[0]!;
+  }
+
+  const firstName = parts[0]!;
+  const lastName = parts[parts.length - 1]!;
+  return `${firstName} ${lastName.charAt(0).toUpperCase()}.`;
+};
 
 type Apartment = RouterOutputs["reservation"]["getForOwner"][number];
-type Reservation = Apartment["reservations"][number];
 
 interface ReservationCalendarProps {
   apartment: Apartment;
 }
 
 const COLORS = {
-  free: "#FFFBEB",
-  occupied: "#6B610B",
-  pending: "#F59E0B",
-  today: "#FFD700", // Gold color for today
+  free: "#FFECAE",
+  occupied: "#6B5200",
+  pending: "#6B5200",
+  today: "#FFD700", // Gold
 };
 
 const Legend = () => (
@@ -79,6 +113,87 @@ const DayRangeSelector = ({
     </div>
   );
 };
+
+type Reservation = Apartment["reservations"][number];
+
+interface ReservationItemProps {
+  reservation: Reservation;
+  daysInRange: Date[];
+}
+
+const ReservationItem = forwardRef<HTMLDivElement, ReservationItemProps>(
+  function ReservationItem({ reservation, daysInRange }, ref) {
+    const { onClick, RippleComponent } = useRipple();
+
+    if (daysInRange.length === 0) return null;
+
+    const reservationStartDate = startOfDay(reservation.start);
+    const reservationEndDate = startOfDay(reservation.end);
+    const firstVisibleDay = startOfDay(daysInRange[0]!);
+    const lastVisibleDay = startOfDay(daysInRange[daysInRange.length - 1]!);
+
+    if (
+      reservationEndDate < firstVisibleDay ||
+      reservationStartDate > lastVisibleDay
+    ) {
+      return null;
+    }
+
+    const clampedStartDate =
+      reservationStartDate < firstVisibleDay
+        ? firstVisibleDay
+        : reservationStartDate;
+    const clampedEndDate =
+      reservationEndDate > lastVisibleDay ? lastVisibleDay : reservationEndDate;
+
+    const startDayIndex = differenceInDays(clampedStartDate, firstVisibleDay);
+    const endDayIndex = differenceInDays(clampedEndDate, firstVisibleDay);
+
+    const startsBeforeVisibleRange = reservationStartDate < firstVisibleDay;
+    const startColumn = startsBeforeVisibleRange ? 2 : startDayIndex * 2 + 3;
+
+    const endsAfterVisibleRange = reservationEndDate > lastVisibleDay;
+    const endColumn = endsAfterVisibleRange
+      ? daysInRange.length * 2 + 2
+      : endDayIndex * 2 + 3;
+
+    if (startColumn >= endColumn) {
+      return null;
+    }
+
+    return (
+      <Tooltip
+        content={
+          <div>
+            <p className="font-bold">{formatGuestName(reservation.guest)}</p>
+            <p>
+              {format(reservation.start, "dd.MM.yyyy")} -{" "}
+              {format(reservation.end, "dd.MM.yyyy")}
+            </p>
+          </div>
+        }
+      >
+        <div
+          ref={ref}
+          onClick={onClick}
+          style={{
+            gridRow: 2,
+            gridColumn: `${startColumn} / ${endColumn}`,
+            backgroundColor: "rgba(107, 82, 0, 0.6)",
+            borderColor: "#6B5200",
+          }}
+          className="relative z-10 my-2 mr-px flex cursor-pointer items-center justify-center overflow-hidden rounded-lg border-2 shadow-md"
+        >
+          <RippleComponent />
+          <span className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-black text-xs font-bold text-white [text-shadow:_-1px_-1px_0_black,_1px_-1px_0_black,_-1px_1px_0_black,_1px_1px_0_black]">
+            {getInitials(reservation.guest)}
+          </span>
+        </div>
+      </Tooltip>
+    );
+  },
+);
+ReservationItem.displayName = "ReservationItem";
 
 export function ReservationCalendar({ apartment }: ReservationCalendarProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -198,76 +313,13 @@ export function ReservationCalendar({ apartment }: ReservationCalendarProps) {
           {/* Reservations */}
           {apartment.reservations
             .filter((reservation) => reservation.status !== "CANCELED")
-            .map((reservation) => {
-              if (daysInRange.length === 0) return null;
-
-              const reservationStartDate = startOfDay(reservation.start);
-              const reservationEndDate = startOfDay(reservation.end);
-              const firstVisibleDay = startOfDay(daysInRange[0]!);
-              const lastVisibleDay = startOfDay(
-                daysInRange[daysInRange.length - 1]!,
-              );
-
-              // Check if reservation is outside the visible range
-              if (
-                reservationEndDate < firstVisibleDay ||
-                reservationStartDate > lastVisibleDay
-              ) {
-                return null;
-              }
-
-              const clampedStartDate =
-                reservationStartDate < firstVisibleDay
-                  ? firstVisibleDay
-                  : reservationStartDate;
-              const clampedEndDate =
-                reservationEndDate > lastVisibleDay
-                  ? lastVisibleDay
-                  : reservationEndDate;
-
-              const startDayIndex = differenceInDays(
-                clampedStartDate,
-                firstVisibleDay,
-              );
-              const endDayIndex = differenceInDays(
-                clampedEndDate,
-                firstVisibleDay,
-              );
-
-              const startsBeforeVisibleRange =
-                reservationStartDate < firstVisibleDay;
-              const startColumn = startsBeforeVisibleRange
-                ? 2
-                : startDayIndex * 2 + 3;
-
-              const endsAfterVisibleRange = reservationEndDate > lastVisibleDay;
-              const endColumn = endsAfterVisibleRange
-                ? daysInRange.length * 2 + 2
-                : endDayIndex * 2 + 3;
-
-              if (startColumn >= endColumn) {
-                return null;
-              }
-
-              return (
-                <div
-                  key={reservation.id}
-                  style={{
-                    gridRow: 2,
-                    gridColumn: `${startColumn} / ${endColumn}`,
-                    backgroundColor:
-                      reservation.status === "CONFIRMED"
-                        ? COLORS.occupied
-                        : COLORS.pending,
-                  }}
-                  className="z-10 my-2 mr-px flex items-center justify-center overflow-hidden rounded-lg border border-gray-800 shadow-md"
-                >
-                  <span className="truncate px-1 text-xs font-semibold text-white">
-                    {reservation.guest}
-                  </span>
-                </div>
-              );
-            })}
+            .map((reservation) => (
+              <ReservationItem
+                key={reservation.id}
+                reservation={reservation}
+                daysInRange={daysInRange}
+              />
+            ))}
         </div>
       </div>
       <Legend />
