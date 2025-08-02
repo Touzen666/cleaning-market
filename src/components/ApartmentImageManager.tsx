@@ -4,6 +4,7 @@ import React, { useState, useCallback } from "react";
 import { api } from "@/trpc/react";
 import { useDropzone } from "react-dropzone";
 import Image from "next/image";
+import { FaSpinner } from "react-icons/fa";
 
 interface ApartmentImage {
   id: string;
@@ -13,16 +14,16 @@ interface ApartmentImage {
   order: number;
 }
 
+interface PendingImage
+  extends Omit<ApartmentImage, "id" | "isPrimary" | "order"> {
+  localId: string;
+  file: File;
+}
+
 interface ApartmentImageManagerProps {
   apartmentId: string;
   images: ApartmentImage[];
   onImagesChange: () => void;
-}
-
-interface UploadResponse {
-  success: boolean;
-  url?: string;
-  error?: string;
 }
 
 export default function ApartmentImageManager({
@@ -37,14 +38,19 @@ export default function ApartmentImageManager({
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [dragOver, setDragOver] = useState(false);
   const [isReordering, setIsReordering] = useState(false);
+  const [pendingImages, setPendingImages] = useState<PendingImage[]>([]);
 
   // Mutacje
   const addImage = api.apartments.addImage.useMutation({
-    onSuccess: () => {
-      setNewImageUrl("");
-      setNewImageAlt("");
-      setIsAddingImage(false);
+    onSuccess: (data, variables) => {
+      // Find and remove the pending image that corresponds to this upload
+      setPendingImages((prev) => prev.filter((p) => p.alt !== variables.alt));
       onImagesChange();
+    },
+    onError: (error, variables) => {
+      console.error("Failed to add image to DB:", error);
+      // Remove the pending image on error as well
+      setPendingImages((prev) => prev.filter((p) => p.alt !== variables.alt));
     },
   });
 
@@ -78,38 +84,54 @@ export default function ApartmentImageManager({
     (acceptedFiles: File[]) => {
       if (acceptedFiles.length === 0) return;
 
+      const newPendingImages: PendingImage[] = acceptedFiles.map((file) => ({
+        localId: `${file.name}-${Date.now()}`,
+        url: URL.createObjectURL(file),
+        alt: file.name.replace(/\.[^/.]+$/, ""),
+        file: file,
+      }));
+
+      setPendingImages((prev) => [...prev, ...newPendingImages]);
+
       const uploadFiles = async () => {
         setIsUploading(true);
         setUploadProgress(0);
 
-        for (let i = 0; i < acceptedFiles.length; i++) {
-          const file = acceptedFiles[i];
-          if (!file) continue;
+        for (let i = 0; i < newPendingImages.length; i++) {
+          const pendingImage = newPendingImages[i];
+          if (!pendingImage) continue;
 
           try {
-            const formData = new FormData();
-            formData.append("file", file);
+            const response = await fetch(
+              `/api/upload?filename=${encodeURIComponent(pendingImage.file.name)}`,
+              {
+                method: "POST",
+                body: pendingImage.file,
+              },
+            );
 
-            const response = await fetch("/api/upload", {
-              method: "POST",
-              body: formData,
-            });
+            const newBlob = (await response.json()) as { url: string };
 
-            const result = (await response.json()) as UploadResponse;
-
-            if (response.ok && result.success && result.url) {
+            if (response.ok) {
               // Mamy publiczny URL, teraz dodajemy do bazy danych
               addImage.mutate({
                 apartmentId,
-                url: result.url,
-                alt: file.name.replace(/\.[^/.]+$/, ""),
+                url: newBlob.url,
+                alt: pendingImage.alt ?? undefined,
               });
             } else {
-              console.error("Upload failed:", result.error);
-              // Można dodać obsługę błędów dla użytkownika
+              console.error("Upload failed:", newBlob);
+              // Remove from pending on failure
+              setPendingImages((prev) =>
+                prev.filter((p) => p.localId !== pendingImage.localId),
+              );
             }
           } catch (error) {
             console.error("Error uploading file:", error);
+            // Remove from pending on failure
+            setPendingImages((prev) =>
+              prev.filter((p) => p.localId !== pendingImage.localId),
+            );
           } finally {
             setUploadProgress(((i + 1) / acceptedFiles.length) * 100);
           }
@@ -265,7 +287,7 @@ export default function ApartmentImageManager({
           {!isAddingImage ? (
             <button
               onClick={() => setIsAddingImage(true)}
-              className="inline-flex items-center rounded-md bg-brand-gold px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-yellow-500 disabled:opacity-50"
+              className="inline-flex items-center rounded-md bg-brand-gold px-3 py-2 text-sm font-semibold text-white shadow-sm disabled:opacity-50 hover:bg-yellow-500"
             >
               <svg
                 className="-ml-0.5 mr-1.5 h-4 w-4"
@@ -318,7 +340,7 @@ export default function ApartmentImageManager({
                 <button
                   type="submit"
                   disabled={addImage.isPending}
-                  className="inline-flex items-center rounded-md bg-brand-gold px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-yellow-500 disabled:opacity-50"
+                  className="inline-flex items-center rounded-md bg-brand-gold px-3 py-2 text-sm font-semibold text-white shadow-sm disabled:opacity-50 hover:bg-yellow-500"
                 >
                   {addImage.isPending ? "Dodawanie..." : "Dodaj zdjęcie"}
                 </button>
@@ -343,7 +365,7 @@ export default function ApartmentImageManager({
       <div className="rounded-lg border border-gray-200 p-6">
         <div className="mb-4 flex items-center justify-between">
           <h3 className="text-lg font-medium text-gray-900">
-            Galeria zdjęć ({images.length})
+            Galeria zdjęć ({images.length + pendingImages.length})
           </h3>
           {images.length > 1 && (
             <p className="text-sm text-gray-500">
@@ -352,7 +374,7 @@ export default function ApartmentImageManager({
           )}
         </div>
 
-        {images.length === 0 ? (
+        {images.length === 0 && pendingImages.length === 0 ? (
           <div className="py-12 text-center">
             <div className="mx-auto h-12 w-12 text-gray-400">
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -401,6 +423,7 @@ export default function ApartmentImageManager({
                     alt={image.alt ?? "Zdjęcie apartamentu"}
                     fill
                     className="object-cover"
+                    quality={100}
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
@@ -418,7 +441,7 @@ export default function ApartmentImageManager({
                         <button
                           onClick={() => handleSetPrimary(image.id)}
                           disabled={setPrimaryImage.isPending}
-                          className="rounded bg-white p-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 disabled:opacity-50"
+                          className="rounded bg-white p-2 text-sm font-medium text-gray-700 shadow-sm disabled:opacity-50 hover:bg-gray-50"
                           title="Ustaw jako główne"
                         >
                           <svg
@@ -439,7 +462,7 @@ export default function ApartmentImageManager({
                       <button
                         onClick={() => handleDeleteImage(image.id)}
                         disabled={deleteImage.isPending}
-                        className="rounded bg-red-600 p-2 text-sm font-medium text-white shadow-sm hover:bg-red-700 disabled:opacity-50"
+                        className="rounded bg-red-600 p-2 text-sm font-medium text-white shadow-sm disabled:opacity-50 hover:bg-red-700"
                         title="Usuń zdjęcie"
                       >
                         <svg
@@ -499,6 +522,29 @@ export default function ApartmentImageManager({
                   >
                     <path d="M7 2a2 2 0 1 1 .001 4.001A2 2 0 0 1 7 2zm0 6a2 2 0 1 1 .001 4.001A2 2 0 0 1 7 8zm0 6a2 2 0 1 1 .001 4.001A2 2 0 0 1 7 14zm6-8a2 2 0 1 1-.001-4.001A2 2 0 0 1 13 6zm0 2a2 2 0 1 1 .001 4.001A2 2 0 0 1 13 8zm0 6a2 2 0 1 1 .001 4.001A2 2 0 0 1 13 14z" />
                   </svg>
+                </div>
+              </div>
+            ))}
+            {pendingImages.map((image) => (
+              <div
+                key={image.localId}
+                className="group relative overflow-hidden rounded-lg border-2 border-dashed border-gray-300 transition-all duration-200"
+              >
+                <div className="relative aspect-[4/3] bg-gray-100 opacity-50">
+                  <Image
+                    src={image.url}
+                    alt={image.alt ?? "Przesyłane zdjęcie"}
+                    fill
+                    className="object-cover"
+                    quality={100}
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                  />
+                </div>
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-white bg-opacity-75">
+                  <FaSpinner className="h-8 w-8 animate-spin text-brand-gold" />
+                  <p className="mt-2 text-sm font-medium text-gray-700">
+                    Przesyłanie...
+                  </p>
                 </div>
               </div>
             ))}

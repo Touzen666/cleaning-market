@@ -123,6 +123,7 @@ model Apartment {
   leadApplications       LeadApplication[]
   monthlyReports         MonthlyReport[]
   reservations           Reservation[]
+  averageRating          Float?               @default(0)
 }
 
 model ApartmentImage {

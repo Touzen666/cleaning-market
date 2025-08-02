@@ -4,7 +4,6 @@ import { TRPCError } from "@trpc/server";
 import { createHash } from "crypto";
 import { UserType, type Prisma } from "@prisma/client";
 import { type createTRPCContext } from "@/server/api/trpc";
-import { syncIdobookingReservations } from "@/lib/cron";
 import { env } from "@/env";
 
 // Zod schemas dla API responses

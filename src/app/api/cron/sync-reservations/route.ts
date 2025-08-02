@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { syncIdobookingReservations } from "@/lib/cron";
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
     // Tutaj możesz dodać zabezpieczenie, np. sprawdzając secret key
     // const authHeader = request.headers.get("authorization");
     // if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -23,4 +23,4 @@ export async function GET(request: NextRequest) {
         console.error("CRON: Wystąpił krytyczny błąd podczas synchronizacji:", errorMessage);
         return NextResponse.json({ success: false, error: errorMessage }, { status: 500 });
     }
-} 
+}

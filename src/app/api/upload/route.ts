@@ -1,36 +1,37 @@
 import { NextResponse } from 'next/server';
-import { writeFile } from 'fs/promises';
-import { join } from 'path';
-import { mkdir } from 'fs/promises';
+import { put } from '@vercel/blob';
 
-export async function POST(request: Request) {
-    const data = await request.formData();
-    const file: File | null = data.get('file') as unknown as File;
+export async function POST(request: Request): Promise<NextResponse> {
+    const { searchParams } = new URL(request.url);
+    const filename = searchParams.get('filename');
 
-    if (!file) {
-        return NextResponse.json({ success: false, error: 'No file provided.' }, { status: 400 });
+    if (!filename) {
+        return new NextResponse(JSON.stringify({ message: 'No filename provided' }), {
+            status: 400,
+            headers: { 'Content-Type': 'application/json' },
+        });
     }
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
-    // Create a unique filename
-    const filename = `${Date.now()}-${file.name.replace(/\s/g, '_')}`;
-    const uploadDir = join(process.cwd(), 'public/uploads/apartments');
-    const path = join(uploadDir, filename);
+    if (!request.body) {
+        return new NextResponse(JSON.stringify({ message: 'No file body provided' }), {
+            status: 400,
+            headers: { 'Content-Type': 'application/json' },
+        });
+    }
 
     try {
-        // Ensure directory exists
-        await mkdir(uploadDir, { recursive: true });
+        const blob = await put(filename, request.body, {
+            access: 'public',
+            addRandomSuffix: true,
+        });
 
-        await writeFile(path, buffer);
-        console.log(`File uploaded to ${path}`);
-
-        const publicUrl = `/uploads/apartments/${filename}`;
-        return NextResponse.json({ success: true, url: publicUrl });
-
+        return NextResponse.json(blob);
     } catch (error) {
         console.error('Error uploading file:', error);
-        return NextResponse.json({ success: false, error: 'Error uploading file.' }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        return new NextResponse(JSON.stringify({ message: 'Error uploading file.', error: errorMessage }), {
+            status: 500,
+            headers: { 'Content-Type': 'application/json' },
+        });
     }
 } 

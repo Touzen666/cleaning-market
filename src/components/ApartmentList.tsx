@@ -148,7 +148,7 @@ export default function ApartmentList({
                   {onEdit && (
                     <button
                       onClick={() => onEdit(apartment.id)}
-                      className="inline-flex flex-1 items-center justify-center rounded-md bg-brand-gold px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:ring-offset-2"
+                      className="inline-flex flex-1 items-center justify-center rounded-md bg-brand-gold px-3 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-gold focus:ring-offset-2 hover:bg-yellow-500"
                     >
                       <svg
                         className="-ml-0.5 mr-1.5 h-4 w-4"
@@ -170,7 +170,7 @@ export default function ApartmentList({
                     <button
                       onClick={() => onDelete(apartment.id)}
                       disabled={deletingApartmentId === apartment.id}
-                      className="inline-flex flex-1 items-center justify-center rounded-md bg-brand-gold px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="inline-flex flex-1 items-center justify-center rounded-md bg-brand-gold px-3 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-gold focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 hover:bg-yellow-500"
                     >
                       {deletingApartmentId === apartment.id ? (
                         <>
@@ -223,7 +223,7 @@ export default function ApartmentList({
                   {onViewReservations && (
                     <button
                       onClick={() => onViewReservations(apartment.id)}
-                      className="inline-flex flex-1 items-center justify-center rounded-md bg-brand-gold px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:ring-offset-2"
+                      className="inline-flex flex-1 items-center justify-center rounded-md bg-brand-gold px-3 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-gold focus:ring-offset-2 hover:bg-yellow-500"
                     >
                       <svg
                         className="-ml-0.5 mr-1.5 h-4 w-4"
@@ -244,7 +244,7 @@ export default function ApartmentList({
                   {onViewReports && (
                     <button
                       onClick={() => onViewReports(apartment.id)}
-                      className="inline-flex flex-1 items-center justify-center rounded-md bg-brand-gold px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:ring-offset-2"
+                      className="inline-flex flex-1 items-center justify-center rounded-md bg-brand-gold px-3 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-gold focus:ring-offset-2 hover:bg-yellow-500"
                     >
                       <svg
                         className="-ml-0.5 mr-1.5 h-4 w-4"
@@ -265,7 +265,7 @@ export default function ApartmentList({
                   {onManage && (
                     <button
                       onClick={() => onManage(apartment.id)}
-                      className="inline-flex flex-1 items-center justify-center rounded-md bg-brand-gold px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:ring-offset-2"
+                      className="inline-flex flex-1 items-center justify-center rounded-md bg-brand-gold px-3 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-gold focus:ring-offset-2 hover:bg-yellow-500"
                     >
                       <svg
                         className="-ml-0.5 mr-1.5 h-4 w-4"
@@ -314,6 +314,7 @@ export default function ApartmentList({
                     fill
                     className="object-cover"
                     sizes="64px"
+                    quality={100}
                   />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center">
@@ -358,7 +359,7 @@ export default function ApartmentList({
                   {onEdit && (
                     <button
                       onClick={() => onEdit(apartment.id)}
-                      className="inline-flex items-center rounded-md bg-yellow-500 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2"
+                      className="inline-flex items-center rounded-md bg-yellow-500 px-3 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 hover:bg-yellow-600"
                     >
                       <svg
                         className="-ml-0.5 mr-1.5 h-4 w-4"
@@ -380,7 +381,7 @@ export default function ApartmentList({
                     <button
                       onClick={() => onDelete(apartment.id)}
                       disabled={deletingApartmentId === apartment.id}
-                      className="inline-flex items-center rounded-md bg-red-500 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="inline-flex items-center rounded-md bg-red-500 px-3 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 hover:bg-red-600"
                     >
                       {deletingApartmentId === apartment.id
                         ? "Usuwanie..."
@@ -395,7 +396,7 @@ export default function ApartmentList({
                   {onViewReservations && (
                     <button
                       onClick={() => onViewReservations(apartment.id)}
-                      className="inline-flex items-center rounded-md bg-blue-500 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                      className="inline-flex items-center rounded-md bg-blue-500 px-3 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 hover:bg-blue-600"
                     >
                       <svg
                         className="-ml-0.5 mr-1.5 h-4 w-4"
@@ -416,7 +417,7 @@ export default function ApartmentList({
                   {onViewReports && (
                     <button
                       onClick={() => onViewReports(apartment.id)}
-                      className="inline-flex items-center rounded-md bg-green-500 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                      className="inline-flex items-center rounded-md bg-green-500 px-3 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 hover:bg-green-600"
                     >
                       <svg
                         className="-ml-0.5 mr-1.5 h-4 w-4"
@@ -536,7 +537,7 @@ export default function ApartmentList({
 
   return (
     <div
-      className={`scrollbar-thin scrollbar-track-gray-100 scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400 overflow-x-auto rounded-lg border border-gray-200 ${className}`}
+      className={`overflow-x-auto rounded-lg border border-gray-200 scrollbar-thin scrollbar-track-gray-100 scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400 ${className}`}
     >
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">

@@ -10,6 +10,7 @@ import {
   DocumentTextIcon,
   ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
+import { FaCar, FaCarSide, FaPencilAlt } from "react-icons/fa";
 
 function ExitImpersonationBanner() {
   const router = useRouter();
@@ -144,16 +145,24 @@ export default function OwnerDashboard() {
           <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-3">
             <Link
               href="/apartamentsOwner/apartments"
-              className="flex flex-col items-center justify-center rounded-lg bg-white p-6 text-center shadow transition hover:bg-gray-50"
+              className="group flex flex-col items-center justify-center rounded-lg bg-white p-6 text-center shadow transition hover:bg-gray-50"
             >
-              <BuildingOffice2Icon className="h-12 w-12 text-brand-gold" />
+              <div className="relative h-16 w-24">
+                <BuildingOffice2Icon className="absolute bottom-0 left-1/2 h-12 w-12 -translate-x-1/2 text-brand-gold" />
+                <FaCarSide className="group-hover:animate-drive-in-and-vanish absolute bottom-0 left-4 h-6 w-6 text-brand-gold opacity-0" />
+                <FaCar className="absolute bottom-0 left-4 h-6 w-6 text-brand-gold opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-hover:delay-1000" />
+              </div>
+
               <p className="mt-2 font-semibold">Moje Apartamenty</p>
             </Link>
             <Link
               href="/apartamentsOwner/reservations"
-              className="flex flex-col items-center justify-center rounded-lg bg-white p-6 text-center shadow transition hover:bg-gray-50"
+              className="group flex flex-col items-center justify-center rounded-lg bg-white p-6 text-center shadow transition hover:bg-gray-50"
             >
-              <DocumentTextIcon className="h-12 w-12 text-brand-gold" />
+              <div className="relative h-12 w-12">
+                <DocumentTextIcon className="h-full w-full text-brand-gold" />
+                <FaPencilAlt className="group-hover:animate-writing-pencil absolute left-[12px] top-[10px] h-5 w-5 text-brand-gold opacity-0" />
+              </div>
               <p className="mt-2 font-semibold">Rezerwacje</p>
             </Link>
             <Link

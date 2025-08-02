@@ -27,6 +27,7 @@ export default function EditApartmentPage({
     maxGuests: 4,
   });
   const [status, setStatus] = useState<string | null>(null);
+  const [ratingStatus, setRatingStatus] = useState<string | null>(null);
   const [returnUrl, setReturnUrl] = useState<string>("/admin/apartments");
   const [createdApartmentId, setCreatedApartmentId] = useState<string | null>(
     null,
@@ -94,6 +95,22 @@ export default function EditApartmentPage({
     },
   });
 
+  const recalculateRating = api.apartments.recalculateRating.useMutation({
+    onSuccess: () => {
+      setRatingStatus("success");
+      void apartmentQuery.refetch();
+      setTimeout(() => {
+        setRatingStatus(null);
+      }, 2000);
+    },
+    onError: (err) => {
+      setRatingStatus(err.message);
+      setTimeout(() => {
+        setRatingStatus(null);
+      }, 3000);
+    },
+  });
+
   // Wypełnij formularz danymi apartamentu
   useEffect(() => {
     if (apartmentQuery.data && (apartmentId !== "new" || createdApartmentId)) {
@@ -132,6 +149,13 @@ export default function EditApartmentPage({
         defaultUtilitiesAmount: Number(form.defaultUtilitiesAmount),
         maxGuests: Number(form.maxGuests),
       });
+    }
+  };
+
+  const handleRecalculateRating = () => {
+    const currentApartmentId = createdApartmentId ?? apartmentId;
+    if (currentApartmentId && currentApartmentId !== "new") {
+      recalculateRating.mutate({ apartmentId: currentApartmentId });
     }
   };
 
@@ -342,6 +366,40 @@ export default function EditApartmentPage({
               </div>
             </div>
 
+            {/* Rating */}
+            {!isNew && apartmentQuery.data && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Aktualna ocena
+                </label>
+                <div className="mt-1 flex items-center gap-x-4">
+                  <p className="rounded-md bg-gray-100 px-3 py-2 text-lg font-semibold text-gray-800">
+                    {apartmentQuery.data.averageRating?.toFixed(2) ??
+                      "Brak oceny"}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleRecalculateRating}
+                    disabled={recalculateRating.isPending}
+                    className="rounded-md bg-cyan-600 px-4 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 disabled:opacity-50 hover:bg-cyan-700"
+                  >
+                    {recalculateRating.isPending
+                      ? "Przeliczanie..."
+                      : "Wylicz ocenę"}
+                  </button>
+                </div>
+                {ratingStatus && (
+                  <p
+                    className={`mt-2 text-sm ${ratingStatus === "success" ? "text-green-600" : "text-red-600"}`}
+                  >
+                    {ratingStatus === "success"
+                      ? "Ocena została pomyślnie zaktualizowana!"
+                      : `Błąd: ${ratingStatus}`}
+                  </p>
+                )}
+              </div>
+            )}
+
             {/* Status messages */}
             {status && (
               <div
@@ -371,7 +429,7 @@ export default function EditApartmentPage({
                 disabled={
                   updateApartment.isPending || createApartment.isPending
                 }
-                className="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
+                className="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 hover:bg-indigo-700"
               >
                 {updateApartment.isPending || createApartment.isPending
                   ? "Zapisywanie..."

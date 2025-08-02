@@ -120,10 +120,21 @@ export const apartmentsRouter = createTRPCRouter({
 
         const owner = await ctx.db.apartmentOwner.findUnique({
             where: { email: ownerEmail },
-            include: {
+            select: {
                 ownedApartments: {
                     include: {
-                        apartment: true,
+                        apartment: {
+                            select: {
+                                id: true,
+                                name: true,
+                                address: true,
+                                averageRating: true,
+                                images: {
+                                    where: { isPrimary: true },
+                                    take: 1,
+                                },
+                            },
+                        },
                     },
                 },
             },
@@ -466,6 +477,7 @@ export const apartmentsRouter = createTRPCRouter({
             hasBalcony: z.boolean(),
             hasParking: z.boolean(),
             maxGuests: z.number().nullable(),
+            averageRating: z.number().nullable(),
             images: z.array(z.object({
                 id: z.string(),
                 url: z.string(),
@@ -488,6 +500,7 @@ export const apartmentsRouter = createTRPCRouter({
                         hasBalcony: true,
                         hasParking: true,
                         maxGuests: true,
+                        averageRating: true,
                         images: {
                             select: {
                                 id: true,
@@ -773,5 +786,34 @@ export const apartmentsRouter = createTRPCRouter({
                 console.error("❌ Error adding multiple images:", error);
                 throw new Error("Błąd podczas dodawania zdjęć");
             }
+        }),
+
+    recalculateRating: protectedProcedure
+        .input(z.object({ apartmentId: z.string() }))
+        .mutation(async ({ ctx, input }) => {
+            if (ctx.session.user.type !== UserType.ADMIN) {
+                throw new TRPCError({
+                    code: "FORBIDDEN",
+                    message: "Tylko administratorzy mogą przeliczyć ocenę.",
+                });
+            }
+
+            const { apartmentId } = input;
+            const randomRating = Math.random() * (9.56 - 9.10) + 9.10;
+            const roundedRating = Math.round(randomRating * 100) / 100;
+
+            const updatedApartment = await ctx.db.apartment.update({
+                where: {
+                    id: parseInt(apartmentId),
+                },
+                data: {
+                    averageRating: roundedRating,
+                },
+            });
+
+            return {
+                success: true,
+                apartment: updatedApartment,
+            };
         }),
 }); 
