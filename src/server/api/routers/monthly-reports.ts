@@ -846,7 +846,15 @@ export const monthlyReportsRouter = createTRPCRouter({
                     ownerId: owner.id,
                     status: { in: [ReportStatus.APPROVED, ReportStatus.SENT] },
                 },
-                include: {
+                select: {
+                    id: true,
+                    month: true,
+                    year: true,
+                    status: true,
+                    totalRevenue: true,
+                    totalExpenses: true,
+                    netIncome: true,
+                    finalOwnerPayout: true,
                     apartment: {
                         select: {
                             id: true,
@@ -860,7 +868,13 @@ export const monthlyReportsRouter = createTRPCRouter({
                         },
                     },
                     items: {
-                        include: {
+                        select: {
+                            id: true,
+                            type: true,
+                            category: true,
+                            description: true,
+                            amount: true,
+                            date: true,
                             reservation: {
                                 select: { id: true, guest: true, start: true, end: true, source: true },
                             },
@@ -874,7 +888,69 @@ export const monthlyReportsRouter = createTRPCRouter({
                 ],
             });
 
-            return reports;
+            // Convert Decimal to number for finalOwnerPayout
+            const reportsWithNumbers = reports.map(report => ({
+                ...report,
+                finalOwnerPayout: report.finalOwnerPayout ? Number(report.finalOwnerPayout) : null,
+            }));
+
+            // Debug logging
+            console.log(`[DEBUG] Found ${reportsWithNumbers.length} reports for owner ${owner.id}`);
+            console.log(`[DEBUG] Owner email: ${input.ownerEmail}`);
+            reportsWithNumbers.forEach((report, index) => {
+                console.log(`[DEBUG] Report ${index + 1}: ID=${report.id}, Month=${report.month}/${report.year}, finalOwnerPayout=${report.finalOwnerPayout}`);
+            });
+
+            return reportsWithNumbers;
+        }),
+
+    // Owner: Get the latest approved/sent report for charts
+    getFirstOwnerReport: publicProcedure
+        .input(z.object({
+            ownerEmail: z.string().email(),
+        }))
+        .query(async ({ input, ctx }) => {
+            const owner = await ctx.db.apartmentOwner.findUnique({
+                where: { email: input.ownerEmail },
+            });
+
+            if (!owner?.isActive) {
+                return null;
+            }
+
+            const report = await ctx.db.monthlyReport.findFirst({
+                where: {
+                    ownerId: owner.id,
+                    status: { in: [ReportStatus.APPROVED, ReportStatus.SENT] },
+                },
+                include: {
+                    items: {
+                        where: { type: 'REVENUE' },
+                        select: { category: true, amount: true, type: true },
+                    },
+                },
+                orderBy: [
+                    { year: "desc" },
+                    { month: "desc" },
+                ],
+            });
+
+            if (!report) {
+                return null;
+            }
+
+            return {
+                month: report.month,
+                year: report.year,
+                items: report.items,
+                calculated: {
+                    totalRevenue: report.totalRevenue ?? 0,
+                    totalExpenses: report.totalExpenses ?? 0,
+                    netIncome: report.netIncome ?? 0,
+                    adminCommission: report.adminCommissionAmount ?? 0,
+                    ownerPayout: report.finalOwnerPayout ?? 0,
+                }
+            };
         }),
 
     // Admin: Get suggested commission items based on reservation channels
@@ -1011,6 +1087,27 @@ export const monthlyReportsRouter = createTRPCRouter({
                 successCount,
                 errorCount
             };
+        }),
+
+    recalculateSingleReport: publicProcedure
+        .input(z.object({
+            reportId: z.string(),
+        }))
+        .mutation(async ({ input, ctx }) => {
+            try {
+                const result = await recalculateReportSettlement(input.reportId, ctx);
+                return {
+                    success: true,
+                    reportId: input.reportId,
+                    data: result,
+                };
+            } catch (error) {
+                console.error(`Failed to recalculate report ${input.reportId}:`, error);
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    message: `Failed to recalculate report: ${error instanceof Error ? error.message : "Unknown error"}`,
+                });
+            }
         }),
 
     addAirbnbCommissionWithDiscount: protectedProcedure
@@ -1352,5 +1449,435 @@ export const monthlyReportsRouter = createTRPCRouter({
             });
 
             return { success: true };
+        }),
+
+    // Debug endpoint to test database query
+    debugOwnerReports: publicProcedure
+        .input(z.object({
+            ownerEmail: z.string().email(),
+        }))
+        .query(async ({ input, ctx }) => {
+            const owner = await ctx.db.apartmentOwner.findUnique({
+                where: { email: input.ownerEmail },
+            });
+
+            if (!owner?.isActive) {
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: "Właściciel nie został znaleziony",
+                });
+            }
+
+            // Test 1: Get all reports for this owner
+            const allReports = await ctx.db.monthlyReport.findMany({
+                where: {
+                    ownerId: owner.id,
+                },
+                select: {
+                    id: true,
+                    month: true,
+                    year: true,
+                    status: true,
+                    finalOwnerPayout: true,
+                },
+                orderBy: [
+                    { year: "desc" },
+                    { month: "desc" },
+                ],
+            });
+
+            // Convert Decimal to number for all reports
+            const allReportsWithNumbers = allReports.map(report => ({
+                ...report,
+                finalOwnerPayout: report.finalOwnerPayout ? Number(report.finalOwnerPayout) : null,
+            }));
+
+            // Test 2: Get only APPROVED/SENT reports
+            const approvedReports = await ctx.db.monthlyReport.findMany({
+                where: {
+                    ownerId: owner.id,
+                    status: { in: [ReportStatus.APPROVED, ReportStatus.SENT] },
+                },
+                select: {
+                    id: true,
+                    month: true,
+                    year: true,
+                    status: true,
+                    finalOwnerPayout: true,
+                },
+                orderBy: [
+                    { year: "desc" },
+                    { month: "desc" },
+                ],
+            });
+
+            // Convert Decimal to number for approved reports
+            const approvedReportsWithNumbers = approvedReports.map(report => ({
+                ...report,
+                finalOwnerPayout: report.finalOwnerPayout ? Number(report.finalOwnerPayout) : null,
+            }));
+
+            // Test 3: Aggregate sum for current year
+            const startOfYear = new Date(new Date().getFullYear(), 0, 1);
+            const currentYearSum = await ctx.db.monthlyReport.aggregate({
+                where: {
+                    ownerId: owner.id,
+                    year: startOfYear.getFullYear(),
+                    status: { in: [ReportStatus.APPROVED, ReportStatus.SENT] },
+                },
+                _sum: {
+                    finalOwnerPayout: true,
+                },
+            });
+
+            // Test 4: Exact same query as getOwnerReports but simplified
+            const exactQueryReports = await ctx.db.monthlyReport.findMany({
+                where: {
+                    ownerId: owner.id,
+                    status: { in: [ReportStatus.APPROVED, ReportStatus.SENT] },
+                },
+                select: {
+                    id: true,
+                    month: true,
+                    year: true,
+                    status: true,
+                    finalOwnerPayout: true,
+                },
+                orderBy: [
+                    { year: "desc" },
+                    { month: "desc" },
+                ],
+            });
+
+            // Convert Decimal to number for exact query reports
+            const exactQueryReportsWithNumbers = exactQueryReports.map(report => ({
+                ...report,
+                finalOwnerPayout: report.finalOwnerPayout ? Number(report.finalOwnerPayout) : null,
+            }));
+
+            // Test 5: Manual sum calculation
+            const manualSum = exactQueryReportsWithNumbers.reduce((sum, report) => sum + (report.finalOwnerPayout ?? 0), 0);
+
+            // Test 6: Detailed analysis of 6/2025 report
+            const june2025Report = await ctx.db.monthlyReport.findFirst({
+                where: {
+                    ownerId: owner.id,
+                    month: 6,
+                    year: 2025
+                },
+                include: {
+                    owner: {
+                        select: {
+                            fixedPaymentAmount: true,
+                            vatOption: true,
+                            email: true
+                        }
+                    },
+                    additionalDeductions: true,
+                    items: true
+                }
+            });
+
+            let june2025Analysis = null;
+            if (june2025Report) {
+                const totalRevenue = june2025Report.items.filter(i => i.type === "REVENUE").reduce((s, i) => s + i.amount, 0);
+                const totalExpenses = june2025Report.items.filter(i => ["EXPENSE", "FEE", "TAX", "COMMISSION"].includes(i.type)).reduce((s, i) => s + i.amount, 0);
+                const netIncome = totalRevenue - totalExpenses;
+                const adminCommissionAmount = netIncome * 0.25;
+                const afterCommission = netIncome - adminCommissionAmount;
+                const rentAndUtilities = (june2025Report.rentAmount ?? 0) + (june2025Report.utilitiesAmount ?? 0);
+                const afterRentAndUtilities = afterCommission - rentAndUtilities;
+                const totalAdditionalDeductionsGross = june2025Report.additionalDeductions.reduce((s, d) => s + getGrossAmount(d.amount, d.vatOption), 0);
+
+                june2025Analysis = {
+                    reportId: june2025Report.id,
+                    status: june2025Report.status,
+                    finalSettlementType: june2025Report.finalSettlementType,
+                    finalOwnerPayout: june2025Report.finalOwnerPayout ? Number(june2025Report.finalOwnerPayout) : null,
+                    ownerFixedPaymentAmount: june2025Report.owner.fixedPaymentAmount ? Number(june2025Report.owner.fixedPaymentAmount) : null,
+                    ownerVatOption: june2025Report.owner.vatOption,
+                    totalRevenue,
+                    totalExpenses,
+                    netIncome,
+                    adminCommissionAmount,
+                    afterCommission,
+                    rentAndUtilities,
+                    afterRentAndUtilities,
+                    totalAdditionalDeductionsGross,
+                    itemsCount: june2025Report.items.length,
+                    additionalDeductionsCount: june2025Report.additionalDeductions.length
+                };
+            }
+
+            return {
+                ownerId: owner.id,
+                ownerEmail: input.ownerEmail,
+                allReportsCount: allReportsWithNumbers.length,
+                allReports: allReportsWithNumbers,
+                approvedReportsCount: approvedReportsWithNumbers.length,
+                approvedReports: approvedReportsWithNumbers,
+                currentYearSum: currentYearSum._sum.finalOwnerPayout ? Number(currentYearSum._sum.finalOwnerPayout) : null,
+                currentYear: startOfYear.getFullYear(),
+                exactQueryReportsCount: exactQueryReportsWithNumbers.length,
+                exactQueryReports: exactQueryReportsWithNumbers,
+                manualSum: manualSum,
+                june2025Analysis
+            };
+        }),
+
+    // Owner: Get filtered reports for dashboard charts
+    getOwnerFilteredReports: publicProcedure
+        .input(z.object({
+            ownerEmail: z.string().email(),
+            apartmentId: z.number().optional(),
+            year: z.number().optional(),
+            month: z.number().optional(),
+            reportId: z.string().uuid().optional(),
+            viewType: z.enum(['yearly', 'monthly', 'single']).default('yearly'),
+        }))
+        .query(async ({ input, ctx }) => {
+            const owner = await ctx.db.apartmentOwner.findUnique({
+                where: { email: input.ownerEmail },
+            });
+
+            if (!owner?.isActive) {
+                return null;
+            }
+
+            const whereClause = {
+                ownerId: owner.id,
+                status: { in: [ReportStatus.APPROVED, ReportStatus.SENT] },
+                ...(input.apartmentId && { apartmentId: input.apartmentId }),
+                ...(input.year && { year: input.year }),
+                ...(input.month && { month: input.month }),
+                ...(input.reportId && { id: input.reportId }),
+            };
+
+            const reports = await ctx.db.monthlyReport.findMany({
+                where: whereClause,
+                include: {
+                    apartment: {
+                        select: { id: true, name: true, slug: true },
+                    },
+                    items: {
+                        where: { type: 'REVENUE' },
+                        select: { category: true, amount: true, type: true },
+                    },
+                },
+                orderBy: [
+                    { year: "desc" },
+                    { month: "desc" },
+                ],
+            });
+
+            // Transform data based on view type
+            type ChartDataItem = {
+                name: string;
+                Przychód: number;
+                Koszty: number;
+                Zysk: number;
+                Prowizja: number;
+                Wypłata: number;
+            };
+
+            let chartData: ChartDataItem[] = [];
+
+            if (input.viewType === 'yearly') {
+                // Group by year and sum the values
+                const yearlyData = new Map<number, ChartDataItem>();
+                reports.forEach(report => {
+                    const year = report.year;
+                    if (!yearlyData.has(year)) {
+                        yearlyData.set(year, {
+                            name: `Rok ${year}`,
+                            Przychód: 0,
+                            Koszty: 0,
+                            Zysk: 0,
+                            Prowizja: 0,
+                            Wypłata: 0,
+                        });
+                    }
+                    const data = yearlyData.get(year)!;
+                    data.Przychód += report.totalRevenue ?? 0;
+                    data.Koszty += report.totalExpenses ?? 0;
+                    data.Zysk += report.netIncome ?? 0;
+                    data.Prowizja += report.adminCommissionAmount ?? 0;
+                    data.Wypłata += report.finalOwnerPayout ?? 0;
+                });
+                chartData = Array.from(yearlyData.values());
+            } else if (input.viewType === 'monthly') {
+                // Group by month and sum the values
+                const monthlyData = new Map<string, ChartDataItem>();
+                reports.forEach(report => {
+                    const monthKey = `${report.year}-${report.month.toString().padStart(2, '0')}`;
+                    const monthName = new Date(report.year, report.month - 1).toLocaleDateString('pl-PL', { month: 'long', year: 'numeric' });
+                    if (!monthlyData.has(monthKey)) {
+                        monthlyData.set(monthKey, {
+                            name: monthName,
+                            Przychód: 0,
+                            Koszty: 0,
+                            Zysk: 0,
+                            Prowizja: 0,
+                            Wypłata: 0,
+                        });
+                    }
+                    const data = monthlyData.get(monthKey)!;
+                    data.Przychód += report.totalRevenue ?? 0;
+                    data.Koszty += report.totalExpenses ?? 0;
+                    data.Zysk += report.netIncome ?? 0;
+                    data.Prowizja += report.adminCommissionAmount ?? 0;
+                    data.Wypłata += report.finalOwnerPayout ?? 0;
+                });
+                chartData = Array.from(monthlyData.values()).sort((a, b) => {
+                    const [yearA, monthA] = a.name.split(' ');
+                    const [yearB, monthB] = b.name.split(' ');
+                    if (!yearA || !monthA || !yearB || !monthB) return 0;
+                    const dateA = new Date(parseInt(yearA), parseInt(monthA));
+                    const dateB = new Date(parseInt(yearB), parseInt(monthB));
+                    return dateA.getTime() - dateB.getTime();
+                });
+            } else {
+                // Single report view
+                chartData = reports.map(report => ({
+                    name: `${report.apartment.name} - ${report.month}/${report.year}`,
+                    Przychód: report.totalRevenue ?? 0,
+                    Koszty: report.totalExpenses ?? 0,
+                    Zysk: report.netIncome ?? 0,
+                    Prowizja: report.adminCommissionAmount ?? 0,
+                    Wypłata: report.finalOwnerPayout ?? 0,
+                }));
+            }
+
+            return {
+                reports,
+                chartData,
+                apartments: await ctx.db.apartment.findMany({
+                    where: {
+                        ownerships: {
+                            some: {
+                                ownerId: owner.id,
+                                isActive: true,
+                            },
+                        },
+                    },
+                    select: { id: true, name: true, slug: true },
+                }),
+            };
+        }),
+
+    // Owner: Get available years for filtering
+    getOwnerAvailableYears: publicProcedure
+        .input(z.object({
+            ownerEmail: z.string().email(),
+            apartmentId: z.number().optional(),
+        }))
+        .query(async ({ input, ctx }) => {
+            const owner = await ctx.db.apartmentOwner.findUnique({
+                where: { email: input.ownerEmail },
+            });
+
+            if (!owner?.isActive) {
+                return [];
+            }
+
+            const whereClause: any = {
+                ownerId: owner.id,
+                status: { in: [ReportStatus.APPROVED, ReportStatus.SENT] },
+            };
+
+            if (input.apartmentId) {
+                whereClause.apartmentId = input.apartmentId;
+            }
+
+            const years = await ctx.db.monthlyReport.findMany({
+                where: whereClause,
+                select: { year: true },
+                distinct: ['year'],
+                orderBy: { year: 'desc' },
+            });
+
+            return years.map(y => y.year);
+        }),
+
+    // Owner: Get available months for filtering
+    getOwnerAvailableMonths: publicProcedure
+        .input(z.object({
+            ownerEmail: z.string().email(),
+            apartmentId: z.number().optional(),
+            year: z.number(),
+        }))
+        .query(async ({ input, ctx }) => {
+            const owner = await ctx.db.apartmentOwner.findUnique({
+                where: { email: input.ownerEmail },
+            });
+
+            if (!owner?.isActive) {
+                return [];
+            }
+
+            const whereClause = {
+                ownerId: owner.id,
+                status: { in: [ReportStatus.APPROVED, ReportStatus.SENT] },
+                year: input.year,
+                ...(input.apartmentId && { apartmentId: input.apartmentId }),
+            };
+
+            const months = await ctx.db.monthlyReport.findMany({
+                where: whereClause,
+                select: { month: true },
+                distinct: ['month'],
+                orderBy: { month: 'desc' },
+            });
+
+            return months.map(m => m.month);
+        }),
+
+    // Owner: Get available reports for filtering
+    getOwnerAvailableReports: publicProcedure
+        .input(z.object({
+            ownerEmail: z.string().email(),
+            apartmentId: z.number().optional(),
+            year: z.number().optional(),
+            month: z.number().optional(),
+        }))
+        .query(async ({ input, ctx }) => {
+            const owner = await ctx.db.apartmentOwner.findUnique({
+                where: { email: input.ownerEmail },
+            });
+
+            if (!owner?.isActive) {
+                return [];
+            }
+
+            const whereClause = {
+                ownerId: owner.id,
+                status: { in: [ReportStatus.APPROVED, ReportStatus.SENT] },
+                ...(input.apartmentId && { apartmentId: input.apartmentId }),
+                ...(input.year && { year: input.year }),
+                ...(input.month && { month: input.month }),
+            };
+
+            const reports = await ctx.db.monthlyReport.findMany({
+                where: whereClause,
+                select: {
+                    id: true,
+                    month: true,
+                    year: true,
+                    apartment: {
+                        select: { name: true }
+                    }
+                },
+                orderBy: [
+                    { year: "desc" },
+                    { month: "desc" },
+                ],
+            });
+
+            return reports.map(report => ({
+                id: report.id,
+                name: `${report.apartment.name} - ${report.month}/${report.year}`,
+                month: report.month,
+                year: report.year,
+            }));
         }),
 }); 

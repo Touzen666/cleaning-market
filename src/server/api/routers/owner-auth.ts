@@ -234,6 +234,11 @@ export const ownerAuthRouter = createTRPCRouter({
                 },
             });
 
+            // Debug logging for dashboard
+            console.log(`[DEBUG DASHBOARD] Owner ID: ${owner.id}`);
+            console.log(`[DEBUG DASHBOARD] Current year: ${startOfYear.getFullYear()}`);
+            console.log(`[DEBUG DASHBOARD] Aggregate sum: ${revenue._sum.finalOwnerPayout}`);
+
             const totalReports = await ctx.db.monthlyReport.count({
                 where: {
                     ownerId: owner.id,

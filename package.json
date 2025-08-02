@@ -1,6 +1,6 @@
 {
   "name": "cleaning-market",
-  "version": "0.1.157",
+  "version": "0.1.163",
   "private": true,
   "type": "module",
   "scripts": {
@@ -40,6 +40,7 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/nodemailer": "^6.4.17",
     "@types/react-big-calendar": "^1.16.2",
+    "@types/recharts": "^1.8.29",
     "@vercel/blob": "^1.1.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
@@ -59,6 +60,7 @@
     "react-hot-toast": "^2.5.2",
     "react-icons": "^5.5.0",
     "react-popper": "^2.3.0",
+    "recharts": "^3.1.0",
     "server-only": "^0.0.1",
     "superjson": "^2.2.1",
     "uuid": "^11.1.0",
