@@ -43,7 +43,8 @@ const addReportItemSchema = z.object({
         ExpenseCategory.INTERNET,
         ExpenseCategory.PRANIE,
         ExpenseCategory.SPRZATANIE,
-        ExpenseCategory.SRODKI_CZYSTOSCI
+        ExpenseCategory.SRODKI_CZYSTOSCI,
+        ExpenseCategory.TEKSTYLIA
     ]).optional(),
     portal: z.enum([
         ReservationPortal.BOOKING,
@@ -93,6 +94,63 @@ function calculateOwnerPayout(
     }
 }
 
+// Helper function to calculate fixed costs (laundry, cleaning, textiles)
+function calculateFixedCosts(items: Array<{ type: string; category: string; amount: number; expenseCategory?: ExpenseCategory | null }>): number {
+    return items
+        .filter(item =>
+            item.type === "EXPENSE" &&
+            (item.expenseCategory === ExpenseCategory.PRANIE ||
+                item.expenseCategory === ExpenseCategory.SPRZATANIE ||
+                item.expenseCategory === ExpenseCategory.SRODKI_CZYSTOSCI ||
+                item.category.toLowerCase().includes('pranie') ||
+                item.category.toLowerCase().includes('sprzątanie') ||
+                item.category.toLowerCase().includes('sprzatanie') ||
+                item.category.toLowerCase().includes('tekstylia') ||
+                item.category.toLowerCase().includes('środki') ||
+                item.category.toLowerCase().includes('srodki'))
+        )
+        .reduce((sum, item) => sum + item.amount, 0);
+}
+
+// Helper function to calculate cleaning costs based on reservations and apartment settings
+async function calculateCleaningCosts(
+    apartmentId: number,
+    reservations: Array<{ adults?: number | null; children?: number | null }>,
+    ctx: RecalculateContext
+): Promise<number> {
+    // Get apartment cleaning costs configuration
+    const apartment = await ctx.db.apartment.findUnique({
+        where: { id: apartmentId },
+        select: { cleaningCosts: true }
+    });
+
+    if (!apartment?.cleaningCosts) {
+        return 0; // No cleaning costs configured
+    }
+
+    const cleaningCosts = apartment.cleaningCosts as Record<string, number>;
+    let totalCleaningCost = 0;
+
+    for (const reservation of reservations) {
+        const totalGuests = (reservation.adults ?? 0) + (reservation.children ?? 0);
+
+        if (totalGuests > 0) {
+            // Find the cleaning cost for this number of guests
+            // If exact match not found, use the highest available cost for fewer guests
+            let cleaningCost = 0;
+            for (let i = totalGuests; i >= 1; i--) {
+                if (cleaningCosts[i.toString()] !== undefined) {
+                    cleaningCost = cleaningCosts[i.toString()]!;
+                    break;
+                }
+            }
+            totalCleaningCost += cleaningCost;
+        }
+    }
+
+    return totalCleaningCost;
+}
+
 async function recalculateReportSettlement(reportId: string, ctx: RecalculateContext) {
     console.log(`[DEBUG] Rozpoczynam przeliczanie raportu: ${reportId}`);
     try {
@@ -115,16 +173,30 @@ async function recalculateReportSettlement(reportId: string, ctx: RecalculateCon
 
         // ... (istniejące obliczenia: totalRevenue, netIncome, etc.) ...
         const totalRevenue = report.items.filter(i => i.type === "REVENUE").reduce((s, i) => s + i.amount, 0);
-        const totalExpenses = report.items.filter(i => ["EXPENSE", "FEE", "TAX", "COMMISSION"].includes(i.type)).reduce((s, i) => s + i.amount, 0);
-        const netIncome = totalRevenue - totalExpenses;
+        const totalExpenses = report.items.filter(i => ["EXPENSE", "FEE", "TAX"].includes(i.type)).reduce((s, i) => s + i.amount, 0);
+        const otaCommissions = report.items.filter(i => i.type === "COMMISSION").reduce((s, i) => s + i.amount, 0);
+        const netIncome = totalRevenue - totalExpenses - otaCommissions;
         const adminCommissionAmount = netIncome * 0.25;
         const afterCommission = netIncome - adminCommissionAmount;
         const rentAndUtilities = (report.rentAmount ?? 0) + (report.utilitiesAmount ?? 0);
         const afterRentAndUtilities = afterCommission - rentAndUtilities;
         const totalAdditionalDeductionsGross = report.additionalDeductions.reduce((s, d) => s + getGrossAmount(d.amount, d.vatOption), 0);
 
+        console.log(`[DEBUG] Raport ${reportId}: totalRevenue = ${totalRevenue}`);
+        console.log(`[DEBUG] Raport ${reportId}: totalExpenses = ${totalExpenses}`);
+        console.log(`[DEBUG] Raport ${reportId}: netIncome = ${netIncome}`);
+        console.log(`[DEBUG] Raport ${reportId}: adminCommissionAmount = ${adminCommissionAmount}`);
+        console.log(`[DEBUG] Raport ${reportId}: afterCommission = ${afterCommission}`);
+        console.log(`[DEBUG] Raport ${reportId}: rentAndUtilities = ${rentAndUtilities}`);
+        console.log(`[DEBUG] Raport ${reportId}: afterRentAndUtilities = ${afterRentAndUtilities}`);
+        console.log(`[DEBUG] Raport ${reportId}: totalAdditionalDeductionsGross = ${totalAdditionalDeductionsGross}`);
+
         let finalOwnerPayout = 0;
         let finalVatAmount = 0;
+
+        console.log(`[DEBUG] Raport ${reportId}: finalSettlementType = ${report.finalSettlementType}`);
+        console.log(`[DEBUG] Raport ${reportId}: owner.fixedPaymentAmount = ${owner.fixedPaymentAmount ? Number(owner.fixedPaymentAmount) : 'null'}`);
+        console.log(`[DEBUG] Raport ${reportId}: owner.vatOption = ${owner.vatOption}`);
 
         if (report.finalSettlementType) {
             let baseAmount = 0;
@@ -135,19 +207,29 @@ async function recalculateReportSettlement(reportId: string, ctx: RecalculateCon
                     console.warn(`[DEBUG] OSTRZEŻENIE: Raport ${reportId} ma typ rozliczenia "${settlementType}", ale właściciel ${owner.email} nie ma zdefiniowanej kwoty stałej (fixedPaymentAmount). Pomijam obliczenia.`);
                 } else {
                     const fixedBaseAmount = Number(owner.fixedPaymentAmount);
+                    console.log(`[DEBUG] Raport ${reportId}: fixedBaseAmount = ${fixedBaseAmount}`);
+
                     if (settlementType === 'FIXED') {
                         baseAmount = fixedBaseAmount - totalAdditionalDeductionsGross;
+                        console.log(`[DEBUG] Raport ${reportId}: FIXED - baseAmount = ${fixedBaseAmount} - ${totalAdditionalDeductionsGross} = ${baseAmount}`);
                     } else { // FIXED_MINUS_UTILITIES
                         baseAmount = fixedBaseAmount - rentAndUtilities - totalAdditionalDeductionsGross;
+                        console.log(`[DEBUG] Raport ${reportId}: FIXED_MINUS_UTILITIES - baseAmount = ${fixedBaseAmount} - ${rentAndUtilities} - ${totalAdditionalDeductionsGross} = ${baseAmount}`);
                     }
                 }
             } else if (settlementType === 'COMMISSION') {
                 baseAmount = afterRentAndUtilities - totalAdditionalDeductionsGross;
+                console.log(`[DEBUG] Raport ${reportId}: COMMISSION - baseAmount = ${afterRentAndUtilities} - ${totalAdditionalDeductionsGross} = ${baseAmount}`);
             }
+
+            console.log(`[DEBUG] Raport ${reportId}: baseAmount = ${baseAmount}`);
 
             if (baseAmount !== 0) { // Obliczaj tylko jeśli baseAmount zostało ustawione
                 finalVatAmount = getVatAmount(baseAmount, owner.vatOption);
                 finalOwnerPayout = baseAmount + finalVatAmount;
+                console.log(`[DEBUG] Raport ${reportId}: finalVatAmount = ${finalVatAmount}, finalOwnerPayout = ${finalOwnerPayout}`);
+            } else {
+                console.warn(`[DEBUG] OSTRZEŻENIE: Raport ${reportId} - baseAmount wynosi 0, więc finalOwnerPayout pozostanie 0.`);
             }
         } else {
             console.warn(`[DEBUG] OSTRZEŻENIE: Raport ${reportId} nie ma zdefiniowanego typu rozliczenia (finalSettlementType). Płatność końcowa wyniesie 0.`);
@@ -350,6 +432,25 @@ export const monthlyReportsRouter = createTRPCRouter({
                 });
             }
 
+            // Auto-generate cleaning cost items
+            const cleaningCost = await calculateCleaningCosts(apartmentId, reservations, ctx);
+            if (cleaningCost > 0) {
+                await ctx.db.reportItem.create({
+                    data: {
+                        reportId: report.id,
+                        type: ReportItemType.EXPENSE,
+                        category: "Sprzątanie",
+                        description: `Usługi sprzątania apartamentu - wyliczenie na bazie ${reservations.length} rezerwacji`,
+                        amount: cleaningCost,
+                        currency: "PLN",
+                        date: new Date(),
+                        expenseCategory: ExpenseCategory.SPRZATANIE,
+                        isAutoGenerated: true,
+                        notes: `Usługi sprzątania apartamentu - wyliczenie na bazie ${reservations.length} rezerwacji`,
+                    },
+                });
+            }
+
             // Calculate totals
             const totalRevenue = revenueItems.reduce((sum, item) => sum + item.amount, 0);
             const ownerPayoutAmount = calculateOwnerPayout(
@@ -401,7 +502,8 @@ export const monthlyReportsRouter = createTRPCRouter({
                             name: true,
                             address: true,
                             defaultRentAmount: true,
-                            defaultUtilitiesAmount: true
+                            defaultUtilitiesAmount: true,
+                            cleaningCosts: true
                         },
                     },
                     owner: {
@@ -424,7 +526,7 @@ export const monthlyReportsRouter = createTRPCRouter({
                     items: {
                         include: {
                             reservation: {
-                                select: { id: true, guest: true, start: true, end: true, source: true },
+                                select: { id: true, guest: true, start: true, end: true, source: true, adults: true, children: true },
                             },
                         },
                         orderBy: [{ type: "asc" }, { date: "asc" }],
@@ -574,53 +676,8 @@ export const monthlyReportsRouter = createTRPCRouter({
                 },
             });
 
-            // Recalculate totals
-            const allItems = await ctx.db.reportItem.findMany({
-                where: { reportId },
-            });
-
-            const totalRevenue = allItems
-                .filter((item) => item.type === ReportItemType.REVENUE)
-                .reduce((sum, item) => sum + item.amount, 0);
-
-            const totalExpenses = allItems
-                .filter((item) => ([ReportItemType.EXPENSE, ReportItemType.FEE, ReportItemType.TAX, ReportItemType.COMMISSION] as string[]).includes(item.type as string))
-                .reduce((sum, item) => sum + item.amount, 0);
-
-            const netIncome = totalRevenue - totalExpenses;
-
-            // Get owner information for payout calculation
-            const reportWithOwner = await ctx.db.monthlyReport.findUnique({
-                where: { id: reportId },
-                include: {
-                    owner: {
-                        select: {
-                            paymentType: true,
-                            fixedPaymentAmount: true,
-                            vatOption: true,
-                        },
-                    },
-                },
-            });
-
-            const ownerPayoutAmount = reportWithOwner?.owner
-                ? calculateOwnerPayout(
-                    netIncome,
-                    reportWithOwner.owner.paymentType,
-                    reportWithOwner.owner.fixedPaymentAmount,
-                    reportWithOwner.owner.vatOption
-                )
-                : 0;
-
-            await ctx.db.monthlyReport.update({
-                where: { id: reportId },
-                data: {
-                    totalRevenue,
-                    totalExpenses,
-                    netIncome,
-                    ownerPayoutAmount,
-                },
-            });
+            // Recalculate report totals using the centralized function
+            await recalculateReportSettlement(reportId, ctx);
 
             // Add history entry
             await ctx.db.reportHistory.create({
@@ -628,11 +685,92 @@ export const monthlyReportsRouter = createTRPCRouter({
                     reportId,
                     adminId: ctx.session.user.id,
                     action: "updated",
-                    notes: `Dodano pozycję: ${itemData.category} - ${itemData.description}`,
+                    notes: `Dodano pozycję: ${itemData.category as string} - ${itemData.description as string}`,
                 },
             });
 
             return { success: true, itemId: item.id };
+        }),
+
+    // Admin: Update or add item to report (for quick expenses)
+    updateOrAddItem: protectedProcedure
+        .input(addReportItemSchema)
+        .mutation(async ({ input, ctx }) => {
+            if (ctx.session.user.type !== UserType.ADMIN) {
+                throw new TRPCError({
+                    code: "FORBIDDEN",
+                    message: "Only admins can update report items",
+                });
+            }
+
+            const { reportId, ...itemData } = input;
+
+            // Check if report exists and is editable
+            const report = await ctx.db.monthlyReport.findUnique({
+                where: { id: reportId },
+            });
+
+            if (!report) {
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: "Raport nie został znaleziony",
+                });
+            }
+
+            if (report.status === ReportStatus.SENT) {
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    message: "Nie można edytować wysłanego raportu",
+                });
+            }
+
+            // Check if item with this category already exists
+            const existingItem = await ctx.db.reportItem.findFirst({
+                where: {
+                    reportId,
+                    category: itemData.category,
+                    type: ReportItemType.EXPENSE,
+                    isAutoGenerated: false,
+                },
+            });
+
+            let item;
+            if (existingItem) {
+                // Update existing item
+                item = await ctx.db.reportItem.update({
+                    where: { id: existingItem.id },
+                    data: {
+                        ...itemData,
+                        currency: "PLN",
+                        isAutoGenerated: false,
+                    },
+                });
+            } else {
+                // Create new item
+                item = await ctx.db.reportItem.create({
+                    data: {
+                        ...itemData,
+                        reportId,
+                        currency: "PLN",
+                        isAutoGenerated: false,
+                    },
+                });
+            }
+
+            // Recalculate report totals using the centralized function
+            await recalculateReportSettlement(reportId, ctx);
+
+            // Add history entry
+            await ctx.db.reportHistory.create({
+                data: {
+                    reportId,
+                    adminId: ctx.session.user.id,
+                    action: existingItem ? "updated" : "created",
+                    notes: `${existingItem ? "Zaktualizowano" : "Dodano"} pozycję: ${itemData.category as string} - ${itemData.description as string}`,
+                },
+            });
+
+            return { success: true, itemId: item.id, wasUpdated: !!existingItem };
         }),
 
     // Admin: Update report status
@@ -668,6 +806,29 @@ export const monthlyReportsRouter = createTRPCRouter({
             } = { status };
 
             if (status === ReportStatus.APPROVED) {
+                // Sprawdź czy raport ma ustawiony typ rozliczenia przed zatwierdzeniem
+                if (!report.finalSettlementType) {
+                    throw new TRPCError({
+                        code: "BAD_REQUEST",
+                        message: "Nie można zatwierdzić raportu bez ustawionego typu rozliczenia. Ustaw typ rozliczenia przed zatwierdzeniem.",
+                    });
+                }
+
+                // Sprawdź czy właściciel ma ustawioną kwotę stałą dla typów FIXED
+                if ((report.finalSettlementType === 'FIXED' || report.finalSettlementType === 'FIXED_MINUS_UTILITIES')) {
+                    const owner = await ctx.db.apartmentOwner.findUnique({
+                        where: { id: report.ownerId },
+                        select: { fixedPaymentAmount: true, email: true }
+                    });
+
+                    if (!owner?.fixedPaymentAmount) {
+                        throw new TRPCError({
+                            code: "BAD_REQUEST",
+                            message: `Nie można zatwierdzić raportu z typem rozliczenia ${report.finalSettlementType}. Właściciel ${owner?.email ?? 'nieznany'} nie ma ustawionej kwoty stałej (fixedPaymentAmount).`,
+                        });
+                    }
+                }
+
                 updateData.approvedAt = new Date();
                 updateData.approvedByAdminId = ctx.session.user.id;
             } else if (status === ReportStatus.SENT) {
@@ -781,6 +942,9 @@ export const monthlyReportsRouter = createTRPCRouter({
                 where: { id: itemId },
             });
 
+            // Recalculate report totals after deletion
+            await recalculateReportSettlement(itemToDelete.reportId, ctx);
+
             return { success: true, message: "Report item deleted successfully." };
         }),
 
@@ -875,6 +1039,7 @@ export const monthlyReportsRouter = createTRPCRouter({
                             description: true,
                             amount: true,
                             date: true,
+                            expenseCategory: true,
                             reservation: {
                                 select: { id: true, guest: true, start: true, end: true, source: true },
                             },
@@ -888,10 +1053,11 @@ export const monthlyReportsRouter = createTRPCRouter({
                 ],
             });
 
-            // Convert Decimal to number for finalOwnerPayout
+            // Convert Decimal to number for finalOwnerPayout and calculate fixed costs
             const reportsWithNumbers = reports.map(report => ({
                 ...report,
                 finalOwnerPayout: report.finalOwnerPayout ? Number(report.finalOwnerPayout) : null,
+                fixedCosts: calculateFixedCosts(report.items),
             }));
 
             // Debug logging
@@ -1110,6 +1276,106 @@ export const monthlyReportsRouter = createTRPCRouter({
             }
         }),
 
+    // Funkcja diagnostyczna do sprawdzania stanu raportu
+    diagnoseReport: protectedProcedure
+        .input(z.object({
+            reportId: z.string().uuid(),
+        }))
+        .mutation(async ({ input, ctx }) => {
+            if (ctx.session.user.type !== UserType.ADMIN) {
+                throw new TRPCError({ code: "FORBIDDEN" });
+            }
+
+            const report = await ctx.db.monthlyReport.findUnique({
+                where: { id: input.reportId },
+                include: {
+                    owner: {
+                        select: {
+                            id: true,
+                            email: true,
+                            fixedPaymentAmount: true,
+                            vatOption: true,
+                            paymentType: true,
+                        },
+                    },
+                    items: true,
+                    additionalDeductions: true,
+                },
+            });
+
+            if (!report) {
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: "Raport nie został znaleziony",
+                });
+            }
+
+            const totalRevenue = report.items.filter(i => i.type === "REVENUE").reduce((s, i) => s + i.amount, 0);
+            const totalExpenses = report.items.filter(i => ["EXPENSE", "FEE", "TAX"].includes(i.type)).reduce((s, i) => s + i.amount, 0);
+            const otaCommissions = report.items.filter(i => i.type === "COMMISSION").reduce((s, i) => s + i.amount, 0);
+            const netIncome = totalRevenue - totalExpenses - otaCommissions;
+            const adminCommissionAmount = netIncome * 0.25;
+            const afterCommission = netIncome - adminCommissionAmount;
+            const rentAndUtilities = (report.rentAmount ?? 0) + (report.utilitiesAmount ?? 0);
+            const afterRentAndUtilities = afterCommission - rentAndUtilities;
+            const totalAdditionalDeductionsGross = report.additionalDeductions.reduce((s, d) => s + getGrossAmount(d.amount, d.vatOption), 0);
+
+            const issues = [];
+            const warnings = [];
+
+            // Sprawdź typ rozliczenia
+            if (!report.finalSettlementType) {
+                issues.push("Brak ustawionego typu rozliczenia (finalSettlementType)");
+            }
+
+            // Sprawdź kwotę stałą dla typów FIXED
+            if ((report.finalSettlementType === 'FIXED' || report.finalSettlementType === 'FIXED_MINUS_UTILITIES') && !report.owner.fixedPaymentAmount) {
+                issues.push(`Właściciel ${report.owner.email} nie ma ustawionej kwoty stałej (fixedPaymentAmount) dla typu rozliczenia ${report.finalSettlementType}`);
+            }
+
+            // Sprawdź czy finalOwnerPayout jest obliczony
+            if (report.finalOwnerPayout === null || report.finalOwnerPayout === 0) {
+                if (report.finalSettlementType) {
+                    issues.push("finalOwnerPayout jest null/0 mimo ustawionego typu rozliczenia");
+                }
+            }
+
+            // Ostrzeżenia
+            if (totalRevenue === 0) {
+                warnings.push("Brak przychodów w raporcie");
+            }
+
+            if (report.additionalDeductions.length === 0) {
+                warnings.push("Brak dodatkowych odliczeń");
+            }
+
+            return {
+                reportId: report.id,
+                status: report.status,
+                finalSettlementType: report.finalSettlementType,
+                finalOwnerPayout: report.finalOwnerPayout,
+                owner: {
+                    email: report.owner.email,
+                    fixedPaymentAmount: report.owner.fixedPaymentAmount ? Number(report.owner.fixedPaymentAmount) : null,
+                    vatOption: report.owner.vatOption,
+                    paymentType: report.owner.paymentType,
+                },
+                calculations: {
+                    totalRevenue,
+                    totalExpenses,
+                    netIncome,
+                    adminCommissionAmount,
+                    afterCommission,
+                    rentAndUtilities,
+                    afterRentAndUtilities,
+                    totalAdditionalDeductionsGross,
+                },
+                issues,
+                warnings,
+                canBeApproved: issues.length === 0,
+            };
+        }),
+
     addAirbnbCommissionWithDiscount: protectedProcedure
         .input(
             z.object({
@@ -1235,11 +1501,13 @@ export const monthlyReportsRouter = createTRPCRouter({
 
             // Calculations
             const revenueItems = report.items.filter((i) => i.type === "REVENUE");
-            const expenseItems = report.items.filter((i) => ["EXPENSE", "FEE", "TAX", "COMMISSION"].includes(i.type));
+            const expenseItems = report.items.filter((i) => ["EXPENSE", "FEE", "TAX"].includes(i.type));
+            const commissionItems = report.items.filter((i) => i.type === "COMMISSION");
 
             const totalRevenue = revenueItems.reduce((sum, i) => sum + i.amount, 0);
             const totalExpenses = expenseItems.reduce((sum, i) => sum + i.amount, 0);
-            const netIncome = totalRevenue - totalExpenses;
+            const otaCommissions = commissionItems.reduce((sum, i) => sum + i.amount, 0);
+            const netIncome = totalRevenue - totalExpenses - otaCommissions;
 
             const adminCommissionRate = 0.25;
             const adminCommissionAmount = netIncome * adminCommissionRate;
@@ -1327,11 +1595,51 @@ export const monthlyReportsRouter = createTRPCRouter({
             finalSettlementType: z.enum(["COMMISSION", "FIXED", "FIXED_MINUS_UTILITIES"]),
         }))
         .mutation(async ({ input, ctx }) => {
-            // (opcjonalnie: sprawdź uprawnienia admina)
+            if (ctx.session.user.type !== UserType.ADMIN) {
+                throw new TRPCError({
+                    code: "FORBIDDEN",
+                    message: "Only admins can set settlement type",
+                });
+            }
+
+            // Sprawdź czy raport istnieje i nie jest wysłany
+            const report = await ctx.db.monthlyReport.findUnique({
+                where: { id: input.reportId },
+            });
+
+            if (!report) {
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: "Raport nie został znaleziony",
+                });
+            }
+
+            if (report.status === ReportStatus.SENT) {
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    message: "Nie można edytować wysłanego raportu",
+                });
+            }
+
+            // Ustaw typ rozliczenia
             await ctx.db.monthlyReport.update({
                 where: { id: input.reportId },
                 data: { finalSettlementType: input.finalSettlementType },
             });
+
+            // Automatycznie przelicz raport po ustawieniu typu rozliczenia
+            await recalculateReportSettlement(input.reportId, ctx);
+
+            // Dodaj wpis do historii
+            await ctx.db.reportHistory.create({
+                data: {
+                    reportId: input.reportId,
+                    adminId: ctx.session.user.id,
+                    action: "updated",
+                    notes: `Ustawiono typ rozliczenia: ${input.finalSettlementType}`,
+                },
+            });
+
             return { success: true };
         }),
 
@@ -1581,8 +1889,9 @@ export const monthlyReportsRouter = createTRPCRouter({
             let june2025Analysis = null;
             if (june2025Report) {
                 const totalRevenue = june2025Report.items.filter(i => i.type === "REVENUE").reduce((s, i) => s + i.amount, 0);
-                const totalExpenses = june2025Report.items.filter(i => ["EXPENSE", "FEE", "TAX", "COMMISSION"].includes(i.type)).reduce((s, i) => s + i.amount, 0);
-                const netIncome = totalRevenue - totalExpenses;
+                const totalExpenses = june2025Report.items.filter(i => ["EXPENSE", "FEE", "TAX"].includes(i.type)).reduce((s, i) => s + i.amount, 0);
+                const otaCommissions = june2025Report.items.filter(i => i.type === "COMMISSION").reduce((s, i) => s + i.amount, 0);
+                const netIncome = totalRevenue - totalExpenses - otaCommissions;
                 const adminCommissionAmount = netIncome * 0.25;
                 const afterCommission = netIncome - adminCommissionAmount;
                 const rentAndUtilities = (june2025Report.rentAmount ?? 0) + (june2025Report.utilitiesAmount ?? 0);
@@ -1660,7 +1969,6 @@ export const monthlyReportsRouter = createTRPCRouter({
                         select: { id: true, name: true, slug: true },
                     },
                     items: {
-                        where: { type: 'REVENUE' },
                         select: { category: true, amount: true, type: true },
                     },
                 },
@@ -1674,9 +1982,10 @@ export const monthlyReportsRouter = createTRPCRouter({
             type ChartDataItem = {
                 name: string;
                 Przychód: number;
-                Koszty: number;
-                Zysk: number;
+                "Łączne koszty": number;
+                "Koszty stałe": number;
                 Prowizja: number;
+                "Prowizje OTA": number;
                 Wypłata: number;
             };
 
@@ -1691,17 +2000,19 @@ export const monthlyReportsRouter = createTRPCRouter({
                         yearlyData.set(year, {
                             name: `Rok ${year}`,
                             Przychód: 0,
-                            Koszty: 0,
-                            Zysk: 0,
+                            "Łączne koszty": 0,
+                            "Koszty stałe": 0,
                             Prowizja: 0,
+                            "Prowizje OTA": 0,
                             Wypłata: 0,
                         });
                     }
                     const data = yearlyData.get(year)!;
                     data.Przychód += report.totalRevenue ?? 0;
-                    data.Koszty += report.totalExpenses ?? 0;
-                    data.Zysk += report.netIncome ?? 0;
+                    data["Łączne koszty"] += report.totalExpenses ?? 0;
+                    data["Koszty stałe"] += calculateFixedCosts(report.items);
                     data.Prowizja += report.adminCommissionAmount ?? 0;
+                    data["Prowizje OTA"] += report.items.filter(i => i.type === "COMMISSION").reduce((s, i) => s + i.amount, 0);
                     data.Wypłata += report.finalOwnerPayout ?? 0;
                 });
                 chartData = Array.from(yearlyData.values());
@@ -1715,17 +2026,19 @@ export const monthlyReportsRouter = createTRPCRouter({
                         monthlyData.set(monthKey, {
                             name: monthName,
                             Przychód: 0,
-                            Koszty: 0,
-                            Zysk: 0,
+                            "Łączne koszty": 0,
+                            "Koszty stałe": 0,
                             Prowizja: 0,
+                            "Prowizje OTA": 0,
                             Wypłata: 0,
                         });
                     }
                     const data = monthlyData.get(monthKey)!;
                     data.Przychód += report.totalRevenue ?? 0;
-                    data.Koszty += report.totalExpenses ?? 0;
-                    data.Zysk += report.netIncome ?? 0;
+                    data["Łączne koszty"] += report.totalExpenses ?? 0;
+                    data["Koszty stałe"] += calculateFixedCosts(report.items);
                     data.Prowizja += report.adminCommissionAmount ?? 0;
+                    data["Prowizje OTA"] += report.items.filter(i => i.type === "COMMISSION").reduce((s, i) => s + i.amount, 0);
                     data.Wypłata += report.finalOwnerPayout ?? 0;
                 });
                 chartData = Array.from(monthlyData.values()).sort((a, b) => {
@@ -1741,9 +2054,10 @@ export const monthlyReportsRouter = createTRPCRouter({
                 chartData = reports.map(report => ({
                     name: `${report.apartment.name} - ${report.month}/${report.year}`,
                     Przychód: report.totalRevenue ?? 0,
-                    Koszty: report.totalExpenses ?? 0,
-                    Zysk: report.netIncome ?? 0,
+                    "Łączne koszty": report.totalExpenses ?? 0,
+                    "Koszty stałe": calculateFixedCosts(report.items),
                     Prowizja: report.adminCommissionAmount ?? 0,
+                    "Prowizje OTA": report.items.filter(i => i.type === "COMMISSION").reduce((s, i) => s + i.amount, 0),
                     Wypłata: report.finalOwnerPayout ?? 0,
                 }));
             }
@@ -1780,7 +2094,11 @@ export const monthlyReportsRouter = createTRPCRouter({
                 return [];
             }
 
-            const whereClause: any = {
+            const whereClause: {
+                ownerId: string;
+                status: { in: ReportStatus[] };
+                apartmentId?: number;
+            } = {
                 ownerId: owner.id,
                 status: { in: [ReportStatus.APPROVED, ReportStatus.SENT] },
             };
@@ -1879,5 +2197,359 @@ export const monthlyReportsRouter = createTRPCRouter({
                 month: report.month,
                 year: report.year,
             }));
+        }),
+
+    // Admin: Add cleaning costs to existing report
+    addCleaningCosts: protectedProcedure
+        .input(z.object({
+            reportId: z.string().uuid(),
+        }))
+        .mutation(async ({ input, ctx }) => {
+            if (ctx.session.user.type !== UserType.ADMIN) {
+                throw new TRPCError({
+                    code: "FORBIDDEN",
+                    message: "Only admins can add cleaning costs",
+                });
+            }
+
+            // Get report with apartment and reservations
+            const report = await ctx.db.monthlyReport.findUnique({
+                where: { id: input.reportId },
+                include: {
+                    apartment: true,
+                    items: {
+                        where: {
+                            type: ReportItemType.REVENUE,
+                            isAutoGenerated: true,
+                        },
+                        include: {
+                            reservation: {
+                                select: {
+                                    adults: true,
+                                    children: true,
+                                },
+                            },
+                        },
+                    },
+                },
+            });
+
+            if (!report) {
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: "Report not found",
+                });
+            }
+
+            // Check if cleaning costs already exist
+            const existingCleaningCost = await ctx.db.reportItem.findFirst({
+                where: {
+                    reportId: input.reportId,
+                    category: "Sprzątanie",
+                    isAutoGenerated: true,
+                },
+            });
+
+            // Get reservations for this report period
+            const startDate = new Date(Date.UTC(report.year, report.month - 1, 1));
+            const nextMonthStartDate = new Date(Date.UTC(report.year, report.month, 1));
+
+            const reservations = await ctx.db.reservation.findMany({
+                where: {
+                    apartmentId: report.apartmentId,
+                    end: {
+                        gte: startDate,
+                        lt: nextMonthStartDate,
+                    },
+                },
+                select: {
+                    adults: true,
+                    children: true,
+                },
+            });
+
+            // Calculate cleaning costs
+            const cleaningCost = await calculateCleaningCosts(report.apartmentId, reservations, ctx);
+
+            if (cleaningCost > 0) {
+                if (existingCleaningCost) {
+                    // Update existing cleaning cost
+                    await ctx.db.reportItem.update({
+                        where: { id: existingCleaningCost.id },
+                        data: {
+                            description: `Usługi sprzątania apartamentu - wyliczenie na bazie ${reservations.length} rezerwacji`,
+                            amount: cleaningCost,
+                            date: new Date(),
+                            notes: `Usługi sprzątania apartamentu - wyliczenie na bazie ${reservations.length} rezerwacji`,
+                        },
+                    });
+
+                    // Add history entry
+                    await ctx.db.reportHistory.create({
+                        data: {
+                            reportId: input.reportId,
+                            adminId: ctx.session.user.id,
+                            action: "cleaning_costs_updated",
+                            notes: `Zaktualizowano automatyczne koszty sprzątania: ${cleaningCost} PLN`,
+                        },
+                    });
+
+                    return { success: true, cleaningCost, reservationsCount: reservations.length, wasUpdated: true };
+                } else {
+                    // Create new cleaning cost
+                    await ctx.db.reportItem.create({
+                        data: {
+                            reportId: input.reportId,
+                            type: ReportItemType.EXPENSE,
+                            category: "Sprzątanie",
+                            description: `Usługi sprzątania apartamentu - wyliczenie na bazie ${reservations.length} rezerwacji`,
+                            amount: cleaningCost,
+                            currency: "PLN",
+                            date: new Date(),
+                            expenseCategory: ExpenseCategory.SPRZATANIE,
+                            isAutoGenerated: true,
+                            notes: `Usługi sprzątania apartamentu - wyliczenie na bazie ${reservations.length} rezerwacji`,
+                        },
+                    });
+
+                    // Add history entry
+                    await ctx.db.reportHistory.create({
+                        data: {
+                            reportId: input.reportId,
+                            adminId: ctx.session.user.id,
+                            action: "cleaning_costs_added",
+                            notes: `Dodano automatyczne koszty sprzątania: ${cleaningCost} PLN`,
+                        },
+                    });
+
+                    return { success: true, cleaningCost, reservationsCount: reservations.length, wasUpdated: false };
+                }
+            } else {
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    message: "No cleaning costs to add (apartment not configured or no reservations)",
+                });
+            }
+        }),
+
+    // Admin: Add laundry costs to existing report
+    addLaundryCosts: protectedProcedure
+        .input(z.object({
+            reportId: z.string().uuid(),
+        }))
+        .mutation(async ({ input, ctx }) => {
+            if (ctx.session.user.type !== UserType.ADMIN) {
+                throw new TRPCError({
+                    code: "FORBIDDEN",
+                    message: "Only admins can add laundry costs",
+                });
+            }
+
+            // Get report
+            const report = await ctx.db.monthlyReport.findUnique({
+                where: { id: input.reportId },
+                include: {
+                    apartment: true,
+                },
+            });
+
+            if (!report) {
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: "Report not found",
+                });
+            }
+
+            // Check if laundry costs already exist
+            const existingLaundryCost = await ctx.db.reportItem.findFirst({
+                where: {
+                    reportId: input.reportId,
+                    category: "Pranie",
+                    isAutoGenerated: true,
+                },
+            });
+
+            // Calculate laundry costs: 180 PLN per week
+            const laundryCostPerWeek = 180;
+            const daysPerWeek = 7;
+            const daysInMonth = new Date(report.year, report.month, 0).getDate();
+            const weeksInMonth = Math.round((daysInMonth / daysPerWeek) * 100) / 100;
+            const totalLaundryCost = weeksInMonth * laundryCostPerWeek;
+
+            if (totalLaundryCost > 0) {
+                if (existingLaundryCost) {
+                    // Update existing laundry cost
+                    await ctx.db.reportItem.update({
+                        where: { id: existingLaundryCost.id },
+                        data: {
+                            description: "Pranie pościeli i ręczników - średnie zużycie za miesiąc",
+                            amount: totalLaundryCost,
+                            date: new Date(),
+                            notes: "Pranie pościeli i ręczników - średnie zużycie za miesiąc",
+                        },
+                    });
+
+                    // Add history entry
+                    await ctx.db.reportHistory.create({
+                        data: {
+                            reportId: input.reportId,
+                            adminId: ctx.session.user.id,
+                            action: "laundry_costs_updated",
+                            notes: `Zaktualizowano automatyczne koszty prania: ${totalLaundryCost} PLN`,
+                        },
+                    });
+
+                    return { success: true, laundryCost: totalLaundryCost, weeksInMonth, wasUpdated: true };
+                } else {
+                    // Create new laundry cost
+                    await ctx.db.reportItem.create({
+                        data: {
+                            reportId: input.reportId,
+                            type: ReportItemType.EXPENSE,
+                            category: "Pranie",
+                            description: "Pranie pościeli i ręczników - średnie zużycie za miesiąc",
+                            amount: totalLaundryCost,
+                            currency: "PLN",
+                            date: new Date(),
+                            expenseCategory: ExpenseCategory.PRANIE,
+                            isAutoGenerated: true,
+                            notes: "Pranie pościeli i ręczników - średnie zużycie za miesiąc",
+                        },
+                    });
+
+                    // Add history entry
+                    await ctx.db.reportHistory.create({
+                        data: {
+                            reportId: input.reportId,
+                            adminId: ctx.session.user.id,
+                            action: "laundry_costs_added",
+                            notes: `Dodano automatyczne koszty prania: ${totalLaundryCost} PLN`,
+                        },
+                    });
+
+                    return { success: true, laundryCost: totalLaundryCost, weeksInMonth, wasUpdated: false };
+                }
+            } else {
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    message: "No laundry costs to add",
+                });
+            }
+        }),
+
+    // Admin: Add textile costs to existing report
+    addTextileCosts: protectedProcedure
+        .input(z.object({
+            reportId: z.string().uuid(),
+        }))
+        .mutation(async ({ input, ctx }) => {
+            if (ctx.session.user.type !== UserType.ADMIN) {
+                throw new TRPCError({
+                    code: "FORBIDDEN",
+                    message: "Only admins can add textile costs",
+                });
+            }
+
+            // Get report with reservations
+            const report = await ctx.db.monthlyReport.findUnique({
+                where: { id: input.reportId },
+                include: {
+                    apartment: true,
+                },
+            });
+
+            if (!report) {
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: "Report not found",
+                });
+            }
+
+            // Check if textile costs already exist
+            const existingTextileCost = await ctx.db.reportItem.findFirst({
+                where: {
+                    reportId: input.reportId,
+                    category: "Tekstylia",
+                    isAutoGenerated: true,
+                },
+            });
+
+            // Get reservations for this report period
+            const startDate = new Date(Date.UTC(report.year, report.month - 1, 1));
+            const nextMonthStartDate = new Date(Date.UTC(report.year, report.month, 1));
+
+            const reservations = await ctx.db.reservation.findMany({
+                where: {
+                    apartmentId: report.apartmentId,
+                    end: {
+                        gte: startDate,
+                        lt: nextMonthStartDate,
+                    },
+                },
+            });
+
+            // Calculate textile costs: 12.69 PLN per reservation
+            const textileCostPerReservation = 12.69;
+            const totalTextileCost = reservations.length * textileCostPerReservation;
+
+            if (totalTextileCost > 0) {
+                if (existingTextileCost) {
+                    // Update existing textile cost
+                    await ctx.db.reportItem.update({
+                        where: { id: existingTextileCost.id },
+                        data: {
+                            description: "Zakup i wymiana tekstyliów - średnie zużycie na rezerwację",
+                            amount: totalTextileCost,
+                            date: new Date(),
+                            notes: "Zakup i wymiana tekstyliów - średnie zużycie na rezerwację",
+                        },
+                    });
+
+                    // Add history entry
+                    await ctx.db.reportHistory.create({
+                        data: {
+                            reportId: input.reportId,
+                            adminId: ctx.session.user.id,
+                            action: "textile_costs_updated",
+                            notes: `Zaktualizowano automatyczne koszty tekstyliów: ${totalTextileCost} PLN`,
+                        },
+                    });
+
+                    return { success: true, textileCost: totalTextileCost, reservationsCount: reservations.length, wasUpdated: true };
+                } else {
+                    // Create new textile cost
+                    await ctx.db.reportItem.create({
+                        data: {
+                            reportId: input.reportId,
+                            type: ReportItemType.EXPENSE,
+                            category: "Tekstylia",
+                            description: "Zakup i wymiana tekstyliów - średnie zużycie na rezerwację",
+                            amount: totalTextileCost,
+                            currency: "PLN",
+                            date: new Date(),
+                            expenseCategory: "TEKSTYLIA" as ExpenseCategory,
+                            isAutoGenerated: true,
+                            notes: "Zakup i wymiana tekstyliów - średnie zużycie na rezerwację",
+                        },
+                    });
+
+                    // Add history entry
+                    await ctx.db.reportHistory.create({
+                        data: {
+                            reportId: input.reportId,
+                            adminId: ctx.session.user.id,
+                            action: "textile_costs_added",
+                            notes: `Dodano automatyczne koszty tekstyliów: ${totalTextileCost} PLN`,
+                        },
+                    });
+
+                    return { success: true, textileCost: totalTextileCost, reservationsCount: reservations.length, wasUpdated: false };
+                }
+            } else {
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    message: "No textile costs to add (no reservations)",
+                });
+            }
         }),
 }); 

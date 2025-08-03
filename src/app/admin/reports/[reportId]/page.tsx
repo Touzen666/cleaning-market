@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { api } from "@/trpc/react";
 import type { RouterOutputs } from "@/trpc/react";
 import { PaymentType, VATOption, ReportStatus } from "@prisma/client";
@@ -50,6 +51,7 @@ export default function ReportDetailsPage({
   params: Promise<{ reportId: string }>;
 }) {
   const router = useRouter();
+  const { data: session } = useSession();
   const actualParams = React.use(params);
   const { reportId } = actualParams;
   const [showAddItemForm, setShowAddItemForm] = useState(false);
@@ -102,6 +104,20 @@ export default function ReportDetailsPage({
   const [orderedDeductions, setOrderedDeductions] = useState<
     ReportDetails["additionalDeductions"]
   >([]);
+
+  // Function to determine the correct navigation path based on user role
+  const getBackToListPath = () => {
+    // Check if user is logged in as owner (has role property set to "OWNER")
+    if (
+      session?.user &&
+      "role" in session.user &&
+      session.user.role === "OWNER"
+    ) {
+      return "/apartamentsOwner/reports";
+    }
+    // Default to admin reports list
+    return "/admin/reports";
+  };
 
   // Dodaj mutację
   const updateRentUtilitiesMutation =
@@ -194,6 +210,21 @@ export default function ReportDetailsPage({
       toast.error(`Błąd: ${error.message}`);
     },
   });
+
+  const updateOrAddItemMutation =
+    api.monthlyReports.updateOrAddItem.useMutation({
+      onSuccess: (data) => {
+        if (data.wasUpdated) {
+          toast.success("Pozycja została zaktualizowana");
+        } else {
+          toast.success("Pozycja została dodana");
+        }
+        void reportQuery.refetch();
+      },
+      onError: (error) => {
+        toast.error(`Błąd: ${error.message}`);
+      },
+    });
 
   const updateStatusMutation = api.monthlyReports.updateStatus.useMutation({
     onSuccess: () => {
@@ -365,7 +396,7 @@ export default function ReportDetailsPage({
 
     try {
       setAddingQuickExpense(category);
-      await addItemMutation.mutateAsync({
+      await updateOrAddItemMutation.mutateAsync({
         reportId: reportId,
         type: "EXPENSE",
         category: categoryData.name,
@@ -611,6 +642,197 @@ export default function ReportDetailsPage({
     }
   };
 
+  // Mutacja do dodawania kosztów sprzątania
+  const addCleaningCosts = api.monthlyReports.addCleaningCosts.useMutation({
+    onSuccess: (data) => {
+      if (data.wasUpdated) {
+        toast.success("Koszty sprzątania zostały zaktualizowane");
+      } else {
+        toast.success("Koszty sprzątania zostały dodane do raportu");
+      }
+      void reportQuery.refetch();
+    },
+    onError: (err) => {
+      toast.error(`Błąd: ${err.message}`);
+    },
+  });
+
+  const handleAddCleaningCosts = () => {
+    if (
+      confirm(
+        "Czy chcesz dodać automatyczne koszty sprzątania do tego raportu?",
+      )
+    ) {
+      addCleaningCosts.mutate({ reportId });
+    }
+  };
+
+  // Mutacja do dodawania kosztów prania
+  const addLaundryCosts = api.monthlyReports.addLaundryCosts.useMutation({
+    onSuccess: (data) => {
+      if (data.wasUpdated) {
+        toast.success("Koszty prania zostały zaktualizowane");
+      } else {
+        toast.success("Koszty prania zostały dodane do raportu");
+      }
+      void reportQuery.refetch();
+    },
+    onError: (err) => {
+      toast.error(`Błąd: ${err.message}`);
+    },
+  });
+
+  const handleAddLaundryCosts = () => {
+    if (
+      confirm("Czy chcesz dodać automatyczne koszty prania do tego raportu?")
+    ) {
+      addLaundryCosts.mutate({ reportId });
+    }
+  };
+
+  // Mutacja do dodawania kosztów tekstyliów
+  const addTextileCosts = api.monthlyReports.addTextileCosts.useMutation({
+    onSuccess: (data) => {
+      if (data.wasUpdated) {
+        toast.success("Koszty tekstyliów zostały zaktualizowane");
+      } else {
+        toast.success("Koszty tekstyliów zostały dodane do raportu");
+      }
+      void reportQuery.refetch();
+    },
+    onError: (err) => {
+      toast.error(`Błąd: ${err.message}`);
+    },
+  });
+
+  const handleAddTextileCosts = () => {
+    if (
+      confirm(
+        "Czy chcesz dodać automatyczne koszty tekstyliów do tego raportu?",
+      )
+    ) {
+      addTextileCosts.mutate({ reportId });
+    }
+  };
+
+  // Funkcja obliczająca sugerowaną kwotę za sprzątanie
+  const calculateSuggestedCleaningCost = () => {
+    if (!report?.apartment?.cleaningCosts || !report.items) {
+      return 0;
+    }
+
+    const cleaningCosts = report.apartment.cleaningCosts as Record<
+      string,
+      number
+    >;
+    const revenueItems = report.items.filter(
+      (item) => item.type === "REVENUE" && item.reservation,
+    );
+
+    let totalCleaningCost = 0;
+
+    for (const item of revenueItems) {
+      if (item.reservation) {
+        const totalGuests =
+          (item.reservation.adults ?? 0) + (item.reservation.children ?? 0);
+
+        if (totalGuests > 0) {
+          // Find the cleaning cost for this number of guests
+          // If exact match not found, use the highest available cost for fewer guests
+          let cleaningCost = 0;
+          for (let i = totalGuests; i >= 1; i--) {
+            if (cleaningCosts[i.toString()] !== undefined) {
+              cleaningCost = cleaningCosts[i.toString()]!;
+              break;
+            }
+          }
+          totalCleaningCost += cleaningCost;
+        }
+      }
+    }
+
+    return totalCleaningCost;
+  };
+
+  const suggestedCleaningCost = calculateSuggestedCleaningCost();
+
+  // Funkcja obliczająca sugerowaną kwotę za pranie
+  const calculateSuggestedLaundryCost = () => {
+    if (!report) {
+      return 0;
+    }
+
+    // Koszt prania: 180 PLN co 7 dni
+    const laundryCostPerWeek = 180;
+    const daysPerWeek = 7;
+
+    // Oblicz liczbę dni w miesiącu raportu
+    const year = report.year;
+    const month = report.month;
+    const daysInMonth = new Date(year, month, 0).getDate();
+
+    // Oblicz liczbę tygodni w miesiącu (z dokładnością do 2 miejsc po przecinku)
+    // Przykład: 31 dni / 7 dni = 4.43 tygodni
+    const weeksInMonth = Math.round((daysInMonth / daysPerWeek) * 100) / 100;
+
+    // Oblicz całkowity koszt prania za miesiąc
+    const totalLaundryCost = weeksInMonth * laundryCostPerWeek;
+
+    return totalLaundryCost;
+  };
+
+  const suggestedLaundryCost = calculateSuggestedLaundryCost();
+
+  // Funkcja obliczająca sugerowaną kwotę za tekstylia
+  const calculateSuggestedTextileCost = () => {
+    if (!report) {
+      return 0;
+    }
+
+    // Koszt tekstyliów: 12.69 PLN za rezerwację
+    const textileCostPerReservation = 12.69;
+
+    // Oblicz liczbę rezerwacji w raporcie
+    const revenueItems = report.items.filter(
+      (item) => item.type === "REVENUE" && item.reservation,
+    );
+
+    // Oblicz całkowity koszt tekstyliów za miesiąc
+    const totalTextileCost = revenueItems.length * textileCostPerReservation;
+
+    return totalTextileCost;
+  };
+
+  const suggestedTextileCost = calculateSuggestedTextileCost();
+
+  // Funkcja obliczająca koszt sprzątania dla pojedynczej rezerwacji
+  const calculateCleaningCostForReservation = (reservation: {
+    adults?: number | null;
+    children?: number | null;
+  }) => {
+    if (!report?.apartment?.cleaningCosts) {
+      return 0;
+    }
+
+    const cleaningCosts = report.apartment.cleaningCosts as Record<
+      string,
+      number
+    >;
+    const totalGuests = (reservation.adults ?? 0) + (reservation.children ?? 0);
+
+    if (totalGuests > 0) {
+      // Find the cleaning cost for this number of guests
+      // If exact match not found, use the highest available cost for fewer guests
+      for (let i = totalGuests; i >= 1; i--) {
+        if (cleaningCosts[i.toString()] !== undefined) {
+          return cleaningCosts[i.toString()]!;
+        }
+      }
+    }
+
+    return 0;
+  };
+
   if (reportQuery.isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -628,7 +850,7 @@ export default function ReportDetailsPage({
             {reportQuery.error?.message ?? "Raport nie został znaleziony"}
           </p>
           <button
-            onClick={() => router.push("/admin/reports")}
+            onClick={() => router.push(getBackToListPath())}
             className="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700"
           >
             Powrót do listy
@@ -728,7 +950,7 @@ export default function ReportDetailsPage({
             <div className="mt-4 sm:mt-0">
               <div className="flex gap-3">
                 <button
-                  onClick={() => router.push("/apartamentsOwner/reports")}
+                  onClick={() => router.push(getBackToListPath())}
                   className="inline-flex items-center rounded-md bg-gray-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-500"
                 >
                   <svg
@@ -872,7 +1094,7 @@ export default function ReportDetailsPage({
                   onClick={async () => {
                     await deleteReportMutation.mutateAsync({ reportId });
                     setShowDeleteModal(false);
-                    router.push("/admin/reports");
+                    router.push(getBackToListPath());
                   }}
                   className="rounded-md bg-red-600 px-4 py-2 text-white hover:bg-red-700"
                 >
@@ -1080,13 +1302,70 @@ export default function ReportDetailsPage({
                                 )
                               }
                               className="block w-full rounded-md border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-green-500 focus:outline-none focus:ring-green-500"
-                              placeholder="0.00"
+                              placeholder={
+                                key === "sprzatanie" &&
+                                suggestedCleaningCost > 0
+                                  ? suggestedCleaningCost.toFixed(2)
+                                  : key === "pranie" && suggestedLaundryCost > 0
+                                    ? suggestedLaundryCost.toFixed(2)
+                                    : key === "tekstylia" &&
+                                        suggestedTextileCost > 0
+                                      ? suggestedTextileCost.toFixed(2)
+                                      : "0.00"
+                              }
                               disabled={addingQuickExpense === key}
                             />
                             <span className="inline-flex items-center rounded-md bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">
                               {category.vatRate}% VAT
                             </span>
                           </div>
+                          {key === "sprzatanie" &&
+                            suggestedCleaningCost > 0 && (
+                              <p className="mt-1 text-xs text-green-600">
+                                💡 Sugerowana kwota:{" "}
+                                {suggestedCleaningCost.toFixed(2)} PLN (na
+                                podstawie{" "}
+                                {
+                                  report.items.filter(
+                                    (item) =>
+                                      item.type === "REVENUE" &&
+                                      item.reservation,
+                                  ).length
+                                }{" "}
+                                rezerwacji) - średnio{" "}
+                                {(
+                                  suggestedCleaningCost /
+                                  report.items.filter(
+                                    (item) =>
+                                      item.type === "REVENUE" &&
+                                      item.reservation,
+                                  ).length
+                                ).toFixed(2)}{" "}
+                                PLN za rezerwację
+                              </p>
+                            )}
+                          {key === "pranie" && suggestedLaundryCost > 0 && (
+                            <p className="mt-1 text-xs text-green-600">
+                              💡 Sugerowana kwota:{" "}
+                              {suggestedLaundryCost.toFixed(2)} PLN (koszt
+                              miesięczny: 180 PLN co 7 dni) - średnio {180} PLN
+                              za tydzień
+                            </p>
+                          )}
+                          {key === "tekstylia" && suggestedTextileCost > 0 && (
+                            <p className="mt-1 text-xs text-green-600">
+                              💡 Sugerowana kwota:{" "}
+                              {suggestedTextileCost.toFixed(2)} PLN (na
+                              podstawie{" "}
+                              {
+                                report.items.filter(
+                                  (item) =>
+                                    item.type === "REVENUE" && item.reservation,
+                                ).length
+                              }{" "}
+                              rezerwacji) - średnio {12.69} PLN za rezerwację
+                            </p>
+                          )}
                         </div>
 
                         {quickExpenses[key as keyof typeof quickExpenses].net >
@@ -1218,6 +1497,12 @@ export default function ReportDetailsPage({
                         Noce
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                        Ilość gości
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                        Koszt sprzątania
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                         Kwota
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
@@ -1276,6 +1561,29 @@ export default function ReportDetailsPage({
                             "-"
                           )}
                         </td>
+                        <td className="whitespace-nowrap px-6 py-4 text-center text-sm">
+                          {item.reservation ? (
+                            <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
+                              {(item.reservation.adults ?? 0) +
+                                (item.reservation.children ?? 0)}{" "}
+                              gości
+                            </span>
+                          ) : (
+                            "-"
+                          )}
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4 text-center text-sm">
+                          {item.reservation ? (
+                            <span className="inline-flex items-center rounded-full bg-orange-100 px-2.5 py-0.5 text-xs font-medium text-orange-800">
+                              {calculateCleaningCostForReservation(
+                                item.reservation,
+                              ).toFixed(2)}{" "}
+                              PLN
+                            </span>
+                          ) : (
+                            "-"
+                          )}
+                        </td>
                         <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-green-600">
                           +{item.amount.toFixed(2)} {item.currency}
                         </td>
@@ -1324,10 +1632,205 @@ export default function ReportDetailsPage({
 
         {/* Expense Items */}
         <div className="mb-8 overflow-hidden rounded-lg bg-white shadow">
-          <div className="px-6 py-4">
+          <div className="flex items-center justify-between px-6 py-4">
             <h3 className="text-lg font-medium text-gray-900">
               Wydatki i Prowizje ({expenseItems.length})
             </h3>
+            {report.status !== ReportStatus.SENT && (
+              <div className="flex gap-2">
+                {/* Przycisk dodawania/aktualizacji kosztów sprzątania */}
+                {
+                  <button
+                    onClick={handleAddCleaningCosts}
+                    disabled={addCleaningCosts.isPending}
+                    className="inline-flex items-center rounded-md bg-green-600 px-3 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 hover:bg-green-700"
+                  >
+                    {addCleaningCosts.isPending ? (
+                      <>
+                        <svg
+                          className="-ml-1 mr-2 h-4 w-4 animate-spin text-white"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                        Dodawanie...
+                      </>
+                    ) : (
+                      <>
+                        <svg
+                          className="mr-2 h-4 w-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                          />
+                        </svg>
+                        {expenseItems.some(
+                          (item) =>
+                            item.category === "Sprzątanie" &&
+                            item.isAutoGenerated,
+                        )
+                          ? "Aktualizuj koszty sprzątania"
+                          : "Dodaj koszty sprzątania"}
+                      </>
+                    )}
+                  </button>
+                }
+
+                {/* Przycisk dodawania/aktualizacji kosztów prania */}
+                {
+                  <button
+                    onClick={handleAddLaundryCosts}
+                    disabled={addLaundryCosts.isPending}
+                    className="inline-flex items-center rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 hover:bg-blue-700"
+                  >
+                    {addLaundryCosts.isPending ? (
+                      <>
+                        <svg
+                          className="-ml-1 mr-2 h-4 w-4 animate-spin text-white"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                        Dodawanie...
+                      </>
+                    ) : (
+                      <>
+                        <svg
+                          className="mr-2 h-4 w-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                          />
+                        </svg>
+                        {expenseItems.some(
+                          (item) =>
+                            item.category === "Pranie" && item.isAutoGenerated,
+                        )
+                          ? "Aktualizuj koszty prania"
+                          : "Dodaj koszty prania"}
+                      </>
+                    )}
+                  </button>
+                }
+
+                {/* Przycisk dodawania/aktualizacji kosztów tekstyliów */}
+                {
+                  <button
+                    onClick={handleAddTextileCosts}
+                    disabled={addTextileCosts.isPending}
+                    className="inline-flex items-center rounded-md bg-purple-600 px-3 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 hover:bg-purple-700"
+                  >
+                    {addTextileCosts.isPending ? (
+                      <>
+                        <svg
+                          className="-ml-1 mr-2 h-4 w-4 animate-spin text-white"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                        Dodawanie...
+                      </>
+                    ) : (
+                      <>
+                        <svg
+                          className="mr-2 h-4 w-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                          />
+                        </svg>
+                        {expenseItems.some(
+                          (item) =>
+                            item.category === "Tekstylia" &&
+                            item.isAutoGenerated,
+                        )
+                          ? "Aktualizuj koszty tekstyliów"
+                          : "Dodaj koszty tekstyliów"}
+                      </>
+                    )}
+                  </button>
+                }
+                <button
+                  onClick={() => setShowAddItemForm(true)}
+                  className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 hover:bg-indigo-700"
+                >
+                  <svg
+                    className="mr-2 h-4 w-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                    />
+                  </svg>
+                  Dodaj pozycję
+                </button>
+              </div>
+            )}
           </div>
           <div className="border-t border-gray-200">
             {expenseItems.length === 0 ? (
@@ -1421,7 +1924,8 @@ export default function ReportDetailsPage({
                         <td className="whitespace-nowrap px-6 py-4 text-sm font-medium">
                           {(item.type === "EXPENSE" ||
                             item.type === "COMMISSION") &&
-                            !item.isAutoGenerated && (
+                            (!item.isAutoGenerated ||
+                              item.type === "EXPENSE") && (
                               <button
                                 onClick={() => handleDeleteItem(item.id)}
                                 disabled={

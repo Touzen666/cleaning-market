@@ -114,6 +114,7 @@ model Apartment {
   hasBalcony             Boolean              @default(false)
   hasParking             Boolean              @default(false)
   maxGuests              Int?                 @default(4)
+  cleaningCosts          Json?                // Koszty sprzątania dla różnych liczby gości {1: 50, 2: 80, 3: 100, ...}
   importSource           String?
   importBatchId          String?
   id                     Int                  @id @default(autoincrement())
@@ -200,6 +201,12 @@ model ApartmentOwner {
   firstName                   String
   lastName                    String
   phone                       String?
+  companyName                 String?
+  nip                         String?
+  address                     String?
+  city                        String?
+  postalCode                  String?
+  profileImageUrl             String?
   passwordHash                String?
   temporaryPassword           String?
   temporaryPasswordExpiresAt  DateTime?
@@ -400,6 +407,7 @@ enum ExpenseCategory {
   PRANIE
   SPRZATANIE
   SRODKI_CZYSTOSCI
+  TEKSTYLIA
 }
 
 enum ReservationPortal {

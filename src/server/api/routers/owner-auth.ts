@@ -532,4 +532,95 @@ export const ownerAuthRouter = createTRPCRouter({
 
             return { success: true };
         }),
+
+    // Get owner profile
+    getOwnerProfile: publicProcedure
+        .input(z.object({ ownerEmail: z.string().email() }))
+        .query(async ({ input, ctx }) => {
+            const owner = await ctx.db.apartmentOwner.findUnique({
+                where: { email: input.ownerEmail },
+                select: {
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                    email: true,
+                    phone: true,
+                    companyName: true,
+                    nip: true,
+                    address: true,
+                    city: true,
+                    postalCode: true,
+                    profileImageUrl: true,
+                },
+            });
+
+            if (!owner) {
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: "Właściciel nie został znaleziony.",
+                });
+            }
+
+            return owner;
+        }),
+
+    // Update owner profile
+    updateOwnerProfile: publicProcedure
+        .input(z.object({
+            ownerEmail: z.string().email(),
+            firstName: z.string().optional(),
+            lastName: z.string().optional(),
+            email: z.string().email().optional(),
+            phone: z.string().optional(),
+            companyName: z.string().optional(),
+            nip: z.string().optional(),
+            address: z.string().optional(),
+            city: z.string().optional(),
+            postalCode: z.string().optional(),
+        }))
+        .mutation(async ({ input, ctx }) => {
+            const { ownerEmail, ...updateData } = input;
+
+            const owner = await ctx.db.apartmentOwner.findUnique({
+                where: { email: ownerEmail },
+            });
+
+            if (!owner) {
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: "Właściciel nie został znaleziony.",
+                });
+            }
+
+            const updatedOwner = await ctx.db.apartmentOwner.update({
+                where: { id: owner.id },
+                data: updateData,
+                select: {
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                    email: true,
+                    phone: true,
+                    companyName: true,
+                    nip: true,
+                    address: true,
+                    city: true,
+                    postalCode: true,
+                    profileImageUrl: true,
+                },
+            });
+
+            return updatedOwner;
+        }),
+
+    // Upload profile image
+    uploadProfileImage: publicProcedure
+        .input(z.object({
+            image: z.any(), // FormData with image file
+        }))
+        .mutation(async () => {
+            // This will be implemented with file upload service
+            // For now, we'll return a placeholder
+            return { success: true, imageUrl: "/uploads/profiles/default.jpg" };
+        }),
 }); 

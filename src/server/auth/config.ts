@@ -17,6 +17,8 @@ declare module "next-auth" {
     user: {
       id: string;
       type: UserType;
+      role?: string; // For admin login as owner functionality
+      isSuperAdmin?: boolean; // For admin login as owner functionality
       // ...other properties
       // role: UserRole;
     } & DefaultSession["user"];

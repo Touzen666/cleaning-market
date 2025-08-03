@@ -10,6 +10,7 @@ import {
   DocumentTextIcon,
   ExclamationTriangleIcon,
   FunnelIcon,
+  UserCircleIcon,
 } from "@heroicons/react/24/outline";
 import { FaCar, FaCarSide, FaPencilAlt } from "react-icons/fa";
 import {
@@ -19,12 +20,10 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
   PieChart,
   Pie,
   Cell,
-  type LegendProps,
 } from "recharts";
 
 function ExitImpersonationBanner() {
@@ -72,6 +71,16 @@ interface TooltipProps {
   active?: boolean;
   payload?: TooltipPayload[];
   label?: string;
+}
+
+interface PieLabelProps {
+  cx?: number;
+  cy?: number;
+  midAngle?: number;
+  innerRadius?: number;
+  outerRadius?: number;
+  percent?: number;
+  name?: string;
 }
 
 export default function OwnerDashboard() {
@@ -133,7 +142,7 @@ export default function OwnerDashboard() {
   );
 
   // Get available apartments for filtering
-  const { data: availableApartments, isLoading: isLoadingApartments } =
+  const { data: availableApartments } =
     api.monthlyReports.getOwnerFilteredReports.useQuery(
       {
         ownerEmail: ownerEmail!,
@@ -143,7 +152,7 @@ export default function OwnerDashboard() {
     );
 
   // Get available years for filtering
-  const { data: availableYears, isLoading: isLoadingYears } =
+  const { data: availableYears } =
     api.monthlyReports.getOwnerAvailableYears.useQuery(
       {
         ownerEmail: ownerEmail!,
@@ -153,7 +162,7 @@ export default function OwnerDashboard() {
     );
 
   // Get available months for filtering
-  const { data: availableMonths, isLoading: isLoadingMonths } =
+  const { data: availableMonths } =
     api.monthlyReports.getOwnerAvailableMonths.useQuery(
       {
         ownerEmail: ownerEmail!,
@@ -164,7 +173,7 @@ export default function OwnerDashboard() {
     );
 
   // Get available reports for filtering
-  const { data: availableReports, isLoading: isLoadingReports } =
+  const { data: availableReports } =
     api.monthlyReports.getOwnerAvailableReports.useQuery(
       {
         ownerEmail: ownerEmail!,
@@ -216,9 +225,23 @@ export default function OwnerDashboard() {
           {
             name: "Raport",
             Przychód: reportData.calculated.totalRevenue,
-            Koszty: reportData.calculated.totalExpenses,
-            Zysk: reportData.calculated.netIncome,
+            "Łączne koszty": reportData.calculated.totalExpenses,
+            "Koszty stałe": reportData.items
+              .filter(
+                (i) =>
+                  i.type === "EXPENSE" &&
+                  (i.category.toLowerCase().includes("pranie") ||
+                    i.category.toLowerCase().includes("sprzątanie") ||
+                    i.category.toLowerCase().includes("sprzatanie") ||
+                    i.category.toLowerCase().includes("tekstylia") ||
+                    i.category.toLowerCase().includes("środki") ||
+                    i.category.toLowerCase().includes("srodki")),
+              )
+              .reduce((s, i) => s + i.amount, 0),
             Prowizja: reportData.calculated.adminCommission,
+            "Prowizje OTA": reportData.items
+              .filter((i) => i.type === "COMMISSION")
+              .reduce((s, i) => s + i.amount, 0),
             Wypłata: reportData.calculated.ownerPayout,
           },
         ]
@@ -249,6 +272,45 @@ export default function OwnerDashboard() {
     }
 
     return null;
+  };
+
+  const renderCustomLabel = (props: PieLabelProps) => {
+    const { cx, cy, midAngle, innerRadius, outerRadius, percent } = props;
+
+    if (
+      !cx ||
+      !cy ||
+      midAngle === undefined ||
+      !innerRadius ||
+      !outerRadius ||
+      percent === undefined
+    ) {
+      return null;
+    }
+
+    const RADIAN = Math.PI / 180;
+    const radius = innerRadius + (outerRadius - innerRadius) * 0.6;
+    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+    return (
+      <text
+        x={x}
+        y={y}
+        fill="white"
+        textAnchor="middle"
+        dominantBaseline="central"
+        fontSize="12"
+        fontWeight="bold"
+        style={{
+          textShadow: "2px 2px 4px rgba(0,0,0,0.9)",
+          filter: "drop-shadow(1px 1px 2px rgba(0,0,0,0.8))",
+          pointerEvents: "none",
+        }}
+      >
+        {`${(percent * 100).toFixed(0)}%`}
+      </text>
+    );
   };
 
   const handleFilterReset = () => {
@@ -290,12 +352,23 @@ export default function OwnerDashboard() {
       <ExitImpersonationBanner />
       <header className="bg-white shadow">
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900">
-            Panel Właściciela
-          </h1>
-          <p className="text-gray-600">
-            Witaj, {owner.firstName} {owner.lastName}!
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+                Panel Właściciela
+              </h1>
+              <p className="text-gray-600">
+                Witaj, {owner.firstName} {owner.lastName}!
+              </p>
+            </div>
+            <Link
+              href="/apartamentsOwner/profile"
+              className="flex items-center space-x-2 rounded-lg bg-gray-100 px-4 py-2 text-gray-700 transition-colors hover:bg-gray-200"
+            >
+              <UserCircleIcon className="h-6 w-6" />
+              <span className="font-medium">Profil</span>
+            </Link>
+          </div>
         </div>
       </header>
       <main className="py-10">
@@ -331,7 +404,7 @@ export default function OwnerDashboard() {
             </div>
           </div>
 
-          <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-3">
+          <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
             <Link
               href="/apartamentsOwner/apartments"
               className="group flex flex-col items-center justify-center rounded-lg bg-white p-6 text-center shadow transition hover:bg-gray-50"
@@ -367,6 +440,16 @@ export default function OwnerDashboard() {
               <p className="text-sm text-gray-500">
                 ({dashboardData.stats.totalReports} raporty)
               </p>
+            </Link>
+            <Link
+              href="/apartamentsOwner/profile"
+              className="group flex flex-col items-center justify-center rounded-lg bg-white p-6 text-center shadow transition hover:bg-gray-50"
+            >
+              <div className="relative h-12 w-12">
+                <UserCircleIcon className="h-full w-full text-brand-gold" />
+              </div>
+              <p className="mt-2 font-semibold">Mój Profil</p>
+              <p className="text-sm text-gray-500">Edytuj dane i zdjęcie</p>
             </Link>
           </div>
 
@@ -550,9 +633,10 @@ export default function OwnerDashboard() {
                       />
                       <Tooltip content={<CustomTooltip />} />
                       <Bar dataKey="Przychód" fill="#82ca9d" />
-                      <Bar dataKey="Koszty" fill="#8884d8" />
-                      <Bar dataKey="Zysk" fill="#ffc658" />
+                      <Bar dataKey="Łączne koszty" fill="#8884d8" />
+                      <Bar dataKey="Koszty stałe" fill="#ff6b6b" />
                       <Bar dataKey="Prowizja" fill="#ff8042" />
+                      <Bar dataKey="Prowizje OTA" fill="#ffc658" />
                       <Bar dataKey="Wypłata" fill="#00C49F" />
                     </BarChart>
                   </ResponsiveContainer>
@@ -569,21 +653,29 @@ export default function OwnerDashboard() {
                         className="h-3 w-3 rounded"
                         style={{ backgroundColor: "#8884d8" }}
                       />
-                      <span>Koszty</span>
+                      <span>Łączne koszty</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <div
                         className="h-3 w-3 rounded"
-                        style={{ backgroundColor: "#ffc658" }}
+                        style={{ backgroundColor: "#ff6b6b" }}
                       />
-                      <span>Zysk</span>
+                      <span>Koszty stałe</span>
                     </div>
+
                     <div className="flex items-center gap-2">
                       <div
                         className="h-3 w-3 rounded"
                         style={{ backgroundColor: "#ff8042" }}
                       />
                       <span>Prowizja</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="h-3 w-3 rounded"
+                        style={{ backgroundColor: "#ffc658" }}
+                      />
+                      <span>Prowizje OTA</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <div
@@ -599,18 +691,18 @@ export default function OwnerDashboard() {
                     Źródła przychodów
                   </h3>
                   <ResponsiveContainer width="100%" height={400}>
-                    <PieChart>
+                    <PieChart
+                      margin={{ top: 20, right: 80, bottom: 20, left: 80 }}
+                    >
                       <Pie
                         data={pieChartData}
                         cx="50%"
                         cy="50%"
                         labelLine={false}
-                        outerRadius={120}
+                        outerRadius={100}
                         fill="#8884d8"
                         dataKey="value"
-                        label={({ name, percent }) =>
-                          `${name}: ${((percent ?? 0) * 100).toFixed(0)}%`
-                        }
+                        label={renderCustomLabel}
                       >
                         {pieChartData.map((entry) => (
                           <Cell key={`cell-${entry.name}`} fill={entry.fill} />

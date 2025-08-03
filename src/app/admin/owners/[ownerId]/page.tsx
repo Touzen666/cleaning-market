@@ -117,7 +117,6 @@ export default function OwnerDetailsPage({
 
   const owner = ownerQuery.data;
   const ownerApartments = ownerApartmentsQuery.data ?? [];
-  const allApartments = allApartmentsQuery.data?.apartments ?? [];
 
   const handleDeleteApartment = (apartmentId: string) => {
     if (confirm("Czy na pewno chcesz usunąć ten apartament?")) {
@@ -496,7 +495,7 @@ export default function OwnerDetailsPage({
                           createNoteMutation.isPending ||
                           updateNoteMutation.isPending
                         }
-                        className="flex-1 rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                        className="flex-1 rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white disabled:opacity-50 hover:bg-blue-700"
                       >
                         {createNoteMutation.isPending ||
                         updateNoteMutation.isPending
@@ -710,8 +709,7 @@ export default function OwnerDetailsPage({
       </div>
       {isManageModalOpen && (
         <ManageOwnerApartmentsModal
-          owner={owner}
-          allApartments={allApartments}
+          ownerId={ownerId}
           onClose={() => setIsManageModalOpen(false)}
           onSuccess={() => {
             void ownerQuery.refetch();

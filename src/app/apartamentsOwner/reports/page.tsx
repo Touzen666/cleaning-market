@@ -22,36 +22,11 @@ export default function OwnerReportsPage() {
   );
 
   // Debug query
-  const {
-    data: debugData,
-    isLoading: debugLoading,
-    error: debugError,
-  } = api.monthlyReports.debugOwnerReports.useQuery(
-    { ownerEmail: ownerEmail! },
-    { enabled: !!ownerEmail },
-  );
-
-  // Dashboard data for comparison
-  const {
-    data: dashboardData,
-    isLoading: dashboardLoading,
-    error: dashboardError,
-  } = api.ownerAuth.getDashboardData.useQuery(undefined, {
-    enabled: !!ownerEmail,
-  });
-
-  // Recalculation mutation
-  const recalculateMutation =
-    api.monthlyReports.recalculateSingleReport.useMutation({
-      onSuccess: () => {
-        // Refetch the debug data to see updated values
-        window.location.reload();
-      },
-      onError: (error) => {
-        console.error("Recalculation failed:", error);
-        alert(`Błąd przeliczania: ${error.message}`);
-      },
-    });
+  const { data: debugData, isLoading: debugLoading } =
+    api.monthlyReports.debugOwnerReports.useQuery(
+      { ownerEmail: ownerEmail! },
+      { enabled: !!ownerEmail },
+    );
 
   // Debug logging
   console.log("Reports data:", reports);
@@ -526,6 +501,18 @@ export default function OwnerReportsPage() {
                     .toFixed(2)}{" "}
                   PLN
                 </p>
+                <p className="mt-2 text-sm text-gray-500">
+                  Suma kosztów stałych:{" "}
+                  <span className="font-semibold text-red-600">
+                    {reports
+                      .reduce(
+                        (sum, report) => sum + (report.fixedCosts ?? 0),
+                        0,
+                      )
+                      .toFixed(2)}{" "}
+                    PLN
+                  </span>
+                </p>
               </div>
             </div>
           </div>
@@ -566,6 +553,9 @@ export default function OwnerReportsPage() {
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                       Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                      Koszty stałe
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                       Wypłata właściciela
@@ -640,6 +630,11 @@ export default function OwnerReportsPage() {
                         >
                           {getStatusText(report.status)}
                         </span>
+                      </td>
+                      <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-red-600">
+                        {report.fixedCosts > 0
+                          ? `-${report.fixedCosts.toFixed(2)} PLN`
+                          : "0.00 PLN"}
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
                         {report.finalOwnerPayout

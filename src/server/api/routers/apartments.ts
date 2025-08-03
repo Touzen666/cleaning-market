@@ -202,6 +202,7 @@ export const apartmentsRouter = createTRPCRouter({
                 hasBalcony: z.boolean().optional(),
                 hasParking: z.boolean().optional(),
                 maxGuests: z.number().optional(),
+                cleaningCosts: z.record(z.number()).optional(), // Koszty sprzątania dla różnych liczby gości
                 ownerId: z.string().optional(), // Nowy parametr - ID właściciela
             })
         )
@@ -250,6 +251,7 @@ export const apartmentsRouter = createTRPCRouter({
                     hasBalcony: input.hasBalcony ?? false,
                     hasParking: input.hasParking ?? false,
                     maxGuests: input.maxGuests ?? 4,
+                    cleaningCosts: input.cleaningCosts,
                 },
             });
 
@@ -285,6 +287,7 @@ export const apartmentsRouter = createTRPCRouter({
                 hasBalcony: z.boolean().optional(),
                 hasParking: z.boolean().optional(),
                 maxGuests: z.number().optional(),
+                cleaningCosts: z.record(z.number()).optional(), // Koszty sprzątania dla różnych liczby gości
             })
         )
         .mutation(async ({ input, ctx }) => {
@@ -298,6 +301,7 @@ export const apartmentsRouter = createTRPCRouter({
                 hasBalcony?: boolean;
                 hasParking?: boolean;
                 maxGuests?: number;
+                cleaningCosts?: Record<string, number>;
                 slug?: string;
             } = { ...updateData };
 
@@ -477,6 +481,7 @@ export const apartmentsRouter = createTRPCRouter({
             hasBalcony: z.boolean(),
             hasParking: z.boolean(),
             maxGuests: z.number().nullable(),
+            cleaningCosts: z.record(z.number()).nullable(),
             averageRating: z.number().nullable(),
             images: z.array(z.object({
                 id: z.string(),
@@ -500,6 +505,7 @@ export const apartmentsRouter = createTRPCRouter({
                         hasBalcony: true,
                         hasParking: true,
                         maxGuests: true,
+                        cleaningCosts: true,
                         averageRating: true,
                         images: {
                             select: {
@@ -523,6 +529,7 @@ export const apartmentsRouter = createTRPCRouter({
                 return {
                     ...apartment,
                     id: apartment.id.toString(),
+                    cleaningCosts: apartment.cleaningCosts as Record<string, number> | null,
                     images: apartment.images.map(img => ({
                         ...img,
                         id: img.id.toString(),

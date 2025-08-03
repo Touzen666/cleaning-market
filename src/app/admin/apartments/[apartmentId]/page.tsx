@@ -25,6 +25,7 @@ export default function EditApartmentPage({
     hasBalcony: false,
     hasParking: false,
     maxGuests: 4,
+    cleaningCosts: {} as Record<string, number>,
   });
   const [status, setStatus] = useState<string | null>(null);
   const [ratingStatus, setRatingStatus] = useState<string | null>(null);
@@ -123,6 +124,7 @@ export default function EditApartmentPage({
         hasBalcony: apartment.hasBalcony,
         hasParking: apartment.hasParking,
         maxGuests: apartment.maxGuests ?? 4,
+        cleaningCosts: apartment.cleaningCosts ?? {},
       });
     }
   }, [apartmentQuery.data, apartmentId, createdApartmentId]);
@@ -139,6 +141,7 @@ export default function EditApartmentPage({
         defaultRentAmount: Number(form.defaultRentAmount),
         defaultUtilitiesAmount: Number(form.defaultUtilitiesAmount),
         maxGuests: Number(form.maxGuests),
+        cleaningCosts: form.cleaningCosts,
         ownerId: ownerId, // Przekaż ID właściciela jeśli jest dostępne
       });
     } else {
@@ -148,6 +151,7 @@ export default function EditApartmentPage({
         defaultRentAmount: Number(form.defaultRentAmount),
         defaultUtilitiesAmount: Number(form.defaultUtilitiesAmount),
         maxGuests: Number(form.maxGuests),
+        cleaningCosts: form.cleaningCosts,
       });
     }
   };
@@ -325,6 +329,47 @@ export default function EditApartmentPage({
                   max={20}
                   className="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
                 />
+              </div>
+            </div>
+
+            {/* Koszty sprzątania */}
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Koszty sprzątania (za liczbę gości)
+              </label>
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-6">
+                {Array.from({ length: form.maxGuests }, (_, i) => i + 1).map(
+                  (guestCount) => (
+                    <div key={guestCount}>
+                      <label className="mb-1 block text-xs text-gray-600">
+                        {guestCount}{" "}
+                        {guestCount === 1
+                          ? "gość"
+                          : guestCount < 5
+                            ? "gości"
+                            : "gości"}
+                      </label>
+                      <input
+                        type="number"
+                        value={form.cleaningCosts[guestCount.toString()] ?? ""}
+                        onChange={(e) =>
+                          setForm((f) => ({
+                            ...f,
+                            cleaningCosts: {
+                              ...f.cleaningCosts,
+                              [guestCount.toString()]:
+                                Number(e.target.value) || 0,
+                            },
+                          }))
+                        }
+                        min={0}
+                        step={0.01}
+                        className="block w-full rounded-md border-gray-300 px-2 py-1 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
+                        placeholder="0.00"
+                      />
+                    </div>
+                  ),
+                )}
               </div>
             </div>
 

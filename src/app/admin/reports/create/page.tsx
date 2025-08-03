@@ -2,10 +2,12 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { api } from "@/trpc/react";
 
 export default function CreateReportPage() {
   const router = useRouter();
+  const { data: session } = useSession();
   const [selectedOwnerId, setSelectedOwnerId] = useState<string>("");
   const [selectedApartmentId, setSelectedApartmentId] = useState<number | null>(
     null,
@@ -41,6 +43,20 @@ export default function CreateReportPage() {
   const selectedOwner = selectedOwnerQuery.data;
   const apartments =
     selectedOwner?.ownedApartments?.map((o) => o.apartment) ?? [];
+
+  // Function to determine the correct navigation path based on user role
+  const getBackToListPath = () => {
+    // Check if user is logged in as owner (has role property set to "OWNER")
+    if (
+      session?.user &&
+      "role" in session.user &&
+      session.user.role === "OWNER"
+    ) {
+      return "/apartamentsOwner/reports";
+    }
+    // Default to admin reports list
+    return "/admin/reports";
+  };
 
   const handleOwnerSelect = (ownerId: string) => {
     setSelectedOwnerId(ownerId);
@@ -119,7 +135,7 @@ export default function CreateReportPage() {
             </div>
             <div className="mt-4 sm:mt-0">
               <button
-                onClick={() => router.push("/admin/reports")}
+                onClick={() => router.push(getBackToListPath())}
                 className="inline-flex items-center rounded-md bg-gray-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-500"
               >
                 <svg
@@ -329,7 +345,7 @@ export default function CreateReportPage() {
           <div className="flex justify-end space-x-3">
             <button
               type="button"
-              onClick={() => router.push("/admin/reports")}
+              onClick={() => router.push(getBackToListPath())}
               className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
             >
               Anuluj
@@ -337,7 +353,7 @@ export default function CreateReportPage() {
             <button
               type="submit"
               disabled={!selectedApartmentId || isCreating}
-              className="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 hover:bg-indigo-700"
             >
               {isCreating ? (
                 <>
