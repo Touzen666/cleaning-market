@@ -3528,6 +3528,41 @@ function OwnerPayoutCalculation({
           </div>
         </div>
       )}
+
+      {/* Nowe pola na końcu raportu */}
+      <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div className="rounded-md bg-blue-100 p-4">
+          <p className="text-sm text-blue-700">
+            Ostateczna wypłata Właściciela:
+          </p>
+          <p className="text-2xl font-bold text-blue-900">
+            {report.finalOwnerPayout
+              ? `${report.finalOwnerPayout.toFixed(2)} PLN`
+              : "0.00 PLN"}
+          </p>
+        </div>
+        <div className="rounded-md bg-purple-100 p-4">
+          <p className="text-sm text-purple-700">
+            Ostateczna prowizja Złote Wynajmy:
+          </p>
+          <p className="text-2xl font-bold text-purple-900">
+            {report.finalHostPayout
+              ? `${report.finalHostPayout.toFixed(2)} PLN`
+              : "0.00 PLN"}
+          </p>
+        </div>
+        <div className="rounded-md bg-red-100 p-4">
+          <p className="text-sm text-red-700">
+            Zryczałtowany podatek dochodowy 8.5% od przychodów:
+          </p>
+          <p className="text-2xl font-bold text-red-900">
+            {(
+              report as ReportDetails & { finalIncomeTax?: number }
+            ).finalIncomeTax?.toFixed(2) ?? "0.00"}{" "}
+            PLN
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

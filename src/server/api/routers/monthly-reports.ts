@@ -192,6 +192,8 @@ async function recalculateReportSettlement(reportId: string, ctx: RecalculateCon
         console.log(`[DEBUG] Raport ${reportId}: totalAdditionalDeductionsGross = ${totalAdditionalDeductionsGross}`);
 
         let finalOwnerPayout = 0;
+        let finalHostPayout = 0;
+        let finalIncomeTax = 0;
         let finalVatAmount = 0;
 
         console.log(`[DEBUG] Raport ${reportId}: finalSettlementType = ${report.finalSettlementType}`);
@@ -227,7 +229,9 @@ async function recalculateReportSettlement(reportId: string, ctx: RecalculateCon
             if (baseAmount !== 0) { // Obliczaj tylko jeśli baseAmount zostało ustawione
                 finalVatAmount = getVatAmount(baseAmount, owner.vatOption);
                 finalOwnerPayout = baseAmount + finalVatAmount;
-                console.log(`[DEBUG] Raport ${reportId}: finalVatAmount = ${finalVatAmount}, finalOwnerPayout = ${finalOwnerPayout}`);
+                finalHostPayout = adminCommissionAmount; // Prowizja Złote Wynajmy
+                finalIncomeTax = totalRevenue * 0.085; // Zryczałtowany podatek dochodowy 8.5% od przychodów
+                console.log(`[DEBUG] Raport ${reportId}: finalVatAmount = ${finalVatAmount}, finalOwnerPayout = ${finalOwnerPayout}, finalHostPayout = ${finalHostPayout}, finalIncomeTax = ${finalIncomeTax}`);
             } else {
                 console.warn(`[DEBUG] OSTRZEŻENIE: Raport ${reportId} - baseAmount wynosi 0, więc finalOwnerPayout pozostanie 0.`);
             }
@@ -244,6 +248,8 @@ async function recalculateReportSettlement(reportId: string, ctx: RecalculateCon
             afterRentAndUtilities,
             totalAdditionalDeductions: totalAdditionalDeductionsGross,
             finalOwnerPayout,
+            finalHostPayout,
+            finalIncomeTax,
             finalVatAmount,
         };
 
@@ -685,7 +691,7 @@ export const monthlyReportsRouter = createTRPCRouter({
                     reportId,
                     adminId: ctx.session.user.id,
                     action: "updated",
-                    notes: `Dodano pozycję: ${itemData.category as string} - ${itemData.description as string}`,
+                    notes: `Dodano pozycję: ${itemData.category} - ${itemData.description}`,
                 },
             });
 
@@ -766,7 +772,7 @@ export const monthlyReportsRouter = createTRPCRouter({
                     reportId,
                     adminId: ctx.session.user.id,
                     action: existingItem ? "updated" : "created",
-                    notes: `${existingItem ? "Zaktualizowano" : "Dodano"} pozycję: ${itemData.category as string} - ${itemData.description as string}`,
+                    notes: `${existingItem ? "Zaktualizowano" : "Dodano"} pozycję: ${itemData.category} - ${itemData.description}`,
                 },
             });
 

@@ -283,6 +283,8 @@ model MonthlyReport {
   suggestedUtilities   Float?                @default(0)
   finalSettlementType  SettlementType?
   finalOwnerPayout     Float?
+  finalHostPayout      Float?
+  finalIncomeTax       Float?
   finalVatAmount       Float?
   adminCommissionAmount Float?
   afterCommission      Float?
