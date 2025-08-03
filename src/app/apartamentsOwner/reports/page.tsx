@@ -302,7 +302,9 @@ export default function OwnerReportsPage() {
                         </span>
                       </p>
                       <p className="flex justify-between">
-                        <span className="text-gray-600">Zatwierdzone:</span>
+                        <span className="text-gray-600">
+                          Zatwierdzone i Wysłane:
+                        </span>
                         <span className="font-bold text-blue-600">
                           {debugData.approvedReportsCount}
                         </span>
@@ -420,7 +422,7 @@ export default function OwnerReportsPage() {
                         clipRule="evenodd"
                       />
                     </svg>
-                    Wszystkie Raporty
+                    Raporty Zatwierdzone i Wysłane
                   </h4>
                   <ul className="max-h-48 space-y-2 overflow-y-auto scrollbar-thin scrollbar-track-amber-100 scrollbar-thumb-amber-600">
                     {debugData.allReports.map((report, index) => (
@@ -473,7 +475,7 @@ export default function OwnerReportsPage() {
           <div className="border-b border-gray-200 px-6 py-4">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-medium text-gray-900">
-                Zatwierdzone Raporty ({reports.length})
+                Raporty Zatwierdzone i Wysłane ({reports.length})
               </h3>
               <div className="text-right">
                 <p className="text-sm text-gray-500">
@@ -533,11 +535,11 @@ export default function OwnerReportsPage() {
                 />
               </svg>
               <h3 className="mt-2 text-sm font-medium text-gray-900">
-                Brak zatwierdzonych raportów
+                Brak raportów zatwierdzonych lub wysłanych
               </h3>
               <p className="mt-1 text-sm text-gray-500">
-                Administrator jeszcze nie zatwierdził żadnych raportów
-                miesięcznych.
+                Administrator jeszcze nie zatwierdził ani nie wysłał żadnych
+                raportów miesięcznych.
               </p>
             </div>
           ) : (

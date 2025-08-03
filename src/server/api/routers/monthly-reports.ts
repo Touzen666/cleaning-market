@@ -151,92 +151,161 @@ async function calculateCleaningCosts(
     return totalCleaningCost;
 }
 
-async function recalculateReportSettlement(reportId: string, ctx: RecalculateContext) {
-    console.log(`[DEBUG] Rozpoczynam przeliczanie raportu: ${reportId}`);
-    try {
-        const report = await ctx.db.monthlyReport.findUnique({
-            where: { id: reportId },
-            include: {
-                items: true,
-                additionalDeductions: true,
-                owner: true,
-                apartment: true,
-            },
-        });
+// Funkcja do czyszczenia cache dla raportu
+function clearRecalculationCache(reportId: string) {
+    recalculationCache.delete(reportId);
+    console.log(`[PERF] Wyczyszczono cache dla raportu ${reportId}`);
+}
 
-        if (!report || !report.owner) {
-            console.error(`[DEBUG] KRYTYCZNY BŁĄD: Nie znaleziono raportu lub jego właściciela dla ID: ${reportId}`);
-            throw new TRPCError({ code: "NOT_FOUND", message: `Raport ${reportId} lub jego właściciel nie istnieje.` });
+// Cache dla ostatnich przeliczeń - zapobiega zbyt częstym przeliczeniom
+type RecalculationResult = {
+    totalRevenue: number;
+    totalExpenses: number;
+    netIncome: number;
+    adminCommissionAmount: number;
+    afterCommission: number;
+    afterRentAndUtilities: number;
+    totalAdditionalDeductions: number;
+    finalOwnerPayout: number;
+    finalHostPayout: number;
+    finalIncomeTax: number;
+    finalVatAmount: number;
+};
+
+const recalculationCache = new Map<string, { timestamp: number; data: RecalculationResult }>();
+// const RECALCULATION_DEBOUNCE_MS = 1000; // 1 sekunda - WYŁĄCZONE (nie używane)
+
+async function recalculateReportSettlement(reportId: string, ctx: RecalculateContext) {
+    const startTime = Date.now();
+    console.log(`[PERF] Rozpoczynam przeliczanie raportu: ${reportId}`);
+
+    // Sprawdź cache - jeśli ostatnie przeliczenie było niedawno, zwróć cached result
+    // WYŁĄCZONE: cache powoduje problemy z niepoprawnymi wartościami
+    // const cached = recalculationCache.get(reportId);
+    // if (cached && (Date.now() - cached.timestamp) < RECALCULATION_DEBOUNCE_MS) {
+    //     console.log(`[PERF] Używam cached result dla raportu ${reportId} (ostatnie przeliczenie: ${Date.now() - cached.timestamp}ms temu)`);
+    //     return cached.data;
+    // }
+
+    try {
+        // Zoptymalizowane zapytanie - pobieramy tylko potrzebne dane
+        const [report, items, additionalDeductions] = await Promise.all([
+            ctx.db.monthlyReport.findUnique({
+                where: { id: reportId },
+                select: {
+                    id: true,
+                    finalSettlementType: true,
+                    rentAmount: true,
+                    utilitiesAmount: true,
+                    ownerId: true,
+                }
+            }),
+            // Zoptymalizowane zapytanie - użyj agregacji SQL zamiast pobierania wszystkich rekordów
+            ctx.db.$queryRaw<Array<{ type: string; total: number }>>`
+                SELECT type, SUM(amount) as total 
+                FROM "ReportItem" 
+                WHERE "reportId" = ${reportId}
+                GROUP BY type
+            `,
+            // Zoptymalizowane zapytanie - użyj agregacji SQL dla dodatkowych odliczeń
+            ctx.db.$queryRaw<Array<{ vatOption: string; total: number }>>`
+                SELECT "vatOption", SUM(amount) as total 
+                FROM "AdditionalDeduction" 
+                WHERE "reportId" = ${reportId}
+                GROUP BY "vatOption"
+            `,
+        ]);
+
+        if (!report) {
+            console.error(`[ERROR] Nie znaleziono raportu dla ID: ${reportId}`);
+            throw new TRPCError({ code: "NOT_FOUND", message: `Raport ${reportId} nie istnieje.` });
         }
 
-        const { owner } = report;
+        // Pobierz właściciela na podstawie report.ownerId
+        const actualOwner = await ctx.db.apartmentOwner.findUnique({
+            where: { id: report.ownerId },
+            select: { fixedPaymentAmount: true, vatOption: true }
+        });
 
-        // ... (istniejące obliczenia: totalRevenue, netIncome, etc.) ...
-        const totalRevenue = report.items.filter(i => i.type === "REVENUE").reduce((s, i) => s + i.amount, 0);
-        const totalExpenses = report.items.filter(i => ["EXPENSE", "FEE", "TAX"].includes(i.type)).reduce((s, i) => s + i.amount, 0);
-        const otaCommissions = report.items.filter(i => i.type === "COMMISSION").reduce((s, i) => s + i.amount, 0);
+        if (!actualOwner) {
+            console.error(`[ERROR] Nie znaleziono właściciela dla raportu: ${reportId}`);
+            throw new TRPCError({ code: "NOT_FOUND", message: `Właściciel raportu ${reportId} nie istnieje.` });
+        }
+
+        // Zoptymalizowane obliczenia - używamy danych z agregacji SQL
+        const totalRevenue = items.find(item => item.type === "REVENUE")?.total ?? 0;
+        const totalExpenses = items
+            .filter(item => ["EXPENSE", "FEE", "TAX"].includes(item.type))
+            .reduce((sum, item) => sum + item.total, 0);
+        const otaCommissions = items.find(item => item.type === "COMMISSION")?.total ?? 0;
         const netIncome = totalRevenue - totalExpenses - otaCommissions;
         const adminCommissionAmount = netIncome * 0.25;
         const afterCommission = netIncome - adminCommissionAmount;
         const rentAndUtilities = (report.rentAmount ?? 0) + (report.utilitiesAmount ?? 0);
         const afterRentAndUtilities = afterCommission - rentAndUtilities;
-        const totalAdditionalDeductionsGross = report.additionalDeductions.reduce((s, d) => s + getGrossAmount(d.amount, d.vatOption), 0);
 
-        console.log(`[DEBUG] Raport ${reportId}: totalRevenue = ${totalRevenue}`);
-        console.log(`[DEBUG] Raport ${reportId}: totalExpenses = ${totalExpenses}`);
-        console.log(`[DEBUG] Raport ${reportId}: netIncome = ${netIncome}`);
-        console.log(`[DEBUG] Raport ${reportId}: adminCommissionAmount = ${adminCommissionAmount}`);
-        console.log(`[DEBUG] Raport ${reportId}: afterCommission = ${afterCommission}`);
-        console.log(`[DEBUG] Raport ${reportId}: rentAndUtilities = ${rentAndUtilities}`);
-        console.log(`[DEBUG] Raport ${reportId}: afterRentAndUtilities = ${afterRentAndUtilities}`);
-        console.log(`[DEBUG] Raport ${reportId}: totalAdditionalDeductionsGross = ${totalAdditionalDeductionsGross}`);
+        // Zoptymalizowane obliczenie dodatkowych odliczeń - używamy danych z agregacji SQL
+        const totalAdditionalDeductionsGross = additionalDeductions.reduce((sum: number, d: { vatOption: string; total: number }) => {
+            const vatMultiplier = d.vatOption === "VAT_23" ? 1.23 : d.vatOption === "VAT_8" ? 1.08 : 1;
+            return sum + (d.total * vatMultiplier);
+        }, 0);
+
+        // Tylko jeden log zamiast wielu
+        console.log(`[PERF] Raport ${reportId}: revenue=${totalRevenue}, expenses=${totalExpenses}, netIncome=${netIncome}, adminCommission=${adminCommissionAmount}`);
 
         let finalOwnerPayout = 0;
         let finalHostPayout = 0;
         let finalIncomeTax = 0;
         let finalVatAmount = 0;
 
-        console.log(`[DEBUG] Raport ${reportId}: finalSettlementType = ${report.finalSettlementType}`);
-        console.log(`[DEBUG] Raport ${reportId}: owner.fixedPaymentAmount = ${owner.fixedPaymentAmount ? Number(owner.fixedPaymentAmount) : 'null'}`);
-        console.log(`[DEBUG] Raport ${reportId}: owner.vatOption = ${owner.vatOption}`);
-
         if (report.finalSettlementType) {
             let baseAmount = 0;
             const settlementType = report.finalSettlementType;
 
             if (settlementType === 'FIXED' || settlementType === 'FIXED_MINUS_UTILITIES') {
-                if (owner.fixedPaymentAmount === null || owner.fixedPaymentAmount === undefined) {
-                    console.warn(`[DEBUG] OSTRZEŻENIE: Raport ${reportId} ma typ rozliczenia "${settlementType}", ale właściciel ${owner.email} nie ma zdefiniowanej kwoty stałej (fixedPaymentAmount). Pomijam obliczenia.`);
+                if (actualOwner.fixedPaymentAmount === null || actualOwner.fixedPaymentAmount === undefined) {
+                    console.warn(`[WARN] Raport ${reportId}: brak kwoty stałej dla typu ${settlementType}`);
                 } else {
-                    const fixedBaseAmount = Number(owner.fixedPaymentAmount);
-                    console.log(`[DEBUG] Raport ${reportId}: fixedBaseAmount = ${fixedBaseAmount}`);
+                    const fixedBaseAmount = Number(actualOwner.fixedPaymentAmount);
 
                     if (settlementType === 'FIXED') {
-                        baseAmount = fixedBaseAmount - totalAdditionalDeductionsGross;
-                        console.log(`[DEBUG] Raport ${reportId}: FIXED - baseAmount = ${fixedBaseAmount} - ${totalAdditionalDeductionsGross} = ${baseAmount}`);
+                        baseAmount = fixedBaseAmount;
                     } else { // FIXED_MINUS_UTILITIES
                         baseAmount = fixedBaseAmount - rentAndUtilities - totalAdditionalDeductionsGross;
-                        console.log(`[DEBUG] Raport ${reportId}: FIXED_MINUS_UTILITIES - baseAmount = ${fixedBaseAmount} - ${rentAndUtilities} - ${totalAdditionalDeductionsGross} = ${baseAmount}`);
                     }
                 }
             } else if (settlementType === 'COMMISSION') {
                 baseAmount = afterRentAndUtilities - totalAdditionalDeductionsGross;
-                console.log(`[DEBUG] Raport ${reportId}: COMMISSION - baseAmount = ${afterRentAndUtilities} - ${totalAdditionalDeductionsGross} = ${baseAmount}`);
             }
 
-            console.log(`[DEBUG] Raport ${reportId}: baseAmount = ${baseAmount}`);
-
-            if (baseAmount !== 0) { // Obliczaj tylko jeśli baseAmount zostało ustawione
-                finalVatAmount = getVatAmount(baseAmount, owner.vatOption);
+            if (baseAmount !== 0) {
+                // Zoptymalizowane obliczenia VAT - inline
+                const vatRate = actualOwner.vatOption === "VAT_23" ? 0.23 : actualOwner.vatOption === "VAT_8" ? 0.08 : 0;
+                finalVatAmount = baseAmount * vatRate;
                 finalOwnerPayout = baseAmount + finalVatAmount;
-                finalHostPayout = adminCommissionAmount; // Prowizja Złote Wynajmy
-                finalIncomeTax = totalRevenue * 0.085; // Zryczałtowany podatek dochodowy 8.5% od przychodów
-                console.log(`[DEBUG] Raport ${reportId}: finalVatAmount = ${finalVatAmount}, finalOwnerPayout = ${finalOwnerPayout}, finalHostPayout = ${finalHostPayout}, finalIncomeTax = ${finalIncomeTax}`);
-            } else {
-                console.warn(`[DEBUG] OSTRZEŻENIE: Raport ${reportId} - baseAmount wynosi 0, więc finalOwnerPayout pozostanie 0.`);
+
+                // Zoptymalizowane obliczanie finalHostPayout
+                const fixedAmount = actualOwner.fixedPaymentAmount ? Number(actualOwner.fixedPaymentAmount) : 0;
+
+                if (settlementType === 'COMMISSION') {
+                    finalHostPayout = adminCommissionAmount;
+                } else if (settlementType === 'FIXED' || settlementType === 'FIXED_MINUS_UTILITIES') {
+                    const difference = Math.max(0, fixedAmount - afterCommission);
+                    finalHostPayout = Math.max(0, adminCommissionAmount - difference);
+                }
+
+                // Podatek dochodowy 8.5% - jeśli właściciel jest podatnikiem VAT, liczymy od kwoty netto, w przeciwnym razie od kwoty brutto
+                if (actualOwner.vatOption === "VAT_8" || actualOwner.vatOption === "VAT_23") {
+                    // Właściciel jest podatnikiem VAT - podatek od kwoty netto (baseAmount)
+                    finalIncomeTax = baseAmount * 0.085;
+                    console.log(`[TAX] Raport ${reportId}: właściciel podatnik VAT - podatek od kwoty netto: settlementType=${settlementType}, baseAmount=${baseAmount}, finalIncomeTax=${finalIncomeTax}`);
+                } else {
+                    // Właściciel nie jest podatnikiem VAT - podatek od kwoty brutto (finalOwnerPayout)
+                    finalIncomeTax = finalOwnerPayout * 0.085;
+                    console.log(`[TAX] Raport ${reportId}: właściciel nie podatnik VAT - podatek od kwoty brutto: settlementType=${settlementType}, finalOwnerPayout=${finalOwnerPayout}, finalIncomeTax=${finalIncomeTax}`);
+                }
+
             }
-        } else {
-            console.warn(`[DEBUG] OSTRZEŻENIE: Raport ${reportId} nie ma zdefiniowanego typu rozliczenia (finalSettlementType). Płatność końcowa wyniesie 0.`);
         }
 
         const updateData = {
@@ -253,18 +322,93 @@ async function recalculateReportSettlement(reportId: string, ctx: RecalculateCon
             finalVatAmount,
         };
 
+        // Zoptymalizowany update - aktualizuj tylko pola związane z rozliczeniem
         await ctx.db.monthlyReport.update({
             where: { id: reportId },
-            data: updateData,
+            data: {
+                finalOwnerPayout,
+                finalHostPayout,
+                finalIncomeTax,
+                finalVatAmount,
+                totalRevenue,
+                totalExpenses,
+                netIncome,
+                adminCommissionAmount,
+                afterCommission,
+                afterRentAndUtilities,
+                totalAdditionalDeductions: totalAdditionalDeductionsGross,
+            },
         });
 
-        console.log(`[DEBUG] Zakończono pomyślnie przeliczanie i zapisano nowe dane dla raportu: ${reportId}`);
+        // WYŁĄCZONE: cache powoduje problemy z niepoprawnymi wartościami
+        // Zapisz w cache
+        // recalculationCache.set(reportId, {
+        //     timestamp: Date.now(),
+        //     data: updateData,
+        // });
+
+        const duration = Date.now() - startTime;
+        console.log(`[PERF] Zakończono przeliczanie raportu ${reportId} w ${duration}ms`);
+
+        // Dodaj szczegółowe informacje o wydajności
+        if (duration > 500) {
+            console.warn(`[PERF] WOLNE: Przeliczanie raportu ${reportId} trwało ${duration}ms`);
+            console.log(`[PERF] Szczegóły: ${items.length} typów pozycji, ${additionalDeductions.length} typów odliczeń`);
+        } else {
+            console.log(`[PERF] SZYBKIE: Przeliczanie raportu ${reportId} w ${duration}ms`);
+        }
+
         return updateData;
 
     } catch (error) {
-        console.error(`[DEBUG] KRYTYCZNY BŁĄD podczas przeliczania raportu ${reportId}:`, error);
+        const duration = Date.now() - startTime;
+        console.error(`[ERROR] Błąd podczas przeliczania raportu ${reportId} (${duration}ms):`, error);
         throw error;
     }
+}
+
+// Queue dla operacji rekalkulacji - zapobiega zbyt częstym przeliczeniom
+const recalculationQueue = new Map<string, NodeJS.Timeout>();
+const BATCH_RECALCULATION_DELAY = 2000; // 2 sekundy
+
+// Funkcja do zaplanowania rekalkulacji z opóźnieniem
+function scheduleRecalculation(reportId: string, ctx: RecalculateContext) {
+    // Anuluj poprzedni timer jeśli istnieje
+    const existingTimer = recalculationQueue.get(reportId);
+    if (existingTimer) {
+        clearTimeout(existingTimer);
+    }
+
+    // Zaplanuj nową rekalkulację
+    const timer = setTimeout(() => {
+        void (async () => {
+            try {
+                console.log(`[PERF] Wykonuję zaplanowaną rekalkulację dla raportu ${reportId}`);
+                clearRecalculationCache(reportId);
+                await recalculateReportSettlement(reportId, ctx);
+            } catch (error) {
+                console.error(`[ERROR] Błąd podczas zaplanowanej rekalkulacji ${reportId}:`, error);
+            } finally {
+                recalculationQueue.delete(reportId);
+            }
+        })();
+    }, BATCH_RECALCULATION_DELAY);
+
+    recalculationQueue.set(reportId, timer);
+}
+
+// Funkcja do natychmiastowej rekalkulacji (dla operacji które tego wymagają)
+async function forceRecalculation(reportId: string, ctx: RecalculateContext) {
+    // Anuluj zaplanowaną rekalkulację
+    const existingTimer = recalculationQueue.get(reportId);
+    if (existingTimer) {
+        clearTimeout(existingTimer);
+        recalculationQueue.delete(reportId);
+    }
+
+    // Wykonaj natychmiastową rekalkulację
+    clearRecalculationCache(reportId);
+    await recalculateReportSettlement(reportId, ctx);
 }
 
 export const monthlyReportsRouter = createTRPCRouter({
@@ -574,14 +718,95 @@ export const monthlyReportsRouter = createTRPCRouter({
 
 
 
+            // Calculations similar to getOwnerReportById
+            const revenueItems = report.items.filter((i) => i.type === "REVENUE");
+            const expenseItems = report.items.filter((i) => ["EXPENSE", "FEE", "TAX"].includes(i.type));
+            const commissionItems = report.items.filter((i) => i.type === "COMMISSION");
+
+            const totalRevenue = revenueItems.reduce((sum, i) => sum + i.amount, 0);
+            const totalExpenses = expenseItems.reduce((sum, i) => sum + i.amount, 0);
+            const otaCommissions = commissionItems.reduce((sum, i) => sum + i.amount, 0);
+            const netIncome = totalRevenue - totalExpenses - otaCommissions;
+
+            const adminCommissionRate = 0.25;
+            const adminCommissionAmount = netIncome * adminCommissionRate;
+            const afterCommission = netIncome - adminCommissionAmount;
+
+            const totalAdditionalDeductions = (report.additionalDeductions ?? []).reduce(
+                (sum, d) => sum + (d.vatOption === "VAT_23" ? d.amount * 1.23 : d.vatOption === "VAT_8" ? d.amount * 1.08 : d.amount),
+                0
+            );
+
+            const rentAndUtilitiesTotal = (report.rentAmount ?? 0) + (report.utilitiesAmount ?? 0);
+            const afterRentAndUtilities = afterCommission - rentAndUtilitiesTotal;
+
+            const isVatExempt = report.owner.vatOption === "NO_VAT";
+
+            // Calculate final payouts based on settlement type
+            let finalOwnerPayout = 0;
+            let finalHostPayout = 0;
+            let finalIncomeTax = 0;
+            let taxBase = 0; // Podstawa opodatkowania
+
+            if (report.finalSettlementType === "COMMISSION") {
+                // Commission-based settlement
+                const commissionNetBaseAfterUtilities = afterRentAndUtilities - totalAdditionalDeductions;
+                const commissionGrossAfterUtilities = isVatExempt
+                    ? commissionNetBaseAfterUtilities
+                    : getGrossAmount(commissionNetBaseAfterUtilities, report.owner.vatOption);
+
+                finalOwnerPayout = isVatExempt
+                    ? commissionNetBaseAfterUtilities
+                    : commissionGrossAfterUtilities;
+                finalHostPayout = adminCommissionAmount;
+
+                // Podstawa opodatkowania - dla podatników VAT to kwota netto, dla zwolnionych to brutto
+                taxBase = isVatExempt ? finalOwnerPayout : commissionNetBaseAfterUtilities;
+                finalIncomeTax = taxBase * 0.085; // 8.5% income tax od podstawy opodatkowania
+            } else if (report.finalSettlementType === "FIXED") {
+                // Fixed amount settlement
+                const fixedBaseAmount = Number(report.owner.fixedPaymentAmount ?? 0);
+                finalOwnerPayout = isVatExempt
+                    ? fixedBaseAmount
+                    : getGrossAmount(fixedBaseAmount, report.owner.vatOption);
+                finalHostPayout = Math.max(0, netIncome - fixedBaseAmount);
+
+                // Podstawa opodatkowania - dla podatników VAT to kwota netto, dla zwolnionych to brutto
+                taxBase = isVatExempt ? finalOwnerPayout : fixedBaseAmount;
+                finalIncomeTax = taxBase * 0.085; // 8.5% income tax od podstawy opodatkowania
+            } else if (report.finalSettlementType === "FIXED_MINUS_UTILITIES") {
+                // Fixed amount minus utilities settlement
+                const fixedBaseAmount = Number(report.owner.fixedPaymentAmount ?? 0);
+                const netBaseAfterUtilities = fixedBaseAmount - rentAndUtilitiesTotal - totalAdditionalDeductions;
+                finalOwnerPayout = isVatExempt
+                    ? netBaseAfterUtilities
+                    : getGrossAmount(netBaseAfterUtilities, report.owner.vatOption);
+                finalHostPayout = Math.max(0, netIncome - fixedBaseAmount);
+
+                // Podstawa opodatkowania - dla podatników VAT to kwota netto, dla zwolnionych to brutto
+                taxBase = isVatExempt ? finalOwnerPayout : netBaseAfterUtilities;
+                finalIncomeTax = taxBase * 0.085; // 8.5% income tax od podstawy opodatkowania
+            }
+
             return {
                 ...report,
                 finalSettlementType: report.finalSettlementType,
                 // Dodaj sugerowane wartości
                 suggestedRent: lastApprovedReport?.rentAmount ?? report.apartment.defaultRentAmount ?? 0,
                 suggestedUtilities: lastApprovedReport?.utilitiesAmount ?? report.apartment.defaultUtilitiesAmount ?? 0,
+                // Dodaj kalkulacje
+                netIncome,
+                adminCommissionAmount,
+                afterCommission,
+                afterRentAndUtilities,
+                finalOwnerPayout,
+                finalHostPayout,
+                finalIncomeTax,
+                taxBase, // Podstawa opodatkowania
             };
         }),
+
+
 
     // Admin: Update settlement details for a report
     updateSettlementDetails: protectedProcedure
@@ -625,8 +850,8 @@ export const monthlyReportsRouter = createTRPCRouter({
                 data: updateData
             });
 
-            // Po aktualizacji przelicz raport
-            await recalculateReportSettlement(reportId, ctx);
+            // Natychmiastowa rekalkulacja dla zmiany typu rozliczenia
+            await forceRecalculation(reportId, ctx);
 
             await ctx.db.reportHistory.create({
                 data: {
@@ -682,8 +907,8 @@ export const monthlyReportsRouter = createTRPCRouter({
                 },
             });
 
-            // Recalculate report totals using the centralized function
-            await recalculateReportSettlement(reportId, ctx);
+            // Zaplanuj rekalkulację (batch operation)
+            scheduleRecalculation(reportId, ctx);
 
             // Add history entry
             await ctx.db.reportHistory.create({
@@ -763,8 +988,8 @@ export const monthlyReportsRouter = createTRPCRouter({
                 });
             }
 
-            // Recalculate report totals using the centralized function
-            await recalculateReportSettlement(reportId, ctx);
+            // Zaplanuj rekalkulację (batch operation)
+            scheduleRecalculation(reportId, ctx);
 
             // Add history entry
             await ctx.db.reportHistory.create({
@@ -1532,6 +1757,8 @@ export const monthlyReportsRouter = createTRPCRouter({
             const commissionVat = getVatAmount(commissionNetBase, report.owner.vatOption);
             const commissionGross = commissionNetBase + commissionVat;
 
+            const isVatExempt = report.owner.vatOption === "NO_VAT";
+
             const commissionNetBaseAfterUtilities = netIncome * (1 - adminCommissionRate) - rentAndUtilitiesTotal - totalAdditionalDeductions;
             const commissionVatAfterUtilities = getVatAmount(commissionNetBaseAfterUtilities, report.owner.vatOption);
             const commissionGrossAfterUtilities = commissionNetBaseAfterUtilities + commissionVatAfterUtilities;
@@ -1555,6 +1782,47 @@ export const monthlyReportsRouter = createTRPCRouter({
                 fixedMinusUtilitiesGross = fixedMinusUtilitiesNetBase + fixedMinusUtilitiesVat;
             }
 
+            // Calculate final payouts based on settlement type
+            let finalOwnerPayout = 0;
+            let finalHostPayout = 0;
+            let finalIncomeTax = 0;
+            let taxBase = 0; // Podstawa opodatkowania
+
+            if (report.finalSettlementType === "COMMISSION") {
+                // Commission-based settlement
+                finalOwnerPayout = isVatExempt
+                    ? commissionNetBaseAfterUtilities
+                    : commissionGrossAfterUtilities;
+                finalHostPayout = adminCommissionAmount;
+
+                // Podstawa opodatkowania - dla podatników VAT to kwota netto, dla zwolnionych to brutto
+                taxBase = isVatExempt ? finalOwnerPayout : commissionNetBaseAfterUtilities;
+                finalIncomeTax = taxBase * 0.085; // 8.5% income tax od podstawy opodatkowania
+            } else if (report.finalSettlementType === "FIXED") {
+                // Fixed amount settlement
+                const fixedBaseAmount = Number(report.owner.fixedPaymentAmount ?? 0);
+                finalOwnerPayout = isVatExempt
+                    ? fixedBaseAmount
+                    : getGrossAmount(fixedBaseAmount, report.owner.vatOption);
+                finalHostPayout = Math.max(0, netIncome - fixedBaseAmount);
+
+                // Podstawa opodatkowania - dla podatników VAT to kwota netto, dla zwolnionych to brutto
+                taxBase = isVatExempt ? finalOwnerPayout : fixedBaseAmount;
+                finalIncomeTax = taxBase * 0.085; // 8.5% income tax od podstawy opodatkowania
+            } else if (report.finalSettlementType === "FIXED_MINUS_UTILITIES") {
+                // Fixed amount minus utilities settlement
+                const fixedBaseAmount = Number(report.owner.fixedPaymentAmount ?? 0);
+                const netBaseAfterUtilities = fixedBaseAmount - rentAndUtilitiesTotal - totalAdditionalDeductions;
+                finalOwnerPayout = isVatExempt
+                    ? netBaseAfterUtilities
+                    : getGrossAmount(netBaseAfterUtilities, report.owner.vatOption);
+                finalHostPayout = Math.max(0, netIncome - fixedBaseAmount);
+
+                // Podstawa opodatkowania - dla podatników VAT to kwota netto, dla zwolnionych to brutto
+                taxBase = isVatExempt ? finalOwnerPayout : netBaseAfterUtilities;
+                finalIncomeTax = taxBase * 0.085; // 8.5% income tax od podstawy opodatkowania
+            }
+
             return {
                 ...report,
                 netIncome,
@@ -1574,6 +1842,10 @@ export const monthlyReportsRouter = createTRPCRouter({
                 fixedMinusUtilitiesVat,
                 fixedMinusUtilitiesGross,
                 totalAdditionalDeductions,
+                finalOwnerPayout,
+                finalHostPayout,
+                finalIncomeTax,
+                taxBase, // Podstawa opodatkowania
             };
         }),
 
@@ -1633,9 +1905,6 @@ export const monthlyReportsRouter = createTRPCRouter({
                 data: { finalSettlementType: input.finalSettlementType },
             });
 
-            // Automatycznie przelicz raport po ustawieniu typu rozliczenia
-            await recalculateReportSettlement(input.reportId, ctx);
-
             // Dodaj wpis do historii
             await ctx.db.reportHistory.create({
                 data: {
@@ -1645,6 +1914,9 @@ export const monthlyReportsRouter = createTRPCRouter({
                     notes: `Ustawiono typ rozliczenia: ${input.finalSettlementType}`,
                 },
             });
+
+            // Automatycznie przelicz raport po ustawieniu typu rozliczenia
+            await recalculateReportSettlement(input.reportId, ctx);
 
             return { success: true };
         }),
@@ -1782,10 +2054,11 @@ export const monthlyReportsRouter = createTRPCRouter({
                 });
             }
 
-            // Test 1: Get all reports for this owner
+            // Test 1: Get all APPROVED/SENT reports for this owner (filtered like getOwnerReports)
             const allReports = await ctx.db.monthlyReport.findMany({
                 where: {
                     ownerId: owner.id,
+                    status: { in: [ReportStatus.APPROVED, ReportStatus.SENT] },
                 },
                 select: {
                     id: true,
@@ -1928,7 +2201,7 @@ export const monthlyReportsRouter = createTRPCRouter({
                 ownerId: owner.id,
                 ownerEmail: input.ownerEmail,
                 allReportsCount: allReportsWithNumbers.length,
-                allReports: allReportsWithNumbers,
+                allReports: allReportsWithNumbers, // Only APPROVED/SENT reports
                 approvedReportsCount: approvedReportsWithNumbers.length,
                 approvedReports: approvedReportsWithNumbers,
                 currentYearSum: currentYearSum._sum.finalOwnerPayout ? Number(currentYearSum._sum.finalOwnerPayout) : null,

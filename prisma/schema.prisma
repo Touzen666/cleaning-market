@@ -256,7 +256,7 @@ model AdditionalDeduction {
   order     Int           @default(0)
   report    MonthlyReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
 
-  @@index([reportId])
+  @@index([reportId, order])
 }
 
 model MonthlyReport {
@@ -286,6 +286,7 @@ model MonthlyReport {
   finalHostPayout      Float?
   finalIncomeTax       Float?
   finalVatAmount       Float?
+  taxBase              Float?
   adminCommissionAmount Float?
   afterCommission      Float?
   afterRentAndUtilities Float?

@@ -208,7 +208,7 @@ export default function CreateReportPage() {
                         value={owner.id}
                         checked={selectedOwnerId === owner.id}
                         onChange={(e) => handleOwnerSelect(e.target.value)}
-                        className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                        className="h-4 w-4 cursor-pointer border-gray-300 text-indigo-600 focus:ring-indigo-500"
                       />
                       <div className="ml-3">
                         <div className="font-medium text-gray-900">
@@ -259,7 +259,7 @@ export default function CreateReportPage() {
                         onChange={(e) =>
                           handleApartmentSelect(Number(e.target.value))
                         }
-                        className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                        className="h-4 w-4 cursor-pointer border-gray-300 text-indigo-600 focus:ring-indigo-500"
                       />
                       <div className="ml-3">
                         <div className="font-medium text-gray-900">
