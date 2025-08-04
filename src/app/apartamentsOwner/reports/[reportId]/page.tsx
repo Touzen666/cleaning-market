@@ -161,23 +161,7 @@ export default function OwnerReportDetailsPage() {
     data: reportRaw,
     isLoading,
     error,
-    refetch,
   } = api.monthlyReports.getOwnerReportById.useQuery({ reportId });
-
-  // Stan ładowania podczas zmiany rozliczenia
-  const [isRecalculating, setIsRecalculating] = React.useState(false);
-
-  // Mutacja do przeliczania raportu
-  const recalculateMutation =
-    api.monthlyReports.recalculateSingleReport.useMutation({
-      onSuccess: () => {
-        void refetch();
-        setIsRecalculating(false);
-      },
-      onError: () => {
-        setIsRecalculating(false);
-      },
-    });
 
   const report = reportRaw as unknown as OwnerReport;
 

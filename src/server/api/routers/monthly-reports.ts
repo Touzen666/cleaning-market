@@ -201,11 +201,14 @@ async function recalculateReportSettlement(reportId: string, ctx: RecalculateCon
                 }
             }),
             // Zoptymalizowane zapytanie - użyj agregacji SQL zamiast pobierania wszystkich rekordów
+            // Filtrujemy rezerwacje ze statusem 'canceled' dla typów REVENUE
             ctx.db.$queryRaw<Array<{ type: string; total: number }>>`
-                SELECT type, SUM(amount) as total 
-                FROM "ReportItem" 
-                WHERE "reportId" = ${reportId}
-                GROUP BY type
+                SELECT ri.type, SUM(ri.amount) as total 
+                FROM "ReportItem" ri
+                LEFT JOIN "Reservation" r ON ri."reservationId" = r.id
+                WHERE ri."reportId" = ${reportId}
+                  AND (ri.type != 'REVENUE' OR r.id IS NULL OR r.status != 'canceled')
+                GROUP BY ri.type
             `,
             // Zoptymalizowane zapytanie - użyj agregacji SQL dla dodatkowych odliczeń
             ctx.db.$queryRaw<Array<{ vatOption: string; total: number }>>`
@@ -676,7 +679,7 @@ export const monthlyReportsRouter = createTRPCRouter({
                     items: {
                         include: {
                             reservation: {
-                                select: { id: true, guest: true, start: true, end: true, source: true, adults: true, children: true },
+                                select: { id: true, guest: true, start: true, end: true, source: true, adults: true, children: true, status: true },
                             },
                         },
                         orderBy: [{ type: "asc" }, { date: "asc" }],
@@ -719,7 +722,7 @@ export const monthlyReportsRouter = createTRPCRouter({
 
 
             // Calculations similar to getOwnerReportById
-            const revenueItems = report.items.filter((i) => i.type === "REVENUE");
+            const revenueItems = report.items.filter((i) => i.type === "REVENUE" && (!i.reservation || i.reservation.status !== "canceled"));
             const expenseItems = report.items.filter((i) => ["EXPENSE", "FEE", "TAX"].includes(i.type));
             const commissionItems = report.items.filter((i) => i.type === "COMMISSION");
 
@@ -1345,7 +1348,8 @@ export const monthlyReportsRouter = createTRPCRouter({
                     totalExpenses: report.totalExpenses ?? 0,
                     netIncome: report.netIncome ?? 0,
                     adminCommission: report.adminCommissionAmount ?? 0,
-                    ownerPayout: report.finalOwnerPayout ?? 0,
+                    ownerPayout: report.finalOwnerPayout ? Number(report.finalOwnerPayout) : 0,
+                    finalIncomeTax: report.finalIncomeTax ? Number(report.finalIncomeTax) : 0,
                 }
             };
         }),
@@ -1731,7 +1735,7 @@ export const monthlyReportsRouter = createTRPCRouter({
             }
 
             // Calculations
-            const revenueItems = report.items.filter((i) => i.type === "REVENUE");
+            const revenueItems = report.items.filter((i) => i.type === "REVENUE" && (!i.reservation || i.reservation.status !== "canceled"));
             const expenseItems = report.items.filter((i) => ["EXPENSE", "FEE", "TAX"].includes(i.type));
             const commissionItems = report.items.filter((i) => i.type === "COMMISSION");
 
@@ -2261,11 +2265,14 @@ export const monthlyReportsRouter = createTRPCRouter({
             type ChartDataItem = {
                 name: string;
                 Przychód: number;
-                "Łączne koszty": number;
-                "Koszty stałe": number;
-                Prowizja: number;
+                Sprzątanie: number;
+                Pranie: number;
+                Tekstylia: number;
+                "Złote Wynajmy Prowizja": number;
                 "Prowizje OTA": number;
-                Wypłata: number;
+                "Podatek dochodowy": number;
+                "Wypłata Właściciela": number;
+                "Koszty stałe": number;
             };
 
             let chartData: ChartDataItem[] = [];
@@ -2279,20 +2286,44 @@ export const monthlyReportsRouter = createTRPCRouter({
                         yearlyData.set(year, {
                             name: `Rok ${year}`,
                             Przychód: 0,
-                            "Łączne koszty": 0,
-                            "Koszty stałe": 0,
-                            Prowizja: 0,
+                            Sprzątanie: 0,
+                            Pranie: 0,
+                            Tekstylia: 0,
+                            "Złote Wynajmy Prowizja": 0,
                             "Prowizje OTA": 0,
-                            Wypłata: 0,
+                            "Podatek dochodowy": 0,
+                            "Wypłata Właściciela": 0,
+                            "Koszty stałe": 0,
                         });
                     }
                     const data = yearlyData.get(year)!;
                     data.Przychód += report.totalRevenue ?? 0;
-                    data["Łączne koszty"] += report.totalExpenses ?? 0;
-                    data["Koszty stałe"] += calculateFixedCosts(report.items);
-                    data.Prowizja += report.adminCommissionAmount ?? 0;
+                    data.Sprzątanie += report.items
+                        .filter(i => i.type === "EXPENSE" &&
+                            (i.category.toLowerCase().includes("sprzątanie") ||
+                                i.category.toLowerCase().includes("sprzatanie") ||
+                                i.category.toLowerCase().includes("środki") ||
+                                i.category.toLowerCase().includes("srodki")))
+                        .reduce((s, i) => s + i.amount, 0);
+                    data.Pranie += report.items
+                        .filter(i => i.type === "EXPENSE" && i.category.toLowerCase().includes("pranie"))
+                        .reduce((s, i) => s + i.amount, 0);
+                    data.Tekstylia += report.items
+                        .filter(i => i.type === "EXPENSE" && i.category.toLowerCase().includes("tekstylia"))
+                        .reduce((s, i) => s + i.amount, 0);
+                    data["Złote Wynajmy Prowizja"] += report.adminCommissionAmount ?? 0;
                     data["Prowizje OTA"] += report.items.filter(i => i.type === "COMMISSION").reduce((s, i) => s + i.amount, 0);
-                    data.Wypłata += report.finalOwnerPayout ?? 0;
+                    data["Podatek dochodowy"] += report.finalIncomeTax ?? 0;
+                    data["Wypłata Właściciela"] += report.finalOwnerPayout ?? 0;
+                    data["Koszty stałe"] += report.items
+                        .filter(i => i.type === "EXPENSE" &&
+                            (i.category.toLowerCase().includes("sprzątanie") ||
+                                i.category.toLowerCase().includes("sprzatanie") ||
+                                i.category.toLowerCase().includes("środki") ||
+                                i.category.toLowerCase().includes("srodki") ||
+                                i.category.toLowerCase().includes("pranie") ||
+                                i.category.toLowerCase().includes("tekstylia")))
+                        .reduce((s, i) => s + i.amount, 0);
                 });
                 chartData = Array.from(yearlyData.values());
             } else if (input.viewType === 'monthly') {
@@ -2305,20 +2336,44 @@ export const monthlyReportsRouter = createTRPCRouter({
                         monthlyData.set(monthKey, {
                             name: monthName,
                             Przychód: 0,
-                            "Łączne koszty": 0,
-                            "Koszty stałe": 0,
-                            Prowizja: 0,
+                            Sprzątanie: 0,
+                            Pranie: 0,
+                            Tekstylia: 0,
+                            "Złote Wynajmy Prowizja": 0,
                             "Prowizje OTA": 0,
-                            Wypłata: 0,
+                            "Podatek dochodowy": 0,
+                            "Wypłata Właściciela": 0,
+                            "Koszty stałe": 0,
                         });
                     }
                     const data = monthlyData.get(monthKey)!;
                     data.Przychód += report.totalRevenue ?? 0;
-                    data["Łączne koszty"] += report.totalExpenses ?? 0;
-                    data["Koszty stałe"] += calculateFixedCosts(report.items);
-                    data.Prowizja += report.adminCommissionAmount ?? 0;
+                    data.Sprzątanie += report.items
+                        .filter(i => i.type === "EXPENSE" &&
+                            (i.category.toLowerCase().includes("sprzątanie") ||
+                                i.category.toLowerCase().includes("sprzatanie") ||
+                                i.category.toLowerCase().includes("środki") ||
+                                i.category.toLowerCase().includes("srodki")))
+                        .reduce((s, i) => s + i.amount, 0);
+                    data.Pranie += report.items
+                        .filter(i => i.type === "EXPENSE" && i.category.toLowerCase().includes("pranie"))
+                        .reduce((s, i) => s + i.amount, 0);
+                    data.Tekstylia += report.items
+                        .filter(i => i.type === "EXPENSE" && i.category.toLowerCase().includes("tekstylia"))
+                        .reduce((s, i) => s + i.amount, 0);
+                    data["Złote Wynajmy Prowizja"] += report.adminCommissionAmount ?? 0;
                     data["Prowizje OTA"] += report.items.filter(i => i.type === "COMMISSION").reduce((s, i) => s + i.amount, 0);
-                    data.Wypłata += report.finalOwnerPayout ?? 0;
+                    data["Podatek dochodowy"] += report.finalIncomeTax ?? 0;
+                    data["Wypłata Właściciela"] += report.finalOwnerPayout ?? 0;
+                    data["Koszty stałe"] += report.items
+                        .filter(i => i.type === "EXPENSE" &&
+                            (i.category.toLowerCase().includes("sprzątanie") ||
+                                i.category.toLowerCase().includes("sprzatanie") ||
+                                i.category.toLowerCase().includes("środki") ||
+                                i.category.toLowerCase().includes("srodki") ||
+                                i.category.toLowerCase().includes("pranie") ||
+                                i.category.toLowerCase().includes("tekstylia")))
+                        .reduce((s, i) => s + i.amount, 0);
                 });
                 chartData = Array.from(monthlyData.values()).sort((a, b) => {
                     const [yearA, monthA] = a.name.split(' ');
@@ -2333,11 +2388,32 @@ export const monthlyReportsRouter = createTRPCRouter({
                 chartData = reports.map(report => ({
                     name: `${report.apartment.name} - ${report.month}/${report.year}`,
                     Przychód: report.totalRevenue ?? 0,
-                    "Łączne koszty": report.totalExpenses ?? 0,
-                    "Koszty stałe": calculateFixedCosts(report.items),
-                    Prowizja: report.adminCommissionAmount ?? 0,
+                    Sprzątanie: report.items
+                        .filter(i => i.type === "EXPENSE" &&
+                            (i.category.toLowerCase().includes("sprzątanie") ||
+                                i.category.toLowerCase().includes("sprzatanie") ||
+                                i.category.toLowerCase().includes("środki") ||
+                                i.category.toLowerCase().includes("srodki")))
+                        .reduce((s, i) => s + i.amount, 0),
+                    Pranie: report.items
+                        .filter(i => i.type === "EXPENSE" && i.category.toLowerCase().includes("pranie"))
+                        .reduce((s, i) => s + i.amount, 0),
+                    Tekstylia: report.items
+                        .filter(i => i.type === "EXPENSE" && i.category.toLowerCase().includes("tekstylia"))
+                        .reduce((s, i) => s + i.amount, 0),
+                    "Złote Wynajmy Prowizja": report.adminCommissionAmount ?? 0,
                     "Prowizje OTA": report.items.filter(i => i.type === "COMMISSION").reduce((s, i) => s + i.amount, 0),
-                    Wypłata: report.finalOwnerPayout ?? 0,
+                    "Podatek dochodowy": report.finalIncomeTax ? Number(report.finalIncomeTax) : 0,
+                    "Wypłata Właściciela": report.finalOwnerPayout ? Number(report.finalOwnerPayout) : 0,
+                    "Koszty stałe": report.items
+                        .filter(i => i.type === "EXPENSE" &&
+                            (i.category.toLowerCase().includes("sprzątanie") ||
+                                i.category.toLowerCase().includes("sprzatanie") ||
+                                i.category.toLowerCase().includes("środki") ||
+                                i.category.toLowerCase().includes("srodki") ||
+                                i.category.toLowerCase().includes("pranie") ||
+                                i.category.toLowerCase().includes("tekstylia")))
+                        .reduce((s, i) => s + i.amount, 0),
                 }));
             }
 

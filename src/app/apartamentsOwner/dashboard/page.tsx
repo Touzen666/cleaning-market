@@ -105,6 +105,23 @@ export default function OwnerDashboard() {
   );
   const [showFilters, setShowFilters] = useState(false);
 
+  // Chart visibility filters
+  const [chartFilters, setChartFilters] = useState({
+    Przychód: true,
+    Sprzątanie: true,
+    Pranie: true,
+    Tekstylia: true,
+    "Złote Wynajmy Prowizja": true,
+    "Prowizje OTA": true,
+    "Podatek dochodowy": true,
+    "Wypłata Właściciela": true,
+  });
+
+  // Special chart view mode
+  const [chartViewMode, setChartViewMode] = useState<
+    "normal" | "costsVsPayout" | "fixedCosts"
+  >("normal");
+
   useEffect(() => {
     const email = localStorage.getItem("ownerEmail");
     const token = localStorage.getItem("ownerSessionToken");
@@ -225,24 +242,49 @@ export default function OwnerDashboard() {
           {
             name: "Raport",
             Przychód: reportData.calculated.totalRevenue,
-            "Łączne koszty": reportData.calculated.totalExpenses,
-            "Koszty stałe": reportData.items
+            Sprzątanie: reportData.items
               .filter(
                 (i) =>
                   i.type === "EXPENSE" &&
-                  (i.category.toLowerCase().includes("pranie") ||
-                    i.category.toLowerCase().includes("sprzątanie") ||
+                  (i.category.toLowerCase().includes("sprzątanie") ||
                     i.category.toLowerCase().includes("sprzatanie") ||
-                    i.category.toLowerCase().includes("tekstylia") ||
                     i.category.toLowerCase().includes("środki") ||
                     i.category.toLowerCase().includes("srodki")),
               )
               .reduce((s, i) => s + i.amount, 0),
-            Prowizja: reportData.calculated.adminCommission,
+            Pranie: reportData.items
+              .filter(
+                (i) =>
+                  i.type === "EXPENSE" &&
+                  i.category.toLowerCase().includes("pranie"),
+              )
+              .reduce((s, i) => s + i.amount, 0),
+            Tekstylia: reportData.items
+              .filter(
+                (i) =>
+                  i.type === "EXPENSE" &&
+                  i.category.toLowerCase().includes("tekstylia"),
+              )
+              .reduce((s, i) => s + i.amount, 0),
+            "Złote Wynajmy Prowizja": reportData.calculated.adminCommission,
             "Prowizje OTA": reportData.items
               .filter((i) => i.type === "COMMISSION")
               .reduce((s, i) => s + i.amount, 0),
-            Wypłata: reportData.calculated.ownerPayout,
+            "Podatek dochodowy": reportData.calculated.finalIncomeTax,
+            "Wypłata Właściciela": reportData.calculated.ownerPayout,
+            // Dodajemy koszty stałe jako jedną kategorię dla trybu costsVsPayout
+            "Koszty stałe": reportData.items
+              .filter(
+                (i) =>
+                  i.type === "EXPENSE" &&
+                  (i.category.toLowerCase().includes("sprzątanie") ||
+                    i.category.toLowerCase().includes("sprzatanie") ||
+                    i.category.toLowerCase().includes("środki") ||
+                    i.category.toLowerCase().includes("srodki") ||
+                    i.category.toLowerCase().includes("pranie") ||
+                    i.category.toLowerCase().includes("tekstylia")),
+              )
+              .reduce((s, i) => s + i.amount, 0),
           },
         ]
       : []);
@@ -320,6 +362,137 @@ export default function OwnerDashboard() {
     setSelectedReportId(undefined);
     setViewType("yearly");
   };
+
+  const toggleChartFilter = (category: keyof typeof chartFilters) => {
+    setChartFilters((prev) => ({
+      ...prev,
+      [category]: !prev[category],
+    }));
+  };
+
+  const resetChartFilters = () => {
+    setChartFilters({
+      Przychód: true,
+      Sprzątanie: true,
+      Pranie: true,
+      Tekstylia: true,
+      "Złote Wynajmy Prowizja": true,
+      "Prowizje OTA": true,
+      "Podatek dochodowy": true,
+      "Wypłata Właściciela": true,
+    });
+    setChartViewMode("normal");
+  };
+
+  const toggleCostsVsPayoutView = () => {
+    if (chartViewMode === "normal") {
+      setChartViewMode("costsVsPayout");
+      setChartFilters({
+        Przychód: true,
+        Sprzątanie: false,
+        Pranie: false,
+        Tekstylia: false,
+        "Złote Wynajmy Prowizja": true,
+        "Prowizje OTA": false,
+        "Podatek dochodowy": false,
+        "Wypłata Właściciela": true,
+      });
+    } else {
+      setChartViewMode("normal");
+      setChartFilters({
+        Przychód: true,
+        Sprzątanie: true,
+        Pranie: true,
+        Tekstylia: true,
+        "Złote Wynajmy Prowizja": true,
+        "Prowizje OTA": true,
+        "Podatek dochodowy": true,
+        "Wypłata Właściciela": true,
+      });
+    }
+  };
+
+  const toggleFixedCostsView = () => {
+    if (chartViewMode === "normal") {
+      setChartViewMode("fixedCosts");
+      setChartFilters({
+        Przychód: false,
+        Sprzątanie: true,
+        Pranie: true,
+        Tekstylia: true,
+        "Złote Wynajmy Prowizja": false,
+        "Prowizje OTA": true,
+        "Podatek dochodowy": false,
+        "Wypłata Właściciela": false,
+      });
+    } else {
+      setChartViewMode("normal");
+      setChartFilters({
+        Przychód: true,
+        Sprzątanie: true,
+        Pranie: true,
+        Tekstylia: true,
+        "Złote Wynajmy Prowizja": true,
+        "Prowizje OTA": true,
+        "Podatek dochodowy": true,
+        "Wypłata Właściciela": true,
+      });
+    }
+  };
+
+  // Calculate percentages for current data
+  const calculatePercentages = () => {
+    if (!chartData.length) return null;
+
+    const data = chartData[0];
+    if (!data) return null;
+
+    const totalRevenue = data.Przychód || 0;
+
+    if (totalRevenue === 0) return null;
+
+    return {
+      adminCommission:
+        totalRevenue > 0
+          ? (
+              ((data["Złote Wynajmy Prowizja"] || 0) / totalRevenue) *
+              100
+            ).toFixed(1)
+          : "0",
+      fixedCosts:
+        totalRevenue > 0
+          ? (((data["Koszty stałe"] || 0) / totalRevenue) * 100).toFixed(1)
+          : "0",
+      cleaning:
+        totalRevenue > 0
+          ? (((data.Sprzątanie || 0) / totalRevenue) * 100).toFixed(1)
+          : "0",
+      laundry:
+        totalRevenue > 0
+          ? (((data.Pranie || 0) / totalRevenue) * 100).toFixed(1)
+          : "0",
+      textiles:
+        totalRevenue > 0
+          ? (((data.Tekstylia || 0) / totalRevenue) * 100).toFixed(1)
+          : "0",
+      otaCommissions:
+        totalRevenue > 0
+          ? (((data["Prowizje OTA"] || 0) / totalRevenue) * 100).toFixed(1)
+          : "0",
+      payout:
+        totalRevenue > 0
+          ? (((data["Wypłata Właściciela"] ?? 0) / totalRevenue) * 100).toFixed(
+              1,
+            )
+          : "0",
+      incomeTax:
+        totalRevenue > 0
+          ? (((data["Podatek dochodowy"] || 0) / totalRevenue) * 100).toFixed(1)
+          : "0",
+    };
+  };
+
+  const percentages = calculatePercentages();
 
   if (isLoading) {
     return (
@@ -605,9 +778,85 @@ export default function OwnerDashboard() {
             {chartData.length > 0 ? (
               <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-2 lg:gap-8">
                 <div className="rounded-lg bg-white p-3 shadow sm:p-4 lg:p-6">
-                  <h3 className="mb-3 text-sm font-semibold sm:text-base">
-                    Wyniki finansowe
-                  </h3>
+                  <div className="mb-4 flex items-center justify-between">
+                    <h3 className="text-sm font-semibold sm:text-base">
+                      Wyniki finansowe
+                    </h3>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={toggleCostsVsPayoutView}
+                        className={`rounded-md px-3 py-1 text-xs font-medium transition-colors ${
+                          chartViewMode === "costsVsPayout"
+                            ? "bg-orange-500 text-white hover:bg-orange-600"
+                            : "bg-gray-300 text-gray-700 hover:bg-gray-400"
+                        }`}
+                      >
+                        Stosunki
+                      </button>
+                      <button
+                        onClick={toggleFixedCostsView}
+                        className={`rounded-md px-3 py-1 text-xs font-medium transition-colors ${
+                          chartViewMode === "fixedCosts"
+                            ? "bg-red-500 text-white hover:bg-red-600"
+                            : "bg-gray-300 text-gray-700 hover:bg-gray-400"
+                        }`}
+                      >
+                        Koszty stałe
+                      </button>
+                      <button
+                        onClick={resetChartFilters}
+                        className="rounded-md bg-gray-500 px-2 py-1 text-xs text-white hover:bg-gray-600"
+                      >
+                        Pokaż wszystkie
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Chart Filters */}
+                  <div className="mb-4 flex flex-wrap gap-2">
+                    {Object.entries(chartFilters).map(
+                      ([category, isVisible]) => (
+                        <button
+                          key={category}
+                          onClick={() =>
+                            toggleChartFilter(
+                              category as keyof typeof chartFilters,
+                            )
+                          }
+                          className={`flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                            isVisible
+                              ? "bg-blue-100 text-blue-800 hover:bg-blue-200"
+                              : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                          }`}
+                        >
+                          <div
+                            className={`h-2 w-2 rounded-full ${
+                              isVisible ? "opacity-100" : "opacity-50"
+                            }`}
+                            style={{
+                              backgroundColor:
+                                category === "Przychód"
+                                  ? "#82ca9d"
+                                  : category === "Sprzątanie"
+                                    ? "#8884d8"
+                                    : category === "Pranie"
+                                      ? "#ff6b6b"
+                                      : category === "Tekstylia"
+                                        ? "#9c27b0"
+                                        : category === "Złote Wynajmy Prowizja"
+                                          ? "#ffc658"
+                                          : category === "Prowizje OTA"
+                                            ? "#ff8042"
+                                            : category === "Podatek dochodowy"
+                                              ? "#e74c3c"
+                                              : "#00C49F",
+                            }}
+                          />
+                          {category}
+                        </button>
+                      ),
+                    )}
+                  </div>
                   <ResponsiveContainer width="100%" height={400}>
                     <BarChart
                       data={chartData}
@@ -632,60 +881,542 @@ export default function OwnerDashboard() {
                         className="text-xs sm:text-sm"
                       />
                       <Tooltip content={<CustomTooltip />} />
-                      <Bar dataKey="Przychód" fill="#82ca9d" />
-                      <Bar dataKey="Łączne koszty" fill="#8884d8" />
-                      <Bar dataKey="Koszty stałe" fill="#ff6b6b" />
-                      <Bar dataKey="Prowizja" fill="#ff8042" />
-                      <Bar dataKey="Prowizje OTA" fill="#ffc658" />
-                      <Bar dataKey="Wypłata" fill="#00C49F" />
+                      {chartViewMode === "costsVsPayout" ? (
+                        <>
+                          <Bar
+                            dataKey="Złote Wynajmy Prowizja"
+                            fill="#ffc658"
+                          />
+                          <Bar dataKey="Wypłata" fill="#00C49F" />
+                          <Bar dataKey="Koszty stałe" fill="#ff6b6b" />
+                          <Bar dataKey="Przychód" fill="#82ca9d" />
+                        </>
+                      ) : chartViewMode === "fixedCosts" ? (
+                        <>
+                          <Bar dataKey="Sprzątanie" fill="#8884d8" />
+                          <Bar dataKey="Pranie" fill="#ff6b6b" />
+                          <Bar dataKey="Tekstylia" fill="#9c27b0" />
+                          <Bar dataKey="Prowizje OTA" fill="#ff8042" />
+                        </>
+                      ) : (
+                        <>
+                          {chartFilters.Przychód && (
+                            <Bar dataKey="Przychód" fill="#82ca9d" />
+                          )}
+                          {chartFilters.Sprzątanie && (
+                            <Bar dataKey="Sprzątanie" fill="#8884d8" />
+                          )}
+                          {chartFilters.Pranie && (
+                            <Bar dataKey="Pranie" fill="#ff6b6b" />
+                          )}
+                          {chartFilters.Tekstylia && (
+                            <Bar dataKey="Tekstylia" fill="#9c27b0" />
+                          )}
+                          {chartFilters["Złote Wynajmy Prowizja"] && (
+                            <Bar
+                              dataKey="Złote Wynajmy Prowizja"
+                              fill="#ffc658"
+                            />
+                          )}
+                          {chartFilters["Prowizje OTA"] && (
+                            <Bar dataKey="Prowizje OTA" fill="#ff8042" />
+                          )}
+                          {chartFilters["Podatek dochodowy"] && (
+                            <Bar dataKey="Podatek dochodowy" fill="#e74c3c" />
+                          )}
+                          {chartFilters["Wypłata Właściciela"] && (
+                            <Bar dataKey="Wypłata Właściciela" fill="#00C49F" />
+                          )}
+                        </>
+                      )}
                     </BarChart>
                   </ResponsiveContainer>
                   <div className="mt-4 flex flex-wrap justify-center gap-4 text-xs">
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="h-3 w-3 rounded"
-                        style={{ backgroundColor: "#82ca9d" }}
-                      />
-                      <span>Przychód</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="h-3 w-3 rounded"
-                        style={{ backgroundColor: "#8884d8" }}
-                      />
-                      <span>Łączne koszty</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="h-3 w-3 rounded"
-                        style={{ backgroundColor: "#ff6b6b" }}
-                      />
-                      <span>Koszty stałe</span>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="h-3 w-3 rounded"
-                        style={{ backgroundColor: "#ff8042" }}
-                      />
-                      <span>Prowizja</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="h-3 w-3 rounded"
-                        style={{ backgroundColor: "#ffc658" }}
-                      />
-                      <span>Prowizje OTA</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="h-3 w-3 rounded"
-                        style={{ backgroundColor: "#00C49F" }}
-                      />
-                      <span>Wypłata</span>
-                    </div>
+                    {chartViewMode === "costsVsPayout" ? (
+                      <>
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="h-3 w-3 rounded"
+                            style={{ backgroundColor: "#ffc658" }}
+                          />
+                          <span>Złote Wynajmy Prowizja</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="h-3 w-3 rounded"
+                            style={{ backgroundColor: "#00C49F" }}
+                          />
+                          <span>Wypłata Właściciela</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="h-3 w-3 rounded"
+                            style={{ backgroundColor: "#ff6b6b" }}
+                          />
+                          <span>Koszty stałe</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="h-3 w-3 rounded"
+                            style={{ backgroundColor: "#82ca9d" }}
+                          />
+                          <span>Przychód</span>
+                        </div>
+                      </>
+                    ) : chartViewMode === "fixedCosts" ? (
+                      <>
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="h-3 w-3 rounded"
+                            style={{ backgroundColor: "#8884d8" }}
+                          />
+                          <span>Sprzątanie</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="h-3 w-3 rounded"
+                            style={{ backgroundColor: "#ff6b6b" }}
+                          />
+                          <span>Pranie</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="h-3 w-3 rounded"
+                            style={{ backgroundColor: "#9c27b0" }}
+                          />
+                          <span>Tekstylia</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="h-3 w-3 rounded"
+                            style={{ backgroundColor: "#ff8042" }}
+                          />
+                          <span>Prowizje OTA</span>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        {chartFilters.Przychód && (
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="h-3 w-3 rounded"
+                              style={{ backgroundColor: "#82ca9d" }}
+                            />
+                            <span>Przychód</span>
+                          </div>
+                        )}
+                        {chartFilters.Sprzątanie && (
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="h-3 w-3 rounded"
+                              style={{ backgroundColor: "#8884d8" }}
+                            />
+                            <span>Sprzątanie</span>
+                          </div>
+                        )}
+                        {chartFilters.Pranie && (
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="h-3 w-3 rounded"
+                              style={{ backgroundColor: "#ff6b6b" }}
+                            />
+                            <span>Pranie</span>
+                          </div>
+                        )}
+                        {chartFilters.Tekstylia && (
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="h-3 w-3 rounded"
+                              style={{ backgroundColor: "#9c27b0" }}
+                            />
+                            <span>Tekstylia</span>
+                          </div>
+                        )}
+                        {chartFilters["Złote Wynajmy Prowizja"] && (
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="h-3 w-3 rounded"
+                              style={{ backgroundColor: "#ffc658" }}
+                            />
+                            <span>Złote Wynajmy Prowizja</span>
+                          </div>
+                        )}
+                        {chartFilters["Prowizje OTA"] && (
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="h-3 w-3 rounded"
+                              style={{ backgroundColor: "#ff8042" }}
+                            />
+                            <span>Prowizje OTA</span>
+                          </div>
+                        )}
+                        {chartFilters["Podatek dochodowy"] && (
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="h-3 w-3 rounded"
+                              style={{ backgroundColor: "#e74c3c" }}
+                            />
+                            <span>Podatek dochodowy</span>
+                          </div>
+                        )}
+                        {chartFilters["Wypłata Właściciela"] && (
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="h-3 w-3 rounded"
+                              style={{ backgroundColor: "#00C49F" }}
+                            />
+                            <span>Wypłata</span>
+                          </div>
+                        )}
+                      </>
+                    )}
                   </div>
                 </div>
+
+                {/* Chart Explanation Card */}
+                <div className="rounded-lg bg-white p-3 shadow sm:p-4 lg:p-6">
+                  <h4 className="mb-3 text-sm font-semibold text-gray-800">
+                    Wyjaśnienie trybów wykresu
+                  </h4>
+
+                  {chartViewMode === "costsVsPayout" ? (
+                    <div className="space-y-3">
+                      <div className="rounded-md bg-orange-50 p-3">
+                        <h5 className="mb-2 font-medium text-orange-800">
+                          Tryb: Stosunki
+                        </h5>
+                        <p className="text-sm text-orange-700">
+                          Pokazuje kluczowe stosunki finansowe w Twoim biznesie:
+                        </p>
+                        <ul className="mt-2 space-y-1 text-sm text-orange-700">
+                          <li>
+                            •{" "}
+                            <strong>
+                              Złote Wynajmy Prowizja vs Wypłata Właściciela
+                            </strong>{" "}
+                            - ile prowizji płacisz w stosunku do wypłaty
+                          </li>
+                          <li>
+                            • <strong>Koszty stałe vs Przychód</strong> - jaki
+                            procent przychodu stanowią koszty operacyjne
+                          </li>
+                        </ul>
+                        <div className="mt-3 rounded bg-white p-2 text-xs">
+                          <p className="font-medium text-gray-800">
+                            Aktualne wyliczenia:
+                          </p>
+                          {percentages ? (
+                            <div className="space-y-1 text-gray-600">
+                              <p>
+                                • Prowizja Złote Wynajmy:{" "}
+                                <strong>{percentages.adminCommission}%</strong>{" "}
+                                przychodu
+                              </p>
+                              <p>
+                                • Koszty stałe:{" "}
+                                <strong>{percentages.fixedCosts}%</strong>{" "}
+                                przychodu
+                              </p>
+                              <p>
+                                • Wypłata Właściciela:{" "}
+                                <strong>{percentages.payout}%</strong> przychodu
+                              </p>
+                              <p>
+                                • Stosunek Wypłata Właściciela/Prowizja ZW:{" "}
+                                <strong>
+                                  {percentages.payout &&
+                                  percentages.adminCommission
+                                    ? (
+                                        (parseFloat(percentages.payout) /
+                                          parseFloat(
+                                            percentages.adminCommission,
+                                          )) *
+                                        100
+                                      ).toFixed(1)
+                                    : "0"}
+                                  %
+                                </strong>{" "}
+                                (cel: 300% - 75%/25%)
+                              </p>
+                            </div>
+                          ) : (
+                            <p className="text-gray-600">
+                              Brak danych do wyliczenia
+                            </p>
+                          )}
+                          <p className="mt-2 text-gray-500">
+                            Założenie: Złote Wynajmy 25% / Wypłata Właściciela
+                            75%
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : chartViewMode === "fixedCosts" ? (
+                    <div className="space-y-3">
+                      <div className="rounded-md bg-red-50 p-3">
+                        <h5 className="mb-2 font-medium text-red-800">
+                          Tryb: Koszty stałe
+                        </h5>
+                        <p className="text-sm text-red-700">
+                          Szczegółowy podział kosztów stałych w Twoim biznesie:
+                        </p>
+                        <ul className="mt-2 space-y-1 text-sm text-red-700">
+                          <li>
+                            • <strong>Sprzątanie</strong> - koszty sprzątania i
+                            środków czystości
+                          </li>
+                          <li>
+                            • <strong>Pranie</strong> - koszty prania pościeli i
+                            ręczników
+                          </li>
+                          <li>
+                            • <strong>Tekstylia</strong> - koszty pościeli,
+                            ręczników, dekoracji
+                          </li>
+                          <li>
+                            • <strong>Prowizje OTA</strong> - prowizje od
+                            platform bookingowych
+                          </li>
+                        </ul>
+                        <div className="mt-3 rounded bg-white p-2 text-xs">
+                          <p className="font-medium text-gray-800">
+                            Aktualne wyliczenia:
+                          </p>
+                          {percentages ? (
+                            <div className="space-y-1 text-gray-600">
+                              <p>
+                                • Sprzątanie:{" "}
+                                <strong>{percentages.cleaning}%</strong>{" "}
+                                przychodu
+                              </p>
+                              <p>
+                                • Pranie:{" "}
+                                <strong>{percentages.laundry}%</strong>{" "}
+                                przychodu
+                              </p>
+                              <p>
+                                • Tekstylia:{" "}
+                                <strong>{percentages.textiles}%</strong>{" "}
+                                przychodu
+                              </p>
+                              <p>
+                                • Prowizje OTA:{" "}
+                                <strong>{percentages.otaCommissions}%</strong>{" "}
+                                przychodu
+                              </p>
+                              <p>
+                                •{" "}
+                                <strong>
+                                  Łącznie koszty stałe: {percentages.fixedCosts}
+                                  %
+                                </strong>{" "}
+                                przychodu
+                              </p>
+                            </div>
+                          ) : (
+                            <p className="text-gray-600">
+                              Brak danych do wyliczenia
+                            </p>
+                          )}
+                          <p className="mt-2 text-gray-500">
+                            Szczegółowy podział kosztów operacyjnych w danej
+                            Inwestycji
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="rounded-md bg-blue-50 p-3">
+                        <h5 className="mb-2 font-medium text-blue-800">
+                          Tryb: Normalny
+                        </h5>
+                        <p className="text-sm text-blue-700">
+                          Pełny widok wszystkich kategorii finansowych:
+                        </p>
+                        <ul className="mt-2 space-y-1 text-sm text-blue-700">
+                          <li>
+                            • <strong>Przychód</strong> - całkowite przychody z
+                            wynajmu
+                          </li>
+                          <li>
+                            • <strong>Koszty operacyjne</strong> - sprzątanie,
+                            pranie, tekstylia
+                          </li>
+                          <li>
+                            • <strong>Prowizje</strong> - Złote Wynajmy i
+                            platformy OTA
+                          </li>
+                          <li>
+                            • <strong>Podatek dochodowy</strong> - obliczony
+                            podatek
+                          </li>
+                          <li>
+                            • <strong>Wypłata Właściciela</strong> - końcowa
+                            wypłata dla właściciela
+                          </li>
+                        </ul>
+                        <div className="mt-3 rounded bg-white p-2 text-xs">
+                          <p className="font-medium text-gray-800">
+                            Aktualne wyliczenia:
+                          </p>
+                          {percentages ? (
+                            <div className="space-y-1 text-gray-600">
+                              <p>
+                                • Wypłata Właściciela:{" "}
+                                <strong>{percentages.payout}%</strong> przychodu
+                              </p>
+                              <p>
+                                • Podatek dochodowy:{" "}
+                                <strong>{percentages.incomeTax}%</strong>{" "}
+                                przychodu
+                              </p>
+                              <p>
+                                • Prowizja Złote Wynajmy:{" "}
+                                <strong>{percentages.adminCommission}%</strong>{" "}
+                                przychodu
+                              </p>
+                              <p>
+                                • Prowizje OTA:{" "}
+                                <strong>{percentages.otaCommissions}%</strong>{" "}
+                                przychodu
+                              </p>
+                              <p>
+                                • Koszty operacyjne:{" "}
+                                <strong>{percentages.fixedCosts}%</strong>{" "}
+                                przychodu
+                              </p>
+                              <p className="mt-2 font-medium text-gray-800">
+                                <strong>Suma wszystkich kategorii: 100%</strong>
+                              </p>
+                            </div>
+                          ) : (
+                            <p className="text-gray-600">
+                              Brak danych do wyliczenia
+                            </p>
+                          )}
+                          <p className="mt-2 text-gray-500">
+                            Pełny podział przychodów po odliczeniu wszystkich
+                            kosztów
+                          </p>
+
+                          {/* Mini wykres kołowy dla trybu Normalny */}
+                          {percentages && (
+                            <div className="mt-4">
+                              <h6 className="mb-2 text-xs font-medium text-gray-700">
+                                Podział procentowy:
+                              </h6>
+                              <ResponsiveContainer width="100%" height={200}>
+                                <PieChart>
+                                  <Pie
+                                    data={[
+                                      {
+                                        name: "Wypłata Właściciela",
+                                        value: parseFloat(percentages.payout),
+                                        fill: "#00C49F",
+                                      },
+                                      {
+                                        name: "Podatek dochodowy",
+                                        value: parseFloat(
+                                          percentages.incomeTax,
+                                        ),
+                                        fill: "#e74c3c",
+                                      },
+                                      {
+                                        name: "Prowizja Złote Wynajmy",
+                                        value: parseFloat(
+                                          percentages.adminCommission,
+                                        ),
+                                        fill: "#ffc658",
+                                      },
+                                      {
+                                        name: "Prowizje OTA",
+                                        value: parseFloat(
+                                          percentages.otaCommissions,
+                                        ),
+                                        fill: "#ff8042",
+                                      },
+                                      {
+                                        name: "Sprzątanie",
+                                        value: parseFloat(percentages.cleaning),
+                                        fill: "#8884d8",
+                                      },
+                                      {
+                                        name: "Pranie",
+                                        value: parseFloat(percentages.laundry),
+                                        fill: "#ff6b6b",
+                                      },
+                                      {
+                                        name: "Tekstylia",
+                                        value: parseFloat(percentages.textiles),
+                                        fill: "#9c27b0",
+                                      },
+                                    ]}
+                                    cx="50%"
+                                    cy="50%"
+                                    outerRadius={60}
+                                    dataKey="value"
+                                  >
+                                    {[
+                                      {
+                                        name: "Wypłata Właściciela",
+                                        value: parseFloat(percentages.payout),
+                                        fill: "#00C49F",
+                                      },
+                                      {
+                                        name: "Podatek dochodowy",
+                                        value: parseFloat(
+                                          percentages.incomeTax,
+                                        ),
+                                        fill: "#e74c3c",
+                                      },
+                                      {
+                                        name: "Prowizja Złote Wynajmy",
+                                        value: parseFloat(
+                                          percentages.adminCommission,
+                                        ),
+                                        fill: "#ffc658",
+                                      },
+                                      {
+                                        name: "Prowizje OTA",
+                                        value: parseFloat(
+                                          percentages.otaCommissions,
+                                        ),
+                                        fill: "#ff8042",
+                                      },
+                                      {
+                                        name: "Sprzątanie",
+                                        value: parseFloat(percentages.cleaning),
+                                        fill: "#8884d8",
+                                      },
+                                      {
+                                        name: "Pranie",
+                                        value: parseFloat(percentages.laundry),
+                                        fill: "#ff6b6b",
+                                      },
+                                      {
+                                        name: "Tekstylia",
+                                        value: parseFloat(percentages.textiles),
+                                        fill: "#9c27b0",
+                                      },
+                                    ].map((entry) => (
+                                      <Cell
+                                        key={`cell-${entry.name}`}
+                                        fill={entry.fill}
+                                      />
+                                    ))}
+                                  </Pie>
+                                  <Tooltip content={<CustomTooltip />} />
+                                </PieChart>
+                              </ResponsiveContainer>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 <div className="rounded-lg bg-white p-3 shadow sm:p-4 lg:p-6">
                   <h3 className="mb-3 text-sm font-semibold sm:text-base">
                     Źródła przychodów
