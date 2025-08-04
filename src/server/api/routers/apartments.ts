@@ -16,6 +16,7 @@ export const apartmentsRouter = createTRPCRouter({
                 reservations: z.number(), // Dodajemy pole z liczbą rezerwacji
                 defaultRentAmount: z.number().nullable(),
                 defaultUtilitiesAmount: z.number().nullable(),
+                weeklyLaundryCost: z.number().nullable(),
                 hasBalcony: z.boolean(),
                 hasParking: z.boolean(),
                 maxGuests: z.number().nullable(),
@@ -51,6 +52,10 @@ export const apartmentsRouter = createTRPCRouter({
                         },
                         defaultRentAmount: true,
                         defaultUtilitiesAmount: true,
+                        weeklyLaundryCost: true,
+                        cleaningSuppliesCost: true,
+                        capsuleCostPerGuest: true,
+                        wineCost: true,
                         hasBalcony: true,
                         hasParking: true,
                         maxGuests: true,
@@ -199,6 +204,10 @@ export const apartmentsRouter = createTRPCRouter({
                 address: z.string().min(1),
                 defaultRentAmount: z.number().optional(),
                 defaultUtilitiesAmount: z.number().optional(),
+                weeklyLaundryCost: z.number().optional(),
+                cleaningSuppliesCost: z.number().optional(),
+                capsuleCostPerGuest: z.number().optional(),
+                wineCost: z.number().optional(),
                 hasBalcony: z.boolean().optional(),
                 hasParking: z.boolean().optional(),
                 maxGuests: z.number().optional(),
@@ -248,6 +257,10 @@ export const apartmentsRouter = createTRPCRouter({
                     address: input.address,
                     defaultRentAmount: input.defaultRentAmount ?? 0,
                     defaultUtilitiesAmount: input.defaultUtilitiesAmount ?? 0,
+                    weeklyLaundryCost: input.weeklyLaundryCost ?? 120,
+                    cleaningSuppliesCost: input.cleaningSuppliesCost ?? 132,
+                    capsuleCostPerGuest: input.capsuleCostPerGuest ?? 2.5,
+                    wineCost: input.wineCost ?? 250,
                     hasBalcony: input.hasBalcony ?? false,
                     hasParking: input.hasParking ?? false,
                     maxGuests: input.maxGuests ?? 4,
@@ -284,6 +297,7 @@ export const apartmentsRouter = createTRPCRouter({
                 address: z.string().min(1).optional(),
                 defaultRentAmount: z.number().optional(),
                 defaultUtilitiesAmount: z.number().optional(),
+                weeklyLaundryCost: z.number().optional(),
                 hasBalcony: z.boolean().optional(),
                 hasParking: z.boolean().optional(),
                 maxGuests: z.number().optional(),
@@ -298,6 +312,7 @@ export const apartmentsRouter = createTRPCRouter({
                 address?: string;
                 defaultRentAmount?: number;
                 defaultUtilitiesAmount?: number;
+                weeklyLaundryCost?: number;
                 hasBalcony?: boolean;
                 hasParking?: boolean;
                 maxGuests?: number;

@@ -1,8 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/trpc/react";
+import { useChartData } from "@/hooks/useChartData";
+import {
+  BarChartPlaceholder,
+  PieChartPlaceholder,
+  PercentageCardsPlaceholder,
+} from "@/app/_components/shared/ChartPlaceholders";
 import Link from "next/link";
 import {
   BuildingOffice2Icon,
@@ -104,6 +110,17 @@ export default function OwnerDashboard() {
     "yearly",
   );
   const [showFilters, setShowFilters] = useState(false);
+  const [isFilterLoading, setIsFilterLoading] = useState(false);
+
+  // Helper function to handle filter changes with loading state
+  const handleFilterChange = (changeFunction: () => void) => {
+    setIsFilterLoading(true);
+    changeFunction();
+    // Reset loading after data should be loaded
+    setTimeout(() => {
+      setIsFilterLoading(false);
+    }, 800);
+  };
 
   // Chart visibility filters
   const [chartFilters, setChartFilters] = useState({
@@ -113,7 +130,6 @@ export default function OwnerDashboard() {
     Tekstylia: true,
     "Złote Wynajmy Prowizja": true,
     "Prowizje OTA": true,
-    "Podatek dochodowy": true,
     "Wypłata Właściciela": true,
   });
 
@@ -141,21 +157,20 @@ export default function OwnerDashboard() {
     enabled: !!ownerEmail,
   });
 
-  // Get filtered reports data
+  // Wspólny hook do zarządzania danymi wykresów
   const {
-    data: filteredReportsData,
-    isLoading: isLoadingFilteredReports,
-    error: filteredReportsError,
-  } = api.monthlyReports.getOwnerFilteredReports.useQuery(
-    {
-      ownerEmail: ownerEmail!,
-      apartmentId: selectedApartmentId,
-      year: selectedYear,
-      month: selectedMonth,
-      reportId: selectedReportId,
-      viewType,
-    },
-    { enabled: !!ownerEmail },
+    baseChartData,
+    revenueSourceData,
+    percentages,
+    isLoading: isLoadingChartData,
+    getMiniPieData,
+  } = useChartData(
+    ownerEmail ?? undefined,
+    selectedApartmentId,
+    selectedReportId,
+    viewType,
+    selectedYear,
+    selectedMonth,
   );
 
   // Get available apartments for filtering
@@ -201,105 +216,45 @@ export default function OwnerDashboard() {
       { enabled: !!ownerEmail },
     );
 
-  const {
-    data: reportData,
-    isLoading: isLoadingReport,
-    error: reportError,
-  } = api.monthlyReports.getFirstOwnerReport.useQuery(
-    { ownerEmail: ownerEmail! },
-    { enabled: !!ownerEmail },
-  );
+  const isLoading = isLoadingDashboard || isLoadingChartData;
+  const error = dashboardError;
 
-  const pieData = useMemo(() => {
-    if (!reportData) return [];
+  // Dane wykresów z wspólnego hook'a - używamy funkcji filtrującej
+  const chartData = useMemo(() => {
+    if (!baseChartData.length) return [];
+    return baseChartData;
+  }, [baseChartData]);
 
-    const totalRevenue = reportData.calculated.totalRevenue;
-    if (totalRevenue === 0) return [];
+  // Dane dla wykresu słupkowego z zastosowanymi filtrami
+  const getFilteredBarChartData = useMemo(() => {
+    return (filters: Record<string, boolean>) => {
+      return baseChartData.map((item) => {
+        const filteredItem: Partial<typeof item> = { name: item.name };
 
-    const zloteWynajmyPercent = 0.12;
-    const airbnbPercent = 0.1;
+        if (filters.Przychód) filteredItem.Przychód = item.Przychód;
+        if (filters.Sprzątanie) filteredItem.Sprzątanie = item.Sprzątanie;
+        if (filters.Pranie) filteredItem.Pranie = item.Pranie;
+        if (filters.Tekstylia) filteredItem.Tekstylia = item.Tekstylia;
+        if (filters["Złote Wynajmy Prowizja"])
+          filteredItem["Złote Wynajmy Prowizja"] =
+            item["Złote Wynajmy Prowizja"];
+        if (filters["Prowizje OTA"])
+          filteredItem["Prowizje OTA"] = item["Prowizje OTA"];
+        if (filters["Wypłata Właściciela"])
+          filteredItem["Wypłata Właściciela"] = item["Wypłata Właściciela"];
+        if (filters["Koszty stałe"])
+          filteredItem["Koszty stałe"] = item["Koszty stałe"];
 
-    const zloteWynajmyValue = totalRevenue * zloteWynajmyPercent;
-    const airbnbValue = totalRevenue * airbnbPercent;
-    const bookingValue = totalRevenue - zloteWynajmyValue - airbnbValue;
+        return filteredItem as typeof item;
+      });
+    };
+  }, [baseChartData]);
 
-    return [
-      { name: "Złote Wynajmy", value: zloteWynajmyValue },
-      { name: "Airbnb", value: airbnbValue },
-      { name: "Booking", value: bookingValue },
-    ];
-  }, [reportData]);
+  // Dane dla aktualnego wykresu słupkowego z filtrami
+  const filteredChartData = getFilteredBarChartData(chartFilters);
 
-  const isLoading =
-    isLoadingDashboard || isLoadingReport || isLoadingFilteredReports;
-  const error = dashboardError ?? reportError ?? filteredReportsError;
-
-  // Use filtered data for charts if available, otherwise fall back to original data
-  const chartData =
-    filteredReportsData?.chartData ??
-    (reportData
-      ? [
-          {
-            name: "Raport",
-            Przychód: reportData.calculated.totalRevenue,
-            Sprzątanie: reportData.items
-              .filter(
-                (i) =>
-                  i.type === "EXPENSE" &&
-                  (i.category.toLowerCase().includes("sprzątanie") ||
-                    i.category.toLowerCase().includes("sprzatanie") ||
-                    i.category.toLowerCase().includes("środki") ||
-                    i.category.toLowerCase().includes("srodki")),
-              )
-              .reduce((s, i) => s + i.amount, 0),
-            Pranie: reportData.items
-              .filter(
-                (i) =>
-                  i.type === "EXPENSE" &&
-                  i.category.toLowerCase().includes("pranie"),
-              )
-              .reduce((s, i) => s + i.amount, 0),
-            Tekstylia: reportData.items
-              .filter(
-                (i) =>
-                  i.type === "EXPENSE" &&
-                  i.category.toLowerCase().includes("tekstylia"),
-              )
-              .reduce((s, i) => s + i.amount, 0),
-            "Złote Wynajmy Prowizja": reportData.calculated.adminCommission,
-            "Prowizje OTA": reportData.items
-              .filter((i) => i.type === "COMMISSION")
-              .reduce((s, i) => s + i.amount, 0),
-            "Podatek dochodowy": reportData.calculated.finalIncomeTax,
-            "Wypłata Właściciela": reportData.calculated.ownerPayout,
-            // Dodajemy koszty stałe jako jedną kategorię dla trybu costsVsPayout
-            "Koszty stałe": reportData.items
-              .filter(
-                (i) =>
-                  i.type === "EXPENSE" &&
-                  (i.category.toLowerCase().includes("sprzątanie") ||
-                    i.category.toLowerCase().includes("sprzatanie") ||
-                    i.category.toLowerCase().includes("środki") ||
-                    i.category.toLowerCase().includes("srodki") ||
-                    i.category.toLowerCase().includes("pranie") ||
-                    i.category.toLowerCase().includes("tekstylia")),
-              )
-              .reduce((s, i) => s + i.amount, 0),
-          },
-        ]
-      : []);
-
-  const COLORS = {
-    "Złote Wynajmy": "#FFBB28", // Orange
-    Airbnb: "#FF5A5F", // Pink
-    Booking: "#0088FE", // Blue
-  };
-  const pieChartData = pieData.map((entry) => ({
-    ...entry,
-    fill: COLORS[entry.name as keyof typeof COLORS],
-  }));
-
-  const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
+  // Tooltip dla wykresów słupkowych (pokazuje wartości w PLN)
+  const BarChartTooltip = ({ active, payload, label }: TooltipProps) => {
     if (active && payload?.length) {
       return (
         <div className="rounded border border-gray-300 bg-white p-3 text-sm shadow-lg">
@@ -309,6 +264,40 @@ export default function OwnerDashboard() {
               {`${entry.name}: ${Number(entry.value).toFixed(2)} PLN`}
             </p>
           ))}
+        </div>
+      );
+    }
+
+    return null;
+  };
+
+  // Tooltip dla wykresów kołowych (pokazuje wartości w procentach)
+  const PieChartTooltip = ({ active, payload }: TooltipProps) => {
+    if (active && payload?.length) {
+      const data = payload[0];
+      return (
+        <div className="rounded border border-gray-300 bg-white p-3 text-sm shadow-lg">
+          <p key={data?.name} style={{ color: data?.color }} className="mb-1">
+            {`${data?.name}: ${Number(data?.value).toFixed(1)}%`}
+          </p>
+        </div>
+      );
+    }
+
+    return null;
+  };
+
+  // Tooltip dla wykresu źródeł przychodów (pokazuje PLN i procenty)
+  const RevenueSourceTooltip = ({ active, payload }: TooltipProps) => {
+    if (active && payload?.length) {
+      const data = payload[0];
+
+      return (
+        <div className="rounded border border-gray-300 bg-white p-3 text-sm shadow-lg">
+          <p className="mb-1 font-bold">{data?.name}</p>
+          <p style={{ color: data?.color }} className="mb-1">
+            {`Udział: ${Number(data?.value).toFixed(1)}%`}
+          </p>
         </div>
       );
     }
@@ -378,7 +367,6 @@ export default function OwnerDashboard() {
       Tekstylia: true,
       "Złote Wynajmy Prowizja": true,
       "Prowizje OTA": true,
-      "Podatek dochodowy": true,
       "Wypłata Właściciela": true,
     });
     setChartViewMode("normal");
@@ -394,7 +382,6 @@ export default function OwnerDashboard() {
         Tekstylia: false,
         "Złote Wynajmy Prowizja": true,
         "Prowizje OTA": false,
-        "Podatek dochodowy": false,
         "Wypłata Właściciela": true,
       });
     } else {
@@ -406,7 +393,6 @@ export default function OwnerDashboard() {
         Tekstylia: true,
         "Złote Wynajmy Prowizja": true,
         "Prowizje OTA": true,
-        "Podatek dochodowy": true,
         "Wypłata Właściciela": true,
       });
     }
@@ -422,7 +408,6 @@ export default function OwnerDashboard() {
         Tekstylia: true,
         "Złote Wynajmy Prowizja": false,
         "Prowizje OTA": true,
-        "Podatek dochodowy": false,
         "Wypłata Właściciela": false,
       });
     } else {
@@ -434,65 +419,10 @@ export default function OwnerDashboard() {
         Tekstylia: true,
         "Złote Wynajmy Prowizja": true,
         "Prowizje OTA": true,
-        "Podatek dochodowy": true,
         "Wypłata Właściciela": true,
       });
     }
   };
-
-  // Calculate percentages for current data
-  const calculatePercentages = () => {
-    if (!chartData.length) return null;
-
-    const data = chartData[0];
-    if (!data) return null;
-
-    const totalRevenue = data.Przychód || 0;
-
-    if (totalRevenue === 0) return null;
-
-    return {
-      adminCommission:
-        totalRevenue > 0
-          ? (
-              ((data["Złote Wynajmy Prowizja"] || 0) / totalRevenue) *
-              100
-            ).toFixed(1)
-          : "0",
-      fixedCosts:
-        totalRevenue > 0
-          ? (((data["Koszty stałe"] || 0) / totalRevenue) * 100).toFixed(1)
-          : "0",
-      cleaning:
-        totalRevenue > 0
-          ? (((data.Sprzątanie || 0) / totalRevenue) * 100).toFixed(1)
-          : "0",
-      laundry:
-        totalRevenue > 0
-          ? (((data.Pranie || 0) / totalRevenue) * 100).toFixed(1)
-          : "0",
-      textiles:
-        totalRevenue > 0
-          ? (((data.Tekstylia || 0) / totalRevenue) * 100).toFixed(1)
-          : "0",
-      otaCommissions:
-        totalRevenue > 0
-          ? (((data["Prowizje OTA"] || 0) / totalRevenue) * 100).toFixed(1)
-          : "0",
-      payout:
-        totalRevenue > 0
-          ? (((data["Wypłata Właściciela"] ?? 0) / totalRevenue) * 100).toFixed(
-              1,
-            )
-          : "0",
-      incomeTax:
-        totalRevenue > 0
-          ? (((data["Podatek dochodowy"] || 0) / totalRevenue) * 100).toFixed(1)
-          : "0",
-    };
-  };
-
-  const percentages = calculatePercentages();
 
   if (isLoading) {
     return (
@@ -652,8 +582,10 @@ export default function OwnerDashboard() {
                     <select
                       value={selectedApartmentId ?? ""}
                       onChange={(e) =>
-                        setSelectedApartmentId(
-                          e.target.value ? Number(e.target.value) : undefined,
+                        handleFilterChange(() =>
+                          setSelectedApartmentId(
+                            e.target.value ? Number(e.target.value) : undefined,
+                          ),
                         )
                       }
                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
@@ -675,8 +607,10 @@ export default function OwnerDashboard() {
                     <select
                       value={viewType}
                       onChange={(e) =>
-                        setViewType(
-                          e.target.value as "yearly" | "monthly" | "single",
+                        handleFilterChange(() =>
+                          setViewType(
+                            e.target.value as "yearly" | "monthly" | "single",
+                          ),
                         )
                       }
                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
@@ -694,13 +628,15 @@ export default function OwnerDashboard() {
                     </label>
                     <select
                       value={selectedYear ?? ""}
-                      onChange={(e) => {
-                        setSelectedYear(
-                          e.target.value ? Number(e.target.value) : undefined,
-                        );
-                        setSelectedMonth(undefined);
-                        setSelectedReportId(undefined);
-                      }}
+                      onChange={(e) =>
+                        handleFilterChange(() => {
+                          setSelectedYear(
+                            e.target.value ? Number(e.target.value) : undefined,
+                          );
+                          setSelectedMonth(undefined);
+                          setSelectedReportId(undefined);
+                        })
+                      }
                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                     >
                       <option value="">Wszystkie lata</option>
@@ -719,12 +655,14 @@ export default function OwnerDashboard() {
                     </label>
                     <select
                       value={selectedMonth ?? ""}
-                      onChange={(e) => {
-                        setSelectedMonth(
-                          e.target.value ? Number(e.target.value) : undefined,
-                        );
-                        setSelectedReportId(undefined);
-                      }}
+                      onChange={(e) =>
+                        handleFilterChange(() => {
+                          setSelectedMonth(
+                            e.target.value ? Number(e.target.value) : undefined,
+                          );
+                          setSelectedReportId(undefined);
+                        })
+                      }
                       disabled={!selectedYear}
                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 disabled:bg-gray-100 sm:text-sm"
                     >
@@ -748,7 +686,9 @@ export default function OwnerDashboard() {
                     <select
                       value={selectedReportId ?? ""}
                       onChange={(e) =>
-                        setSelectedReportId(e.target.value || undefined)
+                        handleFilterChange(() =>
+                          setSelectedReportId(e.target.value || undefined),
+                        )
                       }
                       disabled={viewType !== "single"}
                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 disabled:bg-gray-100 sm:text-sm"
@@ -765,7 +705,7 @@ export default function OwnerDashboard() {
                   {/* Reset Button */}
                   <div className="flex items-end">
                     <button
-                      onClick={handleFilterReset}
+                      onClick={() => handleFilterChange(handleFilterReset)}
                       className="w-full rounded-md bg-gray-600 px-3 py-2 text-sm font-medium text-white hover:bg-gray-700"
                     >
                       Resetuj filtry
@@ -775,7 +715,38 @@ export default function OwnerDashboard() {
               </div>
             )}
 
-            {chartData.length > 0 ? (
+            {isFilterLoading || isLoadingChartData ? (
+              // Loading placeholders
+              <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-2 lg:gap-8">
+                <div className="rounded-lg bg-white p-3 shadow sm:p-4 lg:p-6">
+                  <div className="mb-4">
+                    <div className="mb-2 h-6 w-1/3 animate-pulse rounded bg-gray-200"></div>
+                    <div className="flex gap-2">
+                      <div className="h-8 w-16 animate-pulse rounded bg-gray-200"></div>
+                      <div className="h-8 w-20 animate-pulse rounded bg-gray-200"></div>
+                      <div className="h-8 w-24 animate-pulse rounded bg-gray-200"></div>
+                    </div>
+                  </div>
+                  <BarChartPlaceholder height={400} />
+                </div>
+
+                <div className="space-y-4">
+                  <div className="rounded-lg bg-white p-3 shadow sm:p-4 lg:p-6">
+                    <div className="mb-4">
+                      <div className="h-6 w-1/2 animate-pulse rounded bg-gray-200"></div>
+                    </div>
+                    <PercentageCardsPlaceholder />
+                  </div>
+
+                  <div className="rounded-lg bg-white p-3 shadow sm:p-4 lg:p-6">
+                    <div className="mb-4">
+                      <div className="h-6 w-1/3 animate-pulse rounded bg-gray-200"></div>
+                    </div>
+                    <PieChartPlaceholder height={400} />
+                  </div>
+                </div>
+              </div>
+            ) : chartData.length > 0 ? (
               <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-2 lg:gap-8">
                 <div className="rounded-lg bg-white p-3 shadow sm:p-4 lg:p-6">
                   <div className="mb-4 flex items-center justify-between">
@@ -859,7 +830,7 @@ export default function OwnerDashboard() {
                   </div>
                   <ResponsiveContainer width="100%" height={400}>
                     <BarChart
-                      data={chartData}
+                      data={filteredChartData}
                       margin={{
                         top: 10,
                         right: 20,
@@ -880,7 +851,7 @@ export default function OwnerDashboard() {
                         tick={{ fontSize: 11 }}
                         className="text-xs sm:text-sm"
                       />
-                      <Tooltip content={<CustomTooltip />} />
+                      <Tooltip content={<BarChartTooltip />} />
                       {chartViewMode === "costsVsPayout" ? (
                         <>
                           <Bar
@@ -920,9 +891,6 @@ export default function OwnerDashboard() {
                           )}
                           {chartFilters["Prowizje OTA"] && (
                             <Bar dataKey="Prowizje OTA" fill="#ff8042" />
-                          )}
-                          {chartFilters["Podatek dochodowy"] && (
-                            <Bar dataKey="Podatek dochodowy" fill="#e74c3c" />
                           )}
                           {chartFilters["Wypłata Właściciela"] && (
                             <Bar dataKey="Wypłata Właściciela" fill="#00C49F" />
@@ -1050,15 +1018,7 @@ export default function OwnerDashboard() {
                             <span>Prowizje OTA</span>
                           </div>
                         )}
-                        {chartFilters["Podatek dochodowy"] && (
-                          <div className="flex items-center gap-2">
-                            <div
-                              className="h-3 w-3 rounded"
-                              style={{ backgroundColor: "#e74c3c" }}
-                            />
-                            <span>Podatek dochodowy</span>
-                          </div>
-                        )}
+
                         {chartFilters["Wypłata Właściciela"] && (
                           <div className="flex items-center gap-2">
                             <div
@@ -1228,190 +1188,243 @@ export default function OwnerDashboard() {
                   ) : (
                     <div className="space-y-3">
                       <div className="rounded-md bg-blue-50 p-3">
-                        <h5 className="mb-2 font-medium text-blue-800">
-                          Tryb: Normalny
-                        </h5>
-                        <p className="text-sm text-blue-700">
-                          Pełny widok wszystkich kategorii finansowych:
-                        </p>
-                        <ul className="mt-2 space-y-1 text-sm text-blue-700">
-                          <li>
-                            • <strong>Przychód</strong> - całkowite przychody z
-                            wynajmu
-                          </li>
-                          <li>
-                            • <strong>Koszty operacyjne</strong> - sprzątanie,
-                            pranie, tekstylia
-                          </li>
-                          <li>
-                            • <strong>Prowizje</strong> - Złote Wynajmy i
-                            platformy OTA
-                          </li>
-                          <li>
-                            • <strong>Podatek dochodowy</strong> - obliczony
-                            podatek
-                          </li>
-                          <li>
-                            • <strong>Wypłata Właściciela</strong> - końcowa
-                            wypłata dla właściciela
-                          </li>
-                        </ul>
-                        <div className="mt-3 rounded bg-white p-2 text-xs">
-                          <p className="font-medium text-gray-800">
-                            Aktualne wyliczenia:
-                          </p>
-                          {percentages ? (
-                            <div className="space-y-1 text-gray-600">
-                              <p>
-                                • Wypłata Właściciela:{" "}
-                                <strong>{percentages.payout}%</strong> przychodu
-                              </p>
-                              <p>
-                                • Podatek dochodowy:{" "}
-                                <strong>{percentages.incomeTax}%</strong>{" "}
-                                przychodu
-                              </p>
-                              <p>
-                                • Prowizja Złote Wynajmy:{" "}
-                                <strong>{percentages.adminCommission}%</strong>{" "}
-                                przychodu
-                              </p>
-                              <p>
-                                • Prowizje OTA:{" "}
-                                <strong>{percentages.otaCommissions}%</strong>{" "}
-                                przychodu
-                              </p>
-                              <p>
-                                • Koszty operacyjne:{" "}
-                                <strong>{percentages.fixedCosts}%</strong>{" "}
-                                przychodu
-                              </p>
-                              <p className="mt-2 font-medium text-gray-800">
-                                <strong>Suma wszystkich kategorii: 100%</strong>
-                              </p>
+                        {/* Header w stylu raportów */}
+                        <div className="mt-4 rounded-lg border border-gray-200 bg-white shadow-sm">
+                          <div className="border-b border-gray-200 px-4 py-3">
+                            <div className="flex items-center space-x-2">
+                              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100">
+                                <svg
+                                  className="h-5 w-9 text-blue-600"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                                  />
+                                </svg>
+                              </div>
+                              <div>
+                                <h4 className="text-lg font-semibold text-gray-900">
+                                  Aktualne wyliczenia
+                                </h4>
+                                <p className="text-sm text-gray-600">
+                                  Pełen udział wszystkich składowych inwestycji
+                                  w przychodzie
+                                </p>
+                                <p className="text-sm text-gray-600">
+                                  Wszystkie kategorie wyświetlone osobno z
+                                  własnymi procentami. Najedź na dowolną
+                                  kategorię aby zobaczyć szczegółowy opis.
+                                </p>
+                              </div>
                             </div>
-                          ) : (
-                            <p className="text-gray-600">
-                              Brak danych do wyliczenia
-                            </p>
-                          )}
-                          <p className="mt-2 text-gray-500">
-                            Pełny podział przychodów po odliczeniu wszystkich
-                            kosztów
-                          </p>
+                          </div>
 
-                          {/* Mini wykres kołowy dla trybu Normalny */}
-                          {percentages && (
-                            <div className="mt-4">
-                              <h6 className="mb-2 text-xs font-medium text-gray-700">
-                                Podział procentowy:
-                              </h6>
-                              <ResponsiveContainer width="100%" height={200}>
-                                <PieChart>
-                                  <Pie
-                                    data={[
-                                      {
-                                        name: "Wypłata Właściciela",
-                                        value: parseFloat(percentages.payout),
-                                        fill: "#00C49F",
-                                      },
-                                      {
-                                        name: "Podatek dochodowy",
-                                        value: parseFloat(
-                                          percentages.incomeTax,
-                                        ),
-                                        fill: "#e74c3c",
-                                      },
-                                      {
-                                        name: "Prowizja Złote Wynajmy",
-                                        value: parseFloat(
+                          <div className="p-4">
+                            {percentages ? (
+                              <div className="space-y-3">
+                                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                                  <div className="group relative rounded-lg bg-green-50 p-3 text-center">
+                                    <span className="block text-sm font-medium text-green-900">
+                                      Wypłata Właściciela
+                                    </span>
+                                    <span className="mt-1 block text-2xl font-bold text-green-700">
+                                      {percentages.payout}%
+                                    </span>
+                                    {/* Tooltip */}
+                                    <div className="absolute bottom-full left-1/2 z-10 mb-2 hidden w-48 -translate-x-1/2 rounded-md bg-gray-900 px-3 py-2 text-xs text-white group-hover:block">
+                                      Końcowa wypłata dla właściciela
+                                      <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                                    </div>
+                                  </div>
+                                  <div className="group relative rounded-lg bg-yellow-50 p-3 text-center">
+                                    <span className="block text-sm font-medium text-yellow-900">
+                                      Prowizja Złote Wynajmy
+                                    </span>
+                                    <span className="mt-1 block text-2xl font-bold text-yellow-700">
+                                      {percentages.adminCommission}%
+                                    </span>
+                                    {/* Tooltip */}
+                                    <div className="absolute bottom-full left-1/2 z-10 mb-2 hidden w-48 -translate-x-1/2 rounded-md bg-gray-900 px-3 py-2 text-xs text-white group-hover:block">
+                                      Prowizja pobierana przez Złote Wynajmy za
+                                      zarządzanie nieruchomością
+                                      <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                                    </div>
+                                  </div>
+                                  <div className="group relative rounded-lg bg-red-50 p-3 text-center">
+                                    <span className="block text-sm font-medium text-red-900">
+                                      Prowizje OTA
+                                    </span>
+                                    <span className="mt-1 block text-2xl font-bold text-red-700">
+                                      {percentages.otaCommissions}%
+                                    </span>
+                                    {/* Tooltip */}
+                                    <div className="absolute bottom-full left-1/2 z-10 mb-2 hidden w-48 -translate-x-1/2 rounded-md bg-gray-900 px-3 py-2 text-xs text-white group-hover:block">
+                                      Prowizje od platform bookingowych
+                                      (Booking.com, Airbnb itp.)
+                                      <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                                    </div>
+                                  </div>
+                                  <div className="group relative rounded-lg bg-blue-50 p-3 text-center">
+                                    <span className="block text-sm font-medium text-blue-900">
+                                      Sprzątanie
+                                    </span>
+                                    <span className="mt-1 block text-2xl font-bold text-blue-700">
+                                      {percentages.cleaning}%
+                                    </span>
+                                    {/* Tooltip */}
+                                    <div className="absolute bottom-full left-1/2 z-10 mb-2 hidden w-48 -translate-x-1/2 rounded-md bg-gray-900 px-3 py-2 text-xs text-white group-hover:block">
+                                      Koszty sprzątania i środków czystości
+                                      <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                                    </div>
+                                  </div>
+                                  <div className="group relative rounded-lg bg-indigo-50 p-3 text-center">
+                                    <span className="block text-sm font-medium text-indigo-900">
+                                      Pranie
+                                    </span>
+                                    <span className="mt-1 block text-2xl font-bold text-indigo-700">
+                                      {percentages.laundry}%
+                                    </span>
+                                    {/* Tooltip */}
+                                    <div className="absolute bottom-full left-1/2 z-10 mb-2 hidden w-48 -translate-x-1/2 rounded-md bg-gray-900 px-3 py-2 text-xs text-white group-hover:block">
+                                      Koszty prania pościeli i ręczników
+                                      <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                                    </div>
+                                  </div>
+                                  <div className="group relative rounded-lg bg-purple-50 p-3 text-center">
+                                    <span className="block text-sm font-medium text-purple-900">
+                                      Tekstylia
+                                    </span>
+                                    <span className="mt-1 block text-2xl font-bold text-purple-700">
+                                      {percentages.textiles}%
+                                    </span>
+                                    {/* Tooltip */}
+                                    <div className="absolute bottom-full left-1/2 z-10 mb-2 hidden w-48 -translate-x-1/2 rounded-md bg-gray-900 px-3 py-2 text-xs text-white group-hover:block">
+                                      Koszty pościeli, ręczników, dekoracji
+                                      <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                                    </div>
+                                  </div>
+                                  <div className="group relative rounded-lg bg-orange-50 p-3 text-center">
+                                    <span className="block text-sm font-medium text-orange-900">
+                                      Czynsz
+                                    </span>
+                                    <span className="mt-1 block text-2xl font-bold text-orange-700">
+                                      {percentages.rent}%
+                                    </span>
+                                    {/* Tooltip */}
+                                    <div className="absolute bottom-full left-1/2 z-10 mb-2 hidden w-52 -translate-x-1/2 rounded-md bg-gray-900 px-3 py-2 text-xs text-white group-hover:block">
+                                      Koszty czynszu administracyjnego. Zwykle
+                                      wliczane w wypłatę właściciela.
+                                      <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                                    </div>
+                                  </div>
+                                  <div className="group relative rounded-lg bg-teal-50 p-3 text-center">
+                                    <span className="block text-sm font-medium text-teal-900">
+                                      Media
+                                    </span>
+                                    <span className="mt-1 block text-2xl font-bold text-teal-700">
+                                      {percentages.utilities}%
+                                    </span>
+                                    {/* Tooltip */}
+                                    <div className="absolute bottom-full left-1/2 z-10 mb-2 hidden w-52 -translate-x-1/2 rounded-md bg-gray-900 px-3 py-2 text-xs text-white group-hover:block">
+                                      Koszty mediów (prąd, gaz, woda, internet).
+                                      Zwykle wliczane w wypłatę właściciela.
+                                      <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="mt-4 rounded-lg bg-gray-50 p-3 text-center">
+                                  <p className="text-lg font-bold text-gray-900">
+                                    Suma kategorii:{" "}
+                                    {percentages
+                                      ? (() => {
+                                          const sum =
+                                            parseFloat(percentages.payout) +
+                                            parseFloat(
+                                              percentages.adminCommission,
+                                            ) +
+                                            parseFloat(
+                                              percentages.otaCommissions,
+                                            ) +
+                                            parseFloat(percentages.cleaning) +
+                                            parseFloat(percentages.laundry) +
+                                            parseFloat(percentages.textiles) +
+                                            parseFloat(percentages.rent) +
+                                            parseFloat(percentages.utilities);
+                                          // Jeśli suma jest bardzo bliska 100%, pokaż 100%
+                                          return sum >= 99.5 && sum <= 100.5
+                                            ? "100.0"
+                                            : sum.toFixed(1);
+                                        })()
+                                      : "0"}
+                                    %
+                                  </p>
+                                  {percentages &&
+                                    (() => {
+                                      const sum =
+                                        parseFloat(percentages.payout) +
+                                        parseFloat(
                                           percentages.adminCommission,
-                                        ),
-                                        fill: "#ffc658",
-                                      },
-                                      {
-                                        name: "Prowizje OTA",
-                                        value: parseFloat(
-                                          percentages.otaCommissions,
-                                        ),
-                                        fill: "#ff8042",
-                                      },
-                                      {
-                                        name: "Sprzątanie",
-                                        value: parseFloat(percentages.cleaning),
-                                        fill: "#8884d8",
-                                      },
-                                      {
-                                        name: "Pranie",
-                                        value: parseFloat(percentages.laundry),
-                                        fill: "#ff6b6b",
-                                      },
-                                      {
-                                        name: "Tekstylia",
-                                        value: parseFloat(percentages.textiles),
-                                        fill: "#9c27b0",
-                                      },
-                                    ]}
-                                    cx="50%"
-                                    cy="50%"
-                                    outerRadius={60}
-                                    dataKey="value"
-                                  >
-                                    {[
-                                      {
-                                        name: "Wypłata Właściciela",
-                                        value: parseFloat(percentages.payout),
-                                        fill: "#00C49F",
-                                      },
-                                      {
-                                        name: "Podatek dochodowy",
-                                        value: parseFloat(
-                                          percentages.incomeTax,
-                                        ),
-                                        fill: "#e74c3c",
-                                      },
-                                      {
-                                        name: "Prowizja Złote Wynajmy",
-                                        value: parseFloat(
-                                          percentages.adminCommission,
-                                        ),
-                                        fill: "#ffc658",
-                                      },
-                                      {
-                                        name: "Prowizje OTA",
-                                        value: parseFloat(
-                                          percentages.otaCommissions,
-                                        ),
-                                        fill: "#ff8042",
-                                      },
-                                      {
-                                        name: "Sprzątanie",
-                                        value: parseFloat(percentages.cleaning),
-                                        fill: "#8884d8",
-                                      },
-                                      {
-                                        name: "Pranie",
-                                        value: parseFloat(percentages.laundry),
-                                        fill: "#ff6b6b",
-                                      },
-                                      {
-                                        name: "Tekstylia",
-                                        value: parseFloat(percentages.textiles),
-                                        fill: "#9c27b0",
-                                      },
-                                    ].map((entry) => (
-                                      <Cell
-                                        key={`cell-${entry.name}`}
-                                        fill={entry.fill}
-                                      />
-                                    ))}
-                                  </Pie>
-                                  <Tooltip content={<CustomTooltip />} />
-                                </PieChart>
-                              </ResponsiveContainer>
-                            </div>
-                          )}
+                                        ) +
+                                        parseFloat(percentages.otaCommissions) +
+                                        parseFloat(percentages.cleaning) +
+                                        parseFloat(percentages.laundry) +
+                                        parseFloat(percentages.textiles) +
+                                        parseFloat(percentages.rent) +
+                                        parseFloat(percentages.utilities);
+                                      const remaining = 100 - sum;
+                                      // Pokaż "Pozostałe" tylko jeśli jest znacząca wartość
+                                      return remaining > 0.5 ? (
+                                        <p className="mt-1 text-sm text-gray-600">
+                                          Pozostałe {remaining.toFixed(1)}% to
+                                          inne koszty
+                                        </p>
+                                      ) : null;
+                                    })()}
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="rounded-lg bg-gray-50 p-6 text-center">
+                                <p className="text-gray-500">
+                                  Brak danych do wyliczenia
+                                </p>
+                              </div>
+                            )}
+                          </div>
                         </div>
+
+                        {/* Mini wykres kołowy dla trybu Normalny */}
+                        {percentages && (
+                          <div className="mt-4">
+                            <h6 className="mb-2 text-sm font-medium text-gray-700">
+                              Podział procentowy:
+                            </h6>
+                            <ResponsiveContainer width="100%" height={200}>
+                              <PieChart>
+                                <Pie
+                                  data={getMiniPieData("normal")}
+                                  cx="50%"
+                                  cy="50%"
+                                  outerRadius={60}
+                                  dataKey="value"
+                                >
+                                  {getMiniPieData("normal").map((entry) => (
+                                    <Cell
+                                      key={`cell-${entry.name}`}
+                                      fill={entry.fill}
+                                    />
+                                  ))}
+                                </Pie>
+                                <Tooltip content={<PieChartTooltip />} />
+                              </PieChart>
+                            </ResponsiveContainer>
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
@@ -1426,24 +1439,24 @@ export default function OwnerDashboard() {
                       margin={{ top: 20, right: 80, bottom: 20, left: 80 }}
                     >
                       <Pie
-                        data={pieChartData}
+                        data={revenueSourceData}
                         cx="50%"
                         cy="50%"
                         labelLine={false}
                         outerRadius={100}
                         fill="#8884d8"
-                        dataKey="value"
+                        dataKey="percentage"
                         label={renderCustomLabel}
                       >
-                        {pieChartData.map((entry) => (
+                        {revenueSourceData.map((entry) => (
                           <Cell key={`cell-${entry.name}`} fill={entry.fill} />
                         ))}
                       </Pie>
-                      <Tooltip content={<CustomTooltip />} />
+                      <Tooltip content={<RevenueSourceTooltip />} />
                     </PieChart>
                   </ResponsiveContainer>
                   <div className="mt-4 flex flex-wrap justify-center gap-4 text-xs">
-                    {pieChartData.map((entry) => (
+                    {revenueSourceData.map((entry) => (
                       <div key={entry.name} className="flex items-center gap-2">
                         <div
                           className="h-3 w-3 rounded"

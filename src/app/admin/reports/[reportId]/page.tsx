@@ -354,7 +354,7 @@ export default function ReportDetailsPage({
     {
       name: "Tekstylia",
       vatRate: 23,
-      description: "Zakup i wymiana tekstyliów",
+      description: "Tekstylia, wino i środki czystości",
     },
     {
       name: "Sprzątanie",
@@ -372,7 +372,7 @@ export default function ReportDetailsPage({
     tekstylia: {
       name: "Tekstylia",
       vatRate: 23,
-      description: "Zakup i wymiana tekstyliów",
+      description: "Tekstylia, wino i środki czystości",
     },
     sprzatanie: {
       name: "Sprzątanie",
@@ -770,12 +770,12 @@ export default function ReportDetailsPage({
 
   // Funkcja obliczająca sugerowaną kwotę za pranie
   const calculateSuggestedLaundryCost = () => {
-    if (!report) {
+    if (!report?.apartment?.weeklyLaundryCost) {
       return 0;
     }
 
-    // Koszt prania: 180 PLN co 7 dni
-    const laundryCostPerWeek = 180;
+    // Koszt prania z ustawień apartamentu
+    const laundryCostPerWeek = report.apartment.weeklyLaundryCost;
     const daysPerWeek = 7;
 
     // Oblicz liczbę dni w miesiącu raportu
@@ -797,20 +797,32 @@ export default function ReportDetailsPage({
 
   // Funkcja obliczająca sugerowaną kwotę za tekstylia
   const calculateSuggestedTextileCost = () => {
-    if (!report) {
+    if (!report?.apartment) {
       return 0;
     }
 
-    // Koszt tekstyliów: 12.69 PLN za rezerwację
-    const textileCostPerReservation = 12.69;
+    // Koszty z ustawień apartamentu
+    const cleaningSuppliesCost = report.apartment.cleaningSuppliesCost ?? 132; // Stały koszt środków czystości
+    const capsuleCostPerGuest = report.apartment.capsuleCostPerGuest ?? 2.5; // Koszt kapsułki na gościa
+    const wineCost = report.apartment.wineCost ?? 250; // Koszt wina
 
-    // Oblicz liczbę rezerwacji w raporcie
+    // Oblicz liczbę gości ze wszystkich rezerwacji
     const revenueItems = report.items.filter(
       (item) => item.type === "REVENUE" && item.reservation,
     );
 
-    // Oblicz całkowity koszt tekstyliów za miesiąc
-    const totalTextileCost = revenueItems.length * textileCostPerReservation;
+    let totalGuests = 0;
+    revenueItems.forEach((item) => {
+      if (item.reservation) {
+        const guests =
+          (item.reservation.adults ?? 0) + (item.reservation.children ?? 0);
+        totalGuests += guests;
+      }
+    });
+
+    // Oblicz całkowity koszt tekstyliów: stałe koszty + kapsułki
+    const totalCapsuleCost = totalGuests * capsuleCostPerGuest;
+    const totalTextileCost = cleaningSuppliesCost + wineCost + totalCapsuleCost;
 
     return totalTextileCost;
   };
@@ -1360,22 +1372,22 @@ export default function ReportDetailsPage({
                             <p className="mt-1 text-xs text-green-600">
                               💡 Sugerowana kwota:{" "}
                               {suggestedLaundryCost.toFixed(2)} PLN (koszt
-                              miesięczny: 180 PLN co 7 dni) - średnio {180} PLN
-                              za tydzień
+                              miesięczny:{" "}
+                              {report.apartment.weeklyLaundryCost ?? 120} PLN co
+                              7 dni) - średnio{" "}
+                              {report.apartment.weeklyLaundryCost ?? 120} PLN za
+                              tydzień
                             </p>
                           )}
                           {key === "tekstylia" && suggestedTextileCost > 0 && (
                             <p className="mt-1 text-xs text-green-600">
                               💡 Sugerowana kwota:{" "}
-                              {suggestedTextileCost.toFixed(2)} PLN (na
-                              podstawie{" "}
-                              {
-                                report.items.filter(
-                                  (item) =>
-                                    item.type === "REVENUE" && item.reservation,
-                                ).length
-                              }{" "}
-                              rezerwacji) - średnio {12.69} PLN za rezerwację
+                              {suggestedTextileCost.toFixed(2)} PLN (środki:{" "}
+                              {report.apartment.cleaningSuppliesCost ?? 132} PLN
+                              + wino: {report.apartment.wineCost ?? 250} PLN +{" "}
+                              kapsułki:{" "}
+                              {report.apartment.capsuleCostPerGuest ?? 2.5}{" "}
+                              PLN/gość)
                             </p>
                           )}
                         </div>

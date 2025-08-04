@@ -3,8 +3,13 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/trpc/react";
-import { UserCircleIcon, CameraIcon } from "@heroicons/react/24/outline";
+import {
+  UserCircleIcon,
+  CameraIcon,
+  DocumentTextIcon,
+} from "@heroicons/react/24/outline";
 import Image from "next/image";
+import Link from "next/link";
 
 export default function OwnerProfile() {
   const router = useRouter();
@@ -162,6 +167,42 @@ export default function OwnerProfile() {
 
       <main className="py-10">
         <div className="mx-auto max-w-3xl sm:px-6 lg:px-8">
+          {/* Quick Actions */}
+          <div className="mb-8 rounded-lg bg-white shadow">
+            <div className="px-4 py-5 sm:p-6">
+              <h3 className="text-lg font-medium leading-6 text-gray-900">
+                Szybkie akcje
+              </h3>
+              <div className="mt-5">
+                <div className="rounded-md bg-blue-50 p-4">
+                  <div className="flex">
+                    <div className="flex-shrink-0">
+                      <DocumentTextIcon
+                        className="h-5 w-5 text-blue-400"
+                        aria-hidden="true"
+                      />
+                    </div>
+                    <div className="ml-3 flex-1 md:flex md:justify-between">
+                      <p className="text-sm text-blue-700">
+                        Przeglądaj swoją kompletną historię podatku dochodowego
+                        z możliwością eksportu i analizy.
+                      </p>
+                      <p className="mt-3 text-sm md:ml-6 md:mt-0">
+                        <Link
+                          href="/apartamentsOwner/tax-history"
+                          className="whitespace-nowrap font-medium text-blue-700 hover:text-blue-600"
+                        >
+                          Historia Podatku
+                          <span aria-hidden="true"> &rarr;</span>
+                        </Link>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className="rounded-lg bg-white shadow">
             {/* Profile Image Section */}
             <div className="border-b border-gray-200 px-4 py-5 sm:p-6">

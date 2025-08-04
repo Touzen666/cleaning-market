@@ -111,6 +111,10 @@ model Apartment {
   address                String
   defaultRentAmount      Float?               @default(0)
   defaultUtilitiesAmount Float?               @default(0)
+  weeklyLaundryCost      Float?               @default(120) // Koszty prania tygodniowo w PLN
+  cleaningSuppliesCost   Float?               @default(132) // Stały koszt środków czystości w PLN
+  capsuleCostPerGuest    Float?               @default(2.5) // Koszt kapsułki na gościa w PLN
+  wineCost               Float?               @default(250) // Koszt wina w PLN
   hasBalcony             Boolean              @default(false)
   hasParking             Boolean              @default(false)
   maxGuests              Int?                 @default(4)
