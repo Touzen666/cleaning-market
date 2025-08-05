@@ -1069,17 +1069,24 @@ export default function OwnerDashboard() {
                             <div className="space-y-1 text-gray-600">
                               <p>
                                 • Prowizja Złote Wynajmy:{" "}
-                                <strong>{percentages.adminCommission}%</strong>{" "}
+                                <strong>
+                                  {percentages.adminCommission.toFixed(1)}%
+                                </strong>{" "}
                                 przychodu
                               </p>
                               <p>
                                 • Koszty stałe:{" "}
-                                <strong>{percentages.fixedCosts}%</strong>{" "}
+                                <strong>
+                                  {percentages.fixedCosts.toFixed(1)}%
+                                </strong>{" "}
                                 przychodu
                               </p>
                               <p>
                                 • Wypłata Właściciela:{" "}
-                                <strong>{percentages.payout}%</strong> przychodu
+                                <strong>
+                                  {percentages.payout.toFixed(1)}%
+                                </strong>{" "}
+                                przychodu
                               </p>
                               <p>
                                 • Stosunek Wypłata Właściciela/Prowizja ZW:{" "}
@@ -1087,10 +1094,8 @@ export default function OwnerDashboard() {
                                   {percentages.payout &&
                                   percentages.adminCommission
                                     ? (
-                                        (parseFloat(percentages.payout) /
-                                          parseFloat(
-                                            percentages.adminCommission,
-                                          )) *
+                                        (percentages.payout /
+                                          percentages.adminCommission) *
                                         100
                                       ).toFixed(1)
                                     : "0"}
@@ -1146,29 +1151,37 @@ export default function OwnerDashboard() {
                             <div className="space-y-1 text-gray-600">
                               <p>
                                 • Sprzątanie:{" "}
-                                <strong>{percentages.cleaning}%</strong>{" "}
+                                <strong>
+                                  {percentages.cleaning.toFixed(1)}%
+                                </strong>{" "}
                                 przychodu
                               </p>
                               <p>
                                 • Pranie:{" "}
-                                <strong>{percentages.laundry}%</strong>{" "}
+                                <strong>
+                                  {percentages.laundry.toFixed(1)}%
+                                </strong>{" "}
                                 przychodu
                               </p>
                               <p>
                                 • Tekstylia:{" "}
-                                <strong>{percentages.textiles}%</strong>{" "}
+                                <strong>
+                                  {percentages.textiles.toFixed(1)}%
+                                </strong>{" "}
                                 przychodu
                               </p>
                               <p>
                                 • Prowizje OTA:{" "}
-                                <strong>{percentages.otaCommissions}%</strong>{" "}
+                                <strong>
+                                  {percentages.otaCommissions.toFixed(1)}%
+                                </strong>{" "}
                                 przychodu
                               </p>
                               <p>
                                 •{" "}
                                 <strong>
-                                  Łącznie koszty stałe: {percentages.fixedCosts}
-                                  %
+                                  Łącznie koszty stałe:{" "}
+                                  {percentages.fixedCosts.toFixed(1)}%
                                 </strong>{" "}
                                 przychodu
                               </p>
@@ -1233,7 +1246,7 @@ export default function OwnerDashboard() {
                                       Wypłata Właściciela
                                     </span>
                                     <span className="mt-1 block text-2xl font-bold text-green-700">
-                                      {percentages.payout}%
+                                      {percentages.payout.toFixed(1)}%
                                     </span>
                                     {/* Tooltip */}
                                     <div className="absolute bottom-full left-1/2 z-10 mb-2 hidden w-48 -translate-x-1/2 rounded-md bg-gray-900 px-3 py-2 text-xs text-white group-hover:block">
@@ -1246,7 +1259,7 @@ export default function OwnerDashboard() {
                                       Prowizja Złote Wynajmy
                                     </span>
                                     <span className="mt-1 block text-2xl font-bold text-yellow-700">
-                                      {percentages.adminCommission}%
+                                      {percentages.adminCommission.toFixed(1)}%
                                     </span>
                                     {/* Tooltip */}
                                     <div className="absolute bottom-full left-1/2 z-10 mb-2 hidden w-48 -translate-x-1/2 rounded-md bg-gray-900 px-3 py-2 text-xs text-white group-hover:block">
@@ -1260,7 +1273,7 @@ export default function OwnerDashboard() {
                                       Prowizje OTA
                                     </span>
                                     <span className="mt-1 block text-2xl font-bold text-red-700">
-                                      {percentages.otaCommissions}%
+                                      {percentages.otaCommissions.toFixed(1)}%
                                     </span>
                                     {/* Tooltip */}
                                     <div className="absolute bottom-full left-1/2 z-10 mb-2 hidden w-48 -translate-x-1/2 rounded-md bg-gray-900 px-3 py-2 text-xs text-white group-hover:block">
@@ -1274,7 +1287,7 @@ export default function OwnerDashboard() {
                                       Sprzątanie
                                     </span>
                                     <span className="mt-1 block text-2xl font-bold text-blue-700">
-                                      {percentages.cleaning}%
+                                      {percentages.cleaning.toFixed(1)}%
                                     </span>
                                     {/* Tooltip */}
                                     <div className="absolute bottom-full left-1/2 z-10 mb-2 hidden w-48 -translate-x-1/2 rounded-md bg-gray-900 px-3 py-2 text-xs text-white group-hover:block">
@@ -1287,7 +1300,7 @@ export default function OwnerDashboard() {
                                       Pranie
                                     </span>
                                     <span className="mt-1 block text-2xl font-bold text-indigo-700">
-                                      {percentages.laundry}%
+                                      {percentages.laundry.toFixed(1)}%
                                     </span>
                                     {/* Tooltip */}
                                     <div className="absolute bottom-full left-1/2 z-10 mb-2 hidden w-48 -translate-x-1/2 rounded-md bg-gray-900 px-3 py-2 text-xs text-white group-hover:block">
@@ -1300,7 +1313,7 @@ export default function OwnerDashboard() {
                                       Tekstylia
                                     </span>
                                     <span className="mt-1 block text-2xl font-bold text-purple-700">
-                                      {percentages.textiles}%
+                                      {percentages.textiles.toFixed(1)}%
                                     </span>
                                     {/* Tooltip */}
                                     <div className="absolute bottom-full left-1/2 z-10 mb-2 hidden w-48 -translate-x-1/2 rounded-md bg-gray-900 px-3 py-2 text-xs text-white group-hover:block">
@@ -1313,7 +1326,7 @@ export default function OwnerDashboard() {
                                       Czynsz
                                     </span>
                                     <span className="mt-1 block text-2xl font-bold text-orange-700">
-                                      {percentages.rent}%
+                                      {percentages.rent.toFixed(1)}%
                                     </span>
                                     {/* Tooltip */}
                                     <div className="absolute bottom-full left-1/2 z-10 mb-2 hidden w-52 -translate-x-1/2 rounded-md bg-gray-900 px-3 py-2 text-xs text-white group-hover:block">
@@ -1327,7 +1340,7 @@ export default function OwnerDashboard() {
                                       Media
                                     </span>
                                     <span className="mt-1 block text-2xl font-bold text-teal-700">
-                                      {percentages.utilities}%
+                                      {percentages.utilities.toFixed(1)}%
                                     </span>
                                     {/* Tooltip */}
                                     <div className="absolute bottom-full left-1/2 z-10 mb-2 hidden w-52 -translate-x-1/2 rounded-md bg-gray-900 px-3 py-2 text-xs text-white group-hover:block">
@@ -1344,22 +1357,16 @@ export default function OwnerDashboard() {
                                     {percentages
                                       ? (() => {
                                           const sum =
-                                            parseFloat(percentages.payout) +
-                                            parseFloat(
-                                              percentages.adminCommission,
-                                            ) +
-                                            parseFloat(
-                                              percentages.otaCommissions,
-                                            ) +
-                                            parseFloat(percentages.cleaning) +
-                                            parseFloat(percentages.laundry) +
-                                            parseFloat(percentages.textiles) +
-                                            parseFloat(percentages.rent) +
-                                            parseFloat(percentages.utilities);
-                                          // Jeśli suma jest bardzo bliska 100%, pokaż 100%
-                                          return sum >= 99.5 && sum <= 100.5
-                                            ? "100.0"
-                                            : sum.toFixed(1);
+                                            percentages.payout +
+                                            percentages.adminCommission +
+                                            percentages.otaCommissions +
+                                            percentages.cleaning +
+                                            percentages.laundry +
+                                            percentages.textiles +
+                                            percentages.rent +
+                                            percentages.utilities +
+                                            percentages.otherExpenses;
+                                          return sum.toFixed(1);
                                         })()
                                       : "0"}
                                     %
@@ -1367,16 +1374,15 @@ export default function OwnerDashboard() {
                                   {percentages &&
                                     (() => {
                                       const sum =
-                                        parseFloat(percentages.payout) +
-                                        parseFloat(
-                                          percentages.adminCommission,
-                                        ) +
-                                        parseFloat(percentages.otaCommissions) +
-                                        parseFloat(percentages.cleaning) +
-                                        parseFloat(percentages.laundry) +
-                                        parseFloat(percentages.textiles) +
-                                        parseFloat(percentages.rent) +
-                                        parseFloat(percentages.utilities);
+                                        percentages.payout +
+                                        percentages.adminCommission +
+                                        percentages.otaCommissions +
+                                        percentages.cleaning +
+                                        percentages.laundry +
+                                        percentages.textiles +
+                                        percentages.rent +
+                                        percentages.utilities +
+                                        percentages.otherExpenses;
                                       const remaining = 100 - sum;
                                       // Pokaż "Pozostałe" tylko jeśli jest znacząca wartość
                                       return remaining > 0.5 ? (

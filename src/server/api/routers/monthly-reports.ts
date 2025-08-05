@@ -357,33 +357,29 @@ async function recalculateReportSettlement(reportId: string, ctx: RecalculateCon
                 baseAmount = afterRentAndUtilities - totalAdditionalDeductionsGross;
             }
 
-            if (baseAmount !== 0) {
-                // Zoptymalizowane obliczenia VAT - inline
-                const vatRate = actualOwner.vatOption === "VAT_23" ? 0.23 : actualOwner.vatOption === "VAT_8" ? 0.08 : 0;
-                finalVatAmount = baseAmount * vatRate;
-                finalOwnerPayout = baseAmount + finalVatAmount;
+            // Zoptymalizowane obliczenia VAT - inline
+            const vatRate = actualOwner.vatOption === "VAT_23" ? 0.23 : actualOwner.vatOption === "VAT_8" ? 0.08 : 0;
+            finalVatAmount = Math.max(0, baseAmount) * vatRate;
+            finalOwnerPayout = Math.max(0, baseAmount) + finalVatAmount;
 
-                // Zoptymalizowane obliczanie finalHostPayout
-                const fixedAmount = actualOwner.fixedPaymentAmount ? Number(actualOwner.fixedPaymentAmount) : 0;
+            // Zoptymalizowane obliczanie finalHostPayout
+            const fixedAmount = actualOwner.fixedPaymentAmount ? Number(actualOwner.fixedPaymentAmount) : 0;
 
-                if (settlementType === 'COMMISSION') {
-                    finalHostPayout = adminCommissionAmount;
-                } else if (settlementType === 'FIXED' || settlementType === 'FIXED_MINUS_UTILITIES') {
-                    const difference = Math.max(0, fixedAmount - afterCommission);
-                    finalHostPayout = Math.max(0, adminCommissionAmount - difference);
-                }
+            if (settlementType === 'COMMISSION') {
+                finalHostPayout = adminCommissionAmount;
+            } else if (settlementType === 'FIXED' || settlementType === 'FIXED_MINUS_UTILITIES') {
+                finalHostPayout = Math.max(0, netIncome - fixedAmount);
+            }
 
-                // Podatek dochodowy 8.5% - jeśli właściciel jest podatnikiem VAT, liczymy od kwoty netto, w przeciwnym razie od kwoty brutto
-                if (actualOwner.vatOption === "VAT_8" || actualOwner.vatOption === "VAT_23") {
-                    // Właściciel jest podatnikiem VAT - podatek od kwoty netto (baseAmount)
-                    finalIncomeTax = baseAmount * 0.085;
-                    console.log(`[TAX] Raport ${reportId}: właściciel podatnik VAT - podatek od kwoty netto: settlementType=${settlementType}, baseAmount=${baseAmount}, finalIncomeTax=${finalIncomeTax}`);
-                } else {
-                    // Właściciel nie jest podatnikiem VAT - podatek od kwoty brutto (finalOwnerPayout)
-                    finalIncomeTax = finalOwnerPayout * 0.085;
-                    console.log(`[TAX] Raport ${reportId}: właściciel nie podatnik VAT - podatek od kwoty brutto: settlementType=${settlementType}, finalOwnerPayout=${finalOwnerPayout}, finalIncomeTax=${finalIncomeTax}`);
-                }
-
+            // Podatek dochodowy 8.5% - jeśli właściciel jest podatnikiem VAT, liczymy od kwoty netto, w przeciwnym razie od kwoty brutto
+            if (actualOwner.vatOption === "VAT_8" || actualOwner.vatOption === "VAT_23") {
+                // Właściciel jest podatnikiem VAT - podatek od kwoty netto (baseAmount)
+                finalIncomeTax = Math.max(0, baseAmount) * 0.085;
+                console.log(`[TAX] Raport ${reportId}: właściciel podatnik VAT - podatek od kwoty netto: settlementType=${settlementType}, baseAmount=${baseAmount}, finalIncomeTax=${finalIncomeTax}`);
+            } else {
+                // Właściciel nie jest podatnikiem VAT - podatek od kwoty brutto (finalOwnerPayout)
+                finalIncomeTax = finalOwnerPayout * 0.085;
+                console.log(`[TAX] Raport ${reportId}: właściciel nie podatnik VAT - podatek od kwoty brutto: settlementType=${settlementType}, finalOwnerPayout=${finalOwnerPayout}, finalIncomeTax=${finalIncomeTax}`);
             }
         }
 
@@ -1879,7 +1875,6 @@ export const monthlyReportsRouter = createTRPCRouter({
             const commissionVat = getVatAmount(commissionNetBase, report.owner.vatOption);
             const commissionGross = commissionNetBase + commissionVat;
 
-            const isVatExempt = report.owner.vatOption === "NO_VAT";
 
             const commissionNetBaseAfterUtilities = netIncome * (1 - adminCommissionRate) - rentAndUtilitiesTotal - totalAdditionalDeductions;
             const commissionVatAfterUtilities = getVatAmount(commissionNetBaseAfterUtilities, report.owner.vatOption);
@@ -1904,46 +1899,11 @@ export const monthlyReportsRouter = createTRPCRouter({
                 fixedMinusUtilitiesGross = fixedMinusUtilitiesNetBase + fixedMinusUtilitiesVat;
             }
 
-            // Calculate final payouts based on settlement type
-            let finalOwnerPayout = 0;
-            let finalHostPayout = 0;
-            let finalIncomeTax = 0;
-            let taxBase = 0; // Podstawa opodatkowania
-
-            if (report.finalSettlementType === "COMMISSION") {
-                // Commission-based settlement
-                finalOwnerPayout = isVatExempt
-                    ? commissionNetBaseAfterUtilities
-                    : commissionGrossAfterUtilities;
-                finalHostPayout = adminCommissionAmount;
-
-                // Podstawa opodatkowania - dla podatników VAT to kwota netto, dla zwolnionych to brutto
-                taxBase = isVatExempt ? finalOwnerPayout : commissionNetBaseAfterUtilities;
-                finalIncomeTax = taxBase * 0.085; // 8.5% income tax od podstawy opodatkowania
-            } else if (report.finalSettlementType === "FIXED") {
-                // Fixed amount settlement
-                const fixedBaseAmount = Number(report.owner.fixedPaymentAmount ?? 0);
-                finalOwnerPayout = isVatExempt
-                    ? fixedBaseAmount
-                    : getGrossAmount(fixedBaseAmount, report.owner.vatOption);
-                finalHostPayout = Math.max(0, netIncome - fixedBaseAmount);
-
-                // Podstawa opodatkowania - dla podatników VAT to kwota netto, dla zwolnionych to brutto
-                taxBase = isVatExempt ? finalOwnerPayout : fixedBaseAmount;
-                finalIncomeTax = taxBase * 0.085; // 8.5% income tax od podstawy opodatkowania
-            } else if (report.finalSettlementType === "FIXED_MINUS_UTILITIES") {
-                // Fixed amount minus utilities settlement
-                const fixedBaseAmount = Number(report.owner.fixedPaymentAmount ?? 0);
-                const netBaseAfterUtilities = fixedBaseAmount - rentAndUtilitiesTotal - totalAdditionalDeductions;
-                finalOwnerPayout = isVatExempt
-                    ? netBaseAfterUtilities
-                    : getGrossAmount(netBaseAfterUtilities, report.owner.vatOption);
-                finalHostPayout = Math.max(0, netIncome - fixedBaseAmount);
-
-                // Podstawa opodatkowania - dla podatników VAT to kwota netto, dla zwolnionych to brutto
-                taxBase = isVatExempt ? finalOwnerPayout : netBaseAfterUtilities;
-                finalIncomeTax = taxBase * 0.085; // 8.5% income tax od podstawy opodatkowania
-            }
+            // Use values from database (calculated by recalculateReportSettlement)
+            const finalOwnerPayout = report.finalOwnerPayout ?? 0;
+            const finalHostPayout = report.finalHostPayout ?? 0;
+            const finalIncomeTax = report.finalIncomeTax ?? 0;
+            const taxBase = report.taxBase ?? 0; // Podstawa opodatkowania
 
             return {
                 ...report,
@@ -2370,12 +2330,18 @@ export const monthlyReportsRouter = createTRPCRouter({
                     year: true,
                     month: true,
                     totalRevenue: true,
-                    finalOwnerPayout: true,
                     adminCommissionAmount: true,
                     rentAmount: true,
                     utilitiesAmount: true,
+                    finalSettlementType: true,
                     apartment: {
                         select: { id: true, name: true, slug: true },
+                    },
+                    owner: {
+                        select: {
+                            fixedPaymentAmount: true,
+                            vatOption: true
+                        }
                     },
                     items: {
                         select: {
@@ -2388,12 +2354,86 @@ export const monthlyReportsRouter = createTRPCRouter({
                             }
                         },
                     },
+                    additionalDeductions: {
+                        select: {
+                            amount: true,
+                            vatOption: true
+                        }
+                    },
                 },
                 orderBy: [
                     { year: "desc" },
                     { month: "desc" },
                 ],
             });
+
+            // Funkcja pomocnicza do obliczania wartości rozliczenia
+            function calculateSettlementValues(report: {
+                totalRevenue: number | null;
+                items: Array<{ type: string; amount: number; category: string }>;
+                additionalDeductions: Array<{ amount: number; vatOption: string }>;
+                rentAmount: number | null;
+                utilitiesAmount: number | null;
+                finalSettlementType: string | null;
+                owner: { fixedPaymentAmount: unknown; vatOption: string };
+            }) {
+                const totalRevenue = report.totalRevenue ?? 0;
+                const totalExpenses = report.items
+                    .filter((i) => ["EXPENSE", "FEE", "TAX"].includes(i.type))
+                    .reduce((sum: number, i) => sum + i.amount, 0);
+                const otaCommissions = report.items
+                    .filter((i) => i.type === "COMMISSION")
+                    .reduce((sum: number, i) => sum + i.amount, 0);
+
+                const netIncome = totalRevenue - totalExpenses - otaCommissions;
+                const adminCommissionAmount = netIncome * 0.25;
+                const afterCommission = netIncome - adminCommissionAmount;
+                const rentAndUtilities = (report.rentAmount ?? 0) + (report.utilitiesAmount ?? 0);
+                const afterRentAndUtilities = afterCommission - rentAndUtilities;
+
+                const totalAdditionalDeductionsGross = report.additionalDeductions.reduce((sum: number, d) => {
+                    const vatMultiplier = d.vatOption === "VAT_23" ? 1.23 : d.vatOption === "VAT_8" ? 1.08 : 1;
+                    return sum + (d.amount * vatMultiplier);
+                }, 0);
+
+                let finalOwnerPayout = 0;
+                let finalHostPayout = 0;
+
+                if (report.finalSettlementType) {
+                    let baseAmount = 0;
+                    const settlementType = report.finalSettlementType;
+
+                    if (settlementType === 'FIXED' || settlementType === 'FIXED_MINUS_UTILITIES') {
+                        if (report.owner.fixedPaymentAmount !== null && report.owner.fixedPaymentAmount !== undefined) {
+                            const fixedBaseAmount = Number(report.owner.fixedPaymentAmount);
+
+                            if (settlementType === 'FIXED') {
+                                baseAmount = fixedBaseAmount;
+                            } else { // FIXED_MINUS_UTILITIES
+                                baseAmount = fixedBaseAmount - rentAndUtilities - totalAdditionalDeductionsGross;
+                            }
+                        }
+                    } else if (settlementType === 'COMMISSION') {
+                        baseAmount = afterRentAndUtilities - totalAdditionalDeductionsGross;
+                    }
+
+                    // Obliczenia VAT
+                    const vatRate = report.owner.vatOption === "VAT_23" ? 0.23 : report.owner.vatOption === "VAT_8" ? 0.08 : 0;
+                    const finalVatAmount = Math.max(0, baseAmount) * vatRate;
+                    finalOwnerPayout = Math.max(0, baseAmount) + finalVatAmount;
+
+                    // Obliczanie finalHostPayout
+                    const fixedAmount = report.owner.fixedPaymentAmount ? Number(report.owner.fixedPaymentAmount) : 0;
+
+                    if (settlementType === 'COMMISSION') {
+                        finalHostPayout = adminCommissionAmount;
+                    } else if (settlementType === 'FIXED' || settlementType === 'FIXED_MINUS_UTILITIES') {
+                        finalHostPayout = Math.max(0, netIncome - fixedAmount);
+                    }
+                }
+
+                return { finalOwnerPayout, finalHostPayout };
+            }
 
             // Transform data based on view type
             type ChartDataItem = {
@@ -2408,6 +2448,7 @@ export const monthlyReportsRouter = createTRPCRouter({
                 "Prowizje OTA": number;
                 "Wypłata Właściciela": number;
                 "Koszty stałe": number;
+                "Inne wydatki": number;
             };
 
             let chartData: ChartDataItem[] = [];
@@ -2430,6 +2471,7 @@ export const monthlyReportsRouter = createTRPCRouter({
                             "Prowizje OTA": 0,
                             "Wypłata Właściciela": 0,
                             "Koszty stałe": 0,
+                            "Inne wydatki": 0,
                         });
                     }
                     const data = yearlyData.get(year)!;
@@ -2456,10 +2498,12 @@ export const monthlyReportsRouter = createTRPCRouter({
                             (i.category.toLowerCase().includes("prąd") ||
                                 i.category.toLowerCase().includes("prad")))
                         .reduce((s, i) => s + i.amount, 0);
-                    data["Złote Wynajmy Prowizja"] += report.adminCommissionAmount ?? 0;
+                    // Oblicz wartości na nowo zamiast pobierać z bazy
+                    const calculatedValues = calculateSettlementValues(report);
+                    data["Złote Wynajmy Prowizja"] += calculatedValues.finalHostPayout;
                     data["Prowizje OTA"] += report.items.filter(i => i.type === "COMMISSION").reduce((s, i) => s + i.amount, 0);
 
-                    data["Wypłata Właściciela"] += report.finalOwnerPayout ?? 0;
+                    data["Wypłata Właściciela"] += calculatedValues.finalOwnerPayout;
                     data["Koszty stałe"] += report.items
                         .filter(i => i.type === "EXPENSE" &&
                             (i.category.toLowerCase().includes("sprzątanie") ||
@@ -2468,6 +2512,20 @@ export const monthlyReportsRouter = createTRPCRouter({
                                 i.category.toLowerCase().includes("srodki") ||
                                 i.category.toLowerCase().includes("pranie") ||
                                 i.category.toLowerCase().includes("tekstylia")))
+                        .reduce((s, i) => s + i.amount, 0);
+
+                    // Calculate "Inne wydatki" - all EXPENSE items not classified in known categories
+                    data["Inne wydatki"] += report.items
+                        .filter(i => i.type === "EXPENSE" &&
+                            !(i.category.toLowerCase().includes("sprzątanie") ||
+                                i.category.toLowerCase().includes("sprzatanie") ||
+                                i.category.toLowerCase().includes("środki") ||
+                                i.category.toLowerCase().includes("srodki") ||
+                                i.category.toLowerCase().includes("pranie") ||
+                                i.category.toLowerCase().includes("tekstylia") ||
+                                i.category.toLowerCase().includes("czynsz") ||
+                                i.category.toLowerCase().includes("prąd") ||
+                                i.category.toLowerCase().includes("prad")))
                         .reduce((s, i) => s + i.amount, 0);
                 });
                 chartData = Array.from(yearlyData.values());
@@ -2490,6 +2548,7 @@ export const monthlyReportsRouter = createTRPCRouter({
                             "Prowizje OTA": 0,
                             "Wypłata Właściciela": 0,
                             "Koszty stałe": 0,
+                            "Inne wydatki": 0,
                         });
                     }
                     const data = monthlyData.get(monthKey)!;
@@ -2516,10 +2575,12 @@ export const monthlyReportsRouter = createTRPCRouter({
                             (i.category.toLowerCase().includes("prąd") ||
                                 i.category.toLowerCase().includes("prad")))
                         .reduce((s, i) => s + i.amount, 0);
-                    data["Złote Wynajmy Prowizja"] += report.adminCommissionAmount ?? 0;
+                    // Oblicz wartości na nowo zamiast pobierać z bazy
+                    const calculatedValues = calculateSettlementValues(report);
+                    data["Złote Wynajmy Prowizja"] += calculatedValues.finalHostPayout;
                     data["Prowizje OTA"] += report.items.filter(i => i.type === "COMMISSION").reduce((s, i) => s + i.amount, 0);
 
-                    data["Wypłata Właściciela"] += report.finalOwnerPayout ?? 0;
+                    data["Wypłata Właściciela"] += calculatedValues.finalOwnerPayout;
                     data["Koszty stałe"] += report.items
                         .filter(i => i.type === "EXPENSE" &&
                             (i.category.toLowerCase().includes("sprzątanie") ||
@@ -2528,6 +2589,20 @@ export const monthlyReportsRouter = createTRPCRouter({
                                 i.category.toLowerCase().includes("srodki") ||
                                 i.category.toLowerCase().includes("pranie") ||
                                 i.category.toLowerCase().includes("tekstylia")))
+                        .reduce((s, i) => s + i.amount, 0);
+
+                    // Calculate "Inne wydatki" - all EXPENSE items not classified in known categories
+                    data["Inne wydatki"] += report.items
+                        .filter(i => i.type === "EXPENSE" &&
+                            !(i.category.toLowerCase().includes("sprzątanie") ||
+                                i.category.toLowerCase().includes("sprzatanie") ||
+                                i.category.toLowerCase().includes("środki") ||
+                                i.category.toLowerCase().includes("srodki") ||
+                                i.category.toLowerCase().includes("pranie") ||
+                                i.category.toLowerCase().includes("tekstylia") ||
+                                i.category.toLowerCase().includes("czynsz") ||
+                                i.category.toLowerCase().includes("prąd") ||
+                                i.category.toLowerCase().includes("prad")))
                         .reduce((s, i) => s + i.amount, 0);
                 });
                 chartData = Array.from(monthlyData.values()).sort((a, b) => {
@@ -2565,9 +2640,15 @@ export const monthlyReportsRouter = createTRPCRouter({
                             (i.category.toLowerCase().includes("prąd") ||
                                 i.category.toLowerCase().includes("prad")))
                         .reduce((s, i) => s + i.amount, 0),
-                    "Złote Wynajmy Prowizja": report.adminCommissionAmount ?? 0,
-                    "Prowizje OTA": report.items.filter(i => i.type === "COMMISSION").reduce((s, i) => s + i.amount, 0),
-                    "Wypłata Właściciela": report.finalOwnerPayout ? Number(report.finalOwnerPayout) : 0,
+                    // Oblicz wartości na nowo zamiast pobierać z bazy
+                    ...(() => {
+                        const calculatedValues = calculateSettlementValues(report);
+                        return {
+                            "Złote Wynajmy Prowizja": calculatedValues.finalHostPayout,
+                            "Prowizje OTA": report.items.filter(i => i.type === "COMMISSION").reduce((s, i) => s + i.amount, 0),
+                            "Wypłata Właściciela": calculatedValues.finalOwnerPayout,
+                        };
+                    })(),
                     "Koszty stałe": report.items
                         .filter(i => i.type === "EXPENSE" &&
                             (i.category.toLowerCase().includes("sprzątanie") ||
@@ -2576,6 +2657,18 @@ export const monthlyReportsRouter = createTRPCRouter({
                                 i.category.toLowerCase().includes("srodki") ||
                                 i.category.toLowerCase().includes("pranie") ||
                                 i.category.toLowerCase().includes("tekstylia")))
+                        .reduce((s, i) => s + i.amount, 0),
+                    "Inne wydatki": report.items
+                        .filter(i => i.type === "EXPENSE" &&
+                            !(i.category.toLowerCase().includes("sprzątanie") ||
+                                i.category.toLowerCase().includes("sprzatanie") ||
+                                i.category.toLowerCase().includes("środki") ||
+                                i.category.toLowerCase().includes("srodki") ||
+                                i.category.toLowerCase().includes("pranie") ||
+                                i.category.toLowerCase().includes("tekstylia") ||
+                                i.category.toLowerCase().includes("czynsz") ||
+                                i.category.toLowerCase().includes("prąd") ||
+                                i.category.toLowerCase().includes("prad")))
                         .reduce((s, i) => s + i.amount, 0),
                 }));
             }
@@ -3230,4 +3323,7 @@ export const monthlyReportsRouter = createTRPCRouter({
                 };
             }
         }),
-}); 
+});
+
+// Eksport funkcji do testów
+export { recalculateReportSettlement };

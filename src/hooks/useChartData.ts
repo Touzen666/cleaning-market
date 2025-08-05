@@ -14,6 +14,7 @@ export type BaseChartDataItem = {
     "Prowizje OTA": number;
     "Wypłata Właściciela": number;
     "Koszty stałe": number;
+    "Inne wydatki": number;
 };
 
 export type PieChartDataItem = {
@@ -30,15 +31,16 @@ export type RevenueSourceDataItem = {
 };
 
 export type ChartPercentages = {
-    adminCommission: string;
-    fixedCosts: string;
-    cleaning: string;
-    laundry: string;
-    textiles: string;
-    rent: string;
-    utilities: string;
-    otaCommissions: string;
-    payout: string;
+    adminCommission: number;
+    fixedCosts: number;
+    cleaning: number;
+    laundry: number;
+    textiles: number;
+    rent: number;
+    utilities: number;
+    otaCommissions: number;
+    payout: number;
+    otherExpenses: number;
 };
 
 // Hook do zarządzania danymi wykresów
@@ -83,15 +85,16 @@ export function useChartData(
         if (totalRevenue === 0) return null;
 
         return {
-            adminCommission: ((data["Złote Wynajmy Prowizja"] ?? 0) / totalRevenue * 100).toFixed(1),
-            fixedCosts: ((data["Koszty stałe"] ?? 0) / totalRevenue * 100).toFixed(1),
-            cleaning: ((data.Sprzątanie ?? 0) / totalRevenue * 100).toFixed(1),
-            laundry: ((data.Pranie ?? 0) / totalRevenue * 100).toFixed(1),
-            textiles: ((data.Tekstylia ?? 0) / totalRevenue * 100).toFixed(1),
-            rent: ((data.Czynsz ?? 0) / totalRevenue * 100).toFixed(1),
-            utilities: ((data.Media ?? 0) / totalRevenue * 100).toFixed(1),
-            otaCommissions: ((data["Prowizje OTA"] ?? 0) / totalRevenue * 100).toFixed(1),
-            payout: ((data["Wypłata Właściciela"] ?? 0) / totalRevenue * 100).toFixed(1),
+            adminCommission: (data["Złote Wynajmy Prowizja"] ?? 0) / totalRevenue * 100,
+            fixedCosts: (data["Koszty stałe"] ?? 0) / totalRevenue * 100,
+            cleaning: (data.Sprzątanie ?? 0) / totalRevenue * 100,
+            laundry: (data.Pranie ?? 0) / totalRevenue * 100,
+            textiles: (data.Tekstylia ?? 0) / totalRevenue * 100,
+            rent: (data.Czynsz ?? 0) / totalRevenue * 100,
+            utilities: (data.Media ?? 0) / totalRevenue * 100,
+            otaCommissions: (data["Prowizje OTA"] ?? 0) / totalRevenue * 100,
+            payout: (data["Wypłata Właściciela"] ?? 0) / totalRevenue * 100,
+            otherExpenses: (data["Inne wydatki"] ?? 0) / totalRevenue * 100,
         };
     }, [baseChartData]);
 
@@ -108,33 +111,38 @@ export function useChartData(
         return [
             {
                 name: "Wypłata Właściciela",
-                value: Number(percentages.payout),
+                value: percentages.payout,
                 fill: "#00C49F",
             },
             {
                 name: "Prowizja Złote Wynajmy",
-                value: Number(percentages.adminCommission),
+                value: percentages.adminCommission,
                 fill: "#ffc658",
             },
             {
                 name: "Prowizje OTA",
-                value: Number(percentages.otaCommissions),
+                value: percentages.otaCommissions,
                 fill: "#ff8042",
             },
             {
                 name: "Sprzątanie",
-                value: Number(percentages.cleaning),
+                value: percentages.cleaning,
                 fill: "#8884d8",
             },
             {
                 name: "Pranie",
-                value: Number(percentages.laundry),
+                value: percentages.laundry,
                 fill: "#ff6b6b",
             },
             {
                 name: "Tekstylia",
-                value: Number(percentages.textiles),
+                value: percentages.textiles,
                 fill: "#9c27b0",
+            },
+            {
+                name: "Inne wydatki",
+                value: percentages.otherExpenses,
+                fill: "#95a5a6",
             },
         ].filter(item => item.value > 0); // Usuń zerowe wartości
     }, [baseChartData, percentages]);
@@ -153,6 +161,7 @@ export function useChartData(
                 if (filters["Prowizje OTA"]) filteredItem["Prowizje OTA"] = item["Prowizje OTA"];
                 if (filters["Wypłata Właściciela"]) filteredItem["Wypłata Właściciela"] = item["Wypłata Właściciela"];
                 if (filters["Koszty stałe"]) filteredItem["Koszty stałe"] = item["Koszty stałe"];
+                if (filters["Inne wydatki"]) filteredItem["Inne wydatki"] = item["Inne wydatki"];
 
                 return filteredItem as BaseChartDataItem;
             });
@@ -172,17 +181,17 @@ export function useChartData(
                     return [
                         {
                             name: "Złote Wynajmy Prowizja",
-                            value: parseFloat(percentages.adminCommission),
+                            value: percentages.adminCommission,
                             fill: "#ffc658",
                         },
                         {
                             name: "Wypłata Właściciela",
-                            value: parseFloat(percentages.payout),
+                            value: percentages.payout,
                             fill: "#00C49F",
                         },
                         {
                             name: "Koszty stałe",
-                            value: parseFloat(percentages.fixedCosts),
+                            value: percentages.fixedCosts,
                             fill: "#ff6b6b",
                         },
                         {
@@ -196,22 +205,22 @@ export function useChartData(
                     return [
                         {
                             name: "Sprzątanie",
-                            value: parseFloat(percentages.cleaning),
+                            value: percentages.cleaning,
                             fill: "#8884d8",
                         },
                         {
                             name: "Pranie",
-                            value: parseFloat(percentages.laundry),
+                            value: percentages.laundry,
                             fill: "#ff6b6b",
                         },
                         {
                             name: "Tekstylia",
-                            value: parseFloat(percentages.textiles),
+                            value: percentages.textiles,
                             fill: "#9c27b0",
                         },
                         {
                             name: "Prowizje OTA",
-                            value: parseFloat(percentages.otaCommissions),
+                            value: percentages.otaCommissions,
                             fill: "#ff8042",
                         },
                     ].filter(item => item.value > 0);
@@ -221,32 +230,32 @@ export function useChartData(
                     return [
                         {
                             name: "Wypłata Właściciela",
-                            value: parseFloat(percentages.payout),
+                            value: percentages.payout,
                             fill: "#00C49F",
                         },
                         {
                             name: "Prowizja Złote Wynajmy",
-                            value: parseFloat(percentages.adminCommission),
+                            value: percentages.adminCommission,
                             fill: "#ffc658",
                         },
                         {
                             name: "Prowizje OTA",
-                            value: parseFloat(percentages.otaCommissions),
+                            value: percentages.otaCommissions,
                             fill: "#ff8042",
                         },
                         {
                             name: "Sprzątanie",
-                            value: parseFloat(percentages.cleaning),
+                            value: percentages.cleaning,
                             fill: "#8884d8",
                         },
                         {
                             name: "Pranie",
-                            value: parseFloat(percentages.laundry),
+                            value: percentages.laundry,
                             fill: "#ff6b6b",
                         },
                         {
                             name: "Tekstylia",
-                            value: parseFloat(percentages.textiles),
+                            value: percentages.textiles,
                             fill: "#9c27b0",
                         },
                     ].filter(item => item.value > 0);
