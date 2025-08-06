@@ -5,6 +5,32 @@ import { useRouter } from "next/navigation";
 import { api } from "@/trpc/react";
 import ApartmentImageManager from "@/components/ApartmentImageManager";
 
+// Extended apartment type with new fields
+interface ExtendedApartment {
+  id: string;
+  name: string;
+  address: string;
+  slug: string;
+  defaultRentAmount: number | null;
+  defaultUtilitiesAmount: number | null;
+  weeklyLaundryCost: number | null;
+  cleaningSuppliesCost: number | null;
+  capsuleCostPerGuest: number | null;
+  wineCost: number | null;
+  hasBalcony: boolean;
+  hasParking: boolean;
+  maxGuests: number | null;
+  cleaningCosts: Record<string, number> | null;
+  averageRating: number | null;
+  images: Array<{
+    id: string;
+    url: string;
+    alt: string | null;
+    isPrimary: boolean;
+    order: number;
+  }>;
+}
+
 export default function EditApartmentPage({
   params,
   searchParams,
@@ -122,7 +148,8 @@ export default function EditApartmentPage({
         address: apartment.address,
         defaultRentAmount: apartment.defaultRentAmount ?? 0,
         defaultUtilitiesAmount: apartment.defaultUtilitiesAmount ?? 0,
-        weeklyLaundryCost: apartment.weeklyLaundryCost ?? 120,
+        weeklyLaundryCost:
+          (apartment as ExtendedApartment).weeklyLaundryCost ?? 120,
         hasBalcony: apartment.hasBalcony,
         hasParking: apartment.hasParking,
         maxGuests: apartment.maxGuests ?? 4,
@@ -335,7 +362,8 @@ export default function EditApartmentPage({
                   placeholder="120.00"
                 />
                 <p className="mt-1 text-sm text-gray-500">
-                  Ustaw indywidualną stawkę za pranie dla tego apartamentu (domyślnie 120 PLN)
+                  Ustaw indywidualną stawkę za pranie dla tego apartamentu
+                  (domyślnie 120 PLN)
                 </p>
               </div>
 

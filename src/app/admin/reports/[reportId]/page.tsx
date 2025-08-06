@@ -37,6 +37,32 @@ import { toast } from "react-hot-toast";
 
 type ReportDetails = RouterOutputs["monthlyReports"]["getById"];
 
+// Extended apartment type with new fields
+interface ExtendedApartment {
+  id: string;
+  name: string;
+  address: string;
+  slug: string;
+  defaultRentAmount: number | null;
+  defaultUtilitiesAmount: number | null;
+  weeklyLaundryCost: number | null;
+  cleaningSuppliesCost: number | null;
+  capsuleCostPerGuest: number | null;
+  wineCost: number | null;
+  hasBalcony: boolean;
+  hasParking: boolean;
+  maxGuests: number | null;
+  cleaningCosts: Record<string, number> | null;
+  averageRating: number | null;
+  images: Array<{
+    id: string;
+    url: string;
+    alt: string | null;
+    isPrimary: boolean;
+    order: number;
+  }>;
+}
+
 export default function ReportDetailsPage({
   params,
 }: {
@@ -769,17 +795,18 @@ export default function ReportDetailsPage({
 
   // Funkcja obliczająca sugerowaną kwotę za pranie
   const calculateSuggestedLaundryCost = () => {
-    if (!report?.apartment?.weeklyLaundryCost) {
+    const apartment = report?.apartment as ExtendedApartment | undefined;
+    if (!apartment?.weeklyLaundryCost) {
       return 0;
     }
 
     // Koszt prania z ustawień apartamentu
-    const laundryCostPerWeek = report.apartment.weeklyLaundryCost;
+    const laundryCostPerWeek = apartment.weeklyLaundryCost;
     const daysPerWeek = 7;
 
     // Oblicz liczbę dni w miesiącu raportu
-    const year = report.year;
-    const month = report.month;
+    const year = report!.year;
+    const month = report!.month;
     const daysInMonth = new Date(year, month, 0).getDate();
 
     // Oblicz liczbę tygodni w miesiącu (z dokładnością do 2 miejsc po przecinku)
@@ -796,17 +823,18 @@ export default function ReportDetailsPage({
 
   // Funkcja obliczająca sugerowaną kwotę za tekstylia
   const calculateSuggestedTextileCost = () => {
-    if (!report?.apartment) {
+    const apartment = report?.apartment as ExtendedApartment | undefined;
+    if (!apartment) {
       return 0;
     }
 
     // Koszty z ustawień apartamentu
-    const cleaningSuppliesCost = report.apartment.cleaningSuppliesCost ?? 132; // Stały koszt środków czystości
-    const capsuleCostPerGuest = report.apartment.capsuleCostPerGuest ?? 2.5; // Koszt kapsułki na gościa
-    const wineCost = report.apartment.wineCost ?? 250; // Koszt wina
+    const cleaningSuppliesCost = apartment.cleaningSuppliesCost ?? 132; // Stały koszt środków czystości
+    const capsuleCostPerGuest = apartment.capsuleCostPerGuest ?? 2.5; // Koszt kapsułki na gościa
+    const wineCost = apartment.wineCost ?? 250; // Koszt wina
 
     // Oblicz liczbę gości ze wszystkich rezerwacji
-    const revenueItems = report.items.filter(
+    const revenueItems = report!.items.filter(
       (item) => item.type === "REVENUE" && item.reservation,
     );
 
@@ -833,7 +861,8 @@ export default function ReportDetailsPage({
     adults?: number | null;
     children?: number | null;
   }) => {
-    if (!report?.apartment?.cleaningCosts) {
+    const apartment = report?.apartment as ExtendedApartment | undefined;
+    if (!apartment?.cleaningCosts) {
       return 0;
     }
 
@@ -1642,20 +1671,26 @@ export default function ReportDetailsPage({
                               💡 Sugerowana kwota:{" "}
                               {suggestedLaundryCost.toFixed(2)} PLN (koszt
                               miesięczny:{" "}
-                              {report.apartment.weeklyLaundryCost ?? 120} PLN co
-                              7 dni) - średnio{" "}
-                              {report.apartment.weeklyLaundryCost ?? 120} PLN za
-                              tydzień
+                              {(report?.apartment as ExtendedApartment)
+                                ?.weeklyLaundryCost ?? 120}{" "}
+                              PLN co 7 dni) - średnio{" "}
+                              {(report?.apartment as ExtendedApartment)
+                                ?.weeklyLaundryCost ?? 120}{" "}
+                              PLN za tydzień
                             </p>
                           )}
                           {key === "tekstylia" && suggestedTextileCost > 0 && (
                             <p className="mt-1 text-xs text-green-600">
                               💡 Sugerowana kwota:{" "}
                               {suggestedTextileCost.toFixed(2)} PLN (środki:{" "}
-                              {report.apartment.cleaningSuppliesCost ?? 132} PLN
-                              + wino: {report.apartment.wineCost ?? 250} PLN +{" "}
-                              kapsułki:{" "}
-                              {report.apartment.capsuleCostPerGuest ?? 2.5}{" "}
+                              {(report?.apartment as ExtendedApartment)
+                                ?.cleaningSuppliesCost ?? 132}{" "}
+                              PLN + wino:{" "}
+                              {(report?.apartment as ExtendedApartment)
+                                ?.wineCost ?? 250}{" "}
+                              PLN + kapsułki:{" "}
+                              {(report?.apartment as ExtendedApartment)
+                                ?.capsuleCostPerGuest ?? 2.5}{" "}
                               PLN/gość)
                             </p>
                           )}
