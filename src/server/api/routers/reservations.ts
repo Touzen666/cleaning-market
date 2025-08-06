@@ -98,8 +98,7 @@ export const reservationsRouter = createTRPCRouter({
           apartmentId: input.apartmentId,
           NOT: {
             status: {
-              equals: "CANCELED",
-              mode: "insensitive",
+              in: ["Anulowana", "Odrzucona przez obsługę"],
             },
           },
         },
@@ -292,8 +291,7 @@ export const reservationsRouter = createTRPCRouter({
                     where: {
                       NOT: {
                         status: {
-                          equals: "CANCELED",
-                          mode: "insensitive",
+                          in: ["Anulowana", "Odrzucona przez obsługę"],
                         },
                       },
                     },

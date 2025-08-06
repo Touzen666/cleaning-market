@@ -13,6 +13,10 @@ import {
   PaperAirplaneIcon,
 } from "@heroicons/react/24/outline";
 import { toast, Toaster } from "react-hot-toast";
+import {
+  translateReportStatus,
+  getReportStatusColor,
+} from "@/lib/status-translations";
 
 export default function AdminReportsPage() {
   const router = useRouter();
@@ -64,35 +68,9 @@ export default function AdminReportsPage() {
   const reports = reportsQuery.data ?? [];
   const owners = ownersQuery.data ?? [];
 
-  const getStatusColor = (status: ReportStatus) => {
-    switch (status) {
-      case "DRAFT":
-        return "bg-gray-100 text-gray-800";
-      case "REVIEW":
-        return "bg-yellow-100 text-yellow-800";
-      case "APPROVED":
-        return "bg-green-100 text-green-800";
-      case "SENT":
-        return "bg-blue-100 text-blue-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
-
-  const getStatusText = (status: ReportStatus) => {
-    switch (status) {
-      case "DRAFT":
-        return "Szkic";
-      case "REVIEW":
-        return "Do przeglądu";
-      case "APPROVED":
-        return "Zatwierdzony";
-      case "SENT":
-        return "Wysłany";
-      default:
-        return status;
-    }
-  };
+  // Używamy nowych funkcji z lib/status-translations
+  const getStatusColor = getReportStatusColor;
+  const getStatusText = translateReportStatus;
 
   const handleStatusChange = async (
     reportId: string,

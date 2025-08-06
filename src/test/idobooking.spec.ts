@@ -41,7 +41,7 @@ describe("idobookingRouter.syncReservations", () => {
 
   it("should sync reservations successfully", async () => {
     // Import the actual router
-    const { idobookingRouter } = await import("./idobooking");
+    const { idobookingRouter } = await import("@/server/api/routers/idobooking");
 
     // Get the user from DB
     const user: User = await db.user.findUniqueOrThrow({

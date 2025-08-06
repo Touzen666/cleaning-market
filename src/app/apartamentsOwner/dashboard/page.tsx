@@ -128,6 +128,8 @@ export default function OwnerDashboard() {
     Sprzątanie: true,
     Pranie: true,
     Tekstylia: true,
+    Czynsz: true,
+    Media: true,
     "Złote Wynajmy Prowizja": true,
     "Prowizje OTA": true,
     "Wypłata Właściciela": true,
@@ -235,6 +237,8 @@ export default function OwnerDashboard() {
         if (filters.Sprzątanie) filteredItem.Sprzątanie = item.Sprzątanie;
         if (filters.Pranie) filteredItem.Pranie = item.Pranie;
         if (filters.Tekstylia) filteredItem.Tekstylia = item.Tekstylia;
+        if (filters.Czynsz) filteredItem.Czynsz = item.Czynsz;
+        if (filters.Media) filteredItem.Media = item.Media;
         if (filters["Złote Wynajmy Prowizja"])
           filteredItem["Złote Wynajmy Prowizja"] =
             item["Złote Wynajmy Prowizja"];
@@ -365,6 +369,8 @@ export default function OwnerDashboard() {
       Sprzątanie: true,
       Pranie: true,
       Tekstylia: true,
+      Czynsz: true,
+      Media: true,
       "Złote Wynajmy Prowizja": true,
       "Prowizje OTA": true,
       "Wypłata Właściciela": true,
@@ -380,6 +386,8 @@ export default function OwnerDashboard() {
         Sprzątanie: false,
         Pranie: false,
         Tekstylia: false,
+        Czynsz: false,
+        Media: false,
         "Złote Wynajmy Prowizja": true,
         "Prowizje OTA": false,
         "Wypłata Właściciela": true,
@@ -391,6 +399,8 @@ export default function OwnerDashboard() {
         Sprzątanie: true,
         Pranie: true,
         Tekstylia: true,
+        Czynsz: true,
+        Media: true,
         "Złote Wynajmy Prowizja": true,
         "Prowizje OTA": true,
         "Wypłata Właściciela": true,
@@ -406,6 +416,8 @@ export default function OwnerDashboard() {
         Sprzątanie: true,
         Pranie: true,
         Tekstylia: true,
+        Czynsz: true,
+        Media: true,
         "Złote Wynajmy Prowizja": false,
         "Prowizje OTA": true,
         "Wypłata Właściciela": false,
@@ -417,6 +429,8 @@ export default function OwnerDashboard() {
         Sprzątanie: true,
         Pranie: true,
         Tekstylia: true,
+        Czynsz: true,
+        Media: true,
         "Złote Wynajmy Prowizja": true,
         "Prowizje OTA": true,
         "Wypłata Właściciela": true,
@@ -814,13 +828,19 @@ export default function OwnerDashboard() {
                                       ? "#ff6b6b"
                                       : category === "Tekstylia"
                                         ? "#9c27b0"
-                                        : category === "Złote Wynajmy Prowizja"
-                                          ? "#ffc658"
-                                          : category === "Prowizje OTA"
-                                            ? "#ff8042"
-                                            : category === "Podatek dochodowy"
-                                              ? "#e74c3c"
-                                              : "#00C49F",
+                                        : category === "Czynsz"
+                                          ? "#ff9800"
+                                          : category === "Media"
+                                            ? "#2196f3"
+                                            : category ===
+                                                "Złote Wynajmy Prowizja"
+                                              ? "#ffc658"
+                                              : category === "Prowizje OTA"
+                                                ? "#ff8042"
+                                                : category ===
+                                                    "Podatek dochodowy"
+                                                  ? "#e74c3c"
+                                                  : "#00C49F",
                             }}
                           />
                           {category}
@@ -867,6 +887,8 @@ export default function OwnerDashboard() {
                           <Bar dataKey="Sprzątanie" fill="#8884d8" />
                           <Bar dataKey="Pranie" fill="#ff6b6b" />
                           <Bar dataKey="Tekstylia" fill="#9c27b0" />
+                          <Bar dataKey="Czynsz" fill="#ff9800" />
+                          <Bar dataKey="Media" fill="#2196f3" />
                           <Bar dataKey="Prowizje OTA" fill="#ff8042" />
                         </>
                       ) : (
@@ -882,6 +904,12 @@ export default function OwnerDashboard() {
                           )}
                           {chartFilters.Tekstylia && (
                             <Bar dataKey="Tekstylia" fill="#9c27b0" />
+                          )}
+                          {chartFilters.Czynsz && (
+                            <Bar dataKey="Czynsz" fill="#ff9800" />
+                          )}
+                          {chartFilters.Media && (
+                            <Bar dataKey="Media" fill="#2196f3" />
                           )}
                           {chartFilters["Złote Wynajmy Prowizja"] && (
                             <Bar
@@ -957,6 +985,20 @@ export default function OwnerDashboard() {
                         <div className="flex items-center gap-2">
                           <div
                             className="h-3 w-3 rounded"
+                            style={{ backgroundColor: "#ff9800" }}
+                          />
+                          <span>Czynsz</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="h-3 w-3 rounded"
+                            style={{ backgroundColor: "#2196f3" }}
+                          />
+                          <span>Media</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="h-3 w-3 rounded"
                             style={{ backgroundColor: "#ff8042" }}
                           />
                           <span>Prowizje OTA</span>
@@ -998,6 +1040,24 @@ export default function OwnerDashboard() {
                               style={{ backgroundColor: "#9c27b0" }}
                             />
                             <span>Tekstylia</span>
+                          </div>
+                        )}
+                        {chartFilters.Czynsz && (
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="h-3 w-3 rounded"
+                              style={{ backgroundColor: "#ff9800" }}
+                            />
+                            <span>Czynsz</span>
+                          </div>
+                        )}
+                        {chartFilters.Media && (
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="h-3 w-3 rounded"
+                              style={{ backgroundColor: "#2196f3" }}
+                            />
+                            <span>Media</span>
                           </div>
                         )}
                         {chartFilters["Złote Wynajmy Prowizja"] && (
@@ -1254,6 +1314,38 @@ export default function OwnerDashboard() {
                                       <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
                                     </div>
                                   </div>
+                                  <div className="group relative rounded-lg bg-orange-50 p-3 text-center">
+                                    <span className="block text-sm font-medium text-orange-900">
+                                      Czynsz
+                                    </span>
+                                    <span className="mt-1 block text-2xl font-bold text-orange-700">
+                                      {percentages.rent.toFixed(1)}%
+                                    </span>
+                                    {/* Tooltip */}
+                                    <div className="absolute bottom-full left-1/2 z-10 mb-2 hidden w-64 -translate-x-1/2 rounded-md bg-gray-900 px-3 py-2 text-xs text-white group-hover:block">
+                                      Koszty czynszu administracyjnego jako %
+                                      przychodu. Jeśli płacisz samodzielnie -
+                                      wypłata jest wyższa o te koszty, co
+                                      zwiększa podatek dochodowy.
+                                      <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                                    </div>
+                                  </div>
+                                  <div className="group relative rounded-lg bg-teal-50 p-3 text-center">
+                                    <span className="block text-sm font-medium text-teal-900">
+                                      Media
+                                    </span>
+                                    <span className="mt-1 block text-2xl font-bold text-teal-700">
+                                      {percentages.utilities.toFixed(1)}%
+                                    </span>
+                                    {/* Tooltip */}
+                                    <div className="absolute bottom-full left-1/2 z-10 mb-2 hidden w-64 -translate-x-1/2 rounded-md bg-gray-900 px-3 py-2 text-xs text-white group-hover:block">
+                                      Koszty mediów (prąd, gaz, woda, internet)
+                                      jako % przychodu. Jeśli płacisz
+                                      samodzielnie - wypłata jest wyższa o te
+                                      koszty, co zwiększa podatek dochodowy.
+                                      <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                                    </div>
+                                  </div>
                                   <div className="group relative rounded-lg bg-yellow-50 p-3 text-center">
                                     <span className="block text-sm font-medium text-yellow-900">
                                       Prowizja Złote Wynajmy
@@ -1318,34 +1410,6 @@ export default function OwnerDashboard() {
                                     {/* Tooltip */}
                                     <div className="absolute bottom-full left-1/2 z-10 mb-2 hidden w-48 -translate-x-1/2 rounded-md bg-gray-900 px-3 py-2 text-xs text-white group-hover:block">
                                       Koszty pościeli, ręczników, dekoracji
-                                      <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
-                                    </div>
-                                  </div>
-                                  <div className="group relative rounded-lg bg-orange-50 p-3 text-center">
-                                    <span className="block text-sm font-medium text-orange-900">
-                                      Czynsz
-                                    </span>
-                                    <span className="mt-1 block text-2xl font-bold text-orange-700">
-                                      {percentages.rent.toFixed(1)}%
-                                    </span>
-                                    {/* Tooltip */}
-                                    <div className="absolute bottom-full left-1/2 z-10 mb-2 hidden w-52 -translate-x-1/2 rounded-md bg-gray-900 px-3 py-2 text-xs text-white group-hover:block">
-                                      Koszty czynszu administracyjnego. Zwykle
-                                      wliczane w wypłatę właściciela.
-                                      <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
-                                    </div>
-                                  </div>
-                                  <div className="group relative rounded-lg bg-teal-50 p-3 text-center">
-                                    <span className="block text-sm font-medium text-teal-900">
-                                      Media
-                                    </span>
-                                    <span className="mt-1 block text-2xl font-bold text-teal-700">
-                                      {percentages.utilities.toFixed(1)}%
-                                    </span>
-                                    {/* Tooltip */}
-                                    <div className="absolute bottom-full left-1/2 z-10 mb-2 hidden w-52 -translate-x-1/2 rounded-md bg-gray-900 px-3 py-2 text-xs text-white group-hover:block">
-                                      Koszty mediów (prąd, gaz, woda, internet).
-                                      Zwykle wliczane w wypłatę właściciela.
                                       <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
                                     </div>
                                   </div>

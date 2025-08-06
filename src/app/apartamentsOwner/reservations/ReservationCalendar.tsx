@@ -312,7 +312,11 @@ export function ReservationCalendar({ apartment }: ReservationCalendarProps) {
 
           {/* Reservations */}
           {apartment.reservations
-            .filter((reservation) => reservation.status !== "CANCELED")
+            .filter(
+              (reservation) =>
+                reservation.status !== "Anulowana" &&
+                reservation.status !== "Odrzucona przez obsługę",
+            )
             .map((reservation) => (
               <ReservationItem
                 key={reservation.id}

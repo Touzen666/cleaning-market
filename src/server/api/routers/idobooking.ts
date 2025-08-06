@@ -6,6 +6,26 @@ import { UserType, type Prisma } from "@prisma/client";
 import { type createTRPCContext } from "@/server/api/trpc";
 import { env } from "@/env";
 
+// Mapping statusów IdoBooking na polskie statusy
+const IDOBOOKING_STATUS_MAP: Record<string, string> = {
+    unconfirmed: "Nieopłacona",
+    confirmed: "Przyjęta",
+    paymentInProgress: "Oczekuje na wpłatę",
+    accepted: "Przyjęta",
+    inProgress: "Trwa",
+    completed: "Zakończona",
+    canceled: "Anulowana",
+    withdrawn: "Odrzucona przez obsługę",
+    waitingForPayment: "Oczekuje na wpłatę",
+    invalidCardNumber: "Niepoprawny numer karty",
+    toClarify: "Do wyjaśnienia",
+};
+
+// Funkcja do mapowania statusu IdoBooking na polski status
+function mapIdobookingStatus(idobookingStatus: string): string {
+    return IDOBOOKING_STATUS_MAP[idobookingStatus] ?? idobookingStatus;
+}
+
 // Zod schemas dla API responses
 const reservationDetailsSchema = z.object({
     price: z.number(),
@@ -336,10 +356,11 @@ export async function mapToDBReservations(
 
         if (existing) {
             // Rezerwacja istnieje, sprawdź czy status się zmienił
-            if (existing.status !== reservationDetails.status) {
+            const mappedStatus = mapIdobookingStatus(reservationDetails.status);
+            if (existing.status !== mappedStatus) {
                 reservationsToUpdate.push({
                     idobookingId,
-                    status: reservationDetails.status,
+                    status: mappedStatus,
                     oldStatus: existing.status,
                 });
             }
@@ -368,7 +389,7 @@ export async function mapToDBReservations(
 
             reservationsToCreate.push({
                 idobookingId,
-                status: details.status,
+                status: mapIdobookingStatus(details.status),
                 apartmentName: firstItem?.objectName ?? "N/A",
                 currency: details.currency,
                 source: sourceName,

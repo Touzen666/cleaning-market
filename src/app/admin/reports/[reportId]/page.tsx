@@ -8,6 +8,12 @@ import type { RouterOutputs } from "@/trpc/react";
 import { PaymentType, VATOption, ReportStatus } from "@prisma/client";
 import { Modal } from "@/components/ui/Modal";
 import { getVatAmount, getGrossAmount } from "@/lib/vat";
+import {
+  translateReportStatus,
+  getReportStatusColor,
+  translateReportItemType,
+  getReportItemTypeColor,
+} from "@/lib/status-translations";
 import Spinner from "@/app/_components/shared/Spinner";
 import {
   DndContext,
@@ -578,75 +584,68 @@ export default function ReportDetailsPage({
   };
 
   const handleStatusChange = (status: ReportStatus, notes?: string) => {
+    // Jeśli próbujemy wysłać raport, pokaż modal potwierdzenia
+    if (status === ReportStatus.SENT) {
+      setShowSendConfirmationModal(true);
+      setPendingStatusChange({ status, notes });
+      return;
+    }
+
     updateStatusMutation.mutate({ reportId, status, notes });
   };
 
-  const getStatusColor = (status: ReportStatus) => {
-    switch (status) {
-      case "DRAFT":
-        return "bg-gray-100 text-gray-800";
-      case "REVIEW":
-        return "bg-yellow-100 text-yellow-800";
-      case "APPROVED":
-        return "bg-green-100 text-green-800";
-      case "SENT":
-        return "bg-blue-100 text-blue-800";
-      default:
-        return "bg-gray-100 text-gray-800";
+  const [showSendConfirmationModal, setShowSendConfirmationModal] =
+    useState(false);
+  const [pendingStatusChange, setPendingStatusChange] = useState<{
+    status: ReportStatus;
+    notes?: string;
+  } | null>(null);
+
+  const handleConfirmSend = () => {
+    if (pendingStatusChange) {
+      updateStatusMutation.mutate({
+        reportId,
+        status: pendingStatusChange.status,
+        notes: pendingStatusChange.notes,
+      });
+      setShowSendConfirmationModal(false);
+      setPendingStatusChange(null);
     }
   };
 
-  const getStatusText = (status: ReportStatus) => {
-    switch (status) {
-      case "DRAFT":
-        return "Szkic";
-      case "REVIEW":
-        return "Do przeglądu";
-      case "APPROVED":
-        return "Zatwierdzony";
-      case "SENT":
-        return "Wysłany";
-      default:
-        return status;
+  const handleArchiveAndDelete = async () => {
+    if (!deletionReason.trim()) {
+      toast.error("Proszę podać przyczynę usunięcia raportu");
+      return;
+    }
+
+    try {
+      await archiveAndDeleteSentReportMutation.mutateAsync({
+        reportId,
+        deletionReason: deletionReason.trim(),
+      });
+      setShowArchiveDeleteModal(false);
+      setDeletionReason("");
+      toast.success("Raport został zarchiwizowany i usunięty");
+      router.push(getBackToListPath());
+    } catch {
+      toast.error("Błąd podczas archiwizacji raportu");
     }
   };
 
-  const getItemTypeTextLocal = (type: string) => {
-    switch (type) {
-      case "REVENUE":
-        return "Przychód";
-      case "EXPENSE":
-        return "Wydatek";
-      case "FEE":
-        return "Opłata";
-      case "TAX":
-        return "Podatek";
-      case "COMMISSION":
-        return "Prowizja";
-      default:
-        return type;
-    }
-  };
-
-  const getItemTypeColorLocal = (type: string) => {
-    switch (type) {
-      case "REVENUE":
-        return "bg-green-100 text-green-800";
-      case "EXPENSE":
-        return "bg-red-100 text-red-800";
-      case "FEE":
-        return "bg-orange-100 text-orange-800";
-      case "TAX":
-        return "bg-purple-100 text-purple-800";
-      case "COMMISSION":
-        return "bg-blue-100 text-blue-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
+  // Używamy nowych funkcji z lib/status-translations
+  const getStatusColor = getReportStatusColor;
+  const getStatusText = translateReportStatus;
+  const getItemTypeTextLocal = translateReportItemType;
+  const getItemTypeColorLocal = getReportItemTypeColor;
 
   const [showDeleteModal, setShowDeleteModal] = React.useState(false);
+  const [showArchiveDeleteModal, setShowArchiveDeleteModal] =
+    React.useState(false);
+  const [deletionReason, setDeletionReason] = React.useState("");
   const deleteReportMutation = api.monthlyReports.deleteReport.useMutation();
+  const archiveAndDeleteSentReportMutation =
+    api.monthlyReports.archiveAndDeleteSentReport.useMutation();
 
   const handleDeleteItem = (itemId: string) => {
     if (confirm("Czy na pewno chcesz usunąć tę pozycję z raportu?")) {
@@ -994,8 +993,14 @@ export default function ReportDetailsPage({
                 </button>
                 {/* Przycisk usuń raport - tylko dla admina */}
                 <button
-                  onClick={() => setShowDeleteModal(true)}
-                  className="inline-flex items-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500"
+                  onClick={() => {
+                    if (report.status === ReportStatus.SENT) {
+                      setShowArchiveDeleteModal(true);
+                    } else {
+                      setShowDeleteModal(true);
+                    }
+                  }}
+                  className="inline-flex items-center rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500"
                 >
                   <svg
                     className="-ml-0.5 mr-1.5 h-5 w-5"
@@ -1123,6 +1128,96 @@ export default function ReportDetailsPage({
                   className="rounded-md bg-red-600 px-4 py-2 text-white hover:bg-red-700"
                 >
                   Usuń raport
+                </button>
+              </div>
+            </div>
+          </Modal>
+        )}
+
+        {/* Modal potwierdzenia wysyłania raportu */}
+        {showSendConfirmationModal && (
+          <Modal onClose={() => setShowSendConfirmationModal(false)}>
+            <div className="p-6">
+              <h2 className="mb-4 text-lg font-bold text-orange-700">
+                Potwierdź wysłanie raportu
+              </h2>
+              <p className="mb-6 text-gray-700">
+                Czy na pewno chcesz wysłać ten raport? Po wysłaniu:
+              </p>
+              <ul className="mb-6 list-inside list-disc space-y-2 text-sm text-gray-600">
+                <li>
+                  Raport zostanie zamrożony i nie będzie można go edytować
+                </li>
+                <li>Właściciel otrzyma dostęp do ostatecznej wersji raportu</li>
+                <li>
+                  Jedynym sposobem na zmianę będzie usunięcie i ponowne
+                  utworzenie raportu
+                </li>
+              </ul>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setShowSendConfirmationModal(false)}
+                  className="rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300"
+                >
+                  Anuluj
+                </button>
+                <button
+                  onClick={handleConfirmSend}
+                  className="rounded-md bg-orange-600 px-4 py-2 text-white hover:bg-orange-700"
+                  disabled={updateStatusMutation.isPending}
+                >
+                  {updateStatusMutation.isPending
+                    ? "Wysyłanie..."
+                    : "Wyślij raport"}
+                </button>
+              </div>
+            </div>
+          </Modal>
+        )}
+
+        {/* Modal archiwizacji i usuwania raportu wysłanego */}
+        {showArchiveDeleteModal && (
+          <Modal onClose={() => setShowArchiveDeleteModal(false)}>
+            <div className="p-6">
+              <h2 className="mb-4 text-lg font-bold text-red-700">
+                Arhiwizuj i usuń raport wysłany
+              </h2>
+              <p className="mb-6 text-gray-700">
+                Ten raport został wysłany i zostanie zarchiwizowany przed
+                usunięciem. Raport zostanie zapisany w historii z informacją o
+                przyczynie usunięcia.
+              </p>
+              <div className="mb-6">
+                <label className="mb-2 block text-sm font-medium text-gray-700">
+                  Przyczyna usunięcia *
+                </label>
+                <textarea
+                  value={deletionReason}
+                  onChange={(e) => setDeletionReason(e.target.value)}
+                  className="block w-full rounded-md border-gray-300 px-3 py-2 shadow-sm focus:border-red-500 focus:outline-none focus:ring-red-500"
+                  rows={3}
+                  placeholder="Podaj przyczynę usunięcia raportu..."
+                  required
+                />
+              </div>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setShowArchiveDeleteModal(false)}
+                  className="rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300"
+                >
+                  Anuluj
+                </button>
+                <button
+                  onClick={handleArchiveAndDelete}
+                  className="rounded-md bg-red-600 px-4 py-2 text-white hover:bg-red-700"
+                  disabled={
+                    archiveAndDeleteSentReportMutation.isPending ||
+                    !deletionReason.trim()
+                  }
+                >
+                  {archiveAndDeleteSentReportMutation.isPending
+                    ? "Archiwizowanie..."
+                    : "Archiwizuj i usuń"}
                 </button>
               </div>
             </div>
@@ -1259,6 +1354,180 @@ export default function ReportDetailsPage({
                   </select>
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Report User Information - Admin Only */}
+        <div className="mb-6 overflow-hidden rounded-lg bg-gray-50 shadow">
+          <div className="px-6 py-4">
+            <h3 className="flex items-center text-lg font-medium text-gray-900">
+              <svg
+                className="mr-2 h-5 w-5 text-gray-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                />
+              </svg>
+              Informacje o Użytkownikach (Tylko Admin)
+            </h3>
+            <p className="mt-1 text-sm text-gray-600">
+              Historia użytkowników odpowiedzialnych za ten raport
+            </p>
+          </div>
+          <div className="border-t border-gray-200 bg-white p-6">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+              {/* Użytkownik, który stworzył raport */}
+              <div className="rounded-lg border border-gray-200 p-4">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <div className="rounded-lg bg-blue-500 p-2">
+                      <svg
+                        className="h-4 w-4 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                  <div className="ml-3">
+                    <h4 className="text-sm font-medium text-gray-900">
+                      Stworzony przez
+                    </h4>
+                    <p className="text-sm text-gray-500">
+                      {report.createdByAdmin?.name ?? "Nieznany użytkownik"}
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      {report.createdAt
+                        ? new Date(report.createdAt).toLocaleDateString(
+                            "pl-PL",
+                            {
+                              year: "numeric",
+                              month: "long",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            },
+                          )
+                        : "Data nieznana"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Użytkownik, który zatwierdził raport */}
+              {report.approvedByAdmin && (
+                <div className="rounded-lg border border-gray-200 p-4">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0">
+                      <div className="rounded-lg bg-green-500 p-2">
+                        <svg
+                          className="h-4 w-4 text-white"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                    <div className="ml-3">
+                      <h4 className="text-sm font-medium text-gray-900">
+                        Zatwierdzony przez
+                      </h4>
+                      <p className="text-sm text-gray-500">
+                        {report.approvedByAdmin.name ?? "Nieznany użytkownik"}
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        {report.approvedAt
+                          ? new Date(report.approvedAt).toLocaleDateString(
+                              "pl-PL",
+                              {
+                                year: "numeric",
+                                month: "long",
+                                day: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              },
+                            )
+                          : "Data nieznana"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Użytkownik, który wysłał raport */}
+              {report.sentAt && (
+                <div className="rounded-lg border border-gray-200 p-4">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0">
+                      <div className="rounded-lg bg-purple-500 p-2">
+                        <svg
+                          className="h-4 w-4 text-white"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                    <div className="ml-3">
+                      <h4 className="text-sm font-medium text-gray-900">
+                        Wysłany przez
+                      </h4>
+                      <p className="text-sm text-gray-500">
+                        {(() => {
+                          const sentAction = report.history?.find(
+                            (h) => h.action === "sent",
+                          );
+                          return (
+                            sentAction?.admin?.name ?? "Nieznany użytkownik"
+                          );
+                        })()}
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        {report.sentAt
+                          ? new Date(report.sentAt).toLocaleDateString(
+                              "pl-PL",
+                              {
+                                year: "numeric",
+                                month: "long",
+                                day: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              },
+                            )
+                          : "Data nieznana"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -1506,6 +1775,9 @@ export default function ReportDetailsPage({
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                        #
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                         Gość
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
@@ -1538,8 +1810,11 @@ export default function ReportDetailsPage({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 bg-white">
-                    {revenueItems.map((item) => (
+                    {revenueItems.map((item, index) => (
                       <tr key={item.id}>
+                        <td className="px-6 py-4 text-sm font-medium text-gray-500">
+                          {index + 1}
+                        </td>
                         <td className="px-6 py-4 text-sm text-gray-900">
                           {item.reservation?.guest ?? "-"}
                         </td>
@@ -1871,6 +2146,9 @@ export default function ReportDetailsPage({
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                        #
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                         Data
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
@@ -1894,8 +2172,11 @@ export default function ReportDetailsPage({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 bg-white">
-                    {expenseItems.map((item) => (
+                    {expenseItems.map((item, index) => (
                       <tr key={item.id}>
+                        <td className="px-6 py-4 text-sm font-medium text-gray-500">
+                          {index + 1}
+                        </td>
                         <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
                           {new Date(item.date).toLocaleDateString("pl-PL", {
                             timeZone: "UTC",
@@ -1953,7 +2234,6 @@ export default function ReportDetailsPage({
                               <button
                                 onClick={() => handleDeleteItem(item.id)}
                                 disabled={
-                                  report.status === "APPROVED" ||
                                   report.status === "SENT" ||
                                   deleteReportItemMutation.isPending
                                 }
@@ -3008,6 +3288,7 @@ const PayoutOption = ({
   isSelected,
   children,
   color = "green",
+  isDisabled = false,
 }: {
   id: string;
   label: string;
@@ -3017,6 +3298,7 @@ const PayoutOption = ({
   isSelected: boolean;
   children: React.ReactNode;
   color?: "green" | "blue";
+  isDisabled?: boolean;
 }) => {
   const colorClasses = {
     green: {
@@ -3044,11 +3326,17 @@ const PayoutOption = ({
           name="final-payout-type"
           checked={finalPayoutType === payoutType}
           onChange={() => handleFinalPayoutTypeChange(payoutType)}
-          className={`h-4 w-4 cursor-pointer ${selectedColor.radio}`}
+          disabled={isDisabled}
+          className={`h-4 w-4 ${isDisabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"} ${selectedColor.radio}`}
+          title={
+            isDisabled
+              ? "Raport został wysłany i nie można go edytować. Jedynym rozwiązaniem jest usunięcie raportu."
+              : ""
+          }
         />
         <label
           htmlFor={id}
-          className={`text-lg font-semibold ${selectedColor.label}`}
+          className={`text-lg font-semibold ${isDisabled ? "cursor-not-allowed opacity-50" : ""} ${selectedColor.label}`}
         >
           {label}
         </label>
@@ -3526,6 +3814,7 @@ function OwnerPayoutCalculation({
   };
 
   const isVatExempt = report.owner.vatOption === VATOption.NO_VAT;
+  const isReportSent = report.status === ReportStatus.SENT;
 
   // Suma dodatkowych odliczeń (netto)
   // const totalAdditionalDeductions = (sortedDeductions ?? []).reduce(
@@ -3627,6 +3916,7 @@ function OwnerPayoutCalculation({
             handleFinalPayoutTypeChange={handleFinalPayoutTypeChange}
             isSelected={finalPayoutType === LocalPayoutType.FIXED_AMOUNT}
             color="green"
+            isDisabled={isReportSent}
           >
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <SummaryField
@@ -3678,6 +3968,7 @@ function OwnerPayoutCalculation({
               finalPayoutType === LocalPayoutType.FIXED_AMOUNT_MINUS_UTILITIES
             }
             color="green"
+            isDisabled={isReportSent}
           >
             {finalPayoutType ===
               LocalPayoutType.FIXED_AMOUNT_MINUS_UTILITIES && (
@@ -3733,6 +4024,7 @@ function OwnerPayoutCalculation({
             handleFinalPayoutTypeChange={handleFinalPayoutTypeChange}
             isSelected={finalPayoutType === LocalPayoutType.COMMISSION}
             color="blue"
+            isDisabled={isReportSent}
           >
             <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
               <SummaryField

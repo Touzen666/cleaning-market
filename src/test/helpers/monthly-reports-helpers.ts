@@ -37,13 +37,13 @@ export async function recalculateReportSettlement(reportId: string, ctx: Recalcu
                 }
             }),
             // Zoptymalizowane zapytanie - użyj agregacji SQL zamiast pobierania wszystkich rekordów
-            // Filtrujemy rezerwacje ze statusem 'canceled' dla typów REVENUE
+            // Filtrujemy rezerwacje ze statusem 'Anulowana' i 'Odrzucona przez obsługę' dla typów REVENUE
             ctx.db.$queryRaw<Array<{ type: string; total: number }>>`
                 SELECT ri.type, SUM(ri.amount) as total 
                 FROM "ReportItem" ri
                 LEFT JOIN "Reservation" r ON ri."reservationId" = r.id
                 WHERE ri."reportId" = ${reportId}
-                  AND (ri.type != 'REVENUE' OR r.id IS NULL OR r.status != 'canceled')
+                  AND (ri.type != 'REVENUE' OR r.id IS NULL OR (r.status != 'Anulowana' AND r.status != 'Odrzucona przez obsługę'))
                 GROUP BY ri.type
             `,
             // Zoptymalizowane zapytanie - użyj agregacji SQL dla dodatkowych odliczeń

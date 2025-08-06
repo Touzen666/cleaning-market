@@ -11,6 +11,12 @@ import {
   type Reservation,
 } from "@prisma/client";
 import { getVatAmount, getGrossAmount } from "@/lib/vat";
+import {
+  translateReportStatus,
+  getReportStatusColor,
+  translateReportItemType,
+  getReportItemTypeColor,
+} from "@/lib/status-translations";
 
 type ReportItemWithReservation = ReportItem & {
   reservation?: Reservation | null;
@@ -62,66 +68,11 @@ type OwnerReport = {
   taxBase?: number; // Podstawa opodatkowania
 };
 
-function getStatusColor(status: ReportStatus) {
-  switch (status) {
-    case "DRAFT":
-      return "bg-gray-100 text-gray-800";
-    case "REVIEW":
-      return "bg-yellow-100 text-yellow-800";
-    case "APPROVED":
-      return "bg-green-100 text-green-800";
-    case "SENT":
-      return "bg-blue-100 text-blue-800";
-    default:
-      return "bg-gray-100 text-gray-800";
-  }
-}
-function getStatusText(status: ReportStatus) {
-  switch (status) {
-    case "DRAFT":
-      return "Szkic";
-    case "REVIEW":
-      return "Do przeglądu";
-    case "APPROVED":
-      return "Zatwierdzony";
-    case "SENT":
-      return "Wysłany";
-    default:
-      return status;
-  }
-}
-function getItemTypeText(type: string) {
-  switch (type) {
-    case "REVENUE":
-      return "Przychód";
-    case "EXPENSE":
-      return "Wydatek";
-    case "FEE":
-      return "Opłata";
-    case "TAX":
-      return "Podatek";
-    case "COMMISSION":
-      return "Prowizja";
-    default:
-      return type;
-  }
-}
-function getItemTypeColor(type: string) {
-  switch (type) {
-    case "REVENUE":
-      return "bg-green-100 text-green-800";
-    case "EXPENSE":
-      return "bg-red-100 text-red-800";
-    case "FEE":
-      return "bg-orange-100 text-orange-800";
-    case "TAX":
-      return "bg-purple-100 text-purple-800";
-    case "COMMISSION":
-      return "bg-blue-100 text-blue-800";
-    default:
-      return "bg-gray-100 text-gray-800";
-  }
-}
+// Używamy nowych funkcji z lib/status-translations
+const getStatusColor = getReportStatusColor;
+const getStatusText = translateReportStatus;
+const getItemTypeText = translateReportItemType;
+const getItemTypeColor = getReportItemTypeColor;
 
 function calculateNights(start: Date | string, end: Date | string) {
   const s = new Date(start);
@@ -175,7 +126,8 @@ export default function OwnerReportDetailsPage() {
   if (error || !report?.owner) {
     let errorMessage = "Nie znaleziono raportu lub właściciela";
     if (error && typeof error === "object" && "message" in error) {
-      errorMessage = (error as { message?: string }).message ?? errorMessage;
+      const errorObj = error as { message?: string };
+      errorMessage = errorObj.message ?? errorMessage;
     }
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -436,8 +388,8 @@ export default function OwnerReportDetailsPage() {
 
         {/* Revenue Items (Reservations) */}
         <div className="mb-8 overflow-hidden rounded-lg bg-white shadow">
-          <div className="px-6 py-4">
-            <h3 className="text-lg font-medium text-gray-900">
+          <div className="border-b border-green-200 bg-green-50 px-6 py-4">
+            <h3 className="text-lg font-medium text-green-900">
               Rezerwacje i Przychody ({reservationItems.length})
             </h3>
           </div>
@@ -451,6 +403,9 @@ export default function OwnerReportDetailsPage() {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                        #
+                      </th>
                       <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                         Gość
                       </th>
@@ -475,8 +430,11 @@ export default function OwnerReportDetailsPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 bg-white">
-                    {reservationItems.map((item) => (
+                    {reservationItems.map((item, index) => (
                       <tr key={item.id}>
+                        <td className="px-6 py-4 text-sm font-medium text-gray-500">
+                          {index + 1}
+                        </td>
                         <td className="px-6 py-4 text-sm text-gray-900">
                           {obfuscateGuest(item.reservation?.guest)}
                         </td>
@@ -545,8 +503,8 @@ export default function OwnerReportDetailsPage() {
 
         {/* Expense Items */}
         <div className="mb-8 overflow-hidden rounded-lg bg-white shadow">
-          <div className="px-6 py-4">
-            <h3 className="text-lg font-medium text-gray-900">
+          <div className="border-b border-green-200 bg-green-50 px-6 py-4">
+            <h3 className="text-lg font-medium text-green-900">
               Wydatki i Prowizje ({expenseItems.length})
             </h3>
           </div>
@@ -560,6 +518,9 @@ export default function OwnerReportDetailsPage() {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                        #
+                      </th>
                       <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                         Data
                       </th>
@@ -578,8 +539,11 @@ export default function OwnerReportDetailsPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 bg-white">
-                    {expenseItems.map((item) => (
+                    {expenseItems.map((item, index) => (
                       <tr key={item.id}>
+                        <td className="px-6 py-4 text-sm font-medium text-gray-500">
+                          {index + 1}
+                        </td>
                         <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
                           {new Date(item.date).toLocaleDateString("pl-PL")}
                         </td>
@@ -730,7 +694,7 @@ export default function OwnerReportDetailsPage() {
 
         {/* Podsumowanie rozliczenia - sekcja na górze */}
         <div className="mb-8 overflow-hidden rounded-lg bg-white shadow">
-          <div className="border-b border-green-200 px-6 py-4">
+          <div className="border-b border-green-200 bg-green-50 px-6 py-4">
             <h3 className="flex items-center text-lg font-medium text-green-900">
               <svg
                 className="mr-2 h-5 w-5 text-green-600"
@@ -786,8 +750,8 @@ export default function OwnerReportDetailsPage() {
         </div>
 
         {/* Rozliczenie z Właścicielem - identyczny layout jak admin, bez inputów/radio/checkboxów */}
-        <div className="mb-8">
-          <div className="border-b border-green-200 px-6 py-4">
+        <div className="mb-8 overflow-hidden rounded-lg bg-white shadow">
+          <div className="border-b border-green-200 bg-green-50 px-6 py-4">
             <h3 className="flex items-center text-lg font-medium text-green-900">
               <svg
                 className="mr-2 h-5 w-5 text-green-600"

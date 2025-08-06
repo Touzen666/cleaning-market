@@ -3,8 +3,12 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/trpc/react";
-import { type ReportStatus } from "@prisma/client";
+
 import Image from "next/image";
+import {
+  translateReportStatus,
+  getReportStatusColor,
+} from "@/lib/status-translations";
 
 export default function OwnerReportsPage() {
   const router = useRouter();
@@ -67,27 +71,9 @@ export default function OwnerReportsPage() {
     router.push(`/apartamentsOwner/reports/${reportId}`);
   };
 
-  const getStatusColor = (status: ReportStatus) => {
-    switch (status) {
-      case "APPROVED":
-        return "bg-green-100 text-green-800";
-      case "SENT":
-        return "bg-blue-100 text-blue-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
-
-  const getStatusText = (status: ReportStatus) => {
-    switch (status) {
-      case "APPROVED":
-        return "Zatwierdzony";
-      case "SENT":
-        return "Wysłany";
-      default:
-        return status;
-    }
-  };
+  // Używamy nowych funkcji z lib/status-translations
+  const getStatusColor = getReportStatusColor;
+  const getStatusText = translateReportStatus;
 
   // Handle error state
   if (reportsError) {
@@ -453,9 +439,7 @@ export default function OwnerReportsPage() {
                                 : "bg-yellow-100 text-yellow-800"
                             }`}
                           >
-                            {report.status === "APPROVED"
-                              ? "Zatwierdzony"
-                              : report.status}
+                            {translateReportStatus(report.status)}
                           </span>
                           <span className="font-bold text-green-600">
                             {report.finalOwnerPayout?.toFixed(2) ?? "null"} PLN
@@ -503,18 +487,6 @@ export default function OwnerReportsPage() {
                     .toFixed(2)}{" "}
                   PLN
                 </p>
-                <p className="mt-2 text-sm text-gray-500">
-                  Suma kosztów stałych:{" "}
-                  <span className="font-semibold text-red-600">
-                    {reports
-                      .reduce(
-                        (sum, report) => sum + (report.fixedCosts ?? 0),
-                        0,
-                      )
-                      .toFixed(2)}{" "}
-                    PLN
-                  </span>
-                </p>
               </div>
             </div>
           </div>
@@ -555,9 +527,6 @@ export default function OwnerReportsPage() {
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                       Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                      Koszty stałe
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                       Wypłata właściciela
@@ -633,14 +602,9 @@ export default function OwnerReportsPage() {
                           {getStatusText(report.status)}
                         </span>
                       </td>
-                      <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-red-600">
-                        {report.fixedCosts > 0
-                          ? `-${report.fixedCosts.toFixed(2)} PLN`
-                          : "0.00 PLN"}
-                      </td>
-                      <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
+                      <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-green-600">
                         {report.finalOwnerPayout
-                          ? `${report.finalOwnerPayout.toFixed(2)} PLN`
+                          ? `+${report.finalOwnerPayout.toFixed(2)} PLN`
                           : "Brak danych"}
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
