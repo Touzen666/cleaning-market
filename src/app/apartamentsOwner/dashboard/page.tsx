@@ -19,6 +19,8 @@ import {
   ExclamationTriangleIcon,
   FunnelIcon,
   UserCircleIcon,
+  XMarkIcon,
+  InformationCircleIcon,
 } from "@heroicons/react/24/outline";
 import { FaCar, FaCarSide, FaPencilAlt } from "react-icons/fa";
 import {
@@ -96,6 +98,7 @@ interface PieLabelProps {
 export default function OwnerDashboard() {
   const router = useRouter();
   const [ownerEmail, setOwnerEmail] = useState<string | null>(null);
+  const [showWelcomeMessage, setShowWelcomeMessage] = useState(true);
 
   // Filter states
   const [selectedApartmentId, setSelectedApartmentId] = useState<
@@ -555,6 +558,51 @@ export default function OwnerDashboard() {
           </div>
         </div>
       </header>
+
+      {/* Komunikat powitalny */}
+      {showWelcomeMessage && (
+        <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+          <div className="rounded-lg border border-green-200 bg-green-50 p-4">
+            <div className="flex items-start">
+              <div className="flex-shrink-0">
+                <InformationCircleIcon
+                  className="h-5 w-5 text-green-400"
+                  aria-hidden="true"
+                />
+              </div>
+              <div className="ml-3 flex-1">
+                <p className="text-sm text-green-800">
+                  <strong>Witaj właścicielu!</strong> Firma Złote Wynajmy -
+                  Apartamenty z Klasą wita Cię jako nowego inwestora w naszej
+                  Złotej Grupie Inwestorów. Twój apartament nabiera rozpędu i z
+                  czasem odblokowywane będą nowe opcje w systemie, abyś
+                  mógł/mogła cieszyć się kontrolą nad swoją inwestycją.
+                  Zaawansowane wykresy oraz szczegółowe raporty pomogą w
+                  zrozumieniu procesu, a także dadzą Ci szansę do dokładnej
+                  analizy. Sam/a zdecydujesz, jakie dane chcesz przeglądać.
+                  Wkrótce uruchomimy dla Ciebie platformę z kursami dla
+                  inwestorów w nieruchomościach, z których będziesz mógł/mogła
+                  się dowiedzieć więcej o tym, jak skutecznie i szybko zarabiać
+                  na nieruchomościach.
+                </p>
+              </div>
+              <div className="ml-auto pl-3">
+                <div className="-mx-1.5 -my-1.5">
+                  <button
+                    type="button"
+                    className="inline-flex rounded-md bg-green-50 p-1.5 text-green-500 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-2 focus:ring-offset-green-50 hover:bg-green-100"
+                    onClick={() => setShowWelcomeMessage(false)}
+                  >
+                    <span className="sr-only">Zamknij</span>
+                    <XMarkIcon className="h-5 w-5" aria-hidden="true" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <main className="py-10">
         <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
