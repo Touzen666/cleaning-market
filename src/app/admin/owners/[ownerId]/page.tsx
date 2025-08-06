@@ -7,6 +7,7 @@ import { PaymentType, VATOption } from "@/lib/types";
 import { NoteType } from "@prisma/client";
 import ApartmentList from "@/components/ApartmentList";
 import ManageOwnerApartmentsModal from "@/app/_components/ManageOwnerApartmentsModal";
+import ProfileAvatar from "@/components/ProfileAvatar";
 
 export default function OwnerDetailsPage({
   params,
@@ -277,13 +278,19 @@ export default function OwnerDetailsPage({
               </h3>
 
               <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Imię i nazwisko
-                  </label>
-                  <p className="mt-1 text-sm text-gray-900">
-                    {owner.firstName} {owner.lastName}
-                  </p>
+                {/* Profile Image */}
+                <div className="flex items-center space-x-4">
+                  <ProfileAvatar
+                    imageUrl={owner.profileImageUrl || undefined}
+                    size="lg"
+                    alt={`Zdjęcie profilowe ${owner.firstName} ${owner.lastName}`}
+                  />
+                  <div>
+                    <h4 className="text-lg font-medium text-gray-900">
+                      {owner.firstName} {owner.lastName}
+                    </h4>
+                    <p className="text-sm text-gray-500">{owner.email}</p>
+                  </div>
                 </div>
 
                 <div>
@@ -292,6 +299,62 @@ export default function OwnerDetailsPage({
                   </label>
                   <p className="mt-1 text-sm text-gray-900">{owner.email}</p>
                 </div>
+
+                {owner.phone && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Telefon
+                    </label>
+                    <p className="mt-1 text-sm text-gray-900">{owner.phone}</p>
+                  </div>
+                )}
+
+                {owner.companyName && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Nazwa firmy
+                    </label>
+                    <p className="mt-1 text-sm text-gray-900">
+                      {owner.companyName}
+                    </p>
+                  </div>
+                )}
+
+                {owner.nip && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      NIP
+                    </label>
+                    <p className="mt-1 text-sm text-gray-900">{owner.nip}</p>
+                  </div>
+                )}
+
+                {(owner.address ?? owner.city ?? owner.postalCode) && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Adres
+                    </label>
+                    <p className="mt-1 text-sm text-gray-900">
+                      {owner.address && (
+                        <span>
+                          {owner.address}
+                          <br />
+                        </span>
+                      )}
+                      {owner.city && owner.postalCode && (
+                        <span>
+                          {owner.postalCode} {owner.city}
+                        </span>
+                      )}
+                      {owner.city && !owner.postalCode && (
+                        <span>{owner.city}</span>
+                      )}
+                      {!owner.city && owner.postalCode && (
+                        <span>{owner.postalCode}</span>
+                      )}
+                    </p>
+                  </div>
+                )}
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700">

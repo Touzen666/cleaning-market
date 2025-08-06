@@ -1,6 +1,6 @@
 {
   "name": "cleaning-market",
-  "version": "1.1.8",
+  "version": "1.1.10",
   "private": true,
   "type": "module",
   "scripts": {
@@ -77,6 +77,7 @@
     "@typescript-eslint/eslint-plugin": "^8.1.0",
     "@typescript-eslint/parser": "^8.1.0",
     "@vitest/ui": "^3.2.4",
+    "canvas": "^3.1.2",
     "eslint": "^8.57.0",
     "eslint-config-next": "^15.0.1",
     "msw": "^2.10.3",

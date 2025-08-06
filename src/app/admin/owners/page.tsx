@@ -6,8 +6,11 @@ import { api } from "@/trpc/react";
 import type { RouterOutputs } from "@/trpc/react";
 import { PaymentType, VATOption } from "@/lib/types";
 import { useSession } from "next-auth/react";
+import ProfileAvatar from "@/components/ProfileAvatar";
 
-type ApartmentOwner = RouterOutputs["apartmentOwners"]["getAll"][0];
+type ApartmentOwner = RouterOutputs["apartmentOwners"]["getAll"][0] & {
+  profileImageUrl?: string | null;
+};
 
 export default function AdminOwnersPage() {
   const router = useRouter();
@@ -93,7 +96,7 @@ export default function AdminOwnersPage() {
               <div className="flex gap-3">
                 <button
                   onClick={() => router.push("/admin/reservations")}
-                  className="inline-flex items-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600"
+                  className="inline-flex items-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600 hover:bg-green-500"
                 >
                   <svg
                     className="-ml-0.5 mr-1.5 h-5 w-5"
@@ -112,7 +115,7 @@ export default function AdminOwnersPage() {
                 </button>
                 <button
                   onClick={() => router.push("/admin/reports")}
-                  className="inline-flex items-center rounded-md bg-purple-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-purple-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-600"
+                  className="inline-flex items-center rounded-md bg-purple-600 px-3 py-2 text-sm font-semibold text-white shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-600 hover:bg-purple-500"
                 >
                   <svg
                     className="-ml-0.5 mr-1.5 h-5 w-5"
@@ -131,7 +134,7 @@ export default function AdminOwnersPage() {
                 </button>
                 <button
                   onClick={() => setShowAddForm(true)}
-                  className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                  className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 hover:bg-indigo-500"
                 >
                   <svg
                     className="-ml-0.5 mr-1.5 h-5 w-5"
@@ -423,25 +426,12 @@ function OwnerCard({
         onClick={() => setShowDetails(!showDetails)}
       >
         <div className="flex items-center">
-          <div
-            className={`h-8 w-8 rounded-full ${
-              owner.isActive ? "bg-green-100" : "bg-gray-200"
-            } flex items-center justify-center`}
-          >
-            <svg
-              className={`h-5 w-5 ${
-                owner.isActive ? "text-green-500" : "text-gray-500"
-              }`}
-              fill="currentColor"
-              viewBox="0 0 20 20"
-            >
-              <path
-                fillRule="evenodd"
-                d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
-                clipRule="evenodd"
-              />
-            </svg>
-          </div>
+          <ProfileAvatar
+            imageUrl={owner.profileImageUrl || undefined}
+            size="md"
+            alt={`Zdjęcie profilowe ${owner.firstName} ${owner.lastName}`}
+            className={owner.isActive ? "" : "opacity-50"}
+          />
           <div className="ml-4">
             <div className="text-lg font-medium text-gray-900">
               {owner.firstName} {owner.lastName}

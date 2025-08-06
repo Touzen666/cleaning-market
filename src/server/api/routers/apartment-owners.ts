@@ -17,6 +17,7 @@ const apartmentOwnerSchema = z.object({
     temporaryPassword: z.string().nullable(),
     createdAt: z.date(),
     updatedAt: z.date(),
+    profileImageUrl: z.string().nullable(),
     createdByAdmin: z.object({
         name: z.string().nullable(),
         email: z.string().nullable(),
@@ -63,6 +64,16 @@ export const apartmentOwnersRouter = createTRPCRouter({
                                 },
                             },
                         },
+                        profileImages: {
+                            where: { isActive: true },
+                            orderBy: { createdAt: 'desc' },
+                            take: 1,
+                            select: {
+                                id: true,
+                                url: true,
+                                alt: true,
+                            },
+                        },
                     },
                     orderBy: {
                         createdAt: "desc",
@@ -72,6 +83,7 @@ export const apartmentOwnersRouter = createTRPCRouter({
                 // Map the result to match the schema (convert apartment ID to string)
                 return owners.map(owner => ({
                     ...owner,
+                    profileImageUrl: owner.profileImages[0]?.url || null,
                     ownedApartments: owner.ownedApartments.map(ownership => ({
                         ...ownership,
                         apartment: {
@@ -205,6 +217,12 @@ export const apartmentOwnersRouter = createTRPCRouter({
             lastName: z.string().min(1),
             email: z.string().email(),
             phone: z.string().optional(),
+            companyName: z.string().optional(),
+            nip: z.string().optional(),
+            address: z.string().optional(),
+            city: z.string().optional(),
+            postalCode: z.string().optional(),
+            profileImageUrl: z.string().nullable().optional(),
             isActive: z.boolean(),
             paymentType: z.enum([PaymentType.COMMISSION, PaymentType.FIXED_AMOUNT]),
             fixedPaymentAmount: z.number().optional(),
@@ -352,7 +370,7 @@ export const apartmentOwnersRouter = createTRPCRouter({
                 });
             }
 
-            return await ctx.db.apartmentOwner.findUnique({
+            const owner = await ctx.db.apartmentOwner.findUnique({
                 where: { id: input.ownerId },
                 include: {
                     createdByAdmin: {
@@ -379,8 +397,33 @@ export const apartmentOwnersRouter = createTRPCRouter({
                             },
                         },
                     },
+                    profileImages: {
+                        where: { isActive: true },
+                        orderBy: { createdAt: 'desc' },
+                        take: 1,
+                        select: {
+                            id: true,
+                            url: true,
+                            alt: true,
+                        },
+                    },
                 },
             });
+
+            if (!owner) {
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: "Właściciel nie został znaleziony",
+                });
+            }
+
+            // Extract the active profile image URL
+            const profileImageUrl = owner.profileImages[0]?.url || null;
+
+            return {
+                ...owner,
+                profileImageUrl,
+            };
         }),
 
     // Delete apartment owner only (admin only)

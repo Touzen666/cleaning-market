@@ -4,6 +4,8 @@ import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/trpc/react";
 import { useChartData } from "@/hooks/useChartData";
+import ChartExplanationCard from "@/components/ChartExplanationCard";
+import ProfileAvatar from "@/components/ProfileAvatar";
 import {
   BarChartPlaceholder,
   PieChartPlaceholder,
@@ -30,6 +32,8 @@ import {
   PieChart,
   Pie,
   Cell,
+  LineChart,
+  Line,
 } from "recharts";
 
 function ExitImpersonationBanner() {
@@ -139,6 +143,15 @@ export default function OwnerDashboard() {
   const [chartViewMode, setChartViewMode] = useState<
     "normal" | "costsVsPayout" | "fixedCosts"
   >("normal");
+  const [isIconAnimating, setIsIconAnimating] = useState(true);
+
+  // Zatrzymaj animację ikony po 15 sekundach
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsIconAnimating(false);
+    }, 15000);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     const email = localStorage.getItem("ownerEmail");
@@ -159,13 +172,17 @@ export default function OwnerDashboard() {
     enabled: !!ownerEmail,
   });
 
+  // Get owner profile data for avatar
+  const { data: ownerProfile } = api.ownerAuth.getOwnerProfile.useQuery(
+    { ownerEmail: ownerEmail! },
+    { enabled: !!ownerEmail },
+  );
+
   // Wspólny hook do zarządzania danymi wykresów
   const {
     baseChartData,
-    revenueSourceData,
     percentages,
     isLoading: isLoadingChartData,
-    getMiniPieData,
   } = useChartData(
     ownerEmail ?? undefined,
     selectedApartmentId,
@@ -254,40 +271,90 @@ export default function OwnerDashboard() {
     };
   }, [baseChartData]);
 
+  // Funkcja do przeliczania danych dla trybu costsVsPayout
+  const getCostsVsPayoutData = useMemo(() => {
+    return () => {
+      if (!baseChartData.length) return [];
+
+      return baseChartData.map((item) => {
+        // Suma 4 kategorii dla trybu costsVsPayout
+        const total =
+          (item["Wypłata Właściciela"] ?? 0) +
+          (item["Złote Wynajmy Prowizja"] ?? 0) +
+          (item.Czynsz ?? 0) +
+          (item.Media ?? 0);
+
+        // Przeliczamy procenty tak, żeby suma wynosiła 100%
+        const payoutPercentage =
+          total > 0 ? ((item["Wypłata Właściciela"] ?? 0) / total) * 100 : 0;
+        const adminCommissionPercentage =
+          total > 0 ? ((item["Złote Wynajmy Prowizja"] ?? 0) / total) * 100 : 0;
+        const rentPercentage =
+          total > 0 ? ((item.Czynsz ?? 0) / total) * 100 : 0;
+        const utilitiesPercentage =
+          total > 0 ? ((item.Media ?? 0) / total) * 100 : 0;
+
+        return {
+          name: item.name,
+          Przychód: 0,
+          Sprzątanie: 0,
+          Pranie: 0,
+          Tekstylia: 0,
+          Czynsz: rentPercentage,
+          Media: utilitiesPercentage,
+          "Złote Wynajmy Prowizja": adminCommissionPercentage,
+          "Prowizje OTA": 0,
+          "Wypłata Właściciela": payoutPercentage,
+          "Koszty stałe": 0,
+          "Inne wydatki": 0,
+        };
+      });
+    };
+  }, [baseChartData]);
+
   // Dane dla aktualnego wykresu słupkowego z filtrami
-  const filteredChartData = getFilteredBarChartData(chartFilters);
+  const filteredChartData =
+    chartViewMode === "costsVsPayout"
+      ? getCostsVsPayoutData()
+      : getFilteredBarChartData(chartFilters);
 
   // Tooltip dla wykresów słupkowych (pokazuje wartości w PLN)
+  // Obiekt z kolorami dla kategorii wykresu
+  const chartColors = {
+    Przychód: "#82ca9d",
+    Sprzątanie: "#8884d8",
+    Pranie: "#ff6b6b",
+    Tekstylia: "#9c27b0",
+    Czynsz: "#ff9800",
+    Media: "#2196f3",
+    "Złote Wynajmy Prowizja": "#ffc658",
+    "Prowizje OTA": "#ff8042",
+    "Wypłata Właściciela": "#00C49F",
+  };
+
   const BarChartTooltip = ({ active, payload, label }: TooltipProps) => {
     if (active && payload?.length) {
       return (
-        <div className="rounded border border-gray-300 bg-white p-3 text-sm shadow-lg">
-          <p className="mb-1 font-bold">{label}</p>
-          {payload.map((entry) => (
-            <p key={entry.name} style={{ color: entry.color }} className="mb-1">
-              {`${entry.name}: ${Number(entry.value).toFixed(2)} PLN`}
+        <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-lg">
+          <p className="font-medium text-gray-900">{label}</p>
+          {payload.map((entry, index) => (
+            <p
+              key={index}
+              className="text-sm"
+              style={{
+                color:
+                  chartColors[entry.name as keyof typeof chartColors] || "#666",
+              }}
+            >
+              {entry.name}:{" "}
+              {chartViewMode === "costsVsPayout"
+                ? `${entry.value.toFixed(1)}%`
+                : `${entry.value.toLocaleString()} PLN`}
             </p>
           ))}
         </div>
       );
     }
-
-    return null;
-  };
-
-  // Tooltip dla wykresów kołowych (pokazuje wartości w procentach)
-  const PieChartTooltip = ({ active, payload }: TooltipProps) => {
-    if (active && payload?.length) {
-      const data = payload[0];
-      return (
-        <div className="rounded border border-gray-300 bg-white p-3 text-sm shadow-lg">
-          <p key={data?.name} style={{ color: data?.color }} className="mb-1">
-            {`${data?.name}: ${Number(data?.value).toFixed(1)}%`}
-          </p>
-        </div>
-      );
-    }
-
     return null;
   };
 
@@ -563,7 +630,12 @@ export default function OwnerDashboard() {
               className="group flex flex-col items-center justify-center rounded-lg bg-white p-6 text-center shadow transition hover:bg-gray-50"
             >
               <div className="relative h-12 w-12">
-                <UserCircleIcon className="h-full w-full text-brand-gold" />
+                <ProfileAvatar
+                  imageUrl={ownerProfile?.profileImageUrl}
+                  size="md"
+                  alt={`Zdjęcie profilowe ${ownerProfile?.firstName || "właściciela"}`}
+                  className="h-full w-full"
+                />
               </div>
               <p className="mt-2 font-semibold">Mój Profil</p>
               <p className="text-sm text-gray-500">Edytuj dane i zdjęcie</p>
@@ -776,7 +848,7 @@ export default function OwnerDashboard() {
                             : "bg-gray-300 text-gray-700 hover:bg-gray-400"
                         }`}
                       >
-                        Stosunki
+                        Złote Wynajmy & Właściciel
                       </button>
                       <button
                         onClick={toggleFixedCostsView}
@@ -867,20 +939,24 @@ export default function OwnerDashboard() {
                         className="text-xs sm:text-sm"
                       />
                       <YAxis
-                        tickFormatter={(value) => Number(value).toFixed(2)}
+                        tickFormatter={(value) =>
+                          chartViewMode === "costsVsPayout"
+                            ? `${Number(value).toFixed(1)}%`
+                            : Number(value).toFixed(2)
+                        }
                         tick={{ fontSize: 11 }}
                         className="text-xs sm:text-sm"
                       />
                       <Tooltip content={<BarChartTooltip />} />
                       {chartViewMode === "costsVsPayout" ? (
                         <>
+                          <Bar dataKey="Wypłata Właściciela" fill="#00C49F" />
                           <Bar
                             dataKey="Złote Wynajmy Prowizja"
                             fill="#ffc658"
                           />
-                          <Bar dataKey="Wypłata" fill="#00C49F" />
-                          <Bar dataKey="Koszty stałe" fill="#ff6b6b" />
-                          <Bar dataKey="Przychód" fill="#82ca9d" />
+                          <Bar dataKey="Czynsz" fill="#ff9800" />
+                          <Bar dataKey="Media" fill="#2196f3" />
                         </>
                       ) : chartViewMode === "fixedCosts" ? (
                         <>
@@ -927,16 +1003,10 @@ export default function OwnerDashboard() {
                       )}
                     </BarChart>
                   </ResponsiveContainer>
+
                   <div className="mt-4 flex flex-wrap justify-center gap-4 text-xs">
                     {chartViewMode === "costsVsPayout" ? (
                       <>
-                        <div className="flex items-center gap-2">
-                          <div
-                            className="h-3 w-3 rounded"
-                            style={{ backgroundColor: "#ffc658" }}
-                          />
-                          <span>Złote Wynajmy Prowizja</span>
-                        </div>
                         <div className="flex items-center gap-2">
                           <div
                             className="h-3 w-3 rounded"
@@ -947,16 +1017,23 @@ export default function OwnerDashboard() {
                         <div className="flex items-center gap-2">
                           <div
                             className="h-3 w-3 rounded"
-                            style={{ backgroundColor: "#ff6b6b" }}
+                            style={{ backgroundColor: "#ffc658" }}
                           />
-                          <span>Koszty stałe</span>
+                          <span>Złote Wynajmy Prowizja</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <div
                             className="h-3 w-3 rounded"
-                            style={{ backgroundColor: "#82ca9d" }}
+                            style={{ backgroundColor: "#ff9800" }}
                           />
-                          <span>Przychód</span>
+                          <span>Czynsz</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="h-3 w-3 rounded"
+                            style={{ backgroundColor: "#2196f3" }}
+                          />
+                          <span>Media</span>
                         </div>
                       </>
                     ) : chartViewMode === "fixedCosts" ? (
@@ -1066,7 +1143,7 @@ export default function OwnerDashboard() {
                               className="h-3 w-3 rounded"
                               style={{ backgroundColor: "#ffc658" }}
                             />
-                            <span>Złote Wynajmy Prowizja</span>
+                            <span>Złote Wynajmy</span>
                           </div>
                         )}
                         {chartFilters["Prowizje OTA"] && (
@@ -1091,414 +1168,188 @@ export default function OwnerDashboard() {
                       </>
                     )}
                   </div>
+
+                  {/* Komunikat informacyjny dla wszystkich trybów */}
+                  <div className="mt-4">
+                    <div
+                      className="rounded-lg border border-orange-200 bg-orange-50 p-4 shadow-sm"
+                      onMouseEnter={() => setIsIconAnimating(false)}
+                    >
+                      <div className="flex items-start space-x-3">
+                        <div className="flex-shrink-0">
+                          <div
+                            className={`${isIconAnimating ? "animate-bounce" : ""}`}
+                          >
+                            <svg
+                              className="h-6 w-6 text-orange-600"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                              />
+                            </svg>
+                          </div>
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm text-orange-800">
+                            Prezentowany wykres jest sumą wszystkich 4
+                            parametrów.{" "}
+                            <span className="font-bold">Zysk netto</span>{" "}
+                            prezentowany na tym przykładzie zakłada że media
+                            oraz czynsz są opłacane przez Złote Wynajmy. Jeśli
+                            Czynsz i Media będą opłacane przez właściciela będą
+                            jego przychodem co będzie jednocześnie oznaczało
+                            wyższą podstawę do opodatkowania. Jeśli jednak taki
+                            przypadek się zdarzy wartości procentowe dla czynszu
+                            i mediów w tym wykresie będą w postaci 0% lub jeśli
+                            tendencja będzie mieszana wartości te będą stosownie
+                            niższe.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Chart Explanation Card */}
-                <div className="rounded-lg bg-white p-3 shadow sm:p-4 lg:p-6">
-                  <h4 className="mb-3 text-sm font-semibold text-gray-800">
-                    Wyjaśnienie trybów wykresu
-                  </h4>
+                {chartViewMode === "costsVsPayout" && percentages && (
+                  <ChartExplanationCard
+                    title="Złote Wynajmy & Właściciel"
+                    description="Pokazuje podział między właścicielem a Złote Wynajmy. Przewidziany podział to 75% (Właściciel + Czynsz + Media) + 25% (Prowizja Złote Wynajmy)."
+                    data={[
+                      {
+                        name: "Wypłata Właściciela",
+                        value: percentages.payout,
+                        fill: "#00C49F",
+                        description: "Końcowa wypłata dla właściciela",
+                      },
+                      {
+                        name: "Prowizja Złote Wynajmy",
+                        value: percentages.adminCommission,
+                        fill: "#ffc658",
+                        description: "Prowizja Złote Wynajmy",
+                      },
+                      {
+                        name: "Czynsz",
+                        value: percentages.rent,
+                        fill: "#ff8042",
+                        description: "Koszty czynszu administracyjnego",
+                      },
+                      {
+                        name: "Media",
+                        value: percentages.utilities,
+                        fill: "#00CED1",
+                        description: "Koszty mediów",
+                      },
+                    ]}
+                    mode="costsVsPayout"
+                    showPieChart={true}
+                  />
+                )}
 
-                  {chartViewMode === "costsVsPayout" ? (
-                    <div className="space-y-3">
-                      <div className="rounded-md bg-orange-50 p-3">
-                        <h5 className="mb-2 font-medium text-orange-800">
-                          Tryb: Stosunki
-                        </h5>
-                        <p className="text-sm text-orange-700">
-                          Pokazuje kluczowe stosunki finansowe w Twoim biznesie:
-                        </p>
-                        <ul className="mt-2 space-y-1 text-sm text-orange-700">
-                          <li>
-                            •{" "}
-                            <strong>
-                              Złote Wynajmy Prowizja vs Wypłata Właściciela
-                            </strong>{" "}
-                            - ile prowizji płacisz w stosunku do wypłaty
-                          </li>
-                          <li>
-                            • <strong>Koszty stałe vs Przychód</strong> - jaki
-                            procent przychodu stanowią koszty operacyjne
-                          </li>
-                        </ul>
-                        <div className="mt-3 rounded bg-white p-2 text-xs">
-                          <p className="font-medium text-gray-800">
-                            Aktualne wyliczenia:
-                          </p>
-                          {percentages ? (
-                            <div className="space-y-1 text-gray-600">
-                              <p>
-                                • Prowizja Złote Wynajmy:{" "}
-                                <strong>
-                                  {percentages.adminCommission.toFixed(1)}%
-                                </strong>{" "}
-                                przychodu
-                              </p>
-                              <p>
-                                • Koszty stałe:{" "}
-                                <strong>
-                                  {percentages.fixedCosts.toFixed(1)}%
-                                </strong>{" "}
-                                przychodu
-                              </p>
-                              <p>
-                                • Wypłata Właściciela:{" "}
-                                <strong>
-                                  {percentages.payout.toFixed(1)}%
-                                </strong>{" "}
-                                przychodu
-                              </p>
-                              <p>
-                                • Stosunek Wypłata Właściciela/Prowizja ZW:{" "}
-                                <strong>
-                                  {percentages.payout &&
-                                  percentages.adminCommission
-                                    ? (
-                                        (percentages.payout /
-                                          percentages.adminCommission) *
-                                        100
-                                      ).toFixed(1)
-                                    : "0"}
-                                  %
-                                </strong>{" "}
-                                (cel: 300% - 75%/25%)
-                              </p>
-                            </div>
-                          ) : (
-                            <p className="text-gray-600">
-                              Brak danych do wyliczenia
-                            </p>
-                          )}
-                          <p className="mt-2 text-gray-500">
-                            Założenie: Złote Wynajmy 25% / Wypłata Właściciela
-                            75%
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ) : chartViewMode === "fixedCosts" ? (
-                    <div className="space-y-3">
-                      <div className="rounded-md bg-red-50 p-3">
-                        <h5 className="mb-2 font-medium text-red-800">
-                          Tryb: Koszty stałe
-                        </h5>
-                        <p className="text-sm text-red-700">
-                          Szczegółowy podział kosztów stałych w Twoim biznesie:
-                        </p>
-                        <ul className="mt-2 space-y-1 text-sm text-red-700">
-                          <li>
-                            • <strong>Sprzątanie</strong> - koszty sprzątania i
-                            środków czystości
-                          </li>
-                          <li>
-                            • <strong>Pranie</strong> - koszty prania pościeli i
-                            ręczników
-                          </li>
-                          <li>
-                            • <strong>Tekstylia</strong> - koszty pościeli,
-                            ręczników, dekoracji
-                          </li>
-                          <li>
-                            • <strong>Prowizje OTA</strong> - prowizje od
-                            platform bookingowych
-                          </li>
-                        </ul>
-                        <div className="mt-3 rounded bg-white p-2 text-xs">
-                          <p className="font-medium text-gray-800">
-                            Aktualne wyliczenia:
-                          </p>
-                          {percentages ? (
-                            <div className="space-y-1 text-gray-600">
-                              <p>
-                                • Sprzątanie:{" "}
-                                <strong>
-                                  {percentages.cleaning.toFixed(1)}%
-                                </strong>{" "}
-                                przychodu
-                              </p>
-                              <p>
-                                • Pranie:{" "}
-                                <strong>
-                                  {percentages.laundry.toFixed(1)}%
-                                </strong>{" "}
-                                przychodu
-                              </p>
-                              <p>
-                                • Tekstylia:{" "}
-                                <strong>
-                                  {percentages.textiles.toFixed(1)}%
-                                </strong>{" "}
-                                przychodu
-                              </p>
-                              <p>
-                                • Prowizje OTA:{" "}
-                                <strong>
-                                  {percentages.otaCommissions.toFixed(1)}%
-                                </strong>{" "}
-                                przychodu
-                              </p>
-                              <p>
-                                •{" "}
-                                <strong>
-                                  Łącznie koszty stałe:{" "}
-                                  {percentages.fixedCosts.toFixed(1)}%
-                                </strong>{" "}
-                                przychodu
-                              </p>
-                            </div>
-                          ) : (
-                            <p className="text-gray-600">
-                              Brak danych do wyliczenia
-                            </p>
-                          )}
-                          <p className="mt-2 text-gray-500">
-                            Szczegółowy podział kosztów operacyjnych w danej
-                            Inwestycji
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      <div className="rounded-md bg-blue-50 p-3">
-                        {/* Header w stylu raportów */}
-                        <div className="mt-4 rounded-lg border border-gray-200 bg-white shadow-sm">
-                          <div className="border-b border-gray-200 px-4 py-3">
-                            <div className="flex items-center space-x-2">
-                              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100">
-                                <svg
-                                  className="h-5 w-9 text-blue-600"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                                  />
-                                </svg>
-                              </div>
-                              <div>
-                                <h4 className="text-lg font-semibold text-gray-900">
-                                  Aktualne wyliczenia
-                                </h4>
-                                <p className="text-sm text-gray-600">
-                                  Pełen udział wszystkich składowych inwestycji
-                                  w przychodzie
-                                </p>
-                                <p className="text-sm text-gray-600">
-                                  Wszystkie kategorie wyświetlone osobno z
-                                  własnymi procentami. Najedź na dowolną
-                                  kategorię aby zobaczyć szczegółowy opis.
-                                </p>
-                              </div>
-                            </div>
-                          </div>
+                {chartViewMode === "fixedCosts" && percentages && (
+                  <ChartExplanationCard
+                    title="Koszty stałe"
+                    description="Szczegółowy podział kosztów stałych w Twoim biznesie: Sprzątanie - koszty sprzątania i środków czystości. Pranie - koszty prania pościeli i ręczników. Tekstylia - koszty pościeli, ręczników, dekoracji. Prowizje OTA - prowizje od platform bookingowych."
+                    data={[
+                      {
+                        name: "Sprzątanie",
+                        value: percentages.cleaning,
+                        fill: "#8884d8",
+                        description: "Koszty sprzątania i środków czystości",
+                      },
+                      {
+                        name: "Pranie",
+                        value: percentages.laundry,
+                        fill: "#ff6b6b",
+                        description: "Koszty prania pościeli i ręczników",
+                      },
+                      {
+                        name: "Tekstylia",
+                        value: percentages.textiles,
+                        fill: "#9c27b0",
+                        description: "Koszty pościeli, ręczników, dekoracji",
+                      },
+                      {
+                        name: "Prowizje OTA",
+                        value: percentages.otaCommissions,
+                        fill: "#ff8042",
+                        description:
+                          "Prowizje od platform bookingowych (Booking.com, Airbnb itp.)",
+                      },
+                    ]}
+                    mode="fixedCosts"
+                    showPieChart={true}
+                  />
+                )}
 
-                          <div className="p-4">
-                            {percentages ? (
-                              <div className="space-y-3">
-                                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                                  <div className="group relative rounded-lg bg-green-50 p-3 text-center">
-                                    <span className="block text-sm font-medium text-green-900">
-                                      Wypłata Właściciela
-                                    </span>
-                                    <span className="mt-1 block text-2xl font-bold text-green-700">
-                                      {percentages.payout.toFixed(1)}%
-                                    </span>
-                                    {/* Tooltip */}
-                                    <div className="absolute bottom-full left-1/2 z-10 mb-2 hidden w-48 -translate-x-1/2 rounded-md bg-gray-900 px-3 py-2 text-xs text-white group-hover:block">
-                                      Końcowa wypłata dla właściciela
-                                      <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
-                                    </div>
-                                  </div>
-                                  <div className="group relative rounded-lg bg-orange-50 p-3 text-center">
-                                    <span className="block text-sm font-medium text-orange-900">
-                                      Czynsz
-                                    </span>
-                                    <span className="mt-1 block text-2xl font-bold text-orange-700">
-                                      {percentages.rent.toFixed(1)}%
-                                    </span>
-                                    {/* Tooltip */}
-                                    <div className="absolute bottom-full left-1/2 z-10 mb-2 hidden w-64 -translate-x-1/2 rounded-md bg-gray-900 px-3 py-2 text-xs text-white group-hover:block">
-                                      Koszty czynszu administracyjnego jako %
-                                      przychodu. Jeśli płacisz samodzielnie -
-                                      wypłata jest wyższa o te koszty, co
-                                      zwiększa podatek dochodowy.
-                                      <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
-                                    </div>
-                                  </div>
-                                  <div className="group relative rounded-lg bg-teal-50 p-3 text-center">
-                                    <span className="block text-sm font-medium text-teal-900">
-                                      Media
-                                    </span>
-                                    <span className="mt-1 block text-2xl font-bold text-teal-700">
-                                      {percentages.utilities.toFixed(1)}%
-                                    </span>
-                                    {/* Tooltip */}
-                                    <div className="absolute bottom-full left-1/2 z-10 mb-2 hidden w-64 -translate-x-1/2 rounded-md bg-gray-900 px-3 py-2 text-xs text-white group-hover:block">
-                                      Koszty mediów (prąd, gaz, woda, internet)
-                                      jako % przychodu. Jeśli płacisz
-                                      samodzielnie - wypłata jest wyższa o te
-                                      koszty, co zwiększa podatek dochodowy.
-                                      <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
-                                    </div>
-                                  </div>
-                                  <div className="group relative rounded-lg bg-yellow-50 p-3 text-center">
-                                    <span className="block text-sm font-medium text-yellow-900">
-                                      Prowizja Złote Wynajmy
-                                    </span>
-                                    <span className="mt-1 block text-2xl font-bold text-yellow-700">
-                                      {percentages.adminCommission.toFixed(1)}%
-                                    </span>
-                                    {/* Tooltip */}
-                                    <div className="absolute bottom-full left-1/2 z-10 mb-2 hidden w-48 -translate-x-1/2 rounded-md bg-gray-900 px-3 py-2 text-xs text-white group-hover:block">
-                                      Prowizja pobierana przez Złote Wynajmy za
-                                      zarządzanie nieruchomością
-                                      <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
-                                    </div>
-                                  </div>
-                                  <div className="group relative rounded-lg bg-red-50 p-3 text-center">
-                                    <span className="block text-sm font-medium text-red-900">
-                                      Prowizje OTA
-                                    </span>
-                                    <span className="mt-1 block text-2xl font-bold text-red-700">
-                                      {percentages.otaCommissions.toFixed(1)}%
-                                    </span>
-                                    {/* Tooltip */}
-                                    <div className="absolute bottom-full left-1/2 z-10 mb-2 hidden w-48 -translate-x-1/2 rounded-md bg-gray-900 px-3 py-2 text-xs text-white group-hover:block">
-                                      Prowizje od platform bookingowych
-                                      (Booking.com, Airbnb itp.)
-                                      <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
-                                    </div>
-                                  </div>
-                                  <div className="group relative rounded-lg bg-blue-50 p-3 text-center">
-                                    <span className="block text-sm font-medium text-blue-900">
-                                      Sprzątanie
-                                    </span>
-                                    <span className="mt-1 block text-2xl font-bold text-blue-700">
-                                      {percentages.cleaning.toFixed(1)}%
-                                    </span>
-                                    {/* Tooltip */}
-                                    <div className="absolute bottom-full left-1/2 z-10 mb-2 hidden w-48 -translate-x-1/2 rounded-md bg-gray-900 px-3 py-2 text-xs text-white group-hover:block">
-                                      Koszty sprzątania i środków czystości
-                                      <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
-                                    </div>
-                                  </div>
-                                  <div className="group relative rounded-lg bg-indigo-50 p-3 text-center">
-                                    <span className="block text-sm font-medium text-indigo-900">
-                                      Pranie
-                                    </span>
-                                    <span className="mt-1 block text-2xl font-bold text-indigo-700">
-                                      {percentages.laundry.toFixed(1)}%
-                                    </span>
-                                    {/* Tooltip */}
-                                    <div className="absolute bottom-full left-1/2 z-10 mb-2 hidden w-48 -translate-x-1/2 rounded-md bg-gray-900 px-3 py-2 text-xs text-white group-hover:block">
-                                      Koszty prania pościeli i ręczników
-                                      <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
-                                    </div>
-                                  </div>
-                                  <div className="group relative rounded-lg bg-purple-50 p-3 text-center">
-                                    <span className="block text-sm font-medium text-purple-900">
-                                      Tekstylia
-                                    </span>
-                                    <span className="mt-1 block text-2xl font-bold text-purple-700">
-                                      {percentages.textiles.toFixed(1)}%
-                                    </span>
-                                    {/* Tooltip */}
-                                    <div className="absolute bottom-full left-1/2 z-10 mb-2 hidden w-48 -translate-x-1/2 rounded-md bg-gray-900 px-3 py-2 text-xs text-white group-hover:block">
-                                      Koszty pościeli, ręczników, dekoracji
-                                      <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
-                                    </div>
-                                  </div>
-                                </div>
-
-                                <div className="mt-4 rounded-lg bg-gray-50 p-3 text-center">
-                                  <p className="text-lg font-bold text-gray-900">
-                                    Suma kategorii:{" "}
-                                    {percentages
-                                      ? (() => {
-                                          const sum =
-                                            percentages.payout +
-                                            percentages.adminCommission +
-                                            percentages.otaCommissions +
-                                            percentages.cleaning +
-                                            percentages.laundry +
-                                            percentages.textiles +
-                                            percentages.rent +
-                                            percentages.utilities +
-                                            percentages.otherExpenses;
-                                          return sum.toFixed(1);
-                                        })()
-                                      : "0"}
-                                    %
-                                  </p>
-                                  {percentages &&
-                                    (() => {
-                                      const sum =
-                                        percentages.payout +
-                                        percentages.adminCommission +
-                                        percentages.otaCommissions +
-                                        percentages.cleaning +
-                                        percentages.laundry +
-                                        percentages.textiles +
-                                        percentages.rent +
-                                        percentages.utilities +
-                                        percentages.otherExpenses;
-                                      const remaining = 100 - sum;
-                                      // Pokaż "Pozostałe" tylko jeśli jest znacząca wartość
-                                      return remaining > 0.5 ? (
-                                        <p className="mt-1 text-sm text-gray-600">
-                                          Pozostałe {remaining.toFixed(1)}% to
-                                          inne koszty
-                                        </p>
-                                      ) : null;
-                                    })()}
-                                </div>
-                              </div>
-                            ) : (
-                              <div className="rounded-lg bg-gray-50 p-6 text-center">
-                                <p className="text-gray-500">
-                                  Brak danych do wyliczenia
-                                </p>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Mini wykres kołowy dla trybu Normalny */}
-                        {percentages && (
-                          <div className="mt-4">
-                            <h6 className="mb-2 text-sm font-medium text-gray-700">
-                              Podział procentowy:
-                            </h6>
-                            <ResponsiveContainer width="100%" height={200}>
-                              <PieChart>
-                                <Pie
-                                  data={getMiniPieData("normal")}
-                                  cx="50%"
-                                  cy="50%"
-                                  outerRadius={60}
-                                  dataKey="value"
-                                >
-                                  {getMiniPieData("normal").map((entry) => (
-                                    <Cell
-                                      key={`cell-${entry.name}`}
-                                      fill={entry.fill}
-                                    />
-                                  ))}
-                                </Pie>
-                                <Tooltip content={<PieChartTooltip />} />
-                              </PieChart>
-                            </ResponsiveContainer>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
+                {chartViewMode === "normal" && percentages && (
+                  <ChartExplanationCard
+                    title="Pokaż wszystkie"
+                    description="Pełen udział wszystkich składowych inwestycji w przychodzie. Wszystkie kategorie wyświetlone osobno z własnymi procentami."
+                    data={[
+                      {
+                        name: "Wypłata Właściciela",
+                        value: percentages.payout,
+                        fill: "#00C49F",
+                        description: "Końcowa wypłata dla właściciela",
+                      },
+                      {
+                        name: "Czynsz",
+                        value: percentages.rent,
+                        fill: "#ff8042",
+                        description:
+                          "Koszty czynszu administracyjnego jako % przychodu. Jeśli płacisz samodzielnie - wypłata jest wyższa o te koszty, co zwiększa podatek dochodowy.",
+                      },
+                      {
+                        name: "Media",
+                        value: percentages.utilities,
+                        fill: "#00CED1",
+                        description:
+                          "Koszty mediów (prąd, gaz, woda, internet) jako % przychodu. Jeśli płacisz samodzielnie - wypłata jest wyższa o te koszty, co zwiększa podatek dochodowy.",
+                      },
+                      {
+                        name: "Prowizja Złote Wynajmy",
+                        value: percentages.adminCommission,
+                        fill: "#ffc658",
+                        description:
+                          "Prowizja pobierana przez Złote Wynajmy za zarządzanie nieruchomością",
+                      },
+                      {
+                        name: "Prowizje OTA",
+                        value: percentages.otaCommissions,
+                        fill: "#ff6b6b",
+                        description:
+                          "Prowizje od platform bookingowych (Booking.com, Airbnb itp.)",
+                      },
+                      {
+                        name: "Sprzątanie",
+                        value: percentages.cleaning,
+                        fill: "#8884d8",
+                        description: "Koszty sprzątania i środków czystości",
+                      },
+                      {
+                        name: "Pranie",
+                        value: percentages.laundry,
+                        fill: "#9c27b0",
+                        description: "Koszty prania pościeli i ręczników",
+                      },
+                      {
+                        name: "Tekstylia",
+                        value: percentages.textiles,
+                        fill: "#e91e63",
+                        description: "Koszty pościeli, ręczników, dekoracji",
+                      },
+                    ]}
+                    mode="normal"
+                    showPieChart={true}
+                  />
+                )}
 
                 <div className="rounded-lg bg-white p-3 shadow sm:p-4 lg:p-6">
                   <h3 className="mb-3 text-sm font-semibold sm:text-base">
@@ -1509,7 +1360,26 @@ export default function OwnerDashboard() {
                       margin={{ top: 20, right: 80, bottom: 20, left: 80 }}
                     >
                       <Pie
-                        data={revenueSourceData}
+                        data={[
+                          {
+                            name: "Booking",
+                            value: 69.1,
+                            percentage: 69.1,
+                            fill: "#003580",
+                          },
+                          {
+                            name: "Airbnb",
+                            value: 9.4,
+                            percentage: 9.4,
+                            fill: "#FF5A5F",
+                          },
+                          {
+                            name: "Złote Wynajmy",
+                            value: 11.5,
+                            percentage: 11.5,
+                            fill: "#FFD700",
+                          },
+                        ]}
                         cx="50%"
                         cy="50%"
                         labelLine={false}
@@ -1518,25 +1388,168 @@ export default function OwnerDashboard() {
                         dataKey="percentage"
                         label={renderCustomLabel}
                       >
-                        {revenueSourceData.map((entry) => (
-                          <Cell key={`cell-${entry.name}`} fill={entry.fill} />
-                        ))}
+                        <Cell fill="#003580" />
+                        <Cell fill="#FF5A5F" />
+                        <Cell fill="#FFD700" />
                       </Pie>
                       <Tooltip content={<RevenueSourceTooltip />} />
                     </PieChart>
                   </ResponsiveContainer>
                   <div className="mt-4 flex flex-wrap justify-center gap-4 text-xs">
-                    {revenueSourceData.map((entry) => (
-                      <div key={entry.name} className="flex items-center gap-2">
-                        <div
-                          className="h-3 w-3 rounded"
-                          style={{ backgroundColor: entry.fill }}
-                        />
-                        <span>{entry.name}</span>
-                      </div>
-                    ))}
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="h-3 w-3 rounded"
+                        style={{ backgroundColor: "#003580" }}
+                      />
+                      <span>Booking</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="h-3 w-3 rounded"
+                        style={{ backgroundColor: "#FF5A5F" }}
+                      />
+                      <span>Airbnb</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="h-3 w-3 rounded"
+                        style={{ backgroundColor: "#FFD700" }}
+                      />
+                      <span>Złote Wynajmy</span>
+                    </div>
                   </div>
                 </div>
+
+                {/* Wykres liniowy - Trend procentowy kategorii */}
+                {percentages && (
+                  <div className="rounded-lg bg-white p-3 shadow sm:p-4 lg:p-6">
+                    <h3 className="mb-3 text-sm font-semibold sm:text-base">
+                      Trend procentowy kategorii
+                    </h3>
+                    <div className="relative">
+                      <ResponsiveContainer width="100%" height={400}>
+                        <LineChart
+                          data={[
+                            {
+                              name: "Wypłata Właściciela",
+                              value: percentages.payout,
+                              color: "#00C49F",
+                            },
+                            {
+                              name: "Czynsz",
+                              value: percentages.rent,
+                              color: "#ff9800",
+                            },
+                            {
+                              name: "Media",
+                              value: percentages.utilities,
+                              color: "#2196f3",
+                            },
+                            {
+                              name: "Prowizja Złote Wynajmy",
+                              value: percentages.adminCommission,
+                              color: "#ffc658",
+                            },
+                            {
+                              name: "Prowizje OTA",
+                              value: percentages.otaCommissions,
+                              color: "#ff8042",
+                            },
+                            {
+                              name: "Sprzątanie",
+                              value: percentages.cleaning,
+                              color: "#8884d8",
+                            },
+                            {
+                              name: "Pranie",
+                              value: percentages.laundry,
+                              color: "#ff6b6b",
+                            },
+                            {
+                              name: "Tekstylia",
+                              value: percentages.textiles,
+                              color: "#9c27b0",
+                            },
+                          ]}
+                          margin={{
+                            top: 20,
+                            right: 30,
+                            left: 20,
+                            bottom: 20,
+                          }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis
+                            dataKey="name"
+                            angle={-45}
+                            textAnchor="end"
+                            height={80}
+                            tick={{ fontSize: 10 }}
+                          />
+                          <YAxis
+                            tickFormatter={(value) => `${value}%`}
+                            tick={{ fontSize: 10 }}
+                          />
+                          <Tooltip
+                            formatter={(value: number | string) => [
+                              `${value}%`,
+                              "Udział",
+                            ]}
+                            labelFormatter={(label: string) => label}
+                          />
+                          <Line
+                            type="monotone"
+                            dataKey="value"
+                            stroke="#8884d8"
+                            strokeWidth={3}
+                            dot={{
+                              fill: "#8884d8",
+                              strokeWidth: 2,
+                              r: 4,
+                            }}
+                            activeDot={{
+                              r: 6,
+                              stroke: "#8884d8",
+                              strokeWidth: 2,
+                            }}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+
+                      {/* Overlay z komunikatem */}
+                      <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black bg-opacity-50">
+                        <div className="max-w-md rounded-lg bg-white p-6 text-center shadow-lg">
+                          <div className="mb-3 text-blue-600">
+                            <svg
+                              className="mx-auto h-12 w-12"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M13 10V3L4 14h7v7l9-11h-7z"
+                              />
+                            </svg>
+                          </div>
+                          <h4 className="mb-2 text-lg font-semibold text-gray-900">
+                            Wkrótce nowe wykresy!
+                          </h4>
+                          <p className="text-sm text-gray-600">
+                            Wkrótce udostępnimy Ci nowe wykresy, abyś mógł
+                            jeszcze dokładniej śledzić rozwój swoich inwestycji.
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            Zbyt mało danych by móc skorzystać z zawansowanych
+                            wykresów.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="rounded-lg bg-white p-6 text-center shadow">

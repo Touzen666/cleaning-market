@@ -62,14 +62,11 @@ export default function TaxHistory() {
   const [selectedApartment, setSelectedApartment] = useState<
     number | undefined
   >();
-  const [showBetaModal, setShowBetaModal] = useState(false);
+  const [showBetaModal, setShowBetaModal] = useState(true);
 
   useEffect(() => {
-    // Check if user has seen the beta modal before
-    const hasSeenBetaModal = localStorage.getItem("hasSeenTaxHistoryBetaModal");
-    if (!hasSeenBetaModal) {
-      setShowBetaModal(true);
-    }
+    // Always show beta modal - this is a feature in development
+    setShowBetaModal(true);
 
     const email = localStorage.getItem("ownerEmail");
     const token = localStorage.getItem("ownerSessionToken");
@@ -82,7 +79,6 @@ export default function TaxHistory() {
   }, [router]);
 
   const closeBetaModal = () => {
-    localStorage.setItem("hasSeenTaxHistoryBetaModal", "true");
     setShowBetaModal(false);
   };
 
@@ -281,11 +277,12 @@ export default function TaxHistory() {
             {/* Content */}
             <div className="text-center">
               <h3 className="mb-2 text-lg font-semibold text-gray-900">
-                Wersja Beta
+                Funkcja w trakcie rozwoju
               </h3>
               <p className="mb-4 text-sm text-gray-600">
-                Ta funkcja jest w wersji Beta i może zawierać błędy lub niepełne
-                dane. Trwają prace nad udoskonaleniem tej sekcji aplikacji.
+                Ta część aplikacji jest obecnie w trakcie aktywnego rozwoju.
+                Może zawierać błędy lub niepełne dane. Nasz zespół pracuje nad
+                udoskonaleniem tej funkcjonalności.
               </p>
 
               {/* Animated progress indicator */}
@@ -307,7 +304,7 @@ export default function TaxHistory() {
                   onClick={closeBetaModal}
                   className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
                 >
-                  Rozumiem, kontynuuj
+                  Rozumiem, przejdź do funkcji
                 </button>
                 <button
                   onClick={() => router.push("/apartamentsOwner/profile")}

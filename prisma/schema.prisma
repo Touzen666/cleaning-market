@@ -151,6 +151,23 @@ model ApartmentImage {
   @@index([apartmentId])
 }
 
+model ProfileImage {
+  id          String         @id @default(uuid())
+  url         String
+  alt         String?
+  filename    String
+  mimeType    String
+  size        Int
+  isActive    Boolean        @default(true)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  ownerId     String
+  owner       ApartmentOwner @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([ownerId])
+  @@index([isActive])
+}
+
 model LeadApplication {
   id          String     @id @default(uuid())
   name        String
@@ -217,7 +234,6 @@ model ApartmentOwner {
   address                     String?
   city                        String?
   postalCode                  String?
-  profileImageUrl             String?
   passwordHash                String?
   temporaryPassword           String?
   temporaryPasswordExpiresAt  DateTime?
@@ -235,6 +251,7 @@ model ApartmentOwner {
   monthlyReports              MonthlyReport[]
   historicalReports           HistoricalReport[]
   notes                       OwnerNote[]
+  profileImages               ProfileImage[]
 
   @@index([email])
   @@index([isActive])

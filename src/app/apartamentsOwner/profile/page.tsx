@@ -7,9 +7,11 @@ import {
   UserCircleIcon,
   CameraIcon,
   DocumentTextIcon,
+  PhotoIcon,
 } from "@heroicons/react/24/outline";
 import Image from "next/image";
 import Link from "next/link";
+import ProfileAvatar from "@/components/ProfileAvatar";
 
 export default function OwnerProfile() {
   const router = useRouter();
@@ -18,12 +20,20 @@ export default function OwnerProfile() {
   const [isLoading, setIsLoading] = useState(false);
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [showAvatarSelector, setShowAvatarSelector] = useState(false);
 
-  // Form states
+  // Predefined avatars
+  const avatars = [
+    { url: "/uploads/profiles/avatar1.svg", label: "Kobieta 1" },
+    { url: "/uploads/profiles/avatar2.svg", label: "Kobieta 2" },
+    { url: "/uploads/profiles/avatar3.svg", label: "Mężczyzna 1" },
+    { url: "/uploads/profiles/avatar4.svg", label: "Mężczyzna 2" },
+    { url: "/uploads/profiles/avatar5.svg", label: "Rodzina 1" },
+    { url: "/uploads/profiles/avatar6.svg", label: "Rodzina 2" },
+  ];
+
+  // Form states - initialize with empty strings to avoid controlled/uncontrolled issues
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
     phone: "",
     companyName: "",
     nip: "",
@@ -76,12 +86,28 @@ export default function OwnerProfile() {
     },
   });
 
+  const setAvatarMutation = api.ownerAuth.setAvatar.useMutation({
+    onSuccess: () => {
+      void refetchOwner();
+    },
+    onError: (error) => {
+      console.error("Błąd ustawiania avataru:", error);
+    },
+  });
+
+  const removeProfileImageMutation =
+    api.ownerAuth.removeProfileImage.useMutation({
+      onSuccess: () => {
+        void refetchOwner();
+      },
+      onError: (error) => {
+        console.error("Błąd usuwania zdjęcia:", error);
+      },
+    });
+
   useEffect(() => {
     if (ownerData) {
       setFormData({
-        firstName: ownerData.firstName ?? "",
-        lastName: ownerData.lastName ?? "",
-        email: ownerData.email ?? "",
         phone: ownerData.phone ?? "",
         companyName: ownerData.companyName ?? "",
         nip: ownerData.nip ?? "",
@@ -102,25 +128,80 @@ export default function OwnerProfile() {
   };
 
   const handleImageUpload = async () => {
-    if (!profileImage) return;
-
-    const formData = new FormData();
-    formData.append("image", profileImage);
+    if (!profileImage || !ownerEmail) return;
 
     try {
-      await uploadImageMutation.mutateAsync({ image: formData });
+      // First upload the file to Vercel Blob via API route
+      const formData = new FormData();
+      formData.append("file", profileImage);
+
+      const uploadResponse = await fetch("/api/upload-profile-image", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error("Failed to upload image");
+      }
+
+      const uploadResult = (await uploadResponse.json()) as {
+        success: boolean;
+        url: string;
+        message?: string;
+      };
+
+      if (!uploadResult.success) {
+        throw new Error(uploadResult.message ?? "Upload failed");
+      }
+
+      // Then save the image URL to database via TRPC
+      await uploadImageMutation.mutateAsync({
+        imageUrl: uploadResult.url,
+        ownerEmail: ownerEmail,
+        filename: profileImage.name,
+        mimeType: profileImage.type,
+        size: profileImage.size,
+      });
     } catch (error) {
       console.error("Błąd uploadu:", error);
     }
   };
 
+  const handleAvatarSelect = async (avatarUrl: string) => {
+    if (!ownerEmail) return;
+
+    try {
+      await setAvatarMutation.mutateAsync({
+        ownerEmail: ownerEmail,
+        avatarUrl,
+      });
+      setShowAvatarSelector(false);
+    } catch (error) {
+      console.error("Błąd ustawiania avataru:", error);
+    }
+  };
+
+  const handleRemoveProfileImage = async () => {
+    if (!ownerEmail) return;
+
+    try {
+      await removeProfileImageMutation.mutateAsync({
+        ownerEmail: ownerEmail,
+      });
+    } catch (error) {
+      console.error("Błąd usuwania zdjęcia:", error);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!ownerEmail) return;
+
     setIsLoading(true);
 
     try {
       await updateProfileMutation.mutateAsync({
-        ownerEmail: ownerEmail!,
+        ownerEmail: ownerEmail,
         ...formData,
       });
     } catch (error) {
@@ -208,35 +289,41 @@ export default function OwnerProfile() {
             <div className="border-b border-gray-200 px-4 py-5 sm:p-6">
               <div className="flex items-center space-x-6">
                 <div className="relative">
-                  {ownerData?.profileImageUrl ? (
-                    <Image
-                      src={ownerData.profileImageUrl}
-                      alt="Zdjęcie profilowe"
-                      width={100}
-                      height={100}
-                      className="rounded-full object-cover"
-                    />
-                  ) : previewUrl ? (
-                    <Image
-                      src={previewUrl}
-                      alt="Podgląd zdjęcia"
-                      width={100}
-                      height={100}
-                      className="rounded-full object-cover"
-                    />
+                  {previewUrl ? (
+                    <div className="relative h-[100px] w-[100px]">
+                      <Image
+                        src={previewUrl}
+                        alt="Podgląd zdjęcia"
+                        fill
+                        className="rounded-full object-cover"
+                        sizes="100px"
+                      />
+                    </div>
                   ) : (
-                    <UserCircleIcon className="h-24 w-24 text-gray-400" />
+                    <ProfileAvatar
+                      imageUrl={ownerData?.profileImageUrl}
+                      size="xl"
+                      alt="Zdjęcie profilowe"
+                    />
                   )}
 
-                  <label className="absolute bottom-0 right-0 cursor-pointer rounded-full bg-blue-600 p-2 transition-colors hover:bg-blue-700">
-                    <CameraIcon className="h-4 w-4 text-white" />
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                      className="hidden"
-                    />
-                  </label>
+                  <div className="absolute bottom-0 right-0 flex space-x-1">
+                    <label className="cursor-pointer rounded-full bg-blue-600 p-2 transition-colors hover:bg-blue-700">
+                      <CameraIcon className="h-4 w-4 text-white" />
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageChange}
+                        className="hidden"
+                      />
+                    </label>
+                    <button
+                      onClick={() => setShowAvatarSelector(!showAvatarSelector)}
+                      className="rounded-full bg-green-600 p-2 transition-colors hover:bg-green-700"
+                    >
+                      <PhotoIcon className="h-4 w-4 text-white" />
+                    </button>
+                  </div>
                 </div>
 
                 <div className="flex-1">
@@ -244,8 +331,21 @@ export default function OwnerProfile() {
                     Zdjęcie profilowe
                   </h3>
                   <p className="text-sm text-gray-500">
-                    Kliknij ikonę aparatu, aby wybrać nowe zdjęcie
+                    Kliknij ikonę aparatu, aby wybrać nowe zdjęcie lub ikonę
+                    zdjęcia, aby wybrać avatar
                   </p>
+
+                  {ownerData?.profileImageUrl && (
+                    <div className="mt-2">
+                      <button
+                        onClick={handleRemoveProfileImage}
+                        disabled={removeProfileImageMutation.isPending}
+                        className="text-sm text-red-600 disabled:opacity-50 hover:text-red-800"
+                      >
+                        Usuń zdjęcie profilowe
+                      </button>
+                    </div>
+                  )}
 
                   {profileImage && (
                     <div className="mt-3 flex space-x-3">
@@ -271,53 +371,93 @@ export default function OwnerProfile() {
                   )}
                 </div>
               </div>
+
+              {/* Avatar Selector */}
+              {showAvatarSelector && (
+                <div className="mt-6 rounded-lg border border-gray-200 bg-gray-50 p-4">
+                  <h4 className="mb-3 text-sm font-medium text-gray-900">
+                    Wybierz avatar
+                  </h4>
+                  <div className="grid grid-cols-3 gap-4 sm:grid-cols-6">
+                    {avatars.map((avatar) => (
+                      <button
+                        key={avatar.url}
+                        onClick={() => handleAvatarSelect(avatar.url)}
+                        disabled={setAvatarMutation.isPending}
+                        className="group relative flex flex-col items-center space-y-2 rounded-lg border-2 border-transparent p-2 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 hover:border-blue-500 hover:bg-white"
+                      >
+                        <div className="relative h-16 w-16 overflow-hidden rounded-full">
+                          <Image
+                            src={avatar.url}
+                            alt={avatar.label}
+                            fill
+                            className="object-cover"
+                            sizes="64px"
+                          />
+                        </div>
+                        <span className="text-xs text-gray-600 group-hover:text-gray-900">
+                          {avatar.label}
+                        </span>
+                        {setAvatarMutation.isPending && (
+                          <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-white bg-opacity-75">
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"></div>
+                          </div>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="mt-3 flex justify-end">
+                    <button
+                      onClick={() => setShowAvatarSelector(false)}
+                      className="text-sm text-gray-500 hover:text-gray-700"
+                    >
+                      Zamknij
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Owner Information (Read-only) */}
+            <div className="border-b border-gray-200 px-4 py-5 sm:p-6">
+              <h3 className="mb-4 text-lg font-medium text-gray-900">
+                Informacje o właścicielu
+              </h3>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Imię
+                  </label>
+                  <p className="mt-1 text-sm text-gray-900">
+                    {ownerData?.firstName}
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Nazwisko
+                  </label>
+                  <p className="mt-1 text-sm text-gray-900">
+                    {ownerData?.lastName}
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Email
+                  </label>
+                  <p className="mt-1 text-sm text-gray-900">
+                    {ownerData?.email}
+                  </p>
+                </div>
+              </div>
+              <p className="mt-3 text-xs text-gray-500">
+                Imię, nazwisko i email mogą być zmienione tylko przez
+                administratora.
+              </p>
             </div>
 
             {/* Profile Form */}
             <form onSubmit={handleSubmit} className="px-4 py-5 sm:p-6">
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Imię
-                  </label>
-                  <input
-                    type="text"
-                    name="firstName"
-                    value={formData.firstName}
-                    onChange={handleInputChange}
-                    disabled={!isEditing}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 disabled:bg-gray-100 sm:text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Nazwisko
-                  </label>
-                  <input
-                    type="text"
-                    name="lastName"
-                    value={formData.lastName}
-                    onChange={handleInputChange}
-                    disabled={!isEditing}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 disabled:bg-gray-100 sm:text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    disabled={!isEditing}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 disabled:bg-gray-100 sm:text-sm"
-                  />
-                </div>
-
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
                     Telefon
@@ -413,9 +553,6 @@ export default function OwnerProfile() {
                         // Reset form data to original values
                         if (ownerData) {
                           setFormData({
-                            firstName: ownerData.firstName ?? "",
-                            lastName: ownerData.lastName ?? "",
-                            email: ownerData.email ?? "",
                             phone: ownerData.phone ?? "",
                             companyName: ownerData.companyName ?? "",
                             nip: ownerData.nip ?? "",
