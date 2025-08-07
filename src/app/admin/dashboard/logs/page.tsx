@@ -42,15 +42,18 @@ const SystemLogsPage = () => {
     setIsLoading(false);
   }, [session, status, router]);
 
-  const handleFilterChange = (key: string, value: any) => {
+  const handleFilterChange = (
+    key: string,
+    value: string | number | boolean | Date,
+  ) => {
     setFilters((prev) => ({
       ...prev,
       [key]: value,
     }));
   };
 
-  const handleRefresh = () => {
-    refetch();
+  const handleRefresh = async () => {
+    await refetch();
   };
 
   const getLevelColor = (level: string) => {
@@ -287,7 +290,7 @@ const SystemLogsPage = () => {
                   Logi Systemowe
                 </h3>
                 <div className="text-sm text-gray-500">
-                  {logsData?.total || 0} wpisów
+                  {logsData?.total ?? 0} wpisów
                 </div>
               </div>
             </div>
@@ -363,21 +366,21 @@ const SystemLogsPage = () => {
                 <div className="text-center">
                   <div className="text-2xl font-bold text-blue-600">
                     {logsData?.logs?.filter((log) => log.level === "INFO")
-                      .length || 0}
+                      .length ?? 0}
                   </div>
                   <div className="text-sm text-gray-500">Informacje</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-yellow-600">
                     {logsData?.logs?.filter((log) => log.level === "WARN")
-                      .length || 0}
+                      .length ?? 0}
                   </div>
                   <div className="text-sm text-gray-500">Ostrzeżenia</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-red-600">
                     {logsData?.logs?.filter((log) => log.level === "ERROR")
-                      .length || 0}
+                      .length ?? 0}
                   </div>
                   <div className="text-sm text-gray-500">Błędy</div>
                 </div>

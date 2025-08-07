@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { api } from "@/trpc/react";
+import Image from "next/image";
 
 const UsersPage = () => {
   const router = useRouter();
@@ -180,7 +181,7 @@ const UsersPage = () => {
                   Lista Użytkowników
                 </h3>
                 <div className="text-sm text-gray-500">
-                  {usersData?.total || 0} użytkowników
+                  {usersData?.total ?? 0} użytkowników
                 </div>
               </div>
             </div>
@@ -200,10 +201,12 @@ const UsersPage = () => {
                         <div className="flex items-center space-x-4">
                           <div className="flex-shrink-0">
                             {user.image ? (
-                              <img
+                              <Image
                                 className="h-10 w-10 rounded-full"
                                 src={user.image}
-                                alt={user.name || "Użytkownik"}
+                                alt={user.name ?? "Użytkownik"}
+                                width={40}
+                                height={40}
                               />
                             ) : (
                               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-300">
@@ -225,10 +228,10 @@ const UsersPage = () => {
                           </div>
                           <div className="min-w-0 flex-1">
                             <p className="truncate text-sm font-medium text-gray-900">
-                              {user.name || "Brak nazwy"}
+                              {user.name ?? "Brak nazwy"}
                             </p>
                             <p className="truncate text-sm text-gray-500">
-                              {user.email || "Brak email"}
+                              {user.email ?? "Brak email"}
                             </p>
                             <p className="text-xs text-gray-400">
                               ID: {user.id}
@@ -360,28 +363,28 @@ const UsersPage = () => {
                 <div className="text-center">
                   <div className="text-2xl font-bold text-blue-600">
                     {usersData?.users?.filter((user) => user.type === "ADMIN")
-                      .length || 0}
+                      .length ?? 0}
                   </div>
                   <div className="text-sm text-gray-500">Administratorzy</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-green-600">
                     {usersData?.users?.filter((user) => user.type === "OWNER")
-                      .length || 0}
+                      .length ?? 0}
                   </div>
                   <div className="text-sm text-gray-500">Właściciele</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-yellow-600">
                     {usersData?.users?.filter((user) => user.type === "GUEST")
-                      .length || 0}
+                      .length ?? 0}
                   </div>
                   <div className="text-sm text-gray-500">Goście</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-purple-600">
                     {usersData?.users?.filter((user) => user.emailVerified)
-                      .length || 0}
+                      .length ?? 0}
                   </div>
                   <div className="text-sm text-gray-500">Zweryfikowani</div>
                 </div>

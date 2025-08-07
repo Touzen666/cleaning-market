@@ -107,7 +107,7 @@ const SystemStatisticsPage = () => {
                             Wszyscy użytkownicy
                           </dt>
                           <dd className="text-lg font-medium text-gray-900">
-                            {statistics?.users.total || 0}
+                            {statistics?.users.total ?? 0}
                           </dd>
                         </dl>
                       </div>
@@ -141,7 +141,7 @@ const SystemStatisticsPage = () => {
                             Administratorzy
                           </dt>
                           <dd className="text-lg font-medium text-gray-900">
-                            {statistics?.users.admins || 0}
+                            {statistics?.users.admins ?? 0}
                           </dd>
                         </dl>
                       </div>
@@ -175,7 +175,7 @@ const SystemStatisticsPage = () => {
                             Właściciele
                           </dt>
                           <dd className="text-lg font-medium text-gray-900">
-                            {statistics?.users.owners || 0}
+                            {statistics?.users.owners ?? 0}
                           </dd>
                         </dl>
                       </div>
@@ -209,7 +209,7 @@ const SystemStatisticsPage = () => {
                             Goście
                           </dt>
                           <dd className="text-lg font-medium text-gray-900">
-                            {statistics?.users.guests || 0}
+                            {statistics?.users.guests ?? 0}
                           </dd>
                         </dl>
                       </div>
@@ -251,7 +251,7 @@ const SystemStatisticsPage = () => {
                             Wszystkie apartamenty
                           </dt>
                           <dd className="text-lg font-medium text-gray-900">
-                            {statistics?.apartments.total || 0}
+                            {statistics?.apartments.total ?? 0}
                           </dd>
                         </dl>
                       </div>
@@ -285,7 +285,7 @@ const SystemStatisticsPage = () => {
                             Aktywne
                           </dt>
                           <dd className="text-lg font-medium text-gray-900">
-                            {statistics?.apartments.active || 0}
+                            {statistics?.apartments.active ?? 0}
                           </dd>
                         </dl>
                       </div>
@@ -319,7 +319,7 @@ const SystemStatisticsPage = () => {
                             Nieaktywne
                           </dt>
                           <dd className="text-lg font-medium text-gray-900">
-                            {statistics?.apartments.inactive || 0}
+                            {statistics?.apartments.inactive ?? 0}
                           </dd>
                         </dl>
                       </div>
@@ -361,7 +361,7 @@ const SystemStatisticsPage = () => {
                             Wszystkie rezerwacje
                           </dt>
                           <dd className="text-lg font-medium text-gray-900">
-                            {statistics?.reservations.total || 0}
+                            {statistics?.reservations.total ?? 0}
                           </dd>
                         </dl>
                       </div>
@@ -395,7 +395,7 @@ const SystemStatisticsPage = () => {
                             Ten miesiąc
                           </dt>
                           <dd className="text-lg font-medium text-gray-900">
-                            {statistics?.reservations.thisMonth || 0}
+                            {statistics?.reservations.thisMonth ?? 0}
                           </dd>
                         </dl>
                       </div>
@@ -437,7 +437,7 @@ const SystemStatisticsPage = () => {
                             Wszystkie raporty
                           </dt>
                           <dd className="text-lg font-medium text-gray-900">
-                            {statistics?.reports.total || 0}
+                            {statistics?.reports.total ?? 0}
                           </dd>
                         </dl>
                       </div>
@@ -471,7 +471,7 @@ const SystemStatisticsPage = () => {
                             Szkice
                           </dt>
                           <dd className="text-lg font-medium text-gray-900">
-                            {statistics?.reports.draft || 0}
+                            {statistics?.reports.draft ?? 0}
                           </dd>
                         </dl>
                       </div>
@@ -505,7 +505,7 @@ const SystemStatisticsPage = () => {
                             Zatwierdzone
                           </dt>
                           <dd className="text-lg font-medium text-gray-900">
-                            {statistics?.reports.approved || 0}
+                            {statistics?.reports.approved ?? 0}
                           </dd>
                         </dl>
                       </div>
@@ -539,7 +539,7 @@ const SystemStatisticsPage = () => {
                             Wysłane
                           </dt>
                           <dd className="text-lg font-medium text-gray-900">
-                            {statistics?.reports.sent || 0}
+                            {statistics?.reports.sent ?? 0}
                           </dd>
                         </dl>
                       </div>

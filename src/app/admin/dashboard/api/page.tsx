@@ -149,7 +149,7 @@ const ApiPage = () => {
                       </div>
                       <div>
                         <div className="text-lg font-semibold text-blue-900">
-                          {apiInfo?.rateLimits.requestsPerMinute || 100}
+                          {apiInfo?.rateLimits.requestsPerMinute ?? 100}
                         </div>
                         <div className="text-sm text-blue-700">
                           Zapytań na minutę
@@ -177,7 +177,7 @@ const ApiPage = () => {
                       </div>
                       <div>
                         <div className="text-lg font-semibold text-green-900">
-                          {apiInfo?.rateLimits.requestsPerHour || 1000}
+                          {apiInfo?.rateLimits.requestsPerHour ?? 1000}
                         </div>
                         <div className="text-sm text-green-700">
                           Zapytań na godzinę
