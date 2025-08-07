@@ -75,6 +75,7 @@ model User {
   posts                Post[]
   reportHistoryActions ReportHistory[]      @relation("AdminReportHistory")
   sessions             Session[]
+  updatedSystemSettings SystemSettings[]    @relation("SystemSettingsUpdatedBy")
 }
 
 model VerificationToken {
@@ -553,4 +554,16 @@ enum NoteType {
   ISSUE
   REMINDER
   IMPORTANT
+}
+
+model SystemSettings {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String
+  description String?
+  updatedAt   DateTime @updatedAt
+  updatedBy   String
+  user        User     @relation("SystemSettingsUpdatedBy", fields: [updatedBy], references: [id])
+
+  @@index([key])
 }

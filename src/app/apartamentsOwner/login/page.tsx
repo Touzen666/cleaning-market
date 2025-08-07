@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { api } from "@/trpc/react";
 import { useRouter } from "next/navigation";
 
@@ -12,6 +12,21 @@ export default function ApartmentsOwnerLoginPage() {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showMaintenance, setShowMaintenance] = useState(false);
+  const [maintenanceMessage, setMaintenanceMessage] = useState("");
+
+  // Sprawdź tryb maintenance
+  const { data: maintenanceData } =
+    api.adminDashboard.isMaintenanceMode.useQuery(undefined, {
+      refetchInterval: 30000, // Sprawdzaj co 30 sekund
+    });
+
+  useEffect(() => {
+    if (maintenanceData) {
+      setShowMaintenance(maintenanceData.enabled);
+      setMaintenanceMessage(maintenanceData.message);
+    }
+  }, [maintenanceData]);
 
   const loginMutation = api.ownerAuth.login.useMutation({
     onSuccess: (data) => {
@@ -76,6 +91,88 @@ export default function ApartmentsOwnerLoginPage() {
       setIsLoading(false);
     }
   };
+
+  // Jeśli tryb maintenance jest włączony, pokaż tylko wiadomość maintenance
+  if (showMaintenance) {
+    return (
+      <div
+        className="flex min-h-screen items-center justify-center bg-cover bg-center px-4 py-12 sm:px-6 lg:px-8"
+        style={{ backgroundImage: "url('/login_bg.png')" }}
+      >
+        <div className="w-full max-w-md space-y-8 rounded-xl bg-white/90 p-10 shadow-2xl backdrop-blur-sm">
+          <div>
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-orange-500">
+              <svg
+                className="h-6 w-6 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                />
+              </svg>
+            </div>
+            <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
+              Tryb Maintenance
+            </h2>
+            <p className="mt-2 text-center text-sm text-gray-600">
+              {maintenanceMessage}
+            </p>
+          </div>
+
+          <div className="rounded-xl border border-orange-200 bg-orange-50 p-8 shadow-lg">
+            <div className="text-center">
+              <svg
+                className="mx-auto h-12 w-12 text-orange-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                />
+              </svg>
+              <h3 className="mt-4 text-lg font-medium text-orange-800">
+                Dostęp Tymczasowo Niedostępny
+              </h3>
+              <p className="mt-2 text-sm text-orange-700">
+                Przepraszamy za niedogodności. Pracujemy nad ulepszeniami
+                systemu.
+              </p>
+              <div className="mt-6">
+                <button
+                  onClick={() => window.location.reload()}
+                  className="inline-flex items-center rounded-md border border-transparent bg-orange-600 px-4 py-2 text-sm font-medium text-white hover:bg-orange-700"
+                >
+                  <svg
+                    className="mr-2 h-4 w-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                    />
+                  </svg>
+                  Sprawdź ponownie
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -199,7 +296,7 @@ export default function ApartmentsOwnerLoginPage() {
               <button
                 type="submit"
                 disabled={isLoading || loginMutation.isPending}
-                className="group relative flex w-full justify-center rounded-lg border border-transparent bg-brand-gold px-4 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                className="group relative flex w-full justify-center rounded-lg border border-transparent bg-brand-gold px-4 py-3 text-sm font-medium text-white transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-brand-gold focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 hover:bg-yellow-500"
               >
                 {isLoading || loginMutation.isPending ? (
                   <svg

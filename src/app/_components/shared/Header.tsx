@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { Menu, X } from "lucide-react"; // Import icons
 
 // Reusable hook for body scroll lock
@@ -100,6 +101,7 @@ export default function Header() {
 export function HeaderAdmin() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   useBodyScrollLock(isMenuOpen);
+  const { data: session } = useSession();
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
@@ -112,6 +114,15 @@ export function HeaderAdmin() {
       >
         Panel admina
       </Link>
+      {session?.user?.type === "ADMIN" && (
+        <Link
+          href="/admin/dashboard"
+          className="block px-4 py-2 hover:text-gray-300 md:px-0 md:py-0"
+          onClick={() => setIsMenuOpen(false)}
+        >
+          Dashboard Admina
+        </Link>
+      )}
       <Link
         href="/admin/reports"
         className="block px-4 py-2 hover:text-gray-300 md:px-0 md:py-0"
