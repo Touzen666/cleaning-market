@@ -83,7 +83,7 @@ export const apartmentOwnersRouter = createTRPCRouter({
                 // Map the result to match the schema (convert apartment ID to string)
                 return owners.map(owner => ({
                     ...owner,
-                    profileImageUrl: owner.profileImages[0]?.url || null,
+                    profileImageUrl: owner.profileImages[0]?.url ?? null,
                     ownedApartments: owner.ownedApartments.map(ownership => ({
                         ...ownership,
                         apartment: {
@@ -418,7 +418,7 @@ export const apartmentOwnersRouter = createTRPCRouter({
             }
 
             // Extract the active profile image URL
-            const profileImageUrl = owner.profileImages[0]?.url || null;
+            const profileImageUrl = owner.profileImages[0]?.url ?? null;
 
             return {
                 ...owner,
