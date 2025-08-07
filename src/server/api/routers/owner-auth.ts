@@ -120,13 +120,9 @@ export const ownerAuthRouter = createTRPCRouter({
 
             // Check if using temporary password
             if (owner.temporaryPassword && owner.temporaryPasswordExpiresAt) {
-                if (new Date() > owner.temporaryPasswordExpiresAt) {
-                    throw new TRPCError({
-                        code: "UNAUTHORIZED",
-                        message: "Tymczasowe hasło wygasło. Skontaktuj się z administratorem.",
-                    });
+                if (new Date() <= owner.temporaryPasswordExpiresAt) {
+                    isValidPassword = password === owner.temporaryPassword;
                 }
-                isValidPassword = password === owner.temporaryPassword;
             }
 
             // Check regular password

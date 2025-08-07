@@ -166,7 +166,7 @@ export const apartmentOwnersRouter = createTRPCRouter({
                 });
             }
 
-            console.log(`🏢 New apartment owner created: ${newOwner.email} with temp password: ${temporaryPassword}`);
+            console.log(`🏢 Nowy właściciel apartamentu utworzony: ${newOwner.email}`);
 
             // Send welcome email automatically
             try {
@@ -349,7 +349,7 @@ export const apartmentOwnersRouter = createTRPCRouter({
                 },
             });
 
-            console.log(`🔑 Password reset for owner: ${input.ownerId}, new temp password: ${temporaryPassword}`);
+            console.log(`🔑 Reset hasła dla właściciela: ${input.ownerId}`);
 
             return {
                 temporaryPassword,

@@ -10,7 +10,7 @@ async function createOwner() {
         });
 
         if (!adminUser) {
-            console.error('Admin user not found. Please run the seed script first.');
+            console.error('Użytkownik admin nie został znaleziony. Uruchom najpierw skrypt seed.');
             return;
         }
 
@@ -30,12 +30,12 @@ async function createOwner() {
             },
         });
 
-        console.log('Owner created successfully:', owner);
-        console.log('Temporary password: temp123456');
+        console.log('Właściciel utworzony pomyślnie:', owner);
         console.log('Email: ochedowski.bartosz@gmail.com');
-        console.log('You can now log in with these credentials');
+        console.log('Tymczasowe hasło zostało ustawione i wysłane e-mailem');
+        console.log('Możesz się teraz zalogować używając tymczasowego hasła');
     } catch (error) {
-        console.error('Error creating owner:', error);
+        console.error('Błąd podczas tworzenia właściciela:', error);
     } finally {
         await prisma.$disconnect();
     }
