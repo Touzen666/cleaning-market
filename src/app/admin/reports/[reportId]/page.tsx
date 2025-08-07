@@ -866,10 +866,7 @@ export default function ReportDetailsPage({
       return 0;
     }
 
-    const cleaningCosts = report.apartment.cleaningCosts as Record<
-      string,
-      number
-    >;
+    const cleaningCosts = apartment.cleaningCosts;
     const totalGuests = (reservation.adults ?? 0) + (reservation.children ?? 0);
 
     if (totalGuests > 0) {
