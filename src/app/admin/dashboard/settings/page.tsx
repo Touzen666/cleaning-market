@@ -79,11 +79,15 @@ const SystemSettingsPage = () => {
     }
   }, [settings]);
 
-  const handleInputChange = (section: string, field: string, value: any) => {
+  const handleInputChange = (
+    section: keyof typeof formData,
+    field: string,
+    value: string | number | boolean,
+  ) => {
     setFormData((prev) => ({
       ...prev,
       [section]: {
-        ...prev[section as keyof typeof prev],
+        ...prev[section],
         [field]: value,
       },
     }));
@@ -397,10 +401,10 @@ const SystemSettingsPage = () => {
                 </div>
                 <button
                   onClick={handleSendTestEmail}
-                  disabled={sendTestEmailMutation.isLoading}
+                  disabled={sendTestEmailMutation.isPending}
                   className="inline-flex items-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50 hover:bg-green-700"
                 >
-                  {sendTestEmailMutation.isLoading
+                  {sendTestEmailMutation.isPending
                     ? "Wysyłanie..."
                     : "Wyślij testowy email"}
                 </button>

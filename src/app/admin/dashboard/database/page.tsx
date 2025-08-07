@@ -96,7 +96,7 @@ const DatabasePage = () => {
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
                   <div className="text-center">
                     <div className="text-2xl font-bold text-blue-600">
-                      {dbInfo?.version || "PostgreSQL 15.0"}
+                      {dbInfo?.version ?? "PostgreSQL 15.0"}
                     </div>
                     <div className="text-sm text-gray-500">
                       Wersja bazy danych
@@ -104,7 +104,7 @@ const DatabasePage = () => {
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-green-600">
-                      {dbInfo?.databaseSize || "2.5 GB"}
+                      {dbInfo?.databaseSize ?? "2.5 GB"}
                     </div>
                     <div className="text-sm text-gray-500">
                       Rozmiar bazy danych
@@ -137,7 +137,7 @@ const DatabasePage = () => {
                     <div className="flex items-center justify-between">
                       <div>
                         <div className="text-lg font-semibold text-gray-900">
-                          {dbInfo?.tables.users || 0}
+                          {dbInfo?.tables.users ?? 0}
                         </div>
                         <div className="text-sm text-gray-500">Użytkownicy</div>
                       </div>
@@ -163,7 +163,7 @@ const DatabasePage = () => {
                     <div className="flex items-center justify-between">
                       <div>
                         <div className="text-lg font-semibold text-gray-900">
-                          {dbInfo?.tables.apartments || 0}
+                          {dbInfo?.tables.apartments ?? 0}
                         </div>
                         <div className="text-sm text-gray-500">Apartamenty</div>
                       </div>
@@ -189,7 +189,7 @@ const DatabasePage = () => {
                     <div className="flex items-center justify-between">
                       <div>
                         <div className="text-lg font-semibold text-gray-900">
-                          {dbInfo?.tables.reservations || 0}
+                          {dbInfo?.tables.reservations ?? 0}
                         </div>
                         <div className="text-sm text-gray-500">Rezerwacje</div>
                       </div>
@@ -215,7 +215,7 @@ const DatabasePage = () => {
                     <div className="flex items-center justify-between">
                       <div>
                         <div className="text-lg font-semibold text-gray-900">
-                          {dbInfo?.tables.reports || 0}
+                          {dbInfo?.tables.reports ?? 0}
                         </div>
                         <div className="text-sm text-gray-500">Raporty</div>
                       </div>
@@ -241,7 +241,7 @@ const DatabasePage = () => {
                     <div className="flex items-center justify-between">
                       <div>
                         <div className="text-lg font-semibold text-gray-900">
-                          {dbInfo?.tables.owners || 0}
+                          {dbInfo?.tables.owners ?? 0}
                         </div>
                         <div className="text-sm text-gray-500">Właściciele</div>
                       </div>
@@ -267,7 +267,7 @@ const DatabasePage = () => {
                     <div className="flex items-center justify-between">
                       <div>
                         <div className="text-lg font-semibold text-gray-900">
-                          {dbInfo?.tables.images || 0}
+                          {dbInfo?.tables.images ?? 0}
                         </div>
                         <div className="text-sm text-gray-500">Obrazy</div>
                       </div>
@@ -311,10 +311,10 @@ const DatabasePage = () => {
                     </p>
                     <button
                       onClick={() => createBackupMutation.mutate()}
-                      disabled={createBackupMutation.isLoading}
+                      disabled={createBackupMutation.isPending}
                       className="inline-flex items-center rounded-md border border-transparent bg-yellow-100 px-4 py-2 text-sm font-medium text-yellow-800 disabled:opacity-50 hover:bg-yellow-200"
                     >
-                      {createBackupMutation.isLoading
+                      {createBackupMutation.isPending
                         ? "Tworzenie..."
                         : "Utwórz backup"}
                     </button>

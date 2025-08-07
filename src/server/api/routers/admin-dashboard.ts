@@ -103,6 +103,13 @@ export const adminDashboardRouter = createTRPCRouter({
                     message: "High memory usage detected",
                     userId: ctx.session.user.id,
                 },
+                {
+                    id: "3",
+                    timestamp: new Date(Date.now() - 1000 * 60 * 10), // 10 minut temu
+                    level: "ERROR" as const,
+                    message: "Database connection failed",
+                    userId: ctx.session.user.id,
+                },
             ];
 
             return {
