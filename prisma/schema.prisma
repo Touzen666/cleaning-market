@@ -10,10 +10,10 @@ datasource db {
 
 model Post {
   id          Int      @id @default(autoincrement())
-  title       String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   createdById String
+  title       String
   createdBy   User     @relation(fields: [createdById], references: [id])
 
   @@index([title])
@@ -65,11 +65,17 @@ model User {
   createdOwners        ApartmentOwner[]     @relation("AdminCreatedOwners")
   assignedOwnerships   ApartmentOwnership[] @relation("AdminAssignedOwnerships")
   approvedReports      MonthlyReport[]      @relation("AdminApprovedReports")
+  sentReports          MonthlyReport[]      @relation("AdminSentReports")
   createdReports       MonthlyReport[]      @relation("AdminCreatedReports")
+  historicalCreatedReports HistoricalReport[] @relation("HistoricalCreatedByAdmin")
+  historicalApprovedReports HistoricalReport[] @relation("HistoricalApprovedByAdmin")
+  historicalSentReports HistoricalReport[] @relation("HistoricalSentByAdmin")
+  historicalDeletedReports HistoricalReport[] @relation("HistoricalDeletedByAdmin")
   createdOwnerNotes    OwnerNote[]          @relation("AdminCreatedNotes")
   posts                Post[]
   reportHistoryActions ReportHistory[]      @relation("AdminReportHistory")
   sessions             Session[]
+  updatedSystemSettings SystemSettings[]    @relation("SystemSettingsUpdatedBy")
 }
 
 model VerificationToken {
@@ -81,28 +87,29 @@ model VerificationToken {
 }
 
 model Reservation {
-  source        String
-  createDate    DateTime     @db.Date
-  guest         String
-  start         DateTime
-  end           DateTime
-  apartmentName String
-  address       String
-  status        String
-  payment       String
-  paymantValue  Float
-  currency      String
-  adults        Int?
-  children      Int?
-  importSource  String?
-  importBatchId String?
-  id            Int          @id @default(autoincrement())
-  apartmentId   Int?
-  idobookingId  Int?         @unique
-  checkInCards  CheckInCard?
-  reportItems   ReportItem[]
+  source         String
+  createDate     DateTime     @db.Date
+  guest          String
+  start          DateTime
+  end            DateTime
+  apartmentName  String
+  address        String
+  status         String
+  payment        String
+  paymantValue   Float
+  currency       String
+  adults         Int?
+  children       Int?
+  importSource   String?
+  importBatchId  String?
+  id             Int          @id @default(autoincrement())
+  apartmentId    Int?
+  idobookingId   Int?         @unique
   rateCorrection Float?
-  apartment     Apartment?   @relation(fields: [apartmentId], references: [id])
+  checkInCards   CheckInCard?
+  reportItems    ReportItem[]
+  historicalReportItems HistoricalReportItem[]
+  apartment      Apartment?   @relation(fields: [apartmentId], references: [id])
 }
 
 model Apartment {
@@ -111,9 +118,14 @@ model Apartment {
   address                String
   defaultRentAmount      Float?               @default(0)
   defaultUtilitiesAmount Float?               @default(0)
+  weeklyLaundryCost      Float?               @default(120) // Koszty prania tygodniowo w PLN
+  cleaningSuppliesCost   Float?               @default(132) // Stały koszt środków czystości w PLN
+  capsuleCostPerGuest    Float?               @default(2.5) // Koszt kapsułki na gościa w PLN
+  wineCost               Float?               @default(250) // Koszt wina w PLN
   hasBalcony             Boolean              @default(false)
   hasParking             Boolean              @default(false)
   maxGuests              Int?                 @default(4)
+  cleaningCosts          Json?                // Koszty sprzątania dla różnych liczby gości {1: 50, 2: 80, 3: 100, ...}
   importSource           String?
   importBatchId          String?
   id                     Int                  @id @default(autoincrement())
@@ -122,7 +134,9 @@ model Apartment {
   ownerships             ApartmentOwnership[]
   leadApplications       LeadApplication[]
   monthlyReports         MonthlyReport[]
+  historicalReports      HistoricalReport[]
   reservations           Reservation[]
+  averageRating          Float?               @default(0)
 }
 
 model ApartmentImage {
@@ -136,6 +150,23 @@ model ApartmentImage {
   apartment   Apartment @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
 
   @@index([apartmentId])
+}
+
+model ProfileImage {
+  id          String         @id @default(uuid())
+  url         String
+  alt         String?
+  filename    String
+  mimeType    String
+  size        Int
+  isActive    Boolean        @default(true)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  ownerId     String
+  owner       ApartmentOwner @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([ownerId])
+  @@index([isActive])
 }
 
 model LeadApplication {
@@ -199,6 +230,11 @@ model ApartmentOwner {
   firstName                   String
   lastName                    String
   phone                       String?
+  companyName                 String?
+  nip                         String?
+  address                     String?
+  city                        String?
+  postalCode                  String?
   passwordHash                String?
   temporaryPassword           String?
   temporaryPasswordExpiresAt  DateTime?
@@ -214,7 +250,9 @@ model ApartmentOwner {
   createdByAdmin              User                 @relation("AdminCreatedOwners", fields: [createdByAdminId], references: [id])
   ownedApartments             ApartmentOwnership[]
   monthlyReports              MonthlyReport[]
+  historicalReports           HistoricalReport[]
   notes                       OwnerNote[]
+  profileImages               ProfileImage[]
 
   @@index([email])
   @@index([isActive])
@@ -248,7 +286,7 @@ model AdditionalDeduction {
   order     Int           @default(0)
   report    MonthlyReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
 
-  @@index([reportId])
+  @@index([reportId, order])
 }
 
 model MonthlyReport {
@@ -264,6 +302,7 @@ model MonthlyReport {
   approvedAt           DateTime?
   approvedByAdminId    String?
   sentAt               DateTime?
+  sentByAdminId        String?
   totalRevenue         Float                 @default(0)
   totalExpenses        Float                 @default(0)
   netIncome            Float                 @default(0)
@@ -274,14 +313,25 @@ model MonthlyReport {
   suggestedRent        Float?                @default(0)
   suggestedUtilities   Float?                @default(0)
   finalSettlementType  SettlementType?
+  finalOwnerPayout     Float?
+  finalHostPayout      Float?
+  finalIncomeTax       Float?
+  finalVatAmount       Float?
+  taxBase              Float?
+  adminCommissionAmount Float?
+  afterCommission      Float?
+  afterRentAndUtilities Float?
+  totalAdditionalDeductions Float?
   apartmentId          Int
   additionalDeductions AdditionalDeduction[]
   apartment            Apartment             @relation(fields: [apartmentId], references: [id])
   approvedByAdmin      User?                 @relation("AdminApprovedReports", fields: [approvedByAdminId], references: [id])
+  sentByAdmin          User?                 @relation("AdminSentReports", fields: [sentByAdminId], references: [id])
   createdByAdmin       User                  @relation("AdminCreatedReports", fields: [createdByAdminId], references: [id])
   owner                ApartmentOwner        @relation(fields: [ownerId], references: [id])
   history              ReportHistory[]
   items                ReportItem[]
+  historicalReports    HistoricalReport[]    @relation("OriginalToHistorical")
 
   @@unique([apartmentId, year, month])
   @@index([status])
@@ -323,6 +373,99 @@ model ReportHistory {
   report         MonthlyReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
 
   @@index([reportId, createdAt])
+}
+
+// Nowe modele dla historycznych raportów
+model HistoricalReport {
+  id                   String                @id @default(uuid())
+  createdAt            DateTime              @default(now())
+  originalReportId     String                @unique // Referencja do oryginalnego raportu
+  year                 Int
+  month                Int
+  ownerId              String
+  apartmentId          Int
+  status               ReportStatus
+  totalRevenue         Float
+  totalExpenses        Float
+  netIncome            Float
+  ownerPayoutAmount    Float
+  currency             String
+  rentAmount           Float?
+  utilitiesAmount      Float?
+  finalSettlementType  SettlementType?
+  finalOwnerPayout     Float?
+  finalHostPayout      Float?
+  finalIncomeTax       Float?
+  finalVatAmount       Float?
+  taxBase              Float?
+  adminCommissionAmount Float?
+  afterCommission      Float?
+  afterRentAndUtilities Float?
+  totalAdditionalDeductions Float?
+  sentAt               DateTime              @default(now())
+  frozenAt             DateTime              @default(now()) // Moment zamrożenia raportu
+  deletedAt            DateTime?             // Moment usunięcia raportu
+  deletedByAdminId     String?              // ID administratora, który usunął raport
+  deletionReason       String?              // Przyczyna usunięcia raportu
+  
+  // Informacje o użytkownikach (tylko do odczytu)
+  createdByAdminId     String
+  approvedByAdminId    String?
+  sentByAdminId        String?
+  approvedAt           DateTime?
+  
+  // Relacje do historycznych danych
+  items                HistoricalReportItem[]
+  additionalDeductions HistoricalAdditionalDeduction[]
+  
+  // Relacje do oryginalnych danych (tylko do odczytu)
+  originalReport       MonthlyReport         @relation("OriginalToHistorical", fields: [originalReportId], references: [id])
+  apartment            Apartment             @relation(fields: [apartmentId], references: [id])
+  owner                ApartmentOwner        @relation(fields: [ownerId], references: [id])
+  createdByAdmin       User                  @relation("HistoricalCreatedByAdmin", fields: [createdByAdminId], references: [id])
+  approvedByAdmin      User?                 @relation("HistoricalApprovedByAdmin", fields: [approvedByAdminId], references: [id])
+  sentByAdmin          User?                 @relation("HistoricalSentByAdmin", fields: [sentByAdminId], references: [id])
+  deletedByAdmin       User?                 @relation("HistoricalDeletedByAdmin", fields: [deletedByAdminId], references: [id])
+
+  @@index([originalReportId])
+  @@index([ownerId, year, month])
+  @@index([apartmentId, year, month])
+}
+
+model HistoricalReportItem {
+  id              String             @id @default(uuid())
+  historicalReportId String
+  type            ReportItemType
+  category        String
+  description     String
+  amount          Float
+  currency        String
+  expenseCategory ExpenseCategory?
+  portal          ReservationPortal?
+  date            DateTime           @db.Date
+  notes           String?
+  isAutoGenerated Boolean
+  reservationId   Int?
+  
+  // Relacje
+  historicalReport HistoricalReport  @relation(fields: [historicalReportId], references: [id], onDelete: Cascade)
+  reservation     Reservation?       @relation(fields: [reservationId], references: [id])
+
+  @@index([historicalReportId, type])
+}
+
+model HistoricalAdditionalDeduction {
+  id                String    @id @default(uuid())
+  historicalReportId String
+  name              String
+  amount            Float
+  vatOption         VATOption
+  order             Int
+  
+  // Relacje
+  historicalReport  HistoricalReport @relation(fields: [historicalReportId], references: [id], onDelete: Cascade)
+
+  @@index([historicalReportId])
 }
 
 model OwnerNote {
@@ -367,6 +510,13 @@ enum ReportStatus {
   REVIEW
   APPROVED
   SENT
+  DELETED
+}
+
+enum SettlementType {
+  COMMISSION
+  FIXED
+  FIXED_MINUS_UTILITIES
 }
 
 enum ReportItemType {
@@ -387,6 +537,7 @@ enum ExpenseCategory {
   PRANIE
   SPRZATANIE
   SRODKI_CZYSTOSCI
+  TEKSTYLIA
 }
 
 enum ReservationPortal {
@@ -396,12 +547,6 @@ enum ReservationPortal {
   CHANEL_MANAGER
 }
 
-enum SettlementType {
-  COMMISSION
-  FIXED
-  FIXED_MINUS_UTILITIES
-}
-
 enum NoteType {
   GENERAL
   PAYMENT
@@ -409,4 +554,16 @@ enum NoteType {
   ISSUE
   REMINDER
   IMPORTANT
+}
+
+model SystemSettings {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String
+  description String?
+  updatedAt   DateTime @updatedAt
+  updatedBy   String
+  user        User     @relation("SystemSettingsUpdatedBy", fields: [updatedBy], references: [id])
+
+  @@index([key])
 }

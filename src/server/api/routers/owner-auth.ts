@@ -4,6 +4,8 @@ import { TRPCError } from "@trpc/server";
 import { randomBytes, createHash } from "crypto";
 import { sendEmail } from "@/lib/email/email-service";
 import { createResetPasswordEmail } from "@/lib/email/templates/reset-password";
+import * as jwt from "jsonwebtoken";
+import { ReportStatus } from "@prisma/client";
 
 // Simple password hashing using Node.js crypto
 function hashPassword(password: string): string {
@@ -32,6 +34,38 @@ function verifyPassword(password: string, hash: string): boolean {
 // }
 
 export const ownerAuthRouter = createTRPCRouter({
+    loginAsOwner: publicProcedure
+        .input(z.object({ ownerId: z.string() }))
+        .mutation(async ({ input, ctx }) => {
+            const { ownerId } = input;
+            const owner = await ctx.db.apartmentOwner.findUnique({
+                where: { id: ownerId },
+            });
+
+            if (!owner) {
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: "Właściciel nie został znaleziony.",
+                });
+            }
+
+            const secret = process.env.AUTH_SECRET;
+            if (!secret) {
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    message: "Brak sekretu do podpisania tokena.",
+                });
+            }
+
+            const payload = { id: owner.id, email: owner.email, role: "OWNER" };
+            const token = jwt.sign(
+                payload,
+                secret,
+                { expiresIn: "1h" },
+            );
+
+            return { success: true, token };
+        }),
     // Login with email and password/temporary password
     login: publicProcedure
         .input(z.object({
@@ -86,13 +120,9 @@ export const ownerAuthRouter = createTRPCRouter({
 
             // Check if using temporary password
             if (owner.temporaryPassword && owner.temporaryPasswordExpiresAt) {
-                if (new Date() > owner.temporaryPasswordExpiresAt) {
-                    throw new TRPCError({
-                        code: "UNAUTHORIZED",
-                        message: "Tymczasowe hasło wygasło. Skontaktuj się z administratorem.",
-                    });
+                if (new Date() <= owner.temporaryPasswordExpiresAt) {
+                    isValidPassword = password === owner.temporaryPassword;
                 }
-                isValidPassword = password === owner.temporaryPassword;
             }
 
             // Check regular password
@@ -135,6 +165,90 @@ export const ownerAuthRouter = createTRPCRouter({
                     }),
                 },
                 isFirstLogin: owner.isFirstLogin,
+            };
+        }),
+
+    getDashboardData: publicProcedure
+        .input(z.undefined())
+        .query(async ({ ctx }) => {
+            const ownerEmail = ctx.headers.get("X-Owner-Email");
+
+            if (!ownerEmail) {
+                throw new TRPCError({
+                    code: "UNAUTHORIZED",
+                    message: "Brak autoryzacji",
+                });
+            }
+
+            const owner = await ctx.db.apartmentOwner.findUnique({
+                where: { email: ownerEmail },
+                select: {
+                    firstName: true,
+                    lastName: true,
+                    id: true,
+                },
+            });
+
+            if (!owner) {
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: "Nie znaleziono właściciela",
+                });
+            }
+
+            const totalApartments = await ctx.db.apartmentOwnership.count({
+                where: {
+                    ownerId: owner.id,
+                    isActive: true,
+                },
+            });
+
+            const activeReservations = await ctx.db.reservation.count({
+                where: {
+                    apartment: {
+                        ownerships: {
+                            some: {
+                                ownerId: owner.id,
+                            },
+                        },
+                    },
+                    end: { gte: new Date() },
+                    status: { notIn: ["CANCELLED", "NOSHOW"] },
+                },
+            });
+
+            const startOfYear = new Date(new Date().getFullYear(), 0, 1);
+
+            const revenue = await ctx.db.monthlyReport.aggregate({
+                where: {
+                    ownerId: owner.id,
+                    year: startOfYear.getFullYear(),
+                    status: { in: [ReportStatus.APPROVED, ReportStatus.SENT] },
+                },
+                _sum: {
+                    finalOwnerPayout: true,
+                },
+            });
+
+            // Debug logging for dashboard
+            console.log(`[DEBUG DASHBOARD] Owner ID: ${owner.id}`);
+            console.log(`[DEBUG DASHBOARD] Current year: ${startOfYear.getFullYear()}`);
+            console.log(`[DEBUG DASHBOARD] Aggregate sum: ${revenue._sum.finalOwnerPayout}`);
+
+            const totalReports = await ctx.db.monthlyReport.count({
+                where: {
+                    ownerId: owner.id,
+                },
+            });
+
+            return {
+                owner,
+                stats: {
+                    totalApartments,
+                    activeReservations,
+                    currentYearProfit: revenue._sum.finalOwnerPayout ?? 0,
+                    totalReports,
+                },
             };
         }),
 
@@ -410,6 +524,277 @@ export const ownerAuthRouter = createTRPCRouter({
                     temporaryPassword: null,
                     temporaryPasswordExpiresAt: null,
                 },
+            });
+
+            return { success: true };
+        }),
+
+    // Get owner profile
+    getOwnerProfile: publicProcedure
+        .input(z.object({ ownerEmail: z.string().email() }))
+        .query(async ({ input, ctx }) => {
+            const owner = await ctx.db.apartmentOwner.findUnique({
+                where: { email: input.ownerEmail },
+                select: {
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                    email: true,
+                    phone: true,
+                    companyName: true,
+                    nip: true,
+                    address: true,
+                    city: true,
+                    postalCode: true,
+                    profileImages: {
+                        where: { isActive: true },
+                        orderBy: { createdAt: 'desc' },
+                        take: 1,
+                        select: {
+                            id: true,
+                            url: true,
+                            alt: true,
+                        },
+                    },
+                },
+            });
+
+            if (!owner) {
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: "Właściciel nie został znaleziony.",
+                });
+            }
+
+            // Extract the active profile image URL
+            const profileImageUrl = owner.profileImages[0]?.url ?? null;
+
+            return {
+                ...owner,
+                profileImageUrl,
+            };
+        }),
+
+    // Update owner profile
+    updateOwnerProfile: publicProcedure
+        .input(z.object({
+            ownerEmail: z.string().email(),
+            phone: z.string().optional(),
+            companyName: z.string().optional(),
+            nip: z.string().optional(),
+            address: z.string().optional(),
+            city: z.string().optional(),
+            postalCode: z.string().optional(),
+        }))
+        .mutation(async ({ input, ctx }) => {
+            const { ownerEmail, ...updateData } = input;
+
+            const owner = await ctx.db.apartmentOwner.findUnique({
+                where: { email: ownerEmail },
+            });
+
+            if (!owner) {
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: "Właściciel nie został znaleziony.",
+                });
+            }
+
+            const updatedOwner = await ctx.db.apartmentOwner.update({
+                where: { id: owner.id },
+                data: updateData,
+                select: {
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                    email: true,
+                    phone: true,
+                    companyName: true,
+                    nip: true,
+                    address: true,
+                    city: true,
+                    postalCode: true,
+                    profileImages: {
+                        where: { isActive: true },
+                        orderBy: { createdAt: 'desc' },
+                        take: 1,
+                        select: {
+                            id: true,
+                            url: true,
+                            alt: true,
+                        },
+                    },
+                },
+            });
+
+            // Extract the active profile image URL
+            const profileImageUrl = updatedOwner.profileImages[0]?.url ?? null;
+
+            return {
+                ...updatedOwner,
+                profileImageUrl,
+            };
+        }),
+
+    // Upload profile image
+    uploadProfileImage: publicProcedure
+        .input(z.object({
+            imageUrl: z.string().url(),
+            ownerEmail: z.string().email(),
+            filename: z.string(),
+            mimeType: z.string(),
+            size: z.number(),
+        }))
+        .mutation(async ({ input, ctx }) => {
+            const { imageUrl, ownerEmail, filename, mimeType, size } = input;
+
+            // Find the owner
+            const owner = await ctx.db.apartmentOwner.findUnique({
+                where: { email: ownerEmail },
+            });
+
+            if (!owner) {
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: "Właściciel nie został znaleziony.",
+                });
+            }
+
+            try {
+                // Validate file type
+                if (!mimeType.startsWith('image/')) {
+                    throw new TRPCError({
+                        code: "BAD_REQUEST",
+                        message: "Plik musi być obrazem.",
+                    });
+                }
+
+                // Validate file size (max 5MB)
+                if (size > 5 * 1024 * 1024) {
+                    throw new TRPCError({
+                        code: "BAD_REQUEST",
+                        message: "Rozmiar pliku musi być mniejszy niż 5MB.",
+                    });
+                }
+
+                // Deactivate all existing profile images for this owner
+                await ctx.db.profileImage.updateMany({
+                    where: {
+                        ownerId: owner.id,
+                        isActive: true
+                    },
+                    data: { isActive: false }
+                });
+
+                // Create new profile image record
+                const profileImage = await ctx.db.profileImage.create({
+                    data: {
+                        url: imageUrl,
+                        alt: `Zdjęcie profilowe ${owner.firstName} ${owner.lastName}`,
+                        filename: filename,
+                        mimeType: mimeType,
+                        size: size,
+                        ownerId: owner.id,
+                    },
+                });
+
+                return { success: true, imageUrl: imageUrl, profileImage };
+            } catch (error) {
+                console.error('Error saving profile image:', error);
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    message: "Błąd podczas zapisywania zdjęcia profilowego.",
+                });
+            }
+        }),
+
+    // Set avatar
+    setAvatar: publicProcedure
+        .input(z.object({
+            ownerEmail: z.string().email(),
+            avatarUrl: z.string(),
+        }))
+        .mutation(async ({ input, ctx }) => {
+            const { ownerEmail, avatarUrl } = input;
+
+            const owner = await ctx.db.apartmentOwner.findUnique({
+                where: { email: ownerEmail },
+            });
+
+            if (!owner) {
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: "Właściciel nie został znaleziony.",
+                });
+            }
+
+            // Validate avatar URL (only allow our predefined avatars)
+            const allowedAvatars = [
+                '/uploads/profiles/avatar1.svg',
+                '/uploads/profiles/avatar2.svg',
+                '/uploads/profiles/avatar3.svg',
+                '/uploads/profiles/avatar4.svg',
+                '/uploads/profiles/avatar5.svg',
+                '/uploads/profiles/avatar6.svg',
+            ];
+
+            if (!allowedAvatars.includes(avatarUrl)) {
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    message: "Nieprawidłowy avatar.",
+                });
+            }
+
+            // Deactivate all existing profile images for this owner
+            await ctx.db.profileImage.updateMany({
+                where: {
+                    ownerId: owner.id,
+                    isActive: true
+                },
+                data: { isActive: false }
+            });
+
+            // Create new profile image record for the avatar
+            const profileImage = await ctx.db.profileImage.create({
+                data: {
+                    url: avatarUrl,
+                    alt: `Avatar ${owner.firstName} ${owner.lastName}`,
+                    filename: avatarUrl.split('/').pop() ?? 'avatar.svg',
+                    mimeType: 'image/svg+xml',
+                    size: 0, // SVG files are typically small
+                    ownerId: owner.id,
+                },
+            });
+
+            return { success: true, imageUrl: avatarUrl, profileImage };
+        }),
+
+    // Remove profile image
+    removeProfileImage: publicProcedure
+        .input(z.object({
+            ownerEmail: z.string().email(),
+        }))
+        .mutation(async ({ input, ctx }) => {
+            const { ownerEmail } = input;
+
+            const owner = await ctx.db.apartmentOwner.findUnique({
+                where: { email: ownerEmail },
+            });
+
+            if (!owner) {
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: "Właściciel nie został znaleziony.",
+                });
+            }
+
+            // Deactivate all existing profile images for this owner
+            await ctx.db.profileImage.updateMany({
+                where: {
+                    ownerId: owner.id,
+                    isActive: true
+                },
+                data: { isActive: false }
             });
 
             return { success: true };

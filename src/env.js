@@ -17,6 +17,10 @@ export const env = createEnv({
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
+    BLOB_READ_WRITE_TOKEN:
+      process.env.NODE_ENV === "production"
+        ? z.string().min(1)
+        : z.string().min(1).optional(),
     // SMTP Configuration
     SMTP_HOST: z.string().optional(),
     SMTP_PORT: z.string().optional(),
@@ -27,6 +31,8 @@ export const env = createEnv({
     ETHEREAL_PASS: z.string().optional(),
     EMAIL_PROVIDER: z.enum(["smtp", "ethereal"]).optional(),
     NEXTAUTH_URL: z.string().url().optional(),
+    SMTP_PASSWORD: z.string().optional(),
+    CRON_SECRET: z.string().optional(),
   },
 
   /**
@@ -35,7 +41,8 @@ export const env = createEnv({
    * `NEXT_PUBLIC_`.
    */
   client: {
-    // NEXT_PUBLIC_CLIENTVAR: z.string(),
+    // NEXT_PUBLIC_CLIENTVAR: z.string().min(1),
+    NEXT_PUBLIC_APP_URL: z.string().url(),
   },
 
   /**
@@ -48,6 +55,7 @@ export const env = createEnv({
     AUTH_DISCORD_SECRET: process.env.AUTH_DISCORD_SECRET,
     DATABASE_URL: process.env.DATABASE_URL,
     NODE_ENV: process.env.NODE_ENV,
+    BLOB_READ_WRITE_TOKEN: process.env.BLOB_READ_WRITE_TOKEN,
     // SMTP Configuration
     SMTP_HOST: process.env.SMTP_HOST,
     SMTP_PORT: process.env.SMTP_PORT,
@@ -58,6 +66,9 @@ export const env = createEnv({
     ETHEREAL_PASS: process.env.ETHEREAL_PASS,
     NEXTAUTH_URL: process.env.NEXTAUTH_URL,
     EMAIL_PROVIDER: process.env.EMAIL_PROVIDER,
+    SMTP_PASSWORD: process.env.SMTP_PASSWORD,
+    CRON_SECRET: process.env.CRON_SECRET,
+    NEXT_PUBLIC_APP_URL: process.env.NEXTAUTH_URL,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

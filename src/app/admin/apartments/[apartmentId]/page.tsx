@@ -5,6 +5,32 @@ import { useRouter } from "next/navigation";
 import { api } from "@/trpc/react";
 import ApartmentImageManager from "@/components/ApartmentImageManager";
 
+// Extended apartment type with new fields
+interface ExtendedApartment {
+  id: string;
+  name: string;
+  address: string;
+  slug: string;
+  defaultRentAmount: number | null;
+  defaultUtilitiesAmount: number | null;
+  weeklyLaundryCost: number | null;
+  cleaningSuppliesCost: number | null;
+  capsuleCostPerGuest: number | null;
+  wineCost: number | null;
+  hasBalcony: boolean;
+  hasParking: boolean;
+  maxGuests: number | null;
+  cleaningCosts: Record<string, number> | null;
+  averageRating: number | null;
+  images: Array<{
+    id: string;
+    url: string;
+    alt: string | null;
+    isPrimary: boolean;
+    order: number;
+  }>;
+}
+
 export default function EditApartmentPage({
   params,
   searchParams,
@@ -22,11 +48,14 @@ export default function EditApartmentPage({
     address: "",
     defaultRentAmount: 0,
     defaultUtilitiesAmount: 0,
+    weeklyLaundryCost: 120,
     hasBalcony: false,
     hasParking: false,
     maxGuests: 4,
+    cleaningCosts: {} as Record<string, number>,
   });
   const [status, setStatus] = useState<string | null>(null);
+  const [ratingStatus, setRatingStatus] = useState<string | null>(null);
   const [returnUrl, setReturnUrl] = useState<string>("/admin/apartments");
   const [createdApartmentId, setCreatedApartmentId] = useState<string | null>(
     null,
@@ -94,6 +123,22 @@ export default function EditApartmentPage({
     },
   });
 
+  const recalculateRating = api.apartments.recalculateRating.useMutation({
+    onSuccess: () => {
+      setRatingStatus("success");
+      void apartmentQuery.refetch();
+      setTimeout(() => {
+        setRatingStatus(null);
+      }, 2000);
+    },
+    onError: (err) => {
+      setRatingStatus(err.message);
+      setTimeout(() => {
+        setRatingStatus(null);
+      }, 3000);
+    },
+  });
+
   // Wypełnij formularz danymi apartamentu
   useEffect(() => {
     if (apartmentQuery.data && (apartmentId !== "new" || createdApartmentId)) {
@@ -103,9 +148,12 @@ export default function EditApartmentPage({
         address: apartment.address,
         defaultRentAmount: apartment.defaultRentAmount ?? 0,
         defaultUtilitiesAmount: apartment.defaultUtilitiesAmount ?? 0,
+        weeklyLaundryCost:
+          (apartment as ExtendedApartment).weeklyLaundryCost ?? 120,
         hasBalcony: apartment.hasBalcony,
         hasParking: apartment.hasParking,
         maxGuests: apartment.maxGuests ?? 4,
+        cleaningCosts: apartment.cleaningCosts ?? {},
       });
     }
   }, [apartmentQuery.data, apartmentId, createdApartmentId]);
@@ -121,7 +169,9 @@ export default function EditApartmentPage({
         ...form,
         defaultRentAmount: Number(form.defaultRentAmount),
         defaultUtilitiesAmount: Number(form.defaultUtilitiesAmount),
+        weeklyLaundryCost: Number(form.weeklyLaundryCost),
         maxGuests: Number(form.maxGuests),
+        cleaningCosts: form.cleaningCosts,
         ownerId: ownerId, // Przekaż ID właściciela jeśli jest dostępne
       });
     } else {
@@ -130,8 +180,17 @@ export default function EditApartmentPage({
         ...form,
         defaultRentAmount: Number(form.defaultRentAmount),
         defaultUtilitiesAmount: Number(form.defaultUtilitiesAmount),
+        weeklyLaundryCost: Number(form.weeklyLaundryCost),
         maxGuests: Number(form.maxGuests),
+        cleaningCosts: form.cleaningCosts,
       });
+    }
+  };
+
+  const handleRecalculateRating = () => {
+    const currentApartmentId = createdApartmentId ?? apartmentId;
+    if (currentApartmentId && currentApartmentId !== "new") {
+      recalculateRating.mutate({ apartmentId: currentApartmentId });
     }
   };
 
@@ -286,6 +345,30 @@ export default function EditApartmentPage({
 
               <div>
                 <label className="block text-sm font-medium text-gray-700">
+                  Koszt prania tygodniowo (PLN)
+                </label>
+                <input
+                  type="number"
+                  value={form.weeklyLaundryCost}
+                  onChange={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      weeklyLaundryCost: Number(e.target.value),
+                    }))
+                  }
+                  min={0}
+                  step={0.01}
+                  className="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
+                  placeholder="120.00"
+                />
+                <p className="mt-1 text-sm text-gray-500">
+                  Ustaw indywidualną stawkę za pranie dla tego apartamentu
+                  (domyślnie 120 PLN)
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
                   Maksymalna liczba gości
                 </label>
                 <input
@@ -301,6 +384,47 @@ export default function EditApartmentPage({
                   max={20}
                   className="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
                 />
+              </div>
+            </div>
+
+            {/* Koszty sprzątania */}
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Koszty sprzątania (za liczbę gości)
+              </label>
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-6">
+                {Array.from({ length: form.maxGuests }, (_, i) => i + 1).map(
+                  (guestCount) => (
+                    <div key={guestCount}>
+                      <label className="mb-1 block text-xs text-gray-600">
+                        {guestCount}{" "}
+                        {guestCount === 1
+                          ? "gość"
+                          : guestCount < 5
+                            ? "gości"
+                            : "gości"}
+                      </label>
+                      <input
+                        type="number"
+                        value={form.cleaningCosts[guestCount.toString()] ?? ""}
+                        onChange={(e) =>
+                          setForm((f) => ({
+                            ...f,
+                            cleaningCosts: {
+                              ...f.cleaningCosts,
+                              [guestCount.toString()]:
+                                Number(e.target.value) || 0,
+                            },
+                          }))
+                        }
+                        min={0}
+                        step={0.01}
+                        className="block w-full rounded-md border-gray-300 px-2 py-1 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
+                        placeholder="0.00"
+                      />
+                    </div>
+                  ),
+                )}
               </div>
             </div>
 
@@ -342,6 +466,40 @@ export default function EditApartmentPage({
               </div>
             </div>
 
+            {/* Rating */}
+            {!isNew && apartmentQuery.data && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Aktualna ocena
+                </label>
+                <div className="mt-1 flex items-center gap-x-4">
+                  <p className="rounded-md bg-gray-100 px-3 py-2 text-lg font-semibold text-gray-800">
+                    {apartmentQuery.data.averageRating?.toFixed(2) ??
+                      "Brak oceny"}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleRecalculateRating}
+                    disabled={recalculateRating.isPending}
+                    className="rounded-md bg-cyan-600 px-4 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 disabled:opacity-50 hover:bg-cyan-700"
+                  >
+                    {recalculateRating.isPending
+                      ? "Przeliczanie..."
+                      : "Wylicz ocenę"}
+                  </button>
+                </div>
+                {ratingStatus && (
+                  <p
+                    className={`mt-2 text-sm ${ratingStatus === "success" ? "text-green-600" : "text-red-600"}`}
+                  >
+                    {ratingStatus === "success"
+                      ? "Ocena została pomyślnie zaktualizowana!"
+                      : `Błąd: ${ratingStatus}`}
+                  </p>
+                )}
+              </div>
+            )}
+
             {/* Status messages */}
             {status && (
               <div
@@ -371,7 +529,7 @@ export default function EditApartmentPage({
                 disabled={
                   updateApartment.isPending || createApartment.isPending
                 }
-                className="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
+                className="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 hover:bg-indigo-700"
               >
                 {updateApartment.isPending || createApartment.isPending
                   ? "Zapisywanie..."

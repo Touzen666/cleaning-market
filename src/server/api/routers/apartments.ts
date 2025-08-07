@@ -16,6 +16,10 @@ export const apartmentsRouter = createTRPCRouter({
                 reservations: z.number(), // Dodajemy pole z liczbą rezerwacji
                 defaultRentAmount: z.number().nullable(),
                 defaultUtilitiesAmount: z.number().nullable(),
+                weeklyLaundryCost: z.number().nullable(),
+                cleaningSuppliesCost: z.number().nullable(),
+                capsuleCostPerGuest: z.number().nullable(),
+                wineCost: z.number().nullable(),
                 hasBalcony: z.boolean(),
                 hasParking: z.boolean(),
                 maxGuests: z.number().nullable(),
@@ -51,6 +55,10 @@ export const apartmentsRouter = createTRPCRouter({
                         },
                         defaultRentAmount: true,
                         defaultUtilitiesAmount: true,
+                        weeklyLaundryCost: true,
+                        cleaningSuppliesCost: true,
+                        capsuleCostPerGuest: true,
+                        wineCost: true,
                         hasBalcony: true,
                         hasParking: true,
                         maxGuests: true,
@@ -109,6 +117,47 @@ export const apartmentsRouter = createTRPCRouter({
             }
         }),
 
+    getForOwner: protectedProcedure.query(async ({ ctx }) => {
+        const ownerEmail = ctx.session?.user?.email;
+        if (!ownerEmail) {
+            throw new TRPCError({
+                code: "UNAUTHORIZED",
+                message: "Musisz być zalogowany, aby zobaczyć swoje apartamenty.",
+            });
+        }
+
+        const owner = await ctx.db.apartmentOwner.findUnique({
+            where: { email: ownerEmail },
+            select: {
+                ownedApartments: {
+                    include: {
+                        apartment: {
+                            select: {
+                                id: true,
+                                name: true,
+                                address: true,
+                                averageRating: true,
+                                images: {
+                                    where: { isPrimary: true },
+                                    take: 1,
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        });
+
+        if (!owner) {
+            throw new TRPCError({
+                code: "NOT_FOUND",
+                message: "Nie znaleziono właściciela.",
+            });
+        }
+
+        return owner.ownedApartments.map((oa) => oa.apartment);
+    }),
+
     getDetails: publicProcedure
         .input(z.object({
             slug: z.string().min(1, "Apartment slug is required")
@@ -158,9 +207,14 @@ export const apartmentsRouter = createTRPCRouter({
                 address: z.string().min(1),
                 defaultRentAmount: z.number().optional(),
                 defaultUtilitiesAmount: z.number().optional(),
+                weeklyLaundryCost: z.number().optional(),
+                cleaningSuppliesCost: z.number().optional(),
+                capsuleCostPerGuest: z.number().optional(),
+                wineCost: z.number().optional(),
                 hasBalcony: z.boolean().optional(),
                 hasParking: z.boolean().optional(),
                 maxGuests: z.number().optional(),
+                cleaningCosts: z.record(z.number()).optional(), // Koszty sprzątania dla różnych liczby gości
                 ownerId: z.string().optional(), // Nowy parametr - ID właściciela
             })
         )
@@ -206,9 +260,14 @@ export const apartmentsRouter = createTRPCRouter({
                     address: input.address,
                     defaultRentAmount: input.defaultRentAmount ?? 0,
                     defaultUtilitiesAmount: input.defaultUtilitiesAmount ?? 0,
+                    weeklyLaundryCost: input.weeklyLaundryCost ?? 120,
+                    cleaningSuppliesCost: input.cleaningSuppliesCost ?? 132,
+                    capsuleCostPerGuest: input.capsuleCostPerGuest ?? 2.5,
+                    wineCost: input.wineCost ?? 250,
                     hasBalcony: input.hasBalcony ?? false,
                     hasParking: input.hasParking ?? false,
                     maxGuests: input.maxGuests ?? 4,
+                    cleaningCosts: input.cleaningCosts,
                 },
             });
 
@@ -241,9 +300,11 @@ export const apartmentsRouter = createTRPCRouter({
                 address: z.string().min(1).optional(),
                 defaultRentAmount: z.number().optional(),
                 defaultUtilitiesAmount: z.number().optional(),
+                weeklyLaundryCost: z.number().optional(),
                 hasBalcony: z.boolean().optional(),
                 hasParking: z.boolean().optional(),
                 maxGuests: z.number().optional(),
+                cleaningCosts: z.record(z.number()).optional(), // Koszty sprzątania dla różnych liczby gości
             })
         )
         .mutation(async ({ input, ctx }) => {
@@ -254,9 +315,11 @@ export const apartmentsRouter = createTRPCRouter({
                 address?: string;
                 defaultRentAmount?: number;
                 defaultUtilitiesAmount?: number;
+                weeklyLaundryCost?: number;
                 hasBalcony?: boolean;
                 hasParking?: boolean;
                 maxGuests?: number;
+                cleaningCosts?: Record<string, number>;
                 slug?: string;
             } = { ...updateData };
 
@@ -433,9 +496,15 @@ export const apartmentsRouter = createTRPCRouter({
             address: z.string(),
             defaultRentAmount: z.number().nullable(),
             defaultUtilitiesAmount: z.number().nullable(),
+            weeklyLaundryCost: z.number().nullable(),
+            cleaningSuppliesCost: z.number().nullable(),
+            capsuleCostPerGuest: z.number().nullable(),
+            wineCost: z.number().nullable(),
             hasBalcony: z.boolean(),
             hasParking: z.boolean(),
             maxGuests: z.number().nullable(),
+            cleaningCosts: z.record(z.number()).nullable(),
+            averageRating: z.number().nullable(),
             images: z.array(z.object({
                 id: z.string(),
                 url: z.string(),
@@ -455,9 +524,15 @@ export const apartmentsRouter = createTRPCRouter({
                         address: true,
                         defaultRentAmount: true,
                         defaultUtilitiesAmount: true,
+                        weeklyLaundryCost: true,
+                        cleaningSuppliesCost: true,
+                        capsuleCostPerGuest: true,
+                        wineCost: true,
                         hasBalcony: true,
                         hasParking: true,
                         maxGuests: true,
+                        cleaningCosts: true,
+                        averageRating: true,
                         images: {
                             select: {
                                 id: true,
@@ -480,6 +555,7 @@ export const apartmentsRouter = createTRPCRouter({
                 return {
                     ...apartment,
                     id: apartment.id.toString(),
+                    cleaningCosts: apartment.cleaningCosts as Record<string, number> | null,
                     images: apartment.images.map(img => ({
                         ...img,
                         id: img.id.toString(),
@@ -743,5 +819,34 @@ export const apartmentsRouter = createTRPCRouter({
                 console.error("❌ Error adding multiple images:", error);
                 throw new Error("Błąd podczas dodawania zdjęć");
             }
+        }),
+
+    recalculateRating: protectedProcedure
+        .input(z.object({ apartmentId: z.string() }))
+        .mutation(async ({ ctx, input }) => {
+            if (ctx.session.user.type !== UserType.ADMIN) {
+                throw new TRPCError({
+                    code: "FORBIDDEN",
+                    message: "Tylko administratorzy mogą przeliczyć ocenę.",
+                });
+            }
+
+            const { apartmentId } = input;
+            const randomRating = Math.random() * (9.56 - 9.10) + 9.10;
+            const roundedRating = Math.round(randomRating * 100) / 100;
+
+            const updatedApartment = await ctx.db.apartment.update({
+                where: {
+                    id: parseInt(apartmentId),
+                },
+                data: {
+                    averageRating: roundedRating,
+                },
+            });
+
+            return {
+                success: true,
+                apartment: updatedApartment,
+            };
         }),
 }); 

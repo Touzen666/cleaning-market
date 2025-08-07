@@ -13,6 +13,21 @@ const config: Config = {
       fontFamily: {
         sans: ["var(--font-geist-sans)", ...fontFamily.sans],
       },
+      keyframes: {
+        ripple: {
+          "0%": {
+            transform: "scale(0)",
+            opacity: "0.3",
+          },
+          "100%": {
+            transform: "scale(4)",
+            opacity: "0",
+          },
+        },
+      },
+      animation: {
+        ripple: "ripple 0.6s linear",
+      },
     },
   },
   plugins: [scrollbar],

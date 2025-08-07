@@ -76,7 +76,7 @@ function UpdateReservationDetails({
         </div>
         <button
           type="submit"
-          className="inline-flex items-center self-end rounded-md bg-brand-gold px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-yellow-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-gold disabled:opacity-50"
+          className="inline-flex items-center self-end rounded-md bg-brand-gold px-3 py-2 text-sm font-semibold text-white shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-gold disabled:opacity-50 hover:bg-yellow-500"
           disabled={updateDetailsMutation.isPending}
         >
           {updateDetailsMutation.isPending ? "Aktualizowanie..." : "Aktualizuj"}
@@ -151,6 +151,18 @@ export default function AdminReservationsListPage() {
         return "bg-red-100 text-red-800";
       case "anulowana":
         return "bg-red-100 text-red-800";
+      case "odrzucona przez obsługę":
+        return "bg-red-100 text-red-800";
+      case "nieopłacona":
+        return "bg-orange-100 text-orange-800";
+      case "oczekuje na wpłatę":
+        return "bg-yellow-100 text-yellow-800";
+      case "trwa":
+        return "bg-blue-100 text-blue-800";
+      case "niepoprawny numer karty":
+        return "bg-red-100 text-red-800";
+      case "do wyjaśnienia":
+        return "bg-purple-100 text-purple-800";
       default:
         return "bg-yellow-100 text-yellow-800";
     }
@@ -217,7 +229,7 @@ export default function AdminReservationsListPage() {
                 <button
                   onClick={handleGetSources}
                   disabled={getSourcesMutation.isPending}
-                  className="inline-flex items-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:opacity-50"
+                  className="inline-flex items-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:opacity-50 hover:bg-blue-500"
                 >
                   {getSourcesMutation.isPending
                     ? "Pobieranie..."
@@ -225,7 +237,7 @@ export default function AdminReservationsListPage() {
                 </button>
                 <button
                   onClick={() => setShowImport(!showImport)}
-                  className="inline-flex items-center rounded-md bg-brand-gold px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-yellow-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-gold"
+                  className="inline-flex items-center rounded-md bg-brand-gold px-3 py-2 text-sm font-semibold text-white shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-gold hover:bg-yellow-500"
                 >
                   <svg
                     className="-ml-0.5 mr-1.5 h-5 w-5"
@@ -244,7 +256,7 @@ export default function AdminReservationsListPage() {
                 </button>
                 <button
                   onClick={() => router.push("/admin/reservations")}
-                  className="inline-flex items-center rounded-md bg-brand-gold px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-yellow-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-gold"
+                  className="inline-flex items-center rounded-md bg-brand-gold px-3 py-2 text-sm font-semibold text-white shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-gold hover:bg-yellow-500"
                 >
                   <svg
                     className="-ml-0.5 mr-1.5 h-5 w-5"

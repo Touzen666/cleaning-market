@@ -7,6 +7,16 @@ import {
   type ReportStatus,
   ReportStatus as ReportStatusEnum,
 } from "@prisma/client";
+import {
+  ArrowPathIcon,
+  InformationCircleIcon,
+  PaperAirplaneIcon,
+} from "@heroicons/react/24/outline";
+import { toast, Toaster } from "react-hot-toast";
+import {
+  translateReportStatus,
+  getReportStatusColor,
+} from "@/lib/status-translations";
 
 export default function AdminReportsPage() {
   const router = useRouter();
@@ -22,44 +32,45 @@ export default function AdminReportsPage() {
   const ownersQuery = api.apartmentOwners.getAll.useQuery();
 
   // TRPC mutations
+  const recalculateAllMutation =
+    api.monthlyReports.recalculateAllApprovedReports.useMutation({
+      onSuccess: (data) => {
+        alert(
+          `Operacja zakończona!\n\nPrzeliczono pomyślnie: ${data.successCount}\nBłędy: ${data.errorCount}\nŁącznie: ${data.total}`,
+        );
+        void reportsQuery.refetch();
+      },
+      onError: (error) => {
+        alert(`Wystąpił błąd: ${error.message}`);
+      },
+    });
+
   const updateStatusMutation = api.monthlyReports.updateStatus.useMutation({
     onSuccess: () => {
+      toast.success("Zmieniono status raportu!");
       void reportsQuery.refetch();
+    },
+    onError: (error) => {
+      toast.error(`Błąd: ${error.message}`);
+    },
+  });
+
+  const sendReportMutation = api.monthlyReports.sendReport.useMutation({
+    onSuccess: (data) => {
+      toast.success(data.message);
+      void reportsQuery.refetch();
+    },
+    onError: (error) => {
+      toast.error(`Błąd: ${error.message}`);
     },
   });
 
   const reports = reportsQuery.data ?? [];
   const owners = ownersQuery.data ?? [];
 
-  const getStatusColor = (status: ReportStatus) => {
-    switch (status) {
-      case "DRAFT":
-        return "bg-gray-100 text-gray-800";
-      case "REVIEW":
-        return "bg-yellow-100 text-yellow-800";
-      case "APPROVED":
-        return "bg-green-100 text-green-800";
-      case "SENT":
-        return "bg-blue-100 text-blue-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
-
-  const getStatusText = (status: ReportStatus) => {
-    switch (status) {
-      case "DRAFT":
-        return "Szkic";
-      case "REVIEW":
-        return "Do przeglądu";
-      case "APPROVED":
-        return "Zatwierdzony";
-      case "SENT":
-        return "Wysłany";
-      default:
-        return status;
-    }
-  };
+  // Używamy nowych funkcji z lib/status-translations
+  const getStatusColor = getReportStatusColor;
+  const getStatusText = translateReportStatus;
 
   const handleStatusChange = async (
     reportId: string,
@@ -99,7 +110,7 @@ export default function AdminReportsPage() {
               <div className="flex gap-3">
                 <button
                   onClick={() => router.push("/admin/owners")}
-                  className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                  className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 hover:bg-indigo-500"
                 >
                   <svg
                     className="-ml-0.5 mr-1.5 h-5 w-5"
@@ -118,7 +129,7 @@ export default function AdminReportsPage() {
                 </button>
                 <button
                   onClick={() => router.push("/admin/reservations")}
-                  className="inline-flex items-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600"
+                  className="inline-flex items-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600 hover:bg-green-500"
                 >
                   <svg
                     className="-ml-0.5 mr-1.5 h-5 w-5"
@@ -137,7 +148,7 @@ export default function AdminReportsPage() {
                 </button>
                 <button
                   onClick={() => router.push("/admin/reports/create")}
-                  className="inline-flex items-center rounded-md bg-purple-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-purple-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-600"
+                  className="inline-flex items-center rounded-md bg-purple-600 px-3 py-2 text-sm font-semibold text-white shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-600 hover:bg-purple-500"
                 >
                   <svg
                     className="-ml-0.5 mr-1.5 h-5 w-5"
@@ -153,6 +164,18 @@ export default function AdminReportsPage() {
                     />
                   </svg>
                   Nowy Raport
+                </button>
+                <button
+                  onClick={() => recalculateAllMutation.mutate()}
+                  disabled={recalculateAllMutation.isPending}
+                  className="inline-flex items-center rounded-md bg-orange-600 px-3 py-2 text-sm font-semibold text-white shadow-sm disabled:cursor-not-allowed disabled:opacity-50 hover:bg-orange-500"
+                >
+                  <ArrowPathIcon
+                    className={`-ml-0.5 mr-1.5 h-5 w-5 ${recalculateAllMutation.isPending ? "animate-spin" : ""}`}
+                  />
+                  {recalculateAllMutation.isPending
+                    ? "Przeliczanie..."
+                    : "Przelicz Stare Raporty"}
                 </button>
               </div>
             </div>
@@ -517,24 +540,57 @@ export default function AdminReportsPage() {
                             >
                               Szczegóły
                             </button>
-                            {report.status !== ReportStatusEnum.SENT && (
-                              <select
-                                value={report.status}
-                                onChange={(e) =>
-                                  handleStatusChange(
-                                    report.id,
-                                    e.target.value as ReportStatus,
-                                  )
+                            {report.status === "DRAFT" && (
+                              <button
+                                onClick={() =>
+                                  handleStatusChange(report.id, "REVIEW")
                                 }
-                                className="rounded border-gray-300 text-xs"
                                 disabled={updateStatusMutation.isPending}
+                                className="text-indigo-600 disabled:opacity-50 hover:text-indigo-900"
                               >
-                                <option value="DRAFT">Szkic</option>
-                                <option value="REVIEW">Do przeglądu</option>
-                                <option value="APPROVED">Zatwierdzony</option>
-                                <option value="SENT">Wysłany</option>
-                              </select>
+                                {updateStatusMutation.isPending
+                                  ? "Przekazywanie..."
+                                  : "Przekaż do weryfikacji"}
+                              </button>
                             )}
+                            {report.status === "REVIEW" && (
+                              <button
+                                onClick={() =>
+                                  handleStatusChange(report.id, "APPROVED")
+                                }
+                                disabled={updateStatusMutation.isPending}
+                                className="text-green-600 disabled:opacity-50 hover:text-green-900"
+                              >
+                                {updateStatusMutation.isPending
+                                  ? "Zatwierdzanie..."
+                                  : "Zatwierdź"}
+                              </button>
+                            )}
+                            {report.status === "APPROVED" && (
+                              <button
+                                onClick={() =>
+                                  sendReportMutation.mutate({
+                                    reportId: report.id,
+                                  })
+                                }
+                                disabled={sendReportMutation.isPending}
+                                className="flex items-center text-blue-600 disabled:opacity-50 hover:text-blue-900"
+                              >
+                                <PaperAirplaneIcon className="mr-1 h-4 w-4" />
+                                {sendReportMutation.isPending
+                                  ? "Wysyłanie..."
+                                  : "Wyślij"}
+                              </button>
+                            )}
+                            {!report.finalSettlementType &&
+                              report.status !== "SENT" && (
+                                <div
+                                  className="group relative"
+                                  title="Przejdź do szczegółów raportu, aby wybrać ostateczny sposób rozliczenia. Jest to wymagane, aby zatwierdzić lub wysłać raport."
+                                >
+                                  <InformationCircleIcon className="h-5 w-5 text-gray-400" />
+                                </div>
+                              )}
                           </div>
                         </td>
                       </tr>
@@ -546,6 +602,7 @@ export default function AdminReportsPage() {
           </div>
         </div>
       </div>
+      <Toaster />
     </div>
   );
 }

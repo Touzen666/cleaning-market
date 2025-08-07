@@ -19,6 +19,22 @@ const createReservationSchema = z.object({
   source: z.string().default("admin-created"),
 });
 
+const reservationSchema = z.object({
+  id: z.number(),
+  start: z.date(),
+  end: z.date(),
+  status: z.string(),
+  guest: z.string(),
+});
+
+const apartmentWithReservationsSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  address: z.string(),
+  imageUrl: z.string().nullable(),
+  reservations: z.array(reservationSchema),
+});
+
 export const reservationsRouter = createTRPCRouter({
   getAll: publicProcedure
     .input(z.object({
@@ -78,7 +94,14 @@ export const reservationsRouter = createTRPCRouter({
     .input(z.object({ apartmentId: z.number() }))
     .query(async ({ input, ctx }) => {
       const reservations = await ctx.db.reservation.findMany({
-        where: { apartmentId: input.apartmentId },
+        where: {
+          apartmentId: input.apartmentId,
+          NOT: {
+            status: {
+              in: ["Anulowana", "Odrzucona przez obsługę"],
+            },
+          },
+        },
         orderBy: { start: 'desc' },
         include: {
           apartment: {
@@ -243,5 +266,83 @@ export const reservationsRouter = createTRPCRouter({
         success: true,
         message: `Details for ${reservation.guest}'s reservation updated.`,
       };
+    }),
+
+  getForOwner: protectedProcedure
+    .output(z.array(apartmentWithReservationsSchema))
+    .query(async ({ ctx }) => {
+      const ownerEmail = ctx.session?.user?.email;
+      if (!ownerEmail) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "Musisz być zalogowany, aby zobaczyć swoje rezerwacje.",
+        });
+      }
+
+      const ownerWithApartments = await ctx.db.apartmentOwner.findUnique({
+        where: { email: ownerEmail },
+        include: {
+          ownedApartments: {
+            where: { isActive: true },
+            include: {
+              apartment: {
+                include: {
+                  reservations: {
+                    where: {
+                      NOT: {
+                        status: {
+                          in: ["Anulowana", "Odrzucona przez obsługę"],
+                        },
+                      },
+                    },
+                    orderBy: {
+                      start: "asc",
+                    },
+                    select: {
+                      id: true,
+                      guest: true,
+                      start: true,
+                      end: true,
+                      status: true,
+                    },
+                  },
+                  images: {
+                    where: { isPrimary: true },
+                    take: 1,
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (!ownerWithApartments) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Nie znaleziono właściciela.",
+        });
+      }
+
+      const apartmentsData = ownerWithApartments.ownedApartments.map(
+        (ownership) => {
+          const { apartment } = ownership;
+          return {
+            id: apartment.id,
+            name: apartment.name,
+            address: apartment.address,
+            imageUrl: apartment.images[0]?.url ?? null,
+            reservations: apartment.reservations.map((res) => ({
+              id: res.id,
+              start: res.start,
+              end: res.end,
+              status: res.status,
+              guest: res.guest,
+            })),
+          };
+        },
+      );
+
+      return apartmentsData;
     }),
 });

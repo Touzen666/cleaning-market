@@ -19,6 +19,12 @@ export default function EditOwnerPage({
     lastName: string;
     email: string;
     phone: string;
+    companyName: string;
+    nip: string;
+    address: string;
+    city: string;
+    postalCode: string;
+    profileImageUrl: string | null;
     isActive: boolean;
     paymentType: PaymentType;
     fixedPaymentAmount: number;
@@ -28,6 +34,12 @@ export default function EditOwnerPage({
     lastName: "",
     email: "",
     phone: "",
+    companyName: "",
+    nip: "",
+    address: "",
+    city: "",
+    postalCode: "",
+    profileImageUrl: null,
     isActive: true,
     paymentType: PaymentType.COMMISSION,
     fixedPaymentAmount: 0,
@@ -56,6 +68,12 @@ export default function EditOwnerPage({
         lastName: owner.lastName,
         email: owner.email,
         phone: owner.phone ?? "",
+        companyName: owner.companyName ?? "",
+        nip: owner.nip ?? "",
+        address: owner.address ?? "",
+        city: owner.city ?? "",
+        postalCode: owner.postalCode ?? "",
+        profileImageUrl: owner.profileImageUrl,
         isActive: owner.isActive,
         paymentType: owner.paymentType,
         fixedPaymentAmount: Number(owner.fixedPaymentAmount) ?? 0,
@@ -202,6 +220,76 @@ export default function EditOwnerPage({
                   className="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
                 />
               </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Nazwa firmy
+                </label>
+                <input
+                  type="text"
+                  value={form.companyName}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, companyName: e.target.value }))
+                  }
+                  className="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  NIP
+                </label>
+                <input
+                  type="text"
+                  value={form.nip}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, nip: e.target.value }))
+                  }
+                  className="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Adres
+                </label>
+                <input
+                  type="text"
+                  value={form.address}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, address: e.target.value }))
+                  }
+                  className="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Miasto
+                </label>
+                <input
+                  type="text"
+                  value={form.city}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, city: e.target.value }))
+                  }
+                  className="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Kod pocztowy
+                </label>
+                <input
+                  type="text"
+                  value={form.postalCode}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, postalCode: e.target.value }))
+                  }
+                  className="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
+                />
+              </div>
             </div>
 
             <div className="flex items-center">
@@ -294,7 +382,7 @@ export default function EditOwnerPage({
               <button
                 type="submit"
                 disabled={updateOwnerMutation.isPending}
-                className="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 hover:bg-indigo-700"
               >
                 {updateOwnerMutation.isPending
                   ? "Zapisywanie..."

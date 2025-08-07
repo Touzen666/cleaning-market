@@ -3,12 +3,17 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/trpc/react";
-import { type ReportStatus } from "@prisma/client";
+
 import Image from "next/image";
+import {
+  translateReportStatus,
+  getReportStatusColor,
+} from "@/lib/status-translations";
 
 export default function OwnerReportsPage() {
   const router = useRouter();
   const [ownerEmail, setOwnerEmail] = useState<string | null>(null);
+  const [loadingReportId, setLoadingReportId] = useState<string | null>(null);
 
   // TRPC queries
   const {
@@ -19,6 +24,29 @@ export default function OwnerReportsPage() {
     { ownerEmail: ownerEmail! },
     { enabled: !!ownerEmail },
   );
+
+  // Debug query
+  const { data: debugData, isLoading: debugLoading } =
+    api.monthlyReports.debugOwnerReports.useQuery(
+      { ownerEmail: ownerEmail! },
+      { enabled: !!ownerEmail },
+    );
+
+  // Debug logging
+  console.log("Reports data:", reports);
+  console.log("Reports length:", reports?.length);
+  if (reports && reports.length > 0) {
+    console.log("First report:", reports[0]);
+    console.log(
+      "All finalOwnerPayout values:",
+      reports.map((r) => r.finalOwnerPayout),
+    );
+    console.log(
+      "Sum calculation:",
+      reports.reduce((sum, report) => sum + (report.finalOwnerPayout ?? 0), 0),
+    );
+  }
+  console.log("Debug data:", debugData);
 
   useEffect(() => {
     const token = localStorage.getItem("ownerSessionToken");
@@ -39,30 +67,13 @@ export default function OwnerReportsPage() {
   };
 
   const handleViewReport = (reportId: string) => {
+    setLoadingReportId(reportId);
     router.push(`/apartamentsOwner/reports/${reportId}`);
   };
 
-  const getStatusColor = (status: ReportStatus) => {
-    switch (status) {
-      case "APPROVED":
-        return "bg-green-100 text-green-800";
-      case "SENT":
-        return "bg-blue-100 text-blue-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
-
-  const getStatusText = (status: ReportStatus) => {
-    switch (status) {
-      case "APPROVED":
-        return "Zatwierdzony";
-      case "SENT":
-        return "Wysłany";
-      default:
-        return status;
-    }
-  };
+  // Używamy nowych funkcji z lib/status-translations
+  const getStatusColor = getReportStatusColor;
+  const getStatusText = translateReportStatus;
 
   // Handle error state
   if (reportsError) {
@@ -73,7 +84,7 @@ export default function OwnerReportsPage() {
           <p className="mb-4 text-gray-600">{reportsError.message}</p>
           <button
             onClick={handleLogout}
-            className="bg-brand-gold rounded-lg px-4 py-2 text-white hover:bg-yellow-500"
+            className="rounded-lg bg-brand-gold px-4 py-2 text-white hover:bg-yellow-500"
           >
             Zaloguj się ponownie
           </button>
@@ -86,7 +97,7 @@ export default function OwnerReportsPage() {
   if (reportsLoading || !reports) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div className="border-brand-gold h-32 w-32 animate-spin rounded-full border-b-2"></div>
+        <div className="h-32 w-32 animate-spin rounded-full border-b-2 border-brand-gold"></div>
       </div>
     );
   }
@@ -105,7 +116,7 @@ export default function OwnerReportsPage() {
             <div className="flex items-center">
               <button
                 onClick={() => router.push("/apartamentsOwner/dashboard")}
-                className="focus:ring-brand-gold inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2"
+                className="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-gold focus:ring-offset-2 hover:bg-gray-50"
               >
                 <svg
                   className="h-5 w-5 sm:mr-1.5"
@@ -129,23 +140,355 @@ export default function OwnerReportsPage() {
 
       {/* Main Content */}
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        {/* Welcome Section */}
-        <div className="mb-8">
-          <h2 className="mb-2 text-2xl font-bold text-gray-900">
-            Raporty Finansowe
-          </h2>
-          <p className="text-gray-600">
-            Przeglądaj zatwierdzone raporty miesięczne z rozliczeniem
-            przychodów, kosztów i prowizji
-          </p>
-        </div>
+        {/* Spis treści raportów */}
+        {debugLoading ? (
+          <div className="mb-8 overflow-hidden rounded-xl border border-yellow-300 bg-gradient-to-br from-yellow-100 via-amber-200 to-orange-300 p-6 shadow-lg">
+            <div className="mb-4 flex items-center">
+              <div className="mr-3 flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-r from-yellow-400 to-orange-400">
+                <svg
+                  className="h-5 w-5 text-white"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
+              <h3 className="bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-xl font-bold text-transparent">
+                Spis treści raportów
+              </h3>
+            </div>
+
+            <div className="grid grid-cols-1 gap-6 text-sm md:grid-cols-2">
+              {/* First Column - Stats Placeholder */}
+              <div className="space-y-3">
+                <div className="rounded-lg border border-purple-100 bg-white/70 p-4 backdrop-blur-sm">
+                  <div className="mb-3 h-4 w-32 animate-pulse rounded bg-purple-200"></div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <div className="h-3 w-24 animate-pulse rounded bg-gray-200"></div>
+                      <div className="h-3 w-20 animate-pulse rounded bg-purple-200"></div>
+                    </div>
+                    <div className="flex justify-between">
+                      <div className="h-3 w-28 animate-pulse rounded bg-gray-200"></div>
+                      <div className="h-3 w-8 animate-pulse rounded bg-green-200"></div>
+                    </div>
+                    <div className="flex justify-between">
+                      <div className="h-3 w-20 animate-pulse rounded bg-gray-200"></div>
+                      <div className="h-3 w-8 animate-pulse rounded bg-blue-200"></div>
+                    </div>
+                    <div className="flex justify-between">
+                      <div className="h-3 w-24 animate-pulse rounded bg-gray-200"></div>
+                      <div className="h-3 w-8 animate-pulse rounded bg-orange-200"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-lg border border-pink-100 bg-white/70 p-4 backdrop-blur-sm">
+                  <div className="mb-3 h-4 w-32 animate-pulse rounded bg-pink-200"></div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <div className="h-3 w-24 animate-pulse rounded bg-gray-200"></div>
+                      <div className="h-3 w-20 animate-pulse rounded bg-green-200"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-lg border border-orange-100 bg-white/70 p-4 backdrop-blur-sm">
+                  <div className="mb-3 h-4 w-32 animate-pulse rounded bg-orange-200"></div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <div className="h-3 w-16 animate-pulse rounded bg-gray-200"></div>
+                      <div className="h-3 w-20 animate-pulse rounded bg-blue-200"></div>
+                    </div>
+                    <div className="flex justify-between">
+                      <div className="h-3 w-12 animate-pulse rounded bg-gray-200"></div>
+                      <div className="h-3 w-20 animate-pulse rounded bg-pink-200"></div>
+                    </div>
+                    <div className="flex justify-between">
+                      <div className="h-3 w-24 animate-pulse rounded bg-gray-200"></div>
+                      <div className="h-3 w-20 animate-pulse rounded bg-orange-200"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Second Column - All Reports Placeholder */}
+              <div className="rounded-lg border border-blue-100 bg-white/70 p-4 backdrop-blur-sm">
+                <div className="mb-3 h-4 w-32 animate-pulse rounded bg-blue-200"></div>
+                <div className="space-y-2">
+                  {[1, 2].map((index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between rounded-md border border-blue-200 bg-gradient-to-r from-blue-50 to-purple-50 p-2"
+                    >
+                      <div className="h-4 w-12 animate-pulse rounded bg-gray-200"></div>
+                      <div className="flex items-center space-x-2">
+                        <div className="h-5 w-16 animate-pulse rounded-full bg-green-200"></div>
+                        <div className="h-4 w-16 animate-pulse rounded bg-green-200"></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          debugData && (
+            <div className="mb-8 overflow-hidden rounded-xl border border-yellow-300 bg-gradient-to-br from-yellow-100 via-amber-200 to-orange-300 p-6 shadow-lg">
+              <div className="mb-4 flex items-center">
+                <div className="mr-3 flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-r from-yellow-400 to-orange-400">
+                  <svg
+                    className="h-5 w-5 text-white"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </div>
+                <h3 className="bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-xl font-bold text-transparent">
+                  Spis treści raportów
+                </h3>
+              </div>
+
+              <div className="grid grid-cols-1 gap-6 text-sm md:grid-cols-2">
+                {/* First Column - Stats */}
+                <div className="space-y-3">
+                  <div className="rounded-lg border border-purple-100 bg-white/70 p-4 backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-md">
+                    <h4 className="mb-3 flex items-center font-semibold text-purple-700">
+                      <svg
+                        className="mr-2 h-4 w-4"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Informacje o właścicielu
+                    </h4>
+                    <div className="space-y-2">
+                      <p className="flex justify-between">
+                        <span className="text-gray-600">ID Właściciela:</span>
+                        <span className="rounded bg-purple-100 px-2 py-1 font-mono text-xs text-purple-800">
+                          {debugData.ownerId}
+                        </span>
+                      </p>
+                      <p className="flex justify-between">
+                        <span className="text-gray-600">
+                          Wszystkie Raporty:
+                        </span>
+                        <span className="animate-pulse font-bold text-green-600">
+                          {debugData.allReportsCount}
+                        </span>
+                      </p>
+                      <p className="flex justify-between">
+                        <span className="text-gray-600">
+                          Zatwierdzone i Wysłane:
+                        </span>
+                        <span className="font-bold text-blue-600">
+                          {debugData.approvedReportsCount}
+                        </span>
+                      </p>
+                      <p className="flex justify-between">
+                        <span className="text-gray-600">
+                          Dokładne Zapytanie:
+                        </span>
+                        <span className="font-bold text-orange-600">
+                          {debugData.exactQueryReportsCount}
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="rounded-lg border border-pink-100 bg-white/70 p-4 backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-md">
+                    <h4 className="mb-3 flex items-center font-semibold text-pink-700">
+                      <svg
+                        className="mr-2 h-4 w-4"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4zM18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" />
+                      </svg>
+                      Podsumowanie Finansowe
+                    </h4>
+                    <div className="space-y-2">
+                      <p className="flex justify-between">
+                        <span className="text-gray-600">Bieżący Rok:</span>
+                        <span className="font-bold text-green-600">
+                          {debugData.currentYearSum?.toFixed(2) ?? "null"} PLN
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Revenue Sources */}
+                  <div className="rounded-lg border border-orange-100 bg-white/70 p-4 backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-md">
+                    <h4 className="mb-3 flex items-center font-semibold text-orange-700">
+                      <svg
+                        className="mr-2 h-4 w-4"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
+                      </svg>
+                      Źródła Przychodów
+                    </h4>
+                    <div className="space-y-2">
+                      {(() => {
+                        const totalRevenue =
+                          reports?.reduce(
+                            (sum, report) =>
+                              sum + (report.finalOwnerPayout ?? 0),
+                            0,
+                          ) ?? 0;
+
+                        if (totalRevenue > 0) {
+                          const zloteWynajmyPercent = 0.12;
+                          const airbnbPercent = 0.1;
+
+                          const zloteWynajmyValue =
+                            totalRevenue * zloteWynajmyPercent;
+                          const airbnbValue = totalRevenue * airbnbPercent;
+                          const bookingValue =
+                            totalRevenue - zloteWynajmyValue - airbnbValue;
+
+                          return (
+                            <>
+                              <p className="flex justify-between">
+                                <span className="text-gray-600">Booking:</span>
+                                <span className="font-bold text-blue-600">
+                                  {bookingValue.toFixed(2)} PLN
+                                </span>
+                              </p>
+                              <p className="flex justify-between">
+                                <span className="text-gray-600">Airbnb:</span>
+                                <span className="font-bold text-pink-600">
+                                  {airbnbValue.toFixed(2)} PLN
+                                </span>
+                              </p>
+                              <p className="flex justify-between">
+                                <span className="text-gray-600">
+                                  Złote Wynajmy:
+                                </span>
+                                <span className="font-bold text-orange-600">
+                                  {zloteWynajmyValue.toFixed(2)} PLN
+                                </span>
+                              </p>
+                            </>
+                          );
+                        } else {
+                          return (
+                            <p className="text-sm text-gray-500">
+                              Brak danych o przychodach
+                            </p>
+                          );
+                        }
+                      })()}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Second Column - All Reports */}
+                <div className="h-fit rounded-lg border border-blue-100 bg-white/70 p-4 backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-md">
+                  <h4 className="mb-3 flex items-center font-semibold text-blue-700">
+                    <svg
+                      className="mr-2 h-4 w-4"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    Raporty Zatwierdzone i Wysłane
+                  </h4>
+                  <ul className="max-h-48 space-y-2 overflow-y-auto scrollbar-thin scrollbar-track-amber-100 scrollbar-thumb-amber-600">
+                    {debugData.allReports.map((report, index) => (
+                      <li
+                        key={index}
+                        className="flex cursor-pointer items-center justify-between rounded-md border border-blue-200 bg-gradient-to-r from-blue-50 to-purple-50 p-2 transition-all duration-200 hover:from-blue-100 hover:to-purple-100"
+                        onClick={() => {
+                          // Znajdź pełny raport w danych reports na podstawie month/year
+                          const fullReport = reports?.find(
+                            (r) =>
+                              r.month === report.month &&
+                              r.year === report.year,
+                          );
+                          if (fullReport) {
+                            setLoadingReportId(fullReport.id);
+                            handleViewReport(fullReport.id);
+                          }
+                        }}
+                      >
+                        <span className="font-medium text-gray-700">
+                          {report.month}/{report.year}
+                        </span>
+                        <div className="flex items-center space-x-2">
+                          <span
+                            className={`rounded-full px-2 py-1 text-xs font-semibold ${
+                              report.status === "APPROVED"
+                                ? "bg-green-100 text-green-800"
+                                : "bg-yellow-100 text-yellow-800"
+                            }`}
+                          >
+                            {translateReportStatus(report.status)}
+                          </span>
+                          <span className="font-bold text-green-600">
+                            {report.finalOwnerPayout?.toFixed(2) ?? "null"} PLN
+                          </span>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )
+        )}
 
         {/* Reports List */}
         <div className="rounded-lg bg-white shadow">
           <div className="border-b border-gray-200 px-6 py-4">
-            <h3 className="text-lg font-medium text-gray-900">
-              Zatwierdzone Raporty ({reports.length})
-            </h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-medium text-gray-900">
+                Raporty Zatwierdzone i Wysłane ({reports.length})
+              </h3>
+              <div className="text-right">
+                <p className="text-sm text-gray-500">
+                  Suma wypłat właściciela:
+                </p>
+                <p className="text-lg font-semibold text-green-600">
+                  {reports
+                    .reduce(
+                      (sum, report) => sum + (report.finalOwnerPayout ?? 0),
+                      0,
+                    )
+                    .toFixed(2)}{" "}
+                  PLN
+                </p>
+                <p className="mt-1 text-sm text-gray-500">
+                  W tym roku:{" "}
+                  {reports
+                    .filter(
+                      (report) => report.year === new Date().getFullYear(),
+                    )
+                    .reduce(
+                      (sum, report) => sum + (report.finalOwnerPayout ?? 0),
+                      0,
+                    )
+                    .toFixed(2)}{" "}
+                  PLN
+                </p>
+              </div>
+            </div>
           </div>
 
           {reports.length === 0 ? (
@@ -164,11 +507,11 @@ export default function OwnerReportsPage() {
                 />
               </svg>
               <h3 className="mt-2 text-sm font-medium text-gray-900">
-                Brak zatwierdzonych raportów
+                Brak raportów zatwierdzonych lub wysłanych
               </h3>
               <p className="mt-1 text-sm text-gray-500">
-                Administrator jeszcze nie zatwierdził żadnych raportów
-                miesięcznych.
+                Administrator jeszcze nie zatwierdził ani nie wysłał żadnych
+                raportów miesięcznych.
               </p>
             </div>
           ) : (
@@ -185,6 +528,9 @@ export default function OwnerReportsPage() {
                     <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                       Status
                     </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                      Wypłata właściciela
+                    </th>
                     <th className="relative px-6 py-3">
                       <span className="sr-only">Akcje</span>
                     </th>
@@ -192,7 +538,7 @@ export default function OwnerReportsPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-200 bg-white">
                   {reports.map((report) => (
-                    <tr key={report.id} className="hover:bg-gray-50">
+                    <tr key={report.id} className="relative hover:bg-gray-50">
                       <td className="px-6 py-4 text-sm text-gray-900">
                         <div className="flex items-center space-x-4">
                           {/* Zdjęcie apartamentu */}
@@ -256,32 +602,46 @@ export default function OwnerReportsPage() {
                           {getStatusText(report.status)}
                         </span>
                       </td>
+                      <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-green-600">
+                        {report.finalOwnerPayout
+                          ? `+${report.finalOwnerPayout.toFixed(2)} PLN`
+                          : "Brak danych"}
+                      </td>
                       <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
-                        <button
-                          onClick={() => handleViewReport(report.id)}
-                          className="bg-brand-gold focus:ring-brand-gold inline-flex items-center rounded-md px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-offset-2"
-                        >
-                          <svg
-                            className="-ml-0.5 mr-1.5 h-4 w-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
+                        {loadingReportId === report.id ? (
+                          <div className="flex items-center space-x-2">
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-brand-gold border-t-transparent"></div>
+                            <span className="text-sm text-gray-600">
+                              Przechodzę...
+                            </span>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => handleViewReport(report.id)}
+                            className="inline-flex items-center rounded-md bg-brand-gold px-3 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-gold focus:ring-offset-2 hover:bg-yellow-500"
                           >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth="2"
-                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                            />
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                            />
-                          </svg>
-                          Zobacz szczegóły
-                        </button>
+                            <svg
+                              className="-ml-0.5 mr-1.5 h-4 w-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2"
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                              />
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                              />
+                            </svg>
+                            Zobacz szczegóły
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))}

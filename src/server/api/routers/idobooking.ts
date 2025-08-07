@@ -4,6 +4,27 @@ import { TRPCError } from "@trpc/server";
 import { createHash } from "crypto";
 import { UserType, type Prisma } from "@prisma/client";
 import { type createTRPCContext } from "@/server/api/trpc";
+import { env } from "@/env";
+
+// Mapping statusów IdoBooking na polskie statusy
+const IDOBOOKING_STATUS_MAP: Record<string, string> = {
+    unconfirmed: "Nieopłacona",
+    confirmed: "Przyjęta",
+    paymentInProgress: "Oczekuje na wpłatę",
+    accepted: "Przyjęta",
+    inProgress: "Trwa",
+    completed: "Zakończona",
+    canceled: "Anulowana",
+    withdrawn: "Odrzucona przez obsługę",
+    waitingForPayment: "Oczekuje na wpłatę",
+    invalidCardNumber: "Niepoprawny numer karty",
+    toClarify: "Do wyjaśnienia",
+};
+
+// Funkcja do mapowania statusu IdoBooking na polski status
+function mapIdobookingStatus(idobookingStatus: string): string {
+    return IDOBOOKING_STATUS_MAP[idobookingStatus] ?? idobookingStatus;
+}
 
 // Zod schemas dla API responses
 const reservationDetailsSchema = z.object({
@@ -188,7 +209,7 @@ function getAuth() {
     };
 }
 
-async function getReservations(): Promise<z.infer<typeof reservationSchema>[]> {
+export async function getReservations(): Promise<z.infer<typeof reservationSchema>[]> {
     const allReservations: z.infer<typeof reservationSchema>[] = [];
     let currentPage = 1;
     let totalPages = 1;
@@ -209,10 +230,10 @@ async function getReservations(): Promise<z.infer<typeof reservationSchema>[]> {
                 body: JSON.stringify({
                     authenticate: getAuth(),
                     paramsSearch: {
-                        // fromDateRange: {
-                        //   startDate: "2024-11-01T00:00:00",
-                        //   endDate: "2026-07-07T00:00:00",
-                        // },
+                        fromDateRange: {
+                            startDate: "2024-11-01T00:00:00",
+                            endDate: "2026-07-07T00:00:00",
+                        },
                     },
                     result: {
                         page: currentPage,
@@ -292,7 +313,7 @@ async function getReservations(): Promise<z.infer<typeof reservationSchema>[]> {
     return allReservations;
 }
 
-async function mapToDBReservations(
+export async function mapToDBReservations(
     reservations: z.infer<typeof reservationSchema>[],
     ctx: Awaited<ReturnType<typeof createTRPCContext>>,
 ) {
@@ -335,10 +356,11 @@ async function mapToDBReservations(
 
         if (existing) {
             // Rezerwacja istnieje, sprawdź czy status się zmienił
-            if (existing.status !== reservationDetails.status) {
+            const mappedStatus = mapIdobookingStatus(reservationDetails.status);
+            if (existing.status !== mappedStatus) {
                 reservationsToUpdate.push({
                     idobookingId,
-                    status: reservationDetails.status,
+                    status: mappedStatus,
                     oldStatus: existing.status,
                 });
             }
@@ -367,7 +389,7 @@ async function mapToDBReservations(
 
             reservationsToCreate.push({
                 idobookingId,
-                status: details.status,
+                status: mapIdobookingStatus(details.status),
                 apartmentName: firstItem?.objectName ?? "N/A",
                 currency: details.currency,
                 source: sourceName,
@@ -493,7 +515,6 @@ async function getSources(): Promise<z.infer<typeof reservationSourceDescription
 
 
 export const idobookingRouter = createTRPCRouter({
-    // Pobierz listę apartamentów z idobooking
     syncReservations: protectedProcedure.mutation(async ({ ctx }) => {
         if (ctx.session.user.type !== UserType.ADMIN) {
             throw new TRPCError({
@@ -502,23 +523,25 @@ export const idobookingRouter = createTRPCRouter({
             });
         }
 
-        try {
-            logWithTag("Rozpoczynanie pełnej synchronizacji rezerwacji...");
-            const reservations = await getReservations();
-            await mapToDBReservations(reservations, ctx);
-            logWithTag("🎉 Pełna synchronizacja rezerwacji zakończona pomyślnie.");
-            return {
-                success: true,
-                message: `Synchronizacja zakończona. Pobrano ${reservations.length} rezerwacji.`,
-            };
-        } catch (error) {
-            logWithTag("🚨 Wystąpił błąd podczas synchronizacji rezerwacji:", error);
-            const errorMessage = error instanceof Error ? error.message : "Unknown error";
-            throw new TRPCError({
-                code: "INTERNAL_SERVER_ERROR",
-                message: errorMessage,
-            });
-        }
+        console.log("▶️ Otrzymano żądanie ręcznej synchronizacji. Wywoływanie API crona...");
+
+        // Użyj "fire-and-forget" - nie czekaj na odpowiedź
+        fetch(`${env.NEXT_PUBLIC_APP_URL}/api/cron/sync-reservations`, {
+            method: "GET",
+            headers: {
+                // Opcjonalnie: dodaj klucz zabezpieczający, jeśli go ustawiłeś
+                // Authorization: `Bearer ${process.env.CRON_SECRET}`,
+            },
+        }).catch((err) => {
+            // Logujemy błąd, ale nie rzucamy go do klienta,
+            // bo główna operacja i tak ma działać w tle.
+            console.error("Błąd przy wywoływaniu API crona (fire-and-forget):", err);
+        });
+
+        return {
+            success: true,
+            message: "Synchronizacja została uruchomiona w tle. Odśwież stronę za kilka minut, aby zobaczyć wyniki.",
+        };
     }),
     getReservationSources: protectedProcedure.mutation(async ({ ctx }) => {
         if (ctx.session.user.type !== UserType.ADMIN) {

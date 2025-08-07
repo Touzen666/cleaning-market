@@ -2,7 +2,6 @@ import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
 import { guestLoginSchema } from "@/lib/validations/guest";
 import { cookies } from "next/headers";
 import { z } from "zod";
-import { guestDataSchema } from "@/lib/validations/guest";
 
 export const guestAuthRouter = createTRPCRouter({
     login: publicProcedure
