@@ -7,17 +7,6 @@ import {
   type CheckInFormData,
 } from "@/lib/validations/guest";
 
-// It's good practice to define the expected shape of your API response
-interface ApiResponse {
-  success: boolean;
-  data?: {
-    checkInCard: { id: string; [key: string]: unknown };
-    reservation: { id: number; [key: string]: unknown };
-    redirectTo: string;
-  };
-  error?: string;
-}
-
 // Define props for CheckInCard
 interface CheckInCardProps {
   apartmentSlug: string;
@@ -160,7 +149,7 @@ const CheckInCard: React.FC<CheckInCardProps> = ({ apartmentSlug }) => {
     <div className="mx-auto max-w-2xl rounded-lg bg-white p-6 shadow-md">
       <h1 className="mb-6 text-center text-2xl font-bold text-gray-800">
         Karta Meldunkowa dla:{" "}
-        <span className="text-brand-gold font-mono">
+        <span className="font-mono text-brand-gold">
           {isFetchingName && headerDisplayApartmentName === apartmentSlug
             ? "Wyszukuje apartament..."
             : headerDisplayApartmentName}
@@ -182,7 +171,7 @@ const CheckInCard: React.FC<CheckInCardProps> = ({ apartmentSlug }) => {
                 name="bookingHolderFirstName"
                 value={formData.bookingHolderFirstName}
                 onChange={handleChange}
-                className="focus:border-brand-gold focus:ring-brand-gold mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:outline-none sm:text-sm"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-brand-gold focus:outline-none focus:ring-brand-gold sm:text-sm"
               />
               {errors.bookingHolderFirstName && (
                 <p className="mt-1 text-sm text-red-600">
@@ -198,7 +187,7 @@ const CheckInCard: React.FC<CheckInCardProps> = ({ apartmentSlug }) => {
                 name="bookingHolderLastName"
                 value={formData.bookingHolderLastName}
                 onChange={handleChange}
-                className="focus:border-brand-gold focus:ring-brand-gold mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:outline-none sm:text-sm"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-brand-gold focus:outline-none focus:ring-brand-gold sm:text-sm"
               />
               {errors.bookingHolderLastName && (
                 <p className="mt-1 text-sm text-red-600">
@@ -216,7 +205,7 @@ const CheckInCard: React.FC<CheckInCardProps> = ({ apartmentSlug }) => {
             type="checkbox"
             checked={formData.isDifferentGuest}
             onChange={handleChange}
-            className="text-brand-gold focus:ring-brand-gold h-4 w-4 rounded border-gray-300"
+            className="h-4 w-4 rounded border-gray-300 text-brand-gold focus:ring-brand-gold"
           />
           <label className="ml-2 block text-sm text-gray-900">
             Czy osoba meldująca się w apartamencie to inna osoba niż ta która
@@ -239,7 +228,7 @@ const CheckInCard: React.FC<CheckInCardProps> = ({ apartmentSlug }) => {
                   name="guestFirstName"
                   value={formData.guestFirstName}
                   onChange={handleChange}
-                  className="focus:border-brand-gold focus:ring-brand-gold mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:outline-none sm:text-sm"
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-brand-gold focus:outline-none focus:ring-brand-gold sm:text-sm"
                 />
                 {errors.guestFirstName && (
                   <p className="mt-1 text-sm text-red-600">
@@ -255,7 +244,7 @@ const CheckInCard: React.FC<CheckInCardProps> = ({ apartmentSlug }) => {
                   name="guestLastName"
                   value={formData.guestLastName}
                   onChange={handleChange}
-                  className="focus:border-brand-gold focus:ring-brand-gold mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:outline-none sm:text-sm"
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-brand-gold focus:outline-none focus:ring-brand-gold sm:text-sm"
                 />
                 {errors.guestLastName && (
                   <p className="mt-1 text-sm text-red-600">
@@ -283,7 +272,7 @@ const CheckInCard: React.FC<CheckInCardProps> = ({ apartmentSlug }) => {
                 value={formData.dateOfBirth}
                 onChange={handleChange}
                 type="date"
-                className="focus:border-brand-gold focus:ring-brand-gold mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:outline-none sm:text-sm"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-brand-gold focus:outline-none focus:ring-brand-gold sm:text-sm"
               />
               {errors.dateOfBirth && (
                 <p className="mt-1 text-sm text-red-600">
@@ -299,7 +288,7 @@ const CheckInCard: React.FC<CheckInCardProps> = ({ apartmentSlug }) => {
                 name="nationality"
                 value={formData.nationality}
                 onChange={handleChange}
-                className="focus:border-brand-gold focus:ring-brand-gold mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:outline-none sm:text-sm"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-brand-gold focus:outline-none focus:ring-brand-gold sm:text-sm"
               />
               {errors.nationality && (
                 <p className="mt-1 text-sm text-red-600">
@@ -316,7 +305,7 @@ const CheckInCard: React.FC<CheckInCardProps> = ({ apartmentSlug }) => {
                 name="documentType"
                 value={formData.documentType}
                 onChange={handleChange}
-                className="focus:border-brand-gold focus:ring-brand-gold mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:outline-none sm:text-sm"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-brand-gold focus:outline-none focus:ring-brand-gold sm:text-sm"
               >
                 <option value="ID Card">Dowód osobisty</option>
                 <option value="Passport">Paszport</option>
@@ -331,7 +320,7 @@ const CheckInCard: React.FC<CheckInCardProps> = ({ apartmentSlug }) => {
                 name="documentNumber"
                 value={formData.documentNumber}
                 onChange={handleChange}
-                className="focus:border-brand-gold focus:ring-brand-gold mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:outline-none sm:text-sm"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-brand-gold focus:outline-none focus:ring-brand-gold sm:text-sm"
               />
               {errors.documentNumber && (
                 <p className="mt-1 text-sm text-red-600">
@@ -357,7 +346,7 @@ const CheckInCard: React.FC<CheckInCardProps> = ({ apartmentSlug }) => {
                 value={formData.stayStartDate}
                 onChange={handleChange}
                 type="date"
-                className="focus:border-brand-gold focus:ring-brand-gold mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:outline-none sm:text-sm"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-brand-gold focus:outline-none focus:ring-brand-gold sm:text-sm"
               />
               {errors.stayStartDate && (
                 <p className="mt-1 text-sm text-red-600">
@@ -374,7 +363,7 @@ const CheckInCard: React.FC<CheckInCardProps> = ({ apartmentSlug }) => {
                 value={formData.stayEndDate}
                 onChange={handleChange}
                 type="date"
-                className="focus:border-brand-gold focus:ring-brand-gold mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:outline-none sm:text-sm"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-brand-gold focus:outline-none focus:ring-brand-gold sm:text-sm"
               />
               {errors.stayEndDate && (
                 <p className="mt-1 text-sm text-red-600">
@@ -399,7 +388,7 @@ const CheckInCard: React.FC<CheckInCardProps> = ({ apartmentSlug }) => {
                 name="addressStreet"
                 value={formData.addressStreet}
                 onChange={handleChange}
-                className="focus:border-brand-gold focus:ring-brand-gold mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:outline-none sm:text-sm"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-brand-gold focus:outline-none focus:ring-brand-gold sm:text-sm"
               />
               {errors.addressStreet && (
                 <p className="mt-1 text-sm text-red-600">
@@ -415,7 +404,7 @@ const CheckInCard: React.FC<CheckInCardProps> = ({ apartmentSlug }) => {
                 name="addressCity"
                 value={formData.addressCity}
                 onChange={handleChange}
-                className="focus:border-brand-gold focus:ring-brand-gold mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:outline-none sm:text-sm"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-brand-gold focus:outline-none focus:ring-brand-gold sm:text-sm"
               />
               {errors.addressCity && (
                 <p className="mt-1 text-sm text-red-600">
@@ -431,7 +420,7 @@ const CheckInCard: React.FC<CheckInCardProps> = ({ apartmentSlug }) => {
                 name="addressZipCode"
                 value={formData.addressZipCode}
                 onChange={handleChange}
-                className="focus:border-brand-gold focus:ring-brand-gold mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:outline-none sm:text-sm"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-brand-gold focus:outline-none focus:ring-brand-gold sm:text-sm"
               />
               {errors.addressZipCode && (
                 <p className="mt-1 text-sm text-red-600">
@@ -447,7 +436,7 @@ const CheckInCard: React.FC<CheckInCardProps> = ({ apartmentSlug }) => {
                 name="addressCountry"
                 value={formData.addressCountry}
                 onChange={handleChange}
-                className="focus:border-brand-gold focus:ring-brand-gold mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:outline-none sm:text-sm"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-brand-gold focus:outline-none focus:ring-brand-gold sm:text-sm"
               />
               {errors.addressCountry && (
                 <p className="mt-1 text-sm text-red-600">
@@ -477,7 +466,7 @@ const CheckInCard: React.FC<CheckInCardProps> = ({ apartmentSlug }) => {
           <button
             type="submit"
             disabled={checkInMutation.isPending}
-            className="bg-brand-gold hover:bg-brand-gold focus:ring-brand-gold rounded-md border border-transparent px-6 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50"
+            className="rounded-md border border-transparent bg-brand-gold px-6 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-gold focus:ring-offset-2 disabled:opacity-50 hover:bg-brand-gold"
           >
             {checkInMutation.isPending
               ? "Przetwarzanie..."

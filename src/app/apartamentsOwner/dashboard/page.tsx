@@ -681,7 +681,7 @@ export default function OwnerDashboard() {
                 <ProfileAvatar
                   imageUrl={ownerProfile?.profileImageUrl}
                   size="md"
-                  alt={`Zdjęcie profilowe ${ownerProfile?.firstName || "właściciela"}`}
+                  alt={`Zdjęcie profilowe ${ownerProfile?.firstName ?? "właściciela"}`}
                   className="h-full w-full"
                 />
               </div>

@@ -1,6 +1,6 @@
 import { db } from "@/server/db";
 import { vi } from "vitest";
-import { type User, type UserType } from "@prisma/client";
+import { type User } from "@prisma/client";
 
 /**
  * Creates a test admin user in the DB and returns the user object.
@@ -41,7 +41,7 @@ export function createCallerContext(user: User) {
  */
 export function setupGlobalTestMocks() {
   vi.mock("next/server", () => ({
-    NextRequest: class MockNextRequest {},
+    NextRequest: class MockNextRequest { },
     NextResponse: {
       json: vi.fn(),
     },

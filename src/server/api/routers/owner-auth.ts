@@ -571,7 +571,7 @@ export const ownerAuthRouter = createTRPCRouter({
             }
 
             // Extract the active profile image URL
-            const profileImageUrl = owner.profileImages[0]?.url || null;
+            const profileImageUrl = owner.profileImages[0]?.url ?? null;
 
             return {
                 ...owner,
@@ -632,7 +632,7 @@ export const ownerAuthRouter = createTRPCRouter({
             });
 
             // Extract the active profile image URL
-            const profileImageUrl = updatedOwner.profileImages[0]?.url || null;
+            const profileImageUrl = updatedOwner.profileImages[0]?.url ?? null;
 
             return {
                 ...updatedOwner,
@@ -763,7 +763,7 @@ export const ownerAuthRouter = createTRPCRouter({
                 data: {
                     url: avatarUrl,
                     alt: `Avatar ${owner.firstName} ${owner.lastName}`,
-                    filename: avatarUrl.split('/').pop() || 'avatar.svg',
+                    filename: avatarUrl.split('/').pop() ?? 'avatar.svg',
                     mimeType: 'image/svg+xml',
                     size: 0, // SVG files are typically small
                     ownerId: owner.id,

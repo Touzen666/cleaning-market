@@ -281,7 +281,7 @@ export default function OwnerDetailsPage({
                 {/* Profile Image */}
                 <div className="flex items-center space-x-4">
                   <ProfileAvatar
-                    imageUrl={owner.profileImageUrl || undefined}
+                    imageUrl={owner.profileImageUrl ?? undefined}
                     size="lg"
                     alt={`Zdjęcie profilowe ${owner.firstName} ${owner.lastName}`}
                   />

@@ -427,7 +427,7 @@ function OwnerCard({
       >
         <div className="flex items-center">
           <ProfileAvatar
-            imageUrl={owner.profileImageUrl || undefined}
+            imageUrl={owner.profileImageUrl ?? undefined}
             size="md"
             alt={`Zdjęcie profilowe ${owner.firstName} ${owner.lastName}`}
             className={owner.isActive ? "" : "opacity-50"}
