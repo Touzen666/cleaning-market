@@ -3,6 +3,7 @@ import { createTRPCRouter, publicProcedure, protectedProcedure } from "@/server/
 import { slugify } from "@/lib/types";
 import { TRPCError } from "@trpc/server";
 import { UserType } from "@prisma/client";
+import { recalculateReportSettlement } from "./monthly-reports";
 
 export const apartmentsRouter = createTRPCRouter({
     getAll: publicProcedure
@@ -305,6 +306,8 @@ export const apartmentsRouter = createTRPCRouter({
                 hasParking: z.boolean().optional(),
                 maxGuests: z.number().optional(),
                 cleaningCosts: z.record(z.number()).optional(), // Koszty sprzątania dla różnych liczby gości
+                paymentType: z.enum(["COMMISSION", "FIXED_AMOUNT", "FIXED_AMOUNT_MINUS_UTILITIES"]).optional(),
+                fixedPaymentAmount: z.number().optional(),
             })
         )
         .mutation(async ({ input, ctx }) => {
@@ -320,6 +323,8 @@ export const apartmentsRouter = createTRPCRouter({
                 hasParking?: boolean;
                 maxGuests?: number;
                 cleaningCosts?: Record<string, number>;
+                paymentType?: "COMMISSION" | "FIXED_AMOUNT" | "FIXED_AMOUNT_MINUS_UTILITIES";
+                fixedPaymentAmount?: number;
                 slug?: string;
             } = { ...updateData };
 
@@ -349,6 +354,58 @@ export const apartmentsRouter = createTRPCRouter({
                 },
                 data,
             });
+
+            // Jeśli zmieniono ustawienia rozliczenia, zaktualizuj wszystkie nierozliczone raporty
+            if (updateData.paymentType || updateData.fixedPaymentAmount !== undefined) {
+                console.log(`🔄 Aktualizuję raporty po zmianie ustawień apartamentu ${updatedApartment.id}`);
+
+                // Znajdź wszystkie nierozliczone raporty dla tego apartamentu
+                const pendingReports = await ctx.db.monthlyReport.findMany({
+                    where: {
+                        apartmentId: updatedApartment.id,
+                        status: {
+                            not: "SENT"
+                        }
+                    },
+                    select: {
+                        id: true
+                    }
+                });
+
+                console.log(`📊 Znaleziono ${pendingReports.length} nierozliczonych raportów do aktualizacji`);
+
+                // Zaktualizuj każdy raport
+                for (const report of pendingReports) {
+                    try {
+                        // Automatycznie ustaw typ rozliczenia na podstawie ustawień apartamentu
+                        let newSettlementType: "COMMISSION" | "FIXED" | "FIXED_MINUS_UTILITIES";
+
+                        if (updateData.paymentType === "COMMISSION") {
+                            newSettlementType = "COMMISSION";
+                        } else if (updateData.paymentType === "FIXED_AMOUNT") {
+                            newSettlementType = "FIXED";
+                        } else if (updateData.paymentType === "FIXED_AMOUNT_MINUS_UTILITIES") {
+                            newSettlementType = "FIXED_MINUS_UTILITIES";
+                        } else {
+                            // Jeśli nie zmieniono paymentType, zachowaj obecny typ
+                            continue;
+                        }
+
+                        // Aktualizuj typ rozliczenia w raporcie
+                        await ctx.db.monthlyReport.update({
+                            where: { id: report.id },
+                            data: { finalSettlementType: newSettlementType }
+                        });
+
+                        // Przelicz raport
+                        await recalculateReportSettlement(report.id, { db: ctx.db });
+
+                        console.log(`✅ Zaktualizowano raport ${report.id} - nowy typ: ${newSettlementType}`);
+                    } catch (error) {
+                        console.error(`❌ Błąd podczas aktualizacji raportu ${report.id}:`, error);
+                    }
+                }
+            }
 
             return {
                 success: true,
@@ -505,6 +562,8 @@ export const apartmentsRouter = createTRPCRouter({
             maxGuests: z.number().nullable(),
             cleaningCosts: z.record(z.number()).nullable(),
             averageRating: z.number().nullable(),
+            paymentType: z.enum(["COMMISSION", "FIXED_AMOUNT", "FIXED_AMOUNT_MINUS_UTILITIES"]),
+            fixedPaymentAmount: z.number().nullable(),
             images: z.array(z.object({
                 id: z.string(),
                 url: z.string(),
@@ -533,6 +592,8 @@ export const apartmentsRouter = createTRPCRouter({
                         maxGuests: true,
                         cleaningCosts: true,
                         averageRating: true,
+                        paymentType: true,
+                        fixedPaymentAmount: true,
                         images: {
                             select: {
                                 id: true,
@@ -556,6 +617,8 @@ export const apartmentsRouter = createTRPCRouter({
                     ...apartment,
                     id: apartment.id.toString(),
                     cleaningCosts: apartment.cleaningCosts as Record<string, number> | null,
+                    paymentType: apartment.paymentType,
+                    fixedPaymentAmount: apartment.fixedPaymentAmount ? Number(apartment.fixedPaymentAmount) : null,
                     images: apartment.images.map(img => ({
                         ...img,
                         id: img.id.toString(),

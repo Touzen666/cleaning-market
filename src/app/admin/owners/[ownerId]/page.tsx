@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { api } from "@/trpc/react";
-import { PaymentType, VATOption } from "@/lib/types";
+import { VATOption } from "@/lib/types";
 import { NoteType } from "@prisma/client";
 import ApartmentList from "@/components/ApartmentList";
 import ManageOwnerApartmentsModal from "@/app/_components/ManageOwnerApartmentsModal";
@@ -371,17 +371,6 @@ export default function OwnerDetailsPage({
                       </span>
                     )}
                   </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Typ płatności
-                  </label>
-                  <p className="mt-1 text-sm text-gray-900">
-                    {owner.paymentType === PaymentType.COMMISSION
-                      ? "Prowizja od przychodów"
-                      : `Kwota stała: ${Number(owner.fixedPaymentAmount).toFixed(2)} PLN`}
-                  </p>
                 </div>
 
                 <div>

@@ -22,6 +22,8 @@ interface ExtendedApartment {
   maxGuests: number | null;
   cleaningCosts: Record<string, number> | null;
   averageRating: number | null;
+  paymentType: "COMMISSION" | "FIXED_AMOUNT" | "FIXED_AMOUNT_MINUS_UTILITIES";
+  fixedPaymentAmount: number | null;
   images: Array<{
     id: string;
     url: string;
@@ -53,6 +55,11 @@ export default function EditApartmentPage({
     hasParking: false,
     maxGuests: 4,
     cleaningCosts: {} as Record<string, number>,
+    paymentType: "COMMISSION" as
+      | "COMMISSION"
+      | "FIXED_AMOUNT"
+      | "FIXED_AMOUNT_MINUS_UTILITIES",
+    fixedPaymentAmount: 0,
   });
   const [status, setStatus] = useState<string | null>(null);
   const [ratingStatus, setRatingStatus] = useState<string | null>(null);
@@ -94,10 +101,7 @@ export default function EditApartmentPage({
   const updateApartment = api.apartments.update.useMutation({
     onSuccess: () => {
       setStatus("success");
-      setTimeout(() => {
-        // Przekieruj z powrotem do strony, z której użytkownik przyszedł
-        router.push(returnUrl);
-      }, 1500);
+      // Usuwamy automatyczne przekierowanie - użytkownik sam zdecyduje kiedy opuścić stronę
     },
     onError: (err) => {
       setStatus(err.message);
@@ -109,14 +113,7 @@ export default function EditApartmentPage({
     onSuccess: (data) => {
       setStatus("success");
       setCreatedApartmentId(data.apartment.id);
-
-      // Jeśli utworzyliśmy apartament z poziomu właściciela, przekieruj z powrotem
-      if (ownerId) {
-        setTimeout(() => {
-          router.push(`/admin/owners/${ownerId}?fromApartmentCreation=true`);
-        }, 1500);
-      }
-      // W przeciwnym razie zostajemy na tej samej stronie z nowym ID
+      // Usuwamy automatyczne przekierowanie - użytkownik sam zdecyduje kiedy opuścić stronę
     },
     onError: (err) => {
       setStatus(err.message);
@@ -154,6 +151,8 @@ export default function EditApartmentPage({
         hasParking: apartment.hasParking,
         maxGuests: apartment.maxGuests ?? 4,
         cleaningCosts: apartment.cleaningCosts ?? {},
+        paymentType: apartment.paymentType ?? "COMMISSION",
+        fixedPaymentAmount: apartment.fixedPaymentAmount ?? 0,
       });
     }
   }, [apartmentQuery.data, apartmentId, createdApartmentId]);
@@ -463,6 +462,106 @@ export default function EditApartmentPage({
                 >
                   Parking
                 </label>
+              </div>
+            </div>
+
+            {/* Rozliczenia */}
+            <div className="space-y-6">
+              <h3 className="text-lg font-medium text-gray-900">
+                Ustawienia rozliczeń
+              </h3>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-gray-700">
+                    Typ rozliczenia
+                  </label>
+                  <div className="space-y-3">
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        name="paymentType"
+                        value="COMMISSION"
+                        checked={form.paymentType === "COMMISSION"}
+                        onChange={(e) =>
+                          setForm((f) => ({
+                            ...f,
+                            paymentType: e.target.value as "COMMISSION",
+                          }))
+                        }
+                        className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                      />
+                      <span className="ml-3 text-sm text-gray-700">
+                        Rozliczenie właściciela: prowizyjne
+                      </span>
+                    </label>
+
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        name="paymentType"
+                        value="FIXED_AMOUNT"
+                        checked={form.paymentType === "FIXED_AMOUNT"}
+                        onChange={(e) =>
+                          setForm((f) => ({
+                            ...f,
+                            paymentType: e.target.value as "FIXED_AMOUNT",
+                          }))
+                        }
+                        className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                      />
+                      <span className="ml-3 text-sm text-gray-700">
+                        Rozliczenie właściciela: kwota stała
+                      </span>
+                    </label>
+
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        name="paymentType"
+                        value="FIXED_AMOUNT_MINUS_UTILITIES"
+                        checked={
+                          form.paymentType === "FIXED_AMOUNT_MINUS_UTILITIES"
+                        }
+                        onChange={(e) =>
+                          setForm((f) => ({
+                            ...f,
+                            paymentType: e.target
+                              .value as "FIXED_AMOUNT_MINUS_UTILITIES",
+                          }))
+                        }
+                        className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                      />
+                      <span className="ml-3 text-sm text-gray-700">
+                        Rozliczenie właściciela: kwota stała po odliczeniu
+                        mediów
+                      </span>
+                    </label>
+                  </div>
+                </div>
+
+                {(form.paymentType === "FIXED_AMOUNT" ||
+                  form.paymentType === "FIXED_AMOUNT_MINUS_UTILITIES") && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Kwota stała (PLN)
+                    </label>
+                    <input
+                      type="number"
+                      value={form.fixedPaymentAmount}
+                      onChange={(e) =>
+                        setForm((f) => ({
+                          ...f,
+                          fixedPaymentAmount: Number(e.target.value) || 0,
+                        }))
+                      }
+                      min={0}
+                      step={0.01}
+                      className="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
+                      placeholder="0.00"
+                    />
+                  </div>
+                )}
               </div>
             </div>
 

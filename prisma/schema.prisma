@@ -128,6 +128,8 @@ model Apartment {
   cleaningCosts          Json?                // Koszty sprzątania dla różnych liczby gości {1: 50, 2: 80, 3: 100, ...}
   importSource           String?
   importBatchId          String?
+  paymentType            PaymentType          @default(COMMISSION) // Typ rozliczenia dla tego apartamentu
+  fixedPaymentAmount     Decimal?             // Kwota stała dla tego apartamentu
   id                     Int                  @id @default(autoincrement())
   idobookingId           Int?                 @unique
   images                 ApartmentImage[]
@@ -239,9 +241,7 @@ model ApartmentOwner {
   temporaryPassword           String?
   temporaryPasswordExpiresAt  DateTime?
   isFirstLogin                Boolean              @default(true)
-  paymentType                 PaymentType          @default(COMMISSION)
-  fixedPaymentAmount          Decimal?
-  vatOption                   VATOption            @default(NO_VAT)
+  vatOption                   VATOption            @default(NO_VAT) // Zostaje tylko VAT - rozliczenia przeniesione na poziom apartamentu
   isActive                    Boolean              @default(true)
   lastLoginAt                 DateTime?
   createdByAdminId            String
@@ -331,7 +331,6 @@ model MonthlyReport {
   owner                ApartmentOwner        @relation(fields: [ownerId], references: [id])
   history              ReportHistory[]
   items                ReportItem[]
-  historicalReports    HistoricalReport[]    @relation("OriginalToHistorical")
 
   @@unique([apartmentId, year, month])
   @@index([status])
@@ -379,7 +378,8 @@ model ReportHistory {
 model HistoricalReport {
   id                   String                @id @default(uuid())
   createdAt            DateTime              @default(now())
-  originalReportId     String                @unique // Referencja do oryginalnego raportu
+  originalReportId     String?               // Referencja do oryginalnego raportu (opcjonalna)
+
   year                 Int
   month                Int
   ownerId              String
@@ -418,8 +418,7 @@ model HistoricalReport {
   items                HistoricalReportItem[]
   additionalDeductions HistoricalAdditionalDeduction[]
   
-  // Relacje do oryginalnych danych (tylko do odczytu)
-  originalReport       MonthlyReport         @relation("OriginalToHistorical", fields: [originalReportId], references: [id])
+  // Relacje do oryginalnych danych (tylko do odczytu) - usunięte, ponieważ historyczny raport powinien być niezależny
   apartment            Apartment             @relation(fields: [apartmentId], references: [id])
   owner                ApartmentOwner        @relation(fields: [ownerId], references: [id])
   createdByAdmin       User                  @relation("HistoricalCreatedByAdmin", fields: [createdByAdminId], references: [id])
@@ -427,7 +426,6 @@ model HistoricalReport {
   sentByAdmin          User?                 @relation("HistoricalSentByAdmin", fields: [sentByAdminId], references: [id])
   deletedByAdmin       User?                 @relation("HistoricalDeletedByAdmin", fields: [deletedByAdminId], references: [id])
 
-  @@index([originalReportId])
   @@index([ownerId, year, month])
   @@index([apartmentId, year, month])
 }
@@ -497,6 +495,7 @@ enum UserType {
 enum PaymentType {
   COMMISSION
   FIXED_AMOUNT
+  FIXED_AMOUNT_MINUS_UTILITIES
 }
 
 enum VATOption {

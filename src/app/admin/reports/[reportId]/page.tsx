@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { api } from "@/trpc/react";
 import type { RouterOutputs } from "@/trpc/react";
-import { PaymentType, VATOption, ReportStatus } from "@prisma/client";
+import { VATOption, ReportStatus } from "@prisma/client";
 import { Modal } from "@/components/ui/Modal";
 import { getVatAmount, getGrossAmount } from "@/lib/vat";
 import {
@@ -35,7 +35,33 @@ import { CSS } from "@dnd-kit/utilities";
 
 import { toast } from "react-hot-toast";
 
-type ReportDetails = RouterOutputs["monthlyReports"]["getById"];
+type ReportDetails = NonNullable<RouterOutputs["monthlyReports"]["getById"]>;
+
+// Type for deductions that can handle both regular and historical reports
+type DeductionItem = {
+  id: string;
+  name: string;
+  vatOption: VATOption;
+  order: number;
+  amount: number;
+  // Optional fields for regular reports
+  createdAt?: Date;
+  updatedAt?: Date;
+  reportId?: string;
+  // Optional fields for historical reports
+  historicalReportId?: string;
+};
+
+// Type guard to check if a report is a historical report
+function isHistoricalReport(
+  report:
+    | NonNullable<RouterOutputs["monthlyReports"]["getById"]>
+    | NonNullable<RouterOutputs["monthlyReports"]["getHistoricalById"]>
+    | null
+    | undefined,
+): report is NonNullable<RouterOutputs["monthlyReports"]["getHistoricalById"]> {
+  return Boolean(report && "deletedByAdmin" in report);
+}
 
 // Extended apartment type with new fields
 
@@ -45,9 +71,13 @@ export default function ReportDetailsPage({
   params: Promise<{ reportId: string }>;
 }) {
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const actualParams = React.use(params);
   const { reportId } = actualParams;
+
+  // Debug logging
+  console.log("ReportDetailsPage - reportId:", reportId);
+  console.log("ReportDetailsPage - session status:", status);
   const [showAddItemForm, setShowAddItemForm] = useState(false);
   const [loadingCommissionIndex, setLoadingCommissionIndex] = useState<
     number | null
@@ -91,13 +121,12 @@ export default function ReportDetailsPage({
     vatOption: VATOption.NO_VAT,
   });
 
-  const [editingDeduction, setEditingDeduction] = useState<
-    RouterOutputs["monthlyReports"]["getById"]["additionalDeductions"][0] | null
-  >(null);
+  const [editingDeduction, setEditingDeduction] =
+    useState<DeductionItem | null>(null);
 
-  const [orderedDeductions, setOrderedDeductions] = useState<
-    ReportDetails["additionalDeductions"]
-  >([]);
+  const [orderedDeductions, setOrderedDeductions] = useState<DeductionItem[]>(
+    [],
+  );
 
   // Function to determine the correct navigation path based on user role
   const getBackToListPath = () => {
@@ -177,17 +206,37 @@ export default function ReportDetailsPage({
       reportId: reportId,
     },
     {
-      // Brak cache dla natychmiastowych aktualizacji
-      staleTime: 0, // 0 sekund - zawsze świeże dane
+      // Krótki cache aby uniknąć zbyt częstych refetchów
+      staleTime: 1000, // 1 sekunda - dane są świeże przez 1 sekundę
       // Nie refetchuj automatycznie przy focus
       refetchOnWindowFocus: false,
+      // Disable query until reportId is available
+      enabled: !!reportId,
+    },
+  );
+
+  const historicalReportQuery = api.monthlyReports.getHistoricalById.useQuery(
+    {
+      reportId: reportId,
+    },
+    {
+      enabled:
+        !!reportId &&
+        reportQuery.isError &&
+        status === "authenticated" &&
+        !reportQuery.isLoading, // Enable only when regular report fails, session is authenticated, and regular query is not loading
     },
   );
 
   const suggestedCommissionsQuery =
-    api.monthlyReports.getSuggestedCommissions.useQuery({
-      reportId: reportId,
-    });
+    api.monthlyReports.getSuggestedCommissions.useQuery(
+      {
+        reportId: reportId,
+      },
+      {
+        enabled: !!reportId && reportQuery.isSuccess, // Only enable when the regular report query has succeeded
+      },
+    );
 
   // TRPC mutations
   const addItemMutation = api.monthlyReports.addItem.useMutation({
@@ -234,22 +283,88 @@ export default function ReportDetailsPage({
     },
   });
 
+  const updateSettlementDetailsMutation =
+    api.monthlyReports.updateSettlementDetails.useMutation({
+      onSuccess: () => {
+        // Odśwież dane po krótkim opóźnieniu aby uniknąć konfliktów
+        setTimeout(() => {
+          void reportQuery.refetch();
+        }, 100);
+        console.log(`✅ Zaktualizowano typ rozliczenia`);
+        toast.success(
+          "Typ rozliczenia został automatycznie zaktualizowany na podstawie ustawień apartamentu",
+        );
+      },
+      onError: (error) => {
+        console.error(
+          `❌ Błąd podczas aktualizacji typu rozliczenia: ${error.message}`,
+        );
+        toast.error(
+          `Błąd podczas aktualizacji typu rozliczenia: ${error.message}`,
+        );
+      },
+    });
+
   const report = reportQuery.data;
+  const historicalReport = historicalReportQuery.data;
+
+  // Użyj historycznego raportu, jeśli zwykły nie istnieje
+  const finalReport = report ?? historicalReport;
+  const isHistorical = Boolean(!report && historicalReport);
 
   // Zaktualizuj useEffect gdy report się załaduje
   useEffect(() => {
-    if (report) {
+    if (finalReport) {
       setRentUtilitiesData({
-        rentAmount: report.rentAmount ?? 0,
-        utilitiesAmount: report.utilitiesAmount ?? 0,
+        rentAmount: finalReport.rentAmount ?? 0,
+        utilitiesAmount: finalReport.utilitiesAmount ?? 0,
       });
       // Sort deductions by order and set them to local state
-      const sortedDeductions = [...report.additionalDeductions].sort(
-        (a, b) => a.order - b.order,
-      );
+      const sortedDeductions = [
+        ...(finalReport.additionalDeductions ?? []),
+      ].sort((a, b) => a.order - b.order) as DeductionItem[];
       setOrderedDeductions(sortedDeductions);
     }
-  }, [report]);
+  }, [finalReport]);
+
+  // useEffect do automatycznego aktualizowania typu rozliczenia gdy zmienią się ustawienia apartamentu
+  useEffect(() => {
+    if (!finalReport || finalReport.status === "SENT") {
+      return;
+    }
+
+    // Sprawdź czy ustawienia apartamentu wymagają aktualizacji typu rozliczenia
+    const apartmentPaymentType = finalReport.apartment.paymentType;
+    const currentSettlementType = finalReport.finalSettlementType;
+
+    // Mapuj typ apartamentu na typ rozliczenia
+    let expectedSettlementType:
+      | "COMMISSION"
+      | "FIXED"
+      | "FIXED_MINUS_UTILITIES";
+    if (apartmentPaymentType === "COMMISSION") {
+      expectedSettlementType = "COMMISSION";
+    } else if (apartmentPaymentType === "FIXED_AMOUNT") {
+      expectedSettlementType = "FIXED";
+    } else if (apartmentPaymentType === "FIXED_AMOUNT_MINUS_UTILITIES") {
+      expectedSettlementType = "FIXED_MINUS_UTILITIES";
+    } else {
+      expectedSettlementType = "COMMISSION"; // Domyślnie
+    }
+
+    // Jeśli typ rozliczenia nie pasuje do ustawień apartamentu, zaktualizuj go
+    if (currentSettlementType !== expectedSettlementType) {
+      console.log(
+        `🔄 Aktualizuję typ rozliczenia dla raportu ${finalReport.id}: ${currentSettlementType} -> ${expectedSettlementType} (ustawienia apartamentu: ${apartmentPaymentType})`,
+      );
+
+      updateSettlementDetailsMutation.mutate({
+        reportId: finalReport.id,
+        finalSettlementType: expectedSettlementType,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [finalReport]); // Usunięto updateSettlementDetailsMutation z dependency array aby zapobiec pętli
 
   // dnd-kit sensors
   const sensors = useSensors(
@@ -616,23 +731,24 @@ export default function ReportDetailsPage({
   };
 
   const handleArchiveAndDelete = async () => {
+    console.log("handleArchiveAndDelete called", { deletionReason, reportId });
+
     if (!deletionReason.trim()) {
       toast.error("Proszę podać przyczynę usunięcia raportu");
       return;
     }
 
-    try {
-      await archiveAndDeleteSentReportMutation.mutateAsync({
-        reportId,
-        deletionReason: deletionReason.trim(),
-      });
-      setShowArchiveDeleteModal(false);
-      setDeletionReason("");
-      toast.success("Raport został zarchiwizowany i usunięty");
-      router.push(getBackToListPath());
-    } catch {
-      toast.error("Błąd podczas archiwizacji raportu");
-    }
+    console.log("Calling archiveAndDeleteSentReportMutation with:", {
+      reportId,
+      deletionReason: deletionReason.trim(),
+    });
+
+    archiveAndDeleteSentReportMutation.mutate({
+      reportId,
+      deletionReason: deletionReason.trim(),
+    });
+    setShowArchiveDeleteModal(false);
+    setDeletionReason("");
   };
 
   // Używamy nowych funkcji z lib/status-translations
@@ -645,9 +761,38 @@ export default function ReportDetailsPage({
   const [showArchiveDeleteModal, setShowArchiveDeleteModal] =
     React.useState(false);
   const [deletionReason, setDeletionReason] = React.useState("");
-  const deleteReportMutation = api.monthlyReports.deleteReport.useMutation();
+
+  // Debug logging
+  React.useEffect(() => {
+    if (showArchiveDeleteModal) {
+      console.log(
+        "Archive delete modal is now visible, deletionReason:",
+        deletionReason,
+      );
+    }
+  }, [showArchiveDeleteModal, deletionReason]);
+  const deleteReportMutation = api.monthlyReports.deleteReport.useMutation({
+    onSuccess: () => {
+      toast.success("Raport został usunięty");
+      router.push(getBackToListPath());
+    },
+    onError: (error) => {
+      toast.error(`Błąd podczas usuwania raportu: ${error.message}`);
+    },
+  });
+
   const archiveAndDeleteSentReportMutation =
-    api.monthlyReports.archiveAndDeleteSentReport.useMutation();
+    api.monthlyReports.archiveAndDeleteSentReport.useMutation({
+      onSuccess: (data) => {
+        console.log("Archive and delete success:", data);
+        toast.success("Raport został zarchiwizowany i usunięty");
+        router.push(getBackToListPath());
+      },
+      onError: (error) => {
+        console.error("Archive and delete error:", error);
+        toast.error(`Błąd podczas archiwizacji raportu: ${error.message}`);
+      },
+    });
 
   const handleDeleteItem = (itemId: string) => {
     if (confirm("Czy na pewno chcesz usunąć tę pozycję z raportu?")) {
@@ -730,7 +875,7 @@ export default function ReportDetailsPage({
 
   // Funkcja obliczająca sugerowaną kwotę za sprzątanie
   const calculateSuggestedCleaningCost = () => {
-    if (!report?.apartment?.cleaningCosts || !report.items) {
+    if (!report?.apartment?.cleaningCosts || !report?.items) {
       return 0;
     }
 
@@ -781,8 +926,8 @@ export default function ReportDetailsPage({
     const daysPerWeek = 7;
 
     // Oblicz liczbę dni w miesiącu raportu
-    const year = report!.year;
-    const month = report!.month;
+    const year = report?.year ?? 0;
+    const month = report?.month ?? 0;
     const daysInMonth = new Date(year, month, 0).getDate();
 
     // Oblicz liczbę tygodni w miesiącu (z dokładnością do 2 miejsc po przecinku)
@@ -810,7 +955,7 @@ export default function ReportDetailsPage({
     const wineCost = apartment.wineCost ?? 250; // Koszt wina
 
     // Oblicz liczbę gości ze wszystkich rezerwacji
-    const revenueItems = report.items.filter(
+    const revenueItems = (report?.items ?? []).filter(
       (item) => item.type === "REVENUE" && item.reservation,
     );
 
@@ -861,7 +1006,13 @@ export default function ReportDetailsPage({
     return 0;
   };
 
-  if (reportQuery.isLoading) {
+  if (
+    status === "loading" ||
+    reportQuery.isLoading ||
+    (reportQuery.isError &&
+      historicalReportQuery.isFetching &&
+      status === "authenticated")
+  ) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-indigo-600"></div>
@@ -869,7 +1020,46 @@ export default function ReportDetailsPage({
     );
   }
 
-  if (reportQuery.error || !report) {
+  if (status === "unauthenticated") {
+    router.push("/login");
+    return null;
+  }
+
+  if (
+    (reportQuery.error &&
+      !historicalReportQuery.data &&
+      status === "authenticated") ||
+    (!finalReport &&
+      status === "authenticated" &&
+      !reportQuery.isLoading &&
+      !historicalReportQuery.isLoading &&
+      !historicalReportQuery.isFetching &&
+      !historicalReportQuery.isError &&
+      !historicalReportQuery.isSuccess &&
+      !historicalReportQuery.isStale &&
+      !historicalReportQuery.isRefetching &&
+      !historicalReportQuery.isPaused &&
+      !historicalReportQuery.isPlaceholderData &&
+      !historicalReportQuery.isFetched &&
+      !historicalReportQuery.isFetchedAfterMount &&
+      !historicalReportQuery.isInitialLoading &&
+      !historicalReportQuery.isLoadingError &&
+      !historicalReportQuery.isRefetchError &&
+      !historicalReportQuery.isFetching &&
+      !historicalReportQuery.isLoading &&
+      !historicalReportQuery.isError &&
+      !historicalReportQuery.isSuccess &&
+      !historicalReportQuery.isStale &&
+      !historicalReportQuery.isRefetching &&
+      !historicalReportQuery.isPaused &&
+      !historicalReportQuery.isPlaceholderData &&
+      !historicalReportQuery.isFetched &&
+      !historicalReportQuery.isFetchedAfterMount &&
+      !historicalReportQuery.isInitialLoading &&
+      !historicalReportQuery.isLoadingError &&
+      !historicalReportQuery.isRefetchError &&
+      !historicalReportQuery.isFetching)
+  ) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
@@ -888,28 +1078,18 @@ export default function ReportDetailsPage({
     );
   }
 
-  const revenueItems = report.items.filter((item) => item.type === "REVENUE");
-  const expenseItems = report.items.filter((item) =>
+  const revenueItems = (finalReport?.items ?? []).filter(
+    (item) => item.type === "REVENUE",
+  );
+  const expenseItems = (finalReport?.items ?? []).filter((item) =>
     ["EXPENSE", "FEE", "TAX", "COMMISSION"].includes(item.type),
   );
 
-  // Directly before the JSX where you use them:
-  const totalAdditionalDeductions = (report.additionalDeductions ?? []).reduce(
-    (sum, d) => sum + d.amount,
-    0,
-  );
-  const totalAdditionalDeductionsGross = (
-    report.additionalDeductions ?? []
-  ).reduce(
-    (sum, d) =>
-      sum +
-      (d.vatOption === "VAT_23"
-        ? d.amount * 1.23
-        : d.vatOption === "VAT_8"
-          ? d.amount * 1.08
-          : d.amount),
-    0,
-  );
+  // Odliczenia są obliczane w komponencie OwnerPayoutCalculation
+
+  if (!finalReport) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -919,16 +1099,22 @@ export default function ReportDetailsPage({
           <div className="sm:flex sm:items-center sm:justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">
-                Raport {report.month.toString().padStart(2, "0")}/{report.year}
+                Raport {finalReport.month.toString().padStart(2, "0")}/
+                {finalReport.year}
+                {isHistorical && (
+                  <span className="ml-2 inline-flex items-center rounded-md bg-red-100 px-2 py-1 text-sm font-medium text-red-800">
+                    Zarchiwizowany i anulowany
+                  </span>
+                )}
               </h1>
               <p className="mt-2 text-sm text-gray-600">
-                {report.apartment.name} - {report.owner.firstName}{" "}
-                {report.owner.lastName}
+                {finalReport.apartment.name} - {finalReport.owner.firstName}{" "}
+                {finalReport.owner.lastName}
               </p>
               {/* Informacja o sposobie rozliczenia */}
               <div className="mt-3 flex items-center space-x-4">
                 <div className="inline-flex items-center rounded-md bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800">
-                  {report.owner.paymentType === "COMMISSION" ? (
+                  {finalReport.apartment.paymentType === "COMMISSION" ? (
                     <>
                       <svg
                         className="mr-1.5 h-4 w-4"
@@ -961,17 +1147,19 @@ export default function ReportDetailsPage({
                         />
                       </svg>
                       Kwota stała:{" "}
-                      {report.owner.fixedPaymentAmount
-                        ? Number(report.owner.fixedPaymentAmount).toFixed(2)
+                      {finalReport.apartment.fixedPaymentAmount
+                        ? Number(
+                            finalReport.apartment.fixedPaymentAmount,
+                          ).toFixed(2)
                         : "0"}{" "}
                       PLN
                     </>
                   )}
                 </div>
                 <div className="inline-flex items-center rounded-md bg-gray-100 px-3 py-1 text-sm font-medium text-gray-800">
-                  {report.owner.vatOption === "NO_VAT" && "Bez VAT"}
-                  {report.owner.vatOption === "VAT_8" && "VAT 8%"}
-                  {report.owner.vatOption === "VAT_23" && "VAT 23%"}
+                  {finalReport.owner.vatOption === "NO_VAT" && "Bez VAT"}
+                  {finalReport.owner.vatOption === "VAT_8" && "VAT 8%"}
+                  {finalReport.owner.vatOption === "VAT_23" && "VAT 23%"}
                 </div>
               </div>
             </div>
@@ -999,9 +1187,15 @@ export default function ReportDetailsPage({
                 {/* Przycisk usuń raport - tylko dla admina */}
                 <button
                   onClick={() => {
-                    if (report.status === ReportStatus.SENT) {
+                    console.log(
+                      "Delete button clicked, report status:",
+                      finalReport.status,
+                    );
+                    if (finalReport.status === ReportStatus.SENT) {
+                      console.log("Opening archive delete modal");
                       setShowArchiveDeleteModal(true);
                     } else {
+                      console.log("Opening regular delete modal");
                       setShowDeleteModal(true);
                     }
                   }}
@@ -1125,14 +1319,16 @@ export default function ReportDetailsPage({
                   Anuluj
                 </button>
                 <button
-                  onClick={async () => {
-                    await deleteReportMutation.mutateAsync({ reportId });
+                  onClick={() => {
+                    deleteReportMutation.mutate({ reportId });
                     setShowDeleteModal(false);
-                    router.push(getBackToListPath());
                   }}
                   className="rounded-md bg-red-600 px-4 py-2 text-white hover:bg-red-700"
+                  disabled={deleteReportMutation.isPending}
                 >
-                  Usuń raport
+                  {deleteReportMutation.isPending
+                    ? "Usuwanie..."
+                    : "Usuń raport"}
                 </button>
               </div>
             </div>
@@ -1182,7 +1378,12 @@ export default function ReportDetailsPage({
 
         {/* Modal archiwizacji i usuwania raportu wysłanego */}
         {showArchiveDeleteModal && (
-          <Modal onClose={() => setShowArchiveDeleteModal(false)}>
+          <Modal
+            onClose={() => {
+              console.log("Closing archive delete modal");
+              setShowArchiveDeleteModal(false);
+            }}
+          >
             <div className="p-6">
               <h2 className="mb-4 text-lg font-bold text-red-700">
                 Arhiwizuj i usuń raport wysłany
@@ -1204,6 +1405,11 @@ export default function ReportDetailsPage({
                   placeholder="Podaj przyczynę usunięcia raportu..."
                   required
                 />
+                {deletionReason && (
+                  <p className="mt-1 text-sm text-gray-500">
+                    Długość: {deletionReason.length} znaków
+                  </p>
+                )}
               </div>
               <div className="flex justify-end gap-3">
                 <button
@@ -1222,7 +1428,7 @@ export default function ReportDetailsPage({
                 >
                   {archiveAndDeleteSentReportMutation.isPending
                     ? "Archiwizowanie..."
-                    : "Archiwizuj i usuń"}
+                    : `Archiwizuj i usuń ${!deletionReason.trim() ? "(wymagana przyczyna)" : ""}`}
                 </button>
               </div>
             </div>
@@ -1256,7 +1462,7 @@ export default function ReportDetailsPage({
                     Przychody
                   </dt>
                   <dd className="text-lg font-medium text-gray-900">
-                    {report.totalRevenue.toFixed(2)} PLN
+                    {finalReport.totalRevenue.toFixed(2)} PLN
                   </dd>
                 </dl>
               </div>
@@ -1288,7 +1494,7 @@ export default function ReportDetailsPage({
                     Wydatki
                   </dt>
                   <dd className="text-lg font-medium text-gray-900">
-                    {report.totalExpenses.toFixed(2)} PLN
+                    {finalReport.totalExpenses.toFixed(2)} PLN
                   </dd>
                 </dl>
               </div>
@@ -1299,7 +1505,7 @@ export default function ReportDetailsPage({
             <div className="flex items-center">
               <div className="flex-shrink-0">
                 <div
-                  className={`rounded-lg p-2 ${report.netIncome >= 0 ? "bg-green-500" : "bg-red-500"}`}
+                  className={`rounded-lg p-2 ${finalReport.netIncome >= 0 ? "bg-green-500" : "bg-red-500"}`}
                 >
                   <svg
                     className="h-6 w-6 text-white"
@@ -1322,9 +1528,9 @@ export default function ReportDetailsPage({
                     Zysk netto
                   </dt>
                   <dd
-                    className={`text-lg font-medium ${report.netIncome >= 0 ? "text-green-600" : "text-red-600"}`}
+                    className={`text-lg font-medium ${finalReport.netIncome >= 0 ? "text-green-600" : "text-red-600"}`}
                   >
-                    {report.netIncome.toFixed(2)} PLN
+                    {finalReport.netIncome.toFixed(2)} PLN
                   </dd>
                 </dl>
               </div>
@@ -1336,16 +1542,16 @@ export default function ReportDetailsPage({
               <div className="flex-shrink-0">
                 <span
                   className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${getStatusColor(
-                    report.status,
+                    finalReport.status,
                   )}`}
                 >
-                  {getStatusText(report.status)}
+                  {getStatusText(finalReport.status)}
                 </span>
               </div>
               <div className="ml-5 w-0 flex-1">
-                {report.status !== ReportStatus.SENT && (
+                {!isHistorical && finalReport.status !== ReportStatus.SENT && (
                   <select
-                    value={report.status}
+                    value={finalReport.status}
                     onChange={(e) =>
                       handleStatusChange(e.target.value as ReportStatus)
                     }
@@ -1413,11 +1619,12 @@ export default function ReportDetailsPage({
                       Stworzony przez
                     </h4>
                     <p className="text-sm text-gray-500">
-                      {report.createdByAdmin?.name ?? "Nieznany użytkownik"}
+                      {finalReport.createdByAdmin?.name ??
+                        "Nieznany użytkownik"}
                     </p>
                     <p className="text-xs text-gray-400">
-                      {report.createdAt
-                        ? new Date(report.createdAt).toLocaleDateString(
+                      {finalReport.createdAt
+                        ? new Date(finalReport.createdAt).toLocaleDateString(
                             "pl-PL",
                             {
                               year: "numeric",
@@ -1434,7 +1641,7 @@ export default function ReportDetailsPage({
               </div>
 
               {/* Użytkownik, który zatwierdził raport */}
-              {report.approvedByAdmin && (
+              {finalReport.approvedByAdmin && (
                 <div className="rounded-lg border border-gray-200 p-4">
                   <div className="flex items-center">
                     <div className="flex-shrink-0">
@@ -1459,11 +1666,12 @@ export default function ReportDetailsPage({
                         Zatwierdzony przez
                       </h4>
                       <p className="text-sm text-gray-500">
-                        {report.approvedByAdmin.name ?? "Nieznany użytkownik"}
+                        {finalReport.approvedByAdmin.name ??
+                          "Nieznany użytkownik"}
                       </p>
                       <p className="text-xs text-gray-400">
-                        {report.approvedAt
-                          ? new Date(report.approvedAt).toLocaleDateString(
+                        {finalReport.approvedAt
+                          ? new Date(finalReport.approvedAt).toLocaleDateString(
                               "pl-PL",
                               {
                                 year: "numeric",
@@ -1481,7 +1689,7 @@ export default function ReportDetailsPage({
               )}
 
               {/* Użytkownik, który wysłał raport */}
-              {report.sentAt && (
+              {finalReport.sentAt && (
                 <div className="rounded-lg border border-gray-200 p-4">
                   <div className="flex items-center">
                     <div className="flex-shrink-0">
@@ -1506,18 +1714,11 @@ export default function ReportDetailsPage({
                         Wysłany przez
                       </h4>
                       <p className="text-sm text-gray-500">
-                        {(() => {
-                          const sentAction = report.history?.find(
-                            (h) => h.action === "sent",
-                          );
-                          return (
-                            sentAction?.admin?.name ?? "Nieznany użytkownik"
-                          );
-                        })()}
+                        {finalReport.sentByAdmin?.name ?? "Nieznany użytkownik"}
                       </p>
                       <p className="text-xs text-gray-400">
-                        {report.sentAt
-                          ? new Date(report.sentAt).toLocaleDateString(
+                        {finalReport.sentAt
+                          ? new Date(finalReport.sentAt).toLocaleDateString(
                               "pl-PL",
                               {
                                 year: "numeric",
@@ -1533,12 +1734,70 @@ export default function ReportDetailsPage({
                   </div>
                 </div>
               )}
+
+              {/* Użytkownik, który usunął raport (tylko dla historycznych) */}
+              {isHistorical &&
+                isHistoricalReport(finalReport) &&
+                finalReport.deletedByAdmin && (
+                  <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0">
+                        <div className="rounded-lg bg-red-500 p-2">
+                          <svg
+                            className="h-4 w-4 text-white"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                            />
+                          </svg>
+                        </div>
+                      </div>
+                      <div className="ml-3">
+                        <h4 className="text-sm font-medium text-red-900">
+                          Usunięty przez
+                        </h4>
+                        <p className="text-sm text-red-700">
+                          {(isHistoricalReport(finalReport) &&
+                            finalReport.deletedByAdmin?.name) ??
+                            "Nieznany użytkownik"}
+                        </p>
+                        <p className="text-xs text-red-600">
+                          {isHistoricalReport(finalReport) &&
+                          finalReport.deletedAt
+                            ? new Date(
+                                finalReport.deletedAt,
+                              ).toLocaleDateString("pl-PL", {
+                                year: "numeric",
+                                month: "long",
+                                day: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })
+                            : "Data nieznana"}
+                        </p>
+                        {isHistoricalReport(finalReport) &&
+                          finalReport.deletionReason && (
+                            <p className="mt-1 text-xs text-red-600">
+                              <strong>Przyczyna:</strong>{" "}
+                              {finalReport.deletionReason}
+                            </p>
+                          )}
+                      </div>
+                    </div>
+                  </div>
+                )}
             </div>
           </div>
         </div>
 
         {/* Quick Expense Entry */}
-        {report.status !== ReportStatus.SENT && (
+        {!isHistorical && finalReport.status !== ReportStatus.SENT && (
           <div className="mb-8 overflow-hidden rounded-lg bg-green-50 shadow">
             <div className="px-6 py-4">
               <h3 className="flex items-center text-lg font-medium text-green-900">
@@ -1624,7 +1883,7 @@ export default function ReportDetailsPage({
                                 {suggestedCleaningCost.toFixed(2)} PLN (na
                                 podstawie{" "}
                                 {
-                                  report.items.filter(
+                                  (finalReport?.items ?? []).filter(
                                     (item) =>
                                       item.type === "REVENUE" &&
                                       item.reservation,
@@ -1633,7 +1892,7 @@ export default function ReportDetailsPage({
                                 rezerwacji) - średnio{" "}
                                 {(
                                   suggestedCleaningCost /
-                                  report.items.filter(
+                                  (finalReport?.items ?? []).filter(
                                     (item) =>
                                       item.type === "REVENUE" &&
                                       item.reservation,
@@ -1647,20 +1906,23 @@ export default function ReportDetailsPage({
                               💡 Sugerowana kwota:{" "}
                               {suggestedLaundryCost.toFixed(2)} PLN (koszt
                               miesięczny:{" "}
-                              {report?.apartment?.weeklyLaundryCost ?? 120} PLN
-                              co 7 dni) - średnio{" "}
-                              {report?.apartment?.weeklyLaundryCost ?? 120} PLN
-                              za tydzień
+                              {finalReport?.apartment?.weeklyLaundryCost ?? 120}{" "}
+                              PLN co 7 dni) - średnio{" "}
+                              {finalReport?.apartment?.weeklyLaundryCost ?? 120}{" "}
+                              PLN za tydzień
                             </p>
                           )}
                           {key === "tekstylia" && suggestedTextileCost > 0 && (
                             <p className="mt-1 text-xs text-green-600">
                               💡 Sugerowana kwota:{" "}
                               {suggestedTextileCost.toFixed(2)} PLN (środki:{" "}
-                              {report?.apartment?.cleaningSuppliesCost ?? 132}{" "}
-                              PLN + wino: {report?.apartment?.wineCost ?? 250}{" "}
-                              PLN + kapsułki:{" "}
-                              {report?.apartment?.capsuleCostPerGuest ?? 2.5}{" "}
+                              {finalReport?.apartment?.cleaningSuppliesCost ??
+                                132}{" "}
+                              PLN + wino:{" "}
+                              {finalReport?.apartment?.wineCost ?? 250} PLN +
+                              kapsułki:{" "}
+                              {finalReport?.apartment?.capsuleCostPerGuest ??
+                                2.5}{" "}
                               PLN/gość)
                             </p>
                           )}
@@ -1706,7 +1968,10 @@ export default function ReportDetailsPage({
                           disabled={
                             addingQuickExpense === key ||
                             quickExpenses[key as keyof typeof quickExpenses]
-                              .net <= 0
+                              .net <= 0 ||
+                            isHistorical ||
+                            (!isHistoricalReport(finalReport) &&
+                              finalReport?.status === ReportStatus.SENT)
                           }
                           className="inline-flex w-full items-center justify-center rounded-md bg-green-600 px-3 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50 hover:bg-green-700"
                         >
@@ -1928,7 +2193,8 @@ export default function ReportDetailsPage({
         {/* Suggested Commissions */}
         {suggestedCommissionsQuery.data?.suggestions &&
           suggestedCommissionsQuery.data.suggestions.length > 0 &&
-          report.status !== ReportStatus.SENT && (
+          !isHistorical &&
+          finalReport.status !== ReportStatus.SENT && (
             <SuggestedCommissionsSection
               suggestions={suggestedCommissionsQuery.data.suggestions}
               onAddCommission={handleAddSuggestedCommission}
@@ -1942,7 +2208,7 @@ export default function ReportDetailsPage({
             <h3 className="text-lg font-medium text-gray-900">
               Wydatki i Prowizje ({expenseItems.length})
             </h3>
-            {report.status !== ReportStatus.SENT && (
+            {!isHistorical && finalReport.status !== ReportStatus.SENT && (
               <div className="flex gap-2">
                 {/* Przycisk dodawania/aktualizacji kosztów sprzątania */}
                 {
@@ -2118,7 +2384,11 @@ export default function ReportDetailsPage({
                 }
                 <button
                   onClick={() => setShowAddItemForm(true)}
-                  className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 hover:bg-indigo-700"
+                  disabled={
+                    isHistorical ||
+                    (finalReport?.status as ReportStatus) === ReportStatus.SENT
+                  }
+                  className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 hover:bg-indigo-700"
                 >
                   <svg
                     className="mr-2 h-4 w-4"
@@ -2240,10 +2510,11 @@ export default function ReportDetailsPage({
                               item.type === "EXPENSE") && (
                               <button
                                 onClick={() => handleDeleteItem(item.id)}
-                                disabled={
-                                  report.status === "SENT" ||
-                                  deleteReportItemMutation.isPending
-                                }
+                                disabled={Boolean(
+                                  isHistorical ||
+                                    finalReport?.status === "SENT" ||
+                                    deleteReportItemMutation.isPending,
+                                )}
                                 className="text-red-600 disabled:cursor-not-allowed disabled:text-gray-400 hover:text-red-900"
                                 title="Usuń pozycję"
                               >
@@ -2273,7 +2544,7 @@ export default function ReportDetailsPage({
         </div>
 
         {/* Rent and Utilities Section */}
-        {report.status !== ReportStatus.SENT && (
+        {!isHistorical && finalReport?.status !== ReportStatus.SENT && (
           <div className="mb-8 overflow-hidden rounded-lg bg-yellow-50 shadow">
             <div className="border-b border-yellow-200 px-6 py-4">
               <h3 className="flex items-center text-lg font-medium text-yellow-900">
@@ -2324,12 +2595,15 @@ export default function ReportDetailsPage({
                       className="block w-full rounded-md border-gray-300 px-3 py-2 shadow-sm focus:border-yellow-500 focus:outline-none focus:ring-yellow-500"
                       placeholder="0.00"
                     />
-                    {report.suggestedRent && report.suggestedRent > 0 && (
-                      <p className="text-xs text-gray-500">
-                        💡 Sugerowany na podstawie poprzednich raportów:{" "}
-                        {report.suggestedRent.toFixed(2)} PLN
-                      </p>
-                    )}
+                    {!isHistoricalReport(finalReport) &&
+                      "suggestedRent" in finalReport &&
+                      finalReport.suggestedRent &&
+                      finalReport.suggestedRent > 0 && (
+                        <p className="text-xs text-gray-500">
+                          💡 Sugerowany na podstawie poprzednich raportów:{" "}
+                          {finalReport.suggestedRent.toFixed(2)} PLN
+                        </p>
+                      )}
                   </div>
                 </div>
                 <div>
@@ -2351,11 +2625,13 @@ export default function ReportDetailsPage({
                       className="block w-full rounded-md border-gray-300 px-3 py-2 shadow-sm focus:border-yellow-500 focus:outline-none focus:ring-yellow-500"
                       placeholder="0.00"
                     />
-                    {report.suggestedUtilities &&
-                      report.suggestedUtilities > 0 && (
+                    {!isHistoricalReport(finalReport) &&
+                      "suggestedUtilities" in finalReport &&
+                      finalReport.suggestedUtilities &&
+                      finalReport.suggestedUtilities > 0 && (
                         <p className="text-xs text-gray-500">
                           💡 Sugerowane na podstawie poprzednich raportów:{" "}
-                          {report.suggestedUtilities.toFixed(2)} PLN
+                          {finalReport.suggestedUtilities.toFixed(2)} PLN
                         </p>
                       )}
                   </div>
@@ -2391,7 +2667,7 @@ export default function ReportDetailsPage({
         )}
 
         {/* Additional Deductions Section */}
-        {report.status !== ReportStatus.SENT && (
+        {!isHistorical && finalReport.status !== ReportStatus.SENT && (
           <div className="mb-8 overflow-hidden rounded-lg bg-purple-50 shadow">
             <div className="border-b border-purple-200 px-6 py-4">
               <h3 className="flex items-center text-lg font-medium text-purple-900">
@@ -2453,13 +2729,30 @@ export default function ReportDetailsPage({
                       <span className="text-sm text-purple-900">
                         Netto:{" "}
                         <span className="font-bold">
-                          -{totalAdditionalDeductions.toFixed(2)} PLN
+                          -
+                          {orderedDeductions
+                            .reduce((sum, d) => sum + d.amount, 0)
+                            .toFixed(2)}{" "}
+                          PLN
                         </span>
                       </span>
                       <span className="text-sm text-purple-900">
                         Brutto:{" "}
                         <span className="font-bold">
-                          -{totalAdditionalDeductionsGross.toFixed(2)} PLN
+                          -
+                          {orderedDeductions
+                            .reduce(
+                              (sum, d) =>
+                                sum +
+                                (d.vatOption === "VAT_23"
+                                  ? d.amount * 1.23
+                                  : d.vatOption === "VAT_8"
+                                    ? d.amount * 1.08
+                                    : d.amount),
+                              0,
+                            )
+                            .toFixed(2)}{" "}
+                          PLN
                         </span>
                       </span>
                     </div>
@@ -2608,7 +2901,7 @@ export default function ReportDetailsPage({
                 Zysk netto apartamentu (przed wszystkimi potrąceniami)
               </h5>
               <p className="text-2xl font-bold text-gray-900">
-                {report.netIncome.toFixed(2)} PLN
+                {report?.netIncome?.toFixed(2) ?? "0.00"} PLN
               </p>
             </div>
 
@@ -2621,13 +2914,13 @@ export default function ReportDetailsPage({
                 <div className="rounded-md bg-blue-100 p-3">
                   <p className="text-sm text-blue-700">Kwota prowizji:</p>
                   <p className="text-xl font-bold text-blue-900">
-                    {(report.netIncome * 0.25).toFixed(2)} PLN
+                    {((report?.netIncome ?? 0) * 0.25).toFixed(2)} PLN
                   </p>
                 </div>
                 <div className="rounded-md bg-blue-100 p-3">
                   <p className="text-sm text-blue-700">Pozostało:</p>
                   <p className="text-xl font-bold text-blue-900">
-                    {(report.netIncome * 0.75).toFixed(2)} PLN
+                    {((report?.netIncome ?? 0) * 0.75).toFixed(2)} PLN
                   </p>
                 </div>
               </div>
@@ -2655,19 +2948,23 @@ export default function ReportDetailsPage({
               Rozliczenie z Właścicielem
             </h3>
             <p className="mt-1 text-sm text-green-700">
-              Ostateczna kalkulacja płatności dla {report.owner.firstName}{" "}
-              {report.owner.lastName}
+              Ostateczna kalkulacja płatności dla{" "}
+              {report?.owner?.firstName ?? ""} {report?.owner?.lastName ?? ""}
             </p>
           </div>
           <div className="bg-white p-6">
-            <OwnerPayoutCalculation
-              report={report}
-              onRefetch={() => void reportQuery.refetch()}
-              _additionalDeductionData={additionalDeductionData}
-              _onDeleteDeduction={handleDeleteDeduction}
-              _onEditDeduction={setEditingDeduction}
-              sortedDeductions={orderedDeductions}
-            />
+            {report && (
+              <OwnerPayoutCalculation
+                report={report}
+                onRefetch={async () => {
+                  await reportQuery.refetch();
+                }}
+                _additionalDeductionData={additionalDeductionData}
+                _onDeleteDeduction={handleDeleteDeduction}
+                _onEditDeduction={setEditingDeduction}
+                sortedDeductions={orderedDeductions}
+              />
+            )}
           </div>
         </div>
 
@@ -3230,7 +3527,7 @@ const SummaryField = ({
   isLoading?: boolean;
   loadingValue?: string;
   subtext?: React.ReactNode;
-  color?: "green" | "blue" | "gray";
+  color?: "green" | "blue" | "gray" | "red";
   isPayout?: boolean;
 }) => {
   const colorClasses = {
@@ -3248,6 +3545,11 @@ const SummaryField = ({
       bg: "bg-gray-100",
       text: "text-gray-700",
       valueText: "text-gray-900",
+    },
+    red: {
+      bg: "bg-red-100",
+      text: "text-red-700",
+      valueText: "text-red-900",
     },
   };
 
@@ -3376,13 +3678,14 @@ function OwnerPayoutCalculation({
     vatOption: VATOption;
   };
   _onDeleteDeduction: (deductionId: string) => Promise<void>;
-  _onEditDeduction: (
-    deduction: NonNullable<ReportDetails>["additionalDeductions"][number],
-  ) => void;
-  sortedDeductions: ReportDetails["additionalDeductions"];
+  _onEditDeduction: (deduction: DeductionItem) => void;
+  sortedDeductions: DeductionItem[];
 }) {
+  // Sprawdź czy właściciel jest zwolniony z VAT
+  const isVatExempt = report.owner.vatOption === VATOption.NO_VAT;
+  const isReportSent = report.status === ReportStatus.SENT;
   const [deductRentAndUtilities] = React.useState(true);
-
+  const [isRefreshing, setIsRefreshing] = React.useState(false);
   const [finalPayoutType, setFinalPayoutType] = React.useState<LocalPayoutType>(
     () => {
       if (report.finalSettlementType === "FIXED") {
@@ -3395,54 +3698,6 @@ function OwnerPayoutCalculation({
     },
   );
 
-  // State do śledzenia stanu ładowania poszczególnych wartości (używane tylko przez setLoadingValues)
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [_loadingValues, setLoadingValues] = React.useState<{
-    finalOwnerPayout: boolean;
-    finalHostPayout: boolean;
-    finalIncomeTax: boolean;
-    finalVatAmount: boolean;
-    totalRevenue: boolean;
-    totalExpenses: boolean;
-    netIncome: boolean;
-    adminCommissionAmount: boolean;
-    afterCommission: boolean;
-    afterRentAndUtilities: boolean;
-    totalAdditionalDeductions: boolean;
-  }>({
-    finalOwnerPayout: false,
-    finalHostPayout: false,
-    finalIncomeTax: false,
-    finalVatAmount: false,
-    totalRevenue: false,
-    totalExpenses: false,
-    netIncome: false,
-    adminCommissionAmount: false,
-    afterCommission: false,
-    afterRentAndUtilities: false,
-    totalAdditionalDeductions: false,
-  });
-
-  // State do śledzenia postępu rekalkulacji
-  const [recalculationProgress, setRecalculationProgress] =
-    React.useState<string>("");
-
-  // Osobne loadery dla każdej z finalnych kart z postępem
-  const [finalCardLoaders, setFinalCardLoaders] = React.useState({
-    ownerPayout: false,
-    hostPayout: false,
-    incomeTax: false,
-    taxBase: false,
-  });
-
-  // Progress dla każdej karty (0-100)
-  const [finalCardProgress, setFinalCardProgress] = React.useState({
-    ownerPayout: 0,
-    hostPayout: 0,
-    incomeTax: 0,
-    taxBase: 0,
-  });
-
   // Referencje do wartości przed mutacją - używane do monitorowania zmian
   const previousValuesRef = React.useRef({
     finalOwnerPayout: report.finalOwnerPayout,
@@ -3450,6 +3705,13 @@ function OwnerPayoutCalculation({
     finalIncomeTax: (report as ReportDetails & { finalIncomeTax?: number })
       .finalIncomeTax,
     taxBase: report.taxBase,
+    totalRevenue: report.totalRevenue,
+    totalExpenses: report.totalExpenses,
+    netIncome: report.netIncome,
+    adminCommissionAmount: report.adminCommissionAmount,
+    afterCommission: report.afterCommission,
+    afterRentAndUtilities: report.afterRentAndUtilities,
+    totalAdditionalDeductions: report.totalAdditionalDeductions,
   });
 
   // Funkcja do sprawdzania zmian po refetch
@@ -3458,160 +3720,10 @@ function OwnerPayoutCalculation({
     report as ReportDetails & { finalIncomeTax?: number }
   ).finalIncomeTax;
 
-  // useEffect do automatycznego monitorowania zmian w wartościach
-  React.useEffect(() => {
-    // Jeśli żaden loader nie jest aktywny, nie monitoruj
-    const anyLoaderActive =
-      finalCardLoaders.ownerPayout ||
-      finalCardLoaders.hostPayout ||
-      finalCardLoaders.incomeTax ||
-      finalCardLoaders.taxBase;
-    if (!anyLoaderActive) return;
-
-    const current = {
-      finalOwnerPayout: report.finalOwnerPayout,
-      finalHostPayout: report.finalHostPayout,
-      finalIncomeTax: currentFinalIncomeTax,
-      taxBase: report.taxBase,
-    };
-
-    const previous = previousValuesRef.current;
-
-    // Sprawdź każde pole i wyłącz loader jeśli się zmieniło
-    let hasChanges = false;
-
-    if (
-      finalCardLoaders.ownerPayout &&
-      current.finalOwnerPayout !== previous.finalOwnerPayout
-    ) {
-      setFinalCardLoaders((prev) => ({ ...prev, ownerPayout: false }));
-      setFinalCardProgress((prev) => ({ ...prev, ownerPayout: 100 }));
-      console.log(
-        "[MONITORING] finalOwnerPayout zaktualizowane:",
-        previous.finalOwnerPayout,
-        "->",
-        current.finalOwnerPayout,
-      );
-      hasChanges = true;
-    }
-
-    if (
-      finalCardLoaders.hostPayout &&
-      current.finalHostPayout !== previous.finalHostPayout
-    ) {
-      setFinalCardLoaders((prev) => ({ ...prev, hostPayout: false }));
-      setFinalCardProgress((prev) => ({ ...prev, hostPayout: 100 }));
-      console.log(
-        "[MONITORING] finalHostPayout zaktualizowane:",
-        previous.finalHostPayout,
-        "->",
-        current.finalHostPayout,
-      );
-      hasChanges = true;
-    }
-
-    if (
-      finalCardLoaders.incomeTax &&
-      current.finalIncomeTax !== previous.finalIncomeTax
-    ) {
-      setFinalCardLoaders((prev) => ({ ...prev, incomeTax: false }));
-      setFinalCardProgress((prev) => ({ ...prev, incomeTax: 100 }));
-      console.log(
-        "[MONITORING] finalIncomeTax zaktualizowane:",
-        previous.finalIncomeTax,
-        "->",
-        current.finalIncomeTax,
-      );
-      hasChanges = true;
-    }
-
-    if (finalCardLoaders.taxBase && current.taxBase !== previous.taxBase) {
-      setFinalCardLoaders((prev) => ({ ...prev, taxBase: false }));
-      setFinalCardProgress((prev) => ({ ...prev, taxBase: 100 }));
-      console.log(
-        "[MONITORING] taxBase zaktualizowane:",
-        previous.taxBase,
-        "->",
-        current.taxBase,
-      );
-      hasChanges = true;
-    }
-
-    // Zaktualizuj referencje jeśli były zmiany
-    if (hasChanges) {
-      previousValuesRef.current = current;
-    }
-  }, [
-    report.finalOwnerPayout,
-    report.finalHostPayout,
-    currentFinalIncomeTax,
-    report.taxBase,
-    finalCardLoaders.ownerPayout,
-    finalCardLoaders.hostPayout,
-    finalCardLoaders.incomeTax,
-    finalCardLoaders.taxBase,
-  ]);
-
-  // const isFinalSummaryLoading = Object.values(_loadingValues).some(Boolean); // Nieużywane - zastąpione przez finalCardLoaders
-
-  // Funkcja do symulowania postępu dla kart
-  const simulateProgress = (
-    cardType: "ownerPayout" | "hostPayout" | "incomeTax" | "taxBase",
-  ) => {
-    let progress = 0;
-    const interval = setInterval(() => {
-      progress += Math.random() * 15 + 5; // 5-20% na krok
-      if (progress >= 100) {
-        progress = 100;
-        clearInterval(interval);
-      }
-      setFinalCardProgress((prev) => ({ ...prev, [cardType]: progress }));
-    }, 200); // Co 200ms
-  };
-
-  // Funkcja do ukrywania wszystkich loaderów
-  const hideAllLoaders = () => {
-    setLoadingValues({
-      finalOwnerPayout: false,
-      finalHostPayout: false,
-      finalIncomeTax: false,
-      finalVatAmount: false,
-      totalRevenue: false,
-      totalExpenses: false,
-      netIncome: false,
-      adminCommissionAmount: false,
-      afterCommission: false,
-      afterRentAndUtilities: false,
-      totalAdditionalDeductions: false,
-    });
-
-    // Resetuj progress kart
-    setFinalCardProgress({
-      ownerPayout: 0,
-      hostPayout: 0,
-      incomeTax: 0,
-      taxBase: 0,
-    });
-  };
-
   // State do śledzenia poprzedniego typu rozliczenia
   const [previousSettlementType, setPreviousSettlementType] = React.useState(
     report.finalSettlementType,
   );
-
-  // Debouncing dla zmian typu rozliczenia - WYŁĄCZONE (nie używane)
-  // const [debouncedSettlementType, setDebouncedSettlementType] = React.useState(
-  //   report.finalSettlementType,
-  // );
-
-  // useEffect do debouncing zmian typu rozliczenia - WYŁĄCZONE (nie używane)
-  // React.useEffect(() => {
-  //   const timer = setTimeout(() => {
-  //     setDebouncedSettlementType(report.finalSettlementType);
-  //   }, 500); // 500ms debounce
-
-  //   return () => clearTimeout(timer);
-  // }, [report.finalSettlementType]);
 
   // useEffect do aktualizacji poprzedniego typu rozliczenia
   React.useEffect(() => {
@@ -3620,79 +3732,42 @@ function OwnerPayoutCalculation({
     }
   }, [report.finalSettlementType, previousSettlementType]);
 
+  // useEffect do inicjalizacji previousValuesRef gdy komponent się zamontuje
+  React.useEffect(() => {
+    // Zainicjalizuj referencje z aktualnymi wartościami
+    previousValuesRef.current = {
+      finalOwnerPayout: report.finalOwnerPayout,
+      finalHostPayout: report.finalHostPayout,
+      finalIncomeTax: currentFinalIncomeTax,
+      taxBase: report.taxBase,
+      totalRevenue: report.totalRevenue,
+      totalExpenses: report.totalExpenses,
+      netIncome: report.netIncome,
+      adminCommissionAmount: report.adminCommissionAmount,
+      afterCommission: report.afterCommission,
+      afterRentAndUtilities: report.afterRentAndUtilities,
+      totalAdditionalDeductions: report.totalAdditionalDeductions,
+    };
+  }, [
+    report.finalOwnerPayout,
+    report.finalHostPayout,
+    currentFinalIncomeTax,
+    report.taxBase,
+    report.totalRevenue,
+    report.totalExpenses,
+    report.netIncome,
+    report.adminCommissionAmount,
+    report.afterCommission,
+    report.afterRentAndUtilities,
+    report.totalAdditionalDeductions,
+  ]);
+
   // Mutacja do zapisywania finalSettlementType
   const setFinalSettlementTypeMutation =
     api.monthlyReports.setFinalSettlementType.useMutation({
       onSuccess: () => {
-        // Ustaw wszystkie loadery na true po zapisaniu typu rozliczenia
-        setLoadingValues({
-          finalOwnerPayout: true,
-          finalHostPayout: true,
-          finalIncomeTax: true,
-          finalVatAmount: true,
-          totalRevenue: true,
-          totalExpenses: true,
-          netIncome: true,
-          adminCommissionAmount: true,
-          afterCommission: true,
-          afterRentAndUtilities: true,
-          totalAdditionalDeductions: true,
-        });
-
-        // Ustaw osobne loadery dla finalnych kart na true i uruchom symulację postępu
-        setFinalCardLoaders({
-          ownerPayout: true,
-          hostPayout: true,
-          incomeTax: true,
-          taxBase: true,
-        });
-
-        // Resetuj progress i uruchom symulację
-        setFinalCardProgress({
-          ownerPayout: 0,
-          hostPayout: 0,
-          incomeTax: 0,
-          taxBase: 0,
-        });
-
-        simulateProgress("ownerPayout");
-        simulateProgress("hostPayout");
-        simulateProgress("incomeTax");
-        simulateProgress("taxBase");
-
-        setRecalculationProgress("");
-
-        // Odśwież dane natychmiast
+        // Tylko odśwież dane bez ustawiania loaderów
         onRefetch();
-
-        // Monitoring jest teraz obsługiwany przez useEffect
-        // Dodaj fallback timeout na wypadek gdyby wartości się nie zaktualizowały
-        setTimeout(() => {
-          setFinalCardLoaders((prev) => {
-            const anyStillLoading =
-              prev.ownerPayout ||
-              prev.hostPayout ||
-              prev.incomeTax ||
-              prev.taxBase;
-            if (anyStillLoading) {
-              console.warn(
-                "[MONITORING] Fallback timeout - wymuszam wyłączenie loaderów",
-              );
-              return {
-                ownerPayout: false,
-                hostPayout: false,
-                incomeTax: false,
-                taxBase: false,
-              };
-            }
-            return prev;
-          });
-        }, 5000); // 5 sekund maksymalnie
-
-        // Ukryj pozostałe loadery po krótkim opóźnieniu
-        setTimeout(() => {
-          hideAllLoaders();
-        }, 200); // Krótkie opóźnienie na odczyt nowych danych
       },
       onError: (error) => {
         console.error("Error saving final settlement type:", error);
@@ -3704,15 +3779,7 @@ function OwnerPayoutCalculation({
               ? LocalPayoutType.FIXED_AMOUNT_MINUS_UTILITIES
               : LocalPayoutType.COMMISSION,
         );
-        // Ukryj wszystkie loadery w przypadku błędu
-        hideAllLoaders();
-        // Ukryj także finalne loadery
-        setFinalCardLoaders({
-          ownerPayout: false,
-          hostPayout: false,
-          incomeTax: false,
-          taxBase: false,
-        });
+        // Błąd zapisu - nie ma potrzeby ustawiania loaderów
       },
     });
 
@@ -3720,45 +3787,6 @@ function OwnerPayoutCalculation({
   const handleFinalPayoutTypeChange = async (newType: LocalPayoutType) => {
     // Natychmiast aktualizuj lokalny stan dla lepszej responsywności
     setFinalPayoutType(newType);
-
-    // Ustaw wszystkie loadery na true
-    setLoadingValues({
-      finalOwnerPayout: true,
-      finalHostPayout: true,
-      finalIncomeTax: true,
-      finalVatAmount: true,
-      totalRevenue: true,
-      totalExpenses: true,
-      netIncome: true,
-      adminCommissionAmount: true,
-      afterCommission: true,
-      afterRentAndUtilities: true,
-      totalAdditionalDeductions: true,
-    });
-
-    // Zapisz aktualne wartości przed mutacją
-    previousValuesRef.current = {
-      finalOwnerPayout: report.finalOwnerPayout,
-      finalHostPayout: report.finalHostPayout,
-      finalIncomeTax: currentFinalIncomeTax,
-      taxBase: report.taxBase,
-    };
-
-    // Ustaw także finalne loadery na true i zresetuj progress bary
-    setFinalCardLoaders({
-      ownerPayout: true,
-      hostPayout: true,
-      incomeTax: true,
-      taxBase: true,
-    });
-
-    // Resetuj progress bary do 0%
-    setFinalCardProgress({
-      ownerPayout: 0,
-      hostPayout: 0,
-      incomeTax: 0,
-      taxBase: 0,
-    });
 
     // Mapuj lokalny typ na typ z bazy danych
     let settlementType: "COMMISSION" | "FIXED" | "FIXED_MINUS_UTILITIES";
@@ -3776,16 +3804,11 @@ function OwnerPayoutCalculation({
     }
 
     try {
-      // Pokaż postęp
-      setRecalculationProgress("Zapisywanie typu rozliczenia...");
-
       // Wykonaj mutację w tle (nie czekaj na zakończenie)
       setFinalSettlementTypeMutation.mutate({
         reportId: report.id,
         finalSettlementType: settlementType,
       });
-
-      // Loadery zostaną ukryte przez onSuccess callback
     } catch (error) {
       console.error("Error saving final settlement type:", error);
       // Revert the state change if save failed
@@ -3796,38 +3819,21 @@ function OwnerPayoutCalculation({
             ? LocalPayoutType.FIXED_AMOUNT_MINUS_UTILITIES
             : LocalPayoutType.COMMISSION,
       );
-      // Ukryj wszystkie loadery w przypadku błędu
-      setLoadingValues({
-        finalOwnerPayout: false,
-        finalHostPayout: false,
-        finalIncomeTax: false,
-        finalVatAmount: false,
-        totalRevenue: false,
-        totalExpenses: false,
-        netIncome: false,
-        adminCommissionAmount: false,
-        afterCommission: false,
-        afterRentAndUtilities: false,
-        totalAdditionalDeductions: false,
-      });
-      // Ukryj także finalne loadery
-      setFinalCardLoaders({
-        ownerPayout: false,
-        hostPayout: false,
-        incomeTax: false,
-        taxBase: false,
-      });
     }
   };
 
-  const isVatExempt = report.owner.vatOption === VATOption.NO_VAT;
-  const isReportSent = report.status === ReportStatus.SENT;
+  // Funkcja do odświeżania z loaderem
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    try {
+      onRefetch();
+    } finally {
+      // Ukryj loader po 1 sekundzie żeby użytkownik widział że coś się dzieje
+      setTimeout(() => setIsRefreshing(false), 1000);
+    }
+  };
 
-  // Suma dodatkowych odliczeń (netto)
-  // const totalAdditionalDeductions = (sortedDeductions ?? []).reduce(
-  //   (sum, d) => sum + d.amount,
-  //   0,
-  // );
+  // Suma dodatkowych odliczeń (netto) - używana tylko w totalAdditionalDeductionsGross
 
   // Suma dodatkowych odliczeń (brutto)
   const totalAdditionalDeductionsGross = (sortedDeductions ?? []).reduce(
@@ -3841,49 +3847,8 @@ function OwnerPayoutCalculation({
     0,
   );
 
-  // Obliczenia przybliżonych wartości dla natychmiastowego wyświetlania (obecnie nieużywane)
-  // const calculateApproximateValues = (settlementType: LocalPayoutType) => {
-  //   const netIncome = report.netIncome;
-  //   const adminCommissionAmount = netIncome * 0.25;
-  //   const afterCommission = netIncome - adminCommissionAmount;
-  //   const rentAndUtilities =
-  //     (report.rentAmount ?? 0) + (report.utilitiesAmount ?? 0);
-  //   const afterRentAndUtilities = afterCommission - rentAndUtilities;
-  //   const fixedAmount = Number(report.owner.fixedPaymentAmount ?? 0);
-
-  //   let baseAmount = 0;
-  //   if (settlementType === LocalPayoutType.FIXED_AMOUNT) {
-  //     baseAmount = fixedAmount;
-  //   } else if (
-  //     settlementType === LocalPayoutType.FIXED_AMOUNT_MINUS_UTILITIES
-  //   ) {
-  //     baseAmount =
-  //       fixedAmount - rentAndUtilities - totalAdditionalDeductionsGross;
-  //   } else if (settlementType === LocalPayoutType.COMMISSION) {
-  //     baseAmount = afterRentAndUtilities - totalAdditionalDeductionsGross;
-  //   }
-
-  //   const vatRate =
-  //     report.owner.vatOption === "VAT_23"
-  //       ? 0.23
-  //       : report.owner.vatOption === "VAT_8"
-  //         ? 0.08
-  //         : 0;
-  //   const vatAmount = baseAmount * vatRate;
-  //   const grossAmount = baseAmount + vatAmount;
-
-  //   return {
-  //     baseAmount,
-  //     vatAmount,
-  //     grossAmount,
-  //     adminCommissionAmount,
-  //     afterCommission,
-  //     afterRentAndUtilities,
-  //   };
-  // };
-
   // Kwota stała z umowy (po odjęciu dodatkowych odliczeń)
-  const fixedBaseAmount = Number(report.owner.fixedPaymentAmount ?? 0);
+  const fixedBaseAmount = Number(report.apartment.fixedPaymentAmount ?? 0);
   const fixedBaseAmountAfterDeductions =
     fixedBaseAmount - totalAdditionalDeductionsGross;
 
@@ -3907,359 +3872,308 @@ function OwnerPayoutCalculation({
   const kwotaBazowaNetto =
     fixedBaseAmount - rentAndUtilities - totalAdditionalDeductionsGross;
 
+  // NOWE: Obliczanie kwot w podsumowaniu na podstawie wybranego typu rozliczenia
+  const getSummaryValues = () => {
+    switch (finalPayoutType) {
+      case LocalPayoutType.FIXED_AMOUNT:
+        // Kwota stała: właściciel dostaje ustaloną kwotę, administrator dopłaca różnicę jeśli potrzeba
+        const ownerPayoutFixed = Math.max(0, fixedBaseAmountAfterDeductions);
+        const hostPayoutFixed = report.netIncome - ownerPayoutFixed;
+
+        return {
+          finalOwnerPayout: ownerPayoutFixed,
+          finalHostPayout: hostPayoutFixed, // Może być ujemne (administrator dopłaca)
+          finalIncomeTax: ownerPayoutFixed * 0.085,
+          taxBase: ownerPayoutFixed,
+        };
+
+      case LocalPayoutType.FIXED_AMOUNT_MINUS_UTILITIES:
+        // Kwota stała po mediach: właściciel dostaje ustaloną kwotę, administrator dopłaca różnicę jeśli potrzeba
+        const ownerPayoutFixedMinusUtilities = Math.max(0, kwotaBazowaNetto);
+        const hostPayoutFixedMinusUtilities =
+          report.netIncome - ownerPayoutFixedMinusUtilities;
+
+        return {
+          finalOwnerPayout: ownerPayoutFixedMinusUtilities,
+          finalHostPayout: hostPayoutFixedMinusUtilities, // Może być ujemne (administrator dopłaca)
+          finalIncomeTax: ownerPayoutFixedMinusUtilities * 0.085,
+          taxBase: ownerPayoutFixedMinusUtilities,
+        };
+
+      case LocalPayoutType.COMMISSION:
+      default:
+        return {
+          finalOwnerPayout: netIncomeAfterAllDeductions, // Kwota po prowizji i odliczeniach
+          finalHostPayout: adminCommissionAmount, // Prowizja admina
+          finalIncomeTax: netIncomeAfterAllDeductions * 0.085, // 8.5% podatku
+          taxBase: netIncomeAfterAllDeductions,
+        };
+    }
+  };
+
+  // Wartości podsumowania są obliczane w getSummaryValues() i używane bezpośrednio
+
   return (
     <div className="space-y-6">
-      <h4 className="text-xl font-semibold text-gray-800">
-        Rozliczenie Prowizji Złote Wynajmy
-      </h4>
-
-      {report.owner.paymentType === PaymentType.FIXED_AMOUNT && (
-        <>
-          <PayoutOption
-            id="final-fixed"
-            label="Rozliczenie właściciela: kwota stała"
-            payoutType={LocalPayoutType.FIXED_AMOUNT}
-            finalPayoutType={finalPayoutType}
-            handleFinalPayoutTypeChange={handleFinalPayoutTypeChange}
-            isSelected={finalPayoutType === LocalPayoutType.FIXED_AMOUNT}
-            color="green"
-            isDisabled={isReportSent}
-          >
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-              <SummaryField
-                label={`Kwota bazowa ${!isVatExempt ? "(netto)" : ""}`}
-                value={`${fixedBaseAmountAfterDeductions.toFixed(2)} PLN`}
-                subtext={
-                  <span>
-                    (kwota stała: {fixedBaseAmount.toFixed(2)} PLN
-                    {totalAdditionalDeductionsGross > 0 && (
-                      <>
-                        {" "}
-                        – odliczenia:{" "}
-                        {totalAdditionalDeductionsGross.toFixed(2)} PLN brutto
-                      </>
-                    )}
-                    {" = "}
-                    {fixedBaseAmountAfterDeductions.toFixed(2)} PLN)
-                  </span>
-                }
-                color="green"
-              />
-              {!isVatExempt && (
-                <SummaryField
-                  label="VAT"
-                  value={`${getVatAmount(fixedBaseAmountAfterDeductions, report.owner.vatOption).toFixed(2)} PLN (${report.owner.vatOption === "VAT_8" ? "8" : "23"}%)`}
-                  color="green"
+      {/* Przycisk przeliczania z loaderem */}
+      <div className="mb-4">
+        <button
+          onClick={handleRefresh}
+          disabled={isRefreshing || isReportSent}
+          className="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 hover:bg-blue-700"
+        >
+          {isRefreshing ? (
+            <>
+              <svg
+                className="mr-2 h-4 w-4 animate-spin"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+              Przeliczanie...
+            </>
+          ) : (
+            <>
+              <svg
+                className="mr-2 h-4 w-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                 />
-              )}
-              <SummaryField
-                label="DO WYPŁATY"
-                value={
-                  isVatExempt
-                    ? `${fixedBaseAmountAfterDeductions.toFixed(2)} PLN`
-                    : `${getGrossAmount(fixedBaseAmountAfterDeductions, report.owner.vatOption).toFixed(2)} PLN`
-                }
-                isPayout
-                color="green"
-              />
-            </div>
-          </PayoutOption>
+              </svg>
+              Przelicz podsumowanie
+            </>
+          )}
+        </button>
 
-          <PayoutOption
-            id="final-fixed-minus-utilities"
-            label="Rozliczenie właściciela: kwota stała po odliczeniu mediów"
-            payoutType={LocalPayoutType.FIXED_AMOUNT_MINUS_UTILITIES}
-            finalPayoutType={finalPayoutType}
-            handleFinalPayoutTypeChange={handleFinalPayoutTypeChange}
-            isSelected={
-              finalPayoutType === LocalPayoutType.FIXED_AMOUNT_MINUS_UTILITIES
+        {/* Progress bar podczas odświeżania */}
+        {isRefreshing && (
+          <div className="mt-2">
+            <div className="h-2 overflow-hidden rounded-full bg-gray-200">
+              <div
+                className="h-full animate-pulse rounded-full bg-blue-600"
+                style={{ width: "100%" }}
+              ></div>
+            </div>
+            <p className="mt-1 text-sm text-gray-600">Odświeżanie danych...</p>
+          </div>
+        )}
+      </div>
+
+      {/* Zawsze pokazuj 3 opcje rozliczenia */}
+      <PayoutOption
+        id="final-commission"
+        label="Rozliczenie właściciela: prowizyjne"
+        payoutType={LocalPayoutType.COMMISSION}
+        finalPayoutType={finalPayoutType}
+        handleFinalPayoutTypeChange={handleFinalPayoutTypeChange}
+        isSelected={finalPayoutType === LocalPayoutType.COMMISSION}
+        color="blue"
+        isDisabled={isReportSent}
+      >
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+          <SummaryField
+            label={`Kwota po prowizji Złote Wynajmy ${!isVatExempt ? "(netto)" : ""}`}
+            value={`${netIncomeAfterAdminCommission.toFixed(2)} PLN`}
+            color="blue"
+          />
+          <SummaryField
+            label={`Kwota bazowa ${!isVatExempt ? "(netto)" : ""}`}
+            value={`${netIncomeAfterAllDeductions.toFixed(2)} PLN`}
+            subtext={
+              <span className="block text-xs text-blue-600">
+                (po odliczeniu czynszu: {(report.rentAmount ?? 0).toFixed(2)}{" "}
+                PLN + mediów: {(report.utilitiesAmount ?? 0).toFixed(2)} PLN +
+                dodatkowych odliczeń:{" "}
+                {totalAdditionalDeductionsGross.toFixed(2)} PLN brutto ={" "}
+                {(
+                  (report.rentAmount ?? 0) +
+                  (report.utilitiesAmount ?? 0) +
+                  totalAdditionalDeductionsGross
+                ).toFixed(2)}{" "}
+                PLN)
+              </span>
+            }
+            color="blue"
+          />
+          {!isVatExempt && (
+            <SummaryField
+              label="VAT"
+              value={`${getVatAmount(netIncomeAfterAllDeductions, report.owner.vatOption).toFixed(2)} PLN (${report.owner.vatOption === "VAT_8" ? "8" : "23"}%)`}
+              color="blue"
+            />
+          )}
+          <SummaryField
+            label="DO WYPŁATY"
+            value={
+              isVatExempt
+                ? `${netIncomeAfterAllDeductions.toFixed(2)} PLN`
+                : `${getGrossAmount(netIncomeAfterAllDeductions, report.owner.vatOption).toFixed(2)} PLN`
+            }
+            isPayout
+            color="blue"
+          />
+        </div>
+      </PayoutOption>
+
+      <PayoutOption
+        id="final-fixed"
+        label="Rozliczenie właściciela: kwota stała"
+        payoutType={LocalPayoutType.FIXED_AMOUNT}
+        finalPayoutType={finalPayoutType}
+        handleFinalPayoutTypeChange={handleFinalPayoutTypeChange}
+        isSelected={finalPayoutType === LocalPayoutType.FIXED_AMOUNT}
+        color="green"
+        isDisabled={isReportSent}
+      >
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <SummaryField
+            label={`Kwota bazowa ${!isVatExempt ? "(netto)" : ""}`}
+            value={`${fixedBaseAmountAfterDeductions.toFixed(2)} PLN`}
+            subtext={
+              <span>
+                (kwota stała: {fixedBaseAmount.toFixed(2)} PLN
+                {totalAdditionalDeductionsGross > 0 && (
+                  <>
+                    {" "}
+                    – odliczenia: {totalAdditionalDeductionsGross.toFixed(
+                      2,
+                    )}{" "}
+                    PLN brutto
+                  </>
+                )}
+                {" = "}
+                {fixedBaseAmountAfterDeductions.toFixed(2)} PLN)
+              </span>
             }
             color="green"
-            isDisabled={isReportSent}
-          >
-            {finalPayoutType ===
-              LocalPayoutType.FIXED_AMOUNT_MINUS_UTILITIES && (
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                <SummaryField
-                  label={`Kwota bazowa ${!isVatExempt ? "(netto)" : ""}`}
-                  value={`${kwotaBazowaNetto.toFixed(2)} PLN`}
-                  subtext={
-                    <span>
-                      (kwota stała: {fixedBaseAmount.toFixed(2)} PLN
-                      {" - czynsz: "}
-                      {(report.rentAmount ?? 0).toFixed(2)} PLN
-                      {" - media: "}
-                      {(report.utilitiesAmount ?? 0).toFixed(2)} PLN
-                      {totalAdditionalDeductionsGross > 0 && (
-                        <>
-                          {" - dodatkowe odliczenia: "}
-                          {totalAdditionalDeductionsGross.toFixed(2)} PLN brutto
-                        </>
-                      )}
-                      {" = "}
-                      {kwotaBazowaNetto.toFixed(2)} PLN)
-                    </span>
-                  }
-                  color="green"
-                />
-                {!isVatExempt && (
-                  <SummaryField
-                    label="VAT"
-                    value={`${getVatAmount(kwotaBazowaNetto, report.owner.vatOption).toFixed(2)} PLN (${report.owner.vatOption === "VAT_8" ? "8" : "23"}%)`}
-                    color="green"
-                  />
-                )}
-                <SummaryField
-                  label="DO WYPŁATY"
-                  value={
-                    isVatExempt
-                      ? `${kwotaBazowaNetto.toFixed(2)} PLN`
-                      : `${getGrossAmount(kwotaBazowaNetto, report.owner.vatOption).toFixed(2)} PLN`
-                  }
-                  isPayout
-                  color="green"
-                />
-              </div>
-            )}
-          </PayoutOption>
-
-          <PayoutOption
-            id="final-commission"
-            label="Rozliczenie właściciela: prowizyjne"
-            payoutType={LocalPayoutType.COMMISSION}
-            finalPayoutType={finalPayoutType}
-            handleFinalPayoutTypeChange={handleFinalPayoutTypeChange}
-            isSelected={finalPayoutType === LocalPayoutType.COMMISSION}
-            color="blue"
-            isDisabled={isReportSent}
-          >
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-              <SummaryField
-                label={`Kwota po prowizji Złote Wynajmy ${!isVatExempt ? "(netto)" : ""}`}
-                value={`${netIncomeAfterAdminCommission.toFixed(2)} PLN`}
-                color="blue"
-              />
-              <SummaryField
-                label={`Kwota bazowa ${!isVatExempt ? "(netto)" : ""}`}
-                value={`${netIncomeAfterAllDeductions.toFixed(2)} PLN`}
-                subtext={
-                  <span className="block text-xs text-blue-600">
-                    (po odliczeniu czynszu:{" "}
-                    {(report.rentAmount ?? 0).toFixed(2)} PLN + mediów:{" "}
-                    {(report.utilitiesAmount ?? 0).toFixed(2)} PLN + dodatkowych
-                    odliczeń: {totalAdditionalDeductionsGross.toFixed(2)} PLN
-                    brutto ={" "}
-                    {(
-                      (report.rentAmount ?? 0) +
-                      (report.utilitiesAmount ?? 0) +
-                      totalAdditionalDeductionsGross
-                    ).toFixed(2)}{" "}
-                    PLN)
-                  </span>
-                }
-                color="blue"
-              />
-              {!isVatExempt && (
-                <SummaryField
-                  label="VAT"
-                  value={`${getVatAmount(netIncomeAfterAllDeductions, report.owner.vatOption).toFixed(2)} PLN (${report.owner.vatOption === "VAT_8" ? "8" : "23"}%)`}
-                  color="blue"
-                />
-              )}
-              <SummaryField
-                label="DO WYPŁATY"
-                value={
-                  isVatExempt
-                    ? `${netIncomeAfterAllDeductions.toFixed(2)} PLN`
-                    : `${getGrossAmount(netIncomeAfterAllDeductions, report.owner.vatOption).toFixed(2)} PLN`
-                }
-                isPayout
-                color="blue"
-              />
-            </div>
-          </PayoutOption>
-        </>
-      )}
-
-      {report.owner.paymentType === PaymentType.COMMISSION && (
-        <div className="rounded-lg bg-green-50 p-4">
-          <h5 className="mb-2 text-lg font-medium text-green-800">
-            Ostateczna wypłata dla właściciela (Prowizyjne)
-          </h5>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+          />
+          {!isVatExempt && (
             <SummaryField
-              label={`Kwota po prowizji Złote Wynajmy ${!isVatExempt ? "(netto)" : ""}`}
-              value={`${netIncomeAfterAdminCommission.toFixed(2)} PLN`}
+              label="VAT"
+              value={`${getVatAmount(fixedBaseAmountAfterDeductions, report.owner.vatOption).toFixed(2)} PLN (${report.owner.vatOption === "VAT_8" ? "8" : "23"}%)`}
               color="green"
             />
-            <SummaryField
-              label="Kwota bazowa (netto)"
-              value={`${netIncomeAfterAllDeductions.toFixed(2)} PLN`}
-              subtext={
-                totalAdditionalDeductionsGross > 0 && (
-                  <span className="block text-xs text-green-600">
-                    (po odliczeniu {totalAdditionalDeductionsGross.toFixed(2)}{" "}
-                    PLN)
-                  </span>
-                )
-              }
-              color="green"
-            />
-            {!isVatExempt && (
-              <SummaryField
-                label="VAT"
-                value={`${getVatAmount(netIncomeAfterAllDeductions, report.owner.vatOption).toFixed(2)} PLN (${report.owner.vatOption === "VAT_8" ? "8" : "23"}%)`}
-                color="green"
-              />
-            )}
-            <SummaryField
-              label="DO WYPŁATY"
-              value={
-                isVatExempt
-                  ? `${netIncomeAfterAllDeductions.toFixed(2)} PLN`
-                  : `${getGrossAmount(netIncomeAfterAllDeductions, report.owner.vatOption).toFixed(2)} PLN`
-              }
-              isPayout
-              color="green"
-            />
-          </div>
+          )}
+          <SummaryField
+            label="DO WYPŁATY"
+            value={
+              isVatExempt
+                ? `${fixedBaseAmountAfterDeductions.toFixed(2)} PLN`
+                : `${getGrossAmount(fixedBaseAmountAfterDeductions, report.owner.vatOption).toFixed(2)} PLN`
+            }
+            isPayout
+            color="green"
+          />
         </div>
-      )}
+      </PayoutOption>
 
-      <div className="mt-8">
-        <h4 className="mb-4 text-xl font-semibold text-gray-800">
-          Podsumowanie
+      <PayoutOption
+        id="final-fixed-minus-utilities"
+        label="Rozliczenie właściciela: kwota stała po odliczeniu mediów"
+        payoutType={LocalPayoutType.FIXED_AMOUNT_MINUS_UTILITIES}
+        finalPayoutType={finalPayoutType}
+        handleFinalPayoutTypeChange={handleFinalPayoutTypeChange}
+        isSelected={
+          finalPayoutType === LocalPayoutType.FIXED_AMOUNT_MINUS_UTILITIES
+        }
+        color="green"
+        isDisabled={isReportSent}
+      >
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <SummaryField
+            label={`Kwota bazowa ${!isVatExempt ? "(netto)" : ""}`}
+            value={`${kwotaBazowaNetto.toFixed(2)} PLN`}
+            subtext={
+              <span>
+                (kwota stała: {fixedBaseAmount.toFixed(2)} PLN
+                {" - czynsz: "}
+                {(report.rentAmount ?? 0).toFixed(2)} PLN
+                {" - media: "}
+                {(report.utilitiesAmount ?? 0).toFixed(2)} PLN
+                {totalAdditionalDeductionsGross > 0 && (
+                  <>
+                    {" - dodatkowe odliczenia: "}
+                    {totalAdditionalDeductionsGross.toFixed(2)} PLN brutto
+                  </>
+                )}
+                {" = "}
+                {kwotaBazowaNetto.toFixed(2)} PLN)
+              </span>
+            }
+            color="green"
+          />
+          {!isVatExempt && (
+            <SummaryField
+              label="VAT"
+              value={`${getVatAmount(kwotaBazowaNetto, report.owner.vatOption).toFixed(2)} PLN (${report.owner.vatOption === "VAT_8" ? "8" : "23"}%)`}
+              color="green"
+            />
+          )}
+          <SummaryField
+            label="DO WYPŁATY"
+            value={
+              isVatExempt
+                ? `${kwotaBazowaNetto.toFixed(2)} PLN`
+                : `${getGrossAmount(kwotaBazowaNetto, report.owner.vatOption).toFixed(2)} PLN`
+            }
+            isPayout
+            color="green"
+          />
+        </div>
+      </PayoutOption>
+
+      {/* Sekcja podsumowania z 4 polami */}
+      <div className="mt-8 rounded-lg bg-gray-50 p-6">
+        <h4 className="mb-4 text-lg font-semibold text-gray-800">
+          Podsumowanie rozliczenia
         </h4>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-          <div
-            className={`rounded-md p-4 ${
-              report.finalSettlementType === "COMMISSION"
-                ? "bg-blue-100"
-                : "bg-green-100"
-            }`}
-          >
-            <p
-              className={`text-sm ${
-                report.finalSettlementType === "COMMISSION"
-                  ? "text-blue-700"
-                  : "text-green-700"
-              }`}
-            >
-              Podstawa opodatkowania kwota bazowa{" "}
-              {report.owner.vatOption === "NO_VAT" ? "(brutto)" : "(netto)"}:
-            </p>
-            <p
-              className={`text-2xl font-bold ${
-                report.finalSettlementType === "COMMISSION"
-                  ? "text-blue-900"
-                  : "text-green-900"
-              }`}
-            >
-              {report.taxBase?.toFixed(2) ?? "0.00"} PLN
-            </p>
-            {finalCardLoaders.taxBase && (
-              <ProgressBar
-                progress={finalCardProgress.taxBase}
-                color={
-                  report.finalSettlementType === "COMMISSION" ? "blue" : "green"
-                }
-              />
-            )}
-          </div>
-          <div
-            className={`rounded-md p-4 ${
-              report.finalSettlementType === "COMMISSION"
-                ? "bg-blue-100"
-                : "bg-green-100"
-            }`}
-          >
-            <p
-              className={`text-sm ${
-                report.finalSettlementType === "COMMISSION"
-                  ? "text-blue-700"
-                  : "text-green-700"
-              }`}
-            >
-              Ostateczna wypłata Właściciela:
-            </p>
-            <p
-              className={`text-2xl font-bold ${
-                report.finalSettlementType === "COMMISSION"
-                  ? "text-blue-900"
-                  : "text-green-900"
-              }`}
-            >
-              {report.finalOwnerPayout
-                ? `${report.finalOwnerPayout.toFixed(2)} PLN`
-                : "0.00 PLN"}
-            </p>
-            {finalCardLoaders.ownerPayout && (
-              <ProgressBar
-                progress={finalCardProgress.ownerPayout}
-                color="green"
-              />
-            )}
-          </div>
-          <div className="rounded-md bg-purple-100 p-4">
-            <p className="text-sm text-purple-700">
-              Ostateczna prowizja Złote Wynajmy:
-            </p>
-            <p className="text-2xl font-bold text-purple-900">
-              {report.finalHostPayout
-                ? `${report.finalHostPayout.toFixed(2)} PLN`
-                : "0.00 PLN"}
-            </p>
-            {finalCardLoaders.hostPayout && (
-              <ProgressBar
-                progress={finalCardProgress.hostPayout}
-                color="purple"
-              />
-            )}
-            {recalculationProgress && (
-              <p className="mt-1 text-xs text-purple-600">
-                {recalculationProgress}
-              </p>
-            )}
-            <p className="mt-1 text-xs text-purple-600">
-              {report.finalSettlementType === "COMMISSION"
-                ? "Rozliczenie prowizyjne"
-                : report.finalSettlementType === "FIXED"
-                  ? "Rozliczenie kwota stała"
-                  : report.finalSettlementType === "FIXED_MINUS_UTILITIES"
-                    ? "Rozliczenie kwota stała po odliczeniu mediów"
-                    : "Typ rozliczenia nie określony"}
-            </p>
-            {(report.finalSettlementType === "FIXED" ||
-              report.finalSettlementType === "FIXED_MINUS_UTILITIES") && (
-              <p className="mt-1 text-xs text-purple-500">
-                Różnica:{" "}
-                {(
-                  (report.finalHostPayout ?? 0) -
-                  (report.netIncome ?? 0) * 0.25
-                ).toFixed(2)}{" "}
-                PLN (rzeczywista prowizja{" "}
-                {(report.finalHostPayout ?? 0).toFixed(2)} PLN - standardowa
-                prowizja {((report.netIncome ?? 0) * 0.25).toFixed(2)} PLN)
-              </p>
-            )}
-          </div>
-          <div className="rounded-md bg-yellow-100 p-4">
-            <p className="text-sm text-yellow-700">
-              Zryczałtowany podatek dochodowy 8.5% od wypłaty właściciela:
-            </p>
-            <p className="text-2xl font-bold text-yellow-900">
-              {(
-                report as ReportDetails & { finalIncomeTax?: number }
-              ).finalIncomeTax?.toFixed(2) ?? "0.00"}{" "}
-              PLN
-            </p>
-            {finalCardLoaders.incomeTax && (
-              <ProgressBar
-                progress={finalCardProgress.incomeTax}
-                color="yellow"
-              />
-            )}
-          </div>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <SummaryField
+            label="Podstawa opodatkowania"
+            value={`${getSummaryValues().taxBase.toFixed(2)} PLN`}
+            color="gray"
+          />
+          <SummaryField
+            label="Wypłata właściciela"
+            value={`${getSummaryValues().finalOwnerPayout.toFixed(2)} PLN`}
+            isPayout
+            color="green"
+          />
+          <SummaryField
+            label="Prowizja Złote Wynajmy"
+            value={`${getSummaryValues().finalHostPayout.toFixed(2)} PLN`}
+            color={getSummaryValues().finalHostPayout < 0 ? "red" : "blue"}
+            subtext={
+              getSummaryValues().finalHostPayout < 0
+                ? "Zarządca dopłaca różnicę w kwocie stałej!"
+                : undefined
+            }
+          />
+          <SummaryField
+            label="Podatek dochodowy"
+            value={`${getSummaryValues().finalIncomeTax.toFixed(2)} PLN`}
+            color="gray"
+          />
         </div>
       </div>
     </div>
@@ -4267,34 +4181,6 @@ function OwnerPayoutCalculation({
 }
 
 // Progress Bar Component
-const ProgressBar = ({
-  progress,
-  color = "blue",
-}: {
-  progress: number;
-  color?: "blue" | "green" | "yellow" | "purple";
-}) => {
-  const colors = {
-    blue: "bg-blue-600",
-    green: "bg-green-600",
-    yellow: "bg-yellow-600",
-    purple: "bg-purple-600",
-  };
-
-  return (
-    <div className="mt-2">
-      <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
-        <div
-          className={`h-full ${colors[color]} transition-all duration-300 ease-out`}
-          style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
-        />
-      </div>
-      <p className="mt-1 text-center text-xs text-gray-600">
-        {progress < 100 ? `${Math.round(progress)}%` : "Zakończono"}
-      </p>
-    </div>
-  );
-};
 
 // Sortable Item Component for Deductions
 function SortableDeductionItem({
@@ -4304,8 +4190,8 @@ function SortableDeductionItem({
   onDelete,
 }: {
   id: string;
-  deduction: ReportDetails["additionalDeductions"][0];
-  onEdit: (deduction: ReportDetails["additionalDeductions"][0]) => void;
+  deduction: DeductionItem;
+  onEdit: (deduction: DeductionItem) => void;
   onDelete: (id: string) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition } =

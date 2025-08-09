@@ -23,12 +23,16 @@ type ReportItemWithReservation = ReportItem & {
 };
 
 type OwnerReport = {
-  apartment: { id: number; name: string; address: string };
+  apartment: {
+    id: number;
+    name: string;
+    address: string;
+    paymentType: PaymentType;
+    fixedPaymentAmount: number | null;
+  };
   owner: {
     id: string;
     isActive: boolean;
-    paymentType: PaymentType;
-    fixedPaymentAmount: number | null;
     vatOption: VATOption;
   };
   items: ReportItemWithReservation[];
@@ -194,7 +198,7 @@ export default function OwnerReportDetailsPage() {
 
   const rentAndUtilities =
     (report.rentAmount ?? 0) + (report.utilitiesAmount ?? 0);
-  const fixedBaseAmount = Number(report.owner.fixedPaymentAmount ?? 0);
+  const fixedBaseAmount = Number(report.apartment.fixedPaymentAmount ?? 0);
   const kwotaBazowaNetto =
     fixedBaseAmount - rentAndUtilities - totalAdditionalDeductionsGross;
 

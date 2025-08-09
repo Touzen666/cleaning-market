@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/trpc/react";
-import { PaymentType, VATOption } from "@/lib/types";
+import { VATOption } from "@/lib/types";
 
 export default function EditOwnerPage({
   params,
@@ -26,8 +26,6 @@ export default function EditOwnerPage({
     postalCode: string;
     profileImageUrl: string | null;
     isActive: boolean;
-    paymentType: PaymentType;
-    fixedPaymentAmount: number;
     vatOption: VATOption;
   }>({
     firstName: "",
@@ -41,8 +39,6 @@ export default function EditOwnerPage({
     postalCode: "",
     profileImageUrl: null,
     isActive: true,
-    paymentType: PaymentType.COMMISSION,
-    fixedPaymentAmount: 0,
     vatOption: VATOption.NO_VAT,
   });
 
@@ -52,7 +48,7 @@ export default function EditOwnerPage({
   // Mutacja do aktualizacji właściciela
   const updateOwnerMutation = api.apartmentOwners.update.useMutation({
     onSuccess: () => {
-      router.push(`/admin/owners/${ownerId}`);
+      // Usuwamy automatyczne przekierowanie - użytkownik sam zdecyduje kiedy opuścić stronę
     },
     onError: (err: { message: string }) => {
       alert(`Błąd aktualizacji: ${err.message}`);
@@ -75,8 +71,6 @@ export default function EditOwnerPage({
         postalCode: owner.postalCode ?? "",
         profileImageUrl: owner.profileImageUrl,
         isActive: owner.isActive,
-        paymentType: owner.paymentType,
-        fixedPaymentAmount: Number(owner.fixedPaymentAmount) ?? 0,
         vatOption: owner.vatOption,
       });
     }
@@ -305,50 +299,6 @@ export default function EditOwnerPage({
               <label htmlFor="isActive" className="ml-2 text-sm text-gray-700">
                 Aktywny
               </label>
-            </div>
-
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Typ płatności
-                </label>
-                <select
-                  value={form.paymentType}
-                  onChange={(e) =>
-                    setForm((f) => ({
-                      ...f,
-                      paymentType: e.target.value as PaymentType,
-                    }))
-                  }
-                  className="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
-                >
-                  <option value={PaymentType.COMMISSION}>
-                    Prowizja od przychodów
-                  </option>
-                  <option value={PaymentType.FIXED_AMOUNT}>Kwota stała</option>
-                </select>
-              </div>
-
-              {form.paymentType === PaymentType.FIXED_AMOUNT && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Kwota stała (PLN)
-                  </label>
-                  <input
-                    type="number"
-                    value={form.fixedPaymentAmount}
-                    onChange={(e) =>
-                      setForm((f) => ({
-                        ...f,
-                        fixedPaymentAmount: Number(e.target.value),
-                      }))
-                    }
-                    min={0}
-                    step={0.01}
-                    className="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
-                  />
-                </div>
-              )}
             </div>
 
             <div>

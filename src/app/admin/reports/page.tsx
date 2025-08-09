@@ -29,6 +29,10 @@ export default function AdminReportsPage() {
     ownerId: selectedOwner || undefined,
   });
 
+  const historicalReportsQuery = api.monthlyReports.getAllHistorical.useQuery({
+    ownerId: selectedOwner || undefined,
+  });
+
   const ownersQuery = api.apartmentOwners.getAll.useQuery();
 
   // TRPC mutations
@@ -66,7 +70,14 @@ export default function AdminReportsPage() {
   });
 
   const reports = reportsQuery.data ?? [];
+  const historicalReports = historicalReportsQuery.data ?? [];
   const owners = ownersQuery.data ?? [];
+
+  // Połącz aktywne i historyczne raporty
+  const allReports = [
+    ...reports.map((report) => ({ ...report, isHistorical: false })),
+    ...historicalReports.map((report) => ({ ...report, isHistorical: true })),
+  ];
 
   // Używamy nowych funkcji z lib/status-translations
   const getStatusColor = getReportStatusColor;
@@ -401,9 +412,12 @@ export default function AdminReportsPage() {
             <h3 className="text-lg font-medium text-gray-900">
               Raporty miesięczne
             </h3>
+            <p className="mt-1 text-sm text-gray-600">
+              Raporty zarchiwizowane i anulowane są oznaczone na czerwono
+            </p>
           </div>
           <div className="border-t border-gray-200">
-            {reports.length === 0 ? (
+            {allReports.length === 0 ? (
               <div className="py-12 text-center">
                 <svg
                   className="mx-auto h-12 w-12 text-gray-400"
@@ -478,8 +492,15 @@ export default function AdminReportsPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 bg-white">
-                    {reports.map((report) => (
-                      <tr key={report.id} className="hover:bg-gray-50">
+                    {allReports.map((report) => (
+                      <tr
+                        key={report.id}
+                        className={`hover:bg-gray-50 ${
+                          report.isHistorical
+                            ? "bg-red-50 hover:bg-red-100"
+                            : ""
+                        }`}
+                      >
                         <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
                           {report.month.toString().padStart(2, "0")}/
                           {report.year}
@@ -522,13 +543,20 @@ export default function AdminReportsPage() {
                           </span>
                         </td>
                         <td className="px-6 py-4">
-                          <span
-                            className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${getStatusColor(
-                              report.status,
-                            )}`}
-                          >
-                            {getStatusText(report.status)}
-                          </span>
+                          <div className="space-y-1">
+                            <span
+                              className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${getStatusColor(
+                                report.status,
+                              )}`}
+                            >
+                              {getStatusText(report.status)}
+                            </span>
+                            {report.isHistorical && (
+                              <div className="text-xs font-medium text-red-600">
+                                Zarchiwizowany i anulowany
+                              </div>
+                            )}
+                          </div>
                         </td>
                         <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
                           <div className="flex justify-end space-x-2">
@@ -540,49 +568,53 @@ export default function AdminReportsPage() {
                             >
                               Szczegóły
                             </button>
-                            {report.status === "DRAFT" && (
-                              <button
-                                onClick={() =>
-                                  handleStatusChange(report.id, "REVIEW")
-                                }
-                                disabled={updateStatusMutation.isPending}
-                                className="text-indigo-600 disabled:opacity-50 hover:text-indigo-900"
-                              >
-                                {updateStatusMutation.isPending
-                                  ? "Przekazywanie..."
-                                  : "Przekaż do weryfikacji"}
-                              </button>
-                            )}
-                            {report.status === "REVIEW" && (
-                              <button
-                                onClick={() =>
-                                  handleStatusChange(report.id, "APPROVED")
-                                }
-                                disabled={updateStatusMutation.isPending}
-                                className="text-green-600 disabled:opacity-50 hover:text-green-900"
-                              >
-                                {updateStatusMutation.isPending
-                                  ? "Zatwierdzanie..."
-                                  : "Zatwierdź"}
-                              </button>
-                            )}
-                            {report.status === "APPROVED" && (
-                              <button
-                                onClick={() =>
-                                  sendReportMutation.mutate({
-                                    reportId: report.id,
-                                  })
-                                }
-                                disabled={sendReportMutation.isPending}
-                                className="flex items-center text-blue-600 disabled:opacity-50 hover:text-blue-900"
-                              >
-                                <PaperAirplaneIcon className="mr-1 h-4 w-4" />
-                                {sendReportMutation.isPending
-                                  ? "Wysyłanie..."
-                                  : "Wyślij"}
-                              </button>
-                            )}
-                            {!report.finalSettlementType &&
+                            {!report.isHistorical &&
+                              report.status === "DRAFT" && (
+                                <button
+                                  onClick={() =>
+                                    handleStatusChange(report.id, "REVIEW")
+                                  }
+                                  disabled={updateStatusMutation.isPending}
+                                  className="text-indigo-600 disabled:opacity-50 hover:text-indigo-900"
+                                >
+                                  {updateStatusMutation.isPending
+                                    ? "Przekazywanie..."
+                                    : "Przekaż do weryfikacji"}
+                                </button>
+                              )}
+                            {!report.isHistorical &&
+                              report.status === "REVIEW" && (
+                                <button
+                                  onClick={() =>
+                                    handleStatusChange(report.id, "APPROVED")
+                                  }
+                                  disabled={updateStatusMutation.isPending}
+                                  className="text-green-600 disabled:opacity-50 hover:text-green-900"
+                                >
+                                  {updateStatusMutation.isPending
+                                    ? "Zatwierdzanie..."
+                                    : "Zatwierdź"}
+                                </button>
+                              )}
+                            {!report.isHistorical &&
+                              report.status === "APPROVED" && (
+                                <button
+                                  onClick={() =>
+                                    sendReportMutation.mutate({
+                                      reportId: report.id,
+                                    })
+                                  }
+                                  disabled={sendReportMutation.isPending}
+                                  className="flex items-center text-blue-600 disabled:opacity-50 hover:text-blue-900"
+                                >
+                                  <PaperAirplaneIcon className="mr-1 h-4 w-4" />
+                                  {sendReportMutation.isPending
+                                    ? "Wysyłanie..."
+                                    : "Wyślij"}
+                                </button>
+                              )}
+                            {!report.isHistorical &&
+                              !report.finalSettlementType &&
                               report.status !== "SENT" && (
                                 <div
                                   className="group relative"

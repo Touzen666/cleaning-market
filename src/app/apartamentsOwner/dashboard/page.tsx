@@ -62,7 +62,11 @@ function ExitImpersonationBanner() {
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-center bg-yellow-400 p-3 text-center font-semibold text-black shadow-lg">
       <ExclamationTriangleIcon className="mr-3 h-6 w-6" />
-      <span>Jesteś w trybie podglądu jako właściciel.</span>
+      <span>
+        Jesteś w trybie podglądu jako właściciel. Możesz przeglądać panel
+        właściciela, ale pamiętaj, że wszystkie zmiany będą widoczne dla
+        właściciela.
+      </span>
       <button
         onClick={handleExitImpersonation}
         className="ml-4 rounded-md bg-black px-3 py-1 text-sm text-white hover:bg-gray-800"
@@ -171,9 +175,12 @@ export default function OwnerDashboard() {
     data: dashboardData,
     isLoading: isLoadingDashboard,
     error: dashboardError,
-  } = api.ownerAuth.getDashboardData.useQuery(undefined, {
-    enabled: !!ownerEmail,
-  });
+  } = api.ownerAuth.getDashboardData.useQuery(
+    { ownerEmail: ownerEmail! },
+    {
+      enabled: !!ownerEmail,
+    },
+  );
 
   // Get owner profile data for avatar
   const { data: ownerProfile } = api.ownerAuth.getOwnerProfile.useQuery(

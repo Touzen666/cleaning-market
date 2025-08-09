@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
-import { UserType, PaymentType, VATOption } from '@prisma/client';
+import { UserType, VATOption } from '@prisma/client';
 import { _sendWelcomeEmail } from "./email";
 import { randomBytes } from "crypto";
 
@@ -110,8 +110,6 @@ export const apartmentOwnersRouter = createTRPCRouter({
             lastName: z.string().min(1),
             phone: z.string().optional(),
             apartmentIds: z.array(z.number()).optional(),
-            paymentType: z.enum([PaymentType.COMMISSION, PaymentType.FIXED_AMOUNT]).default(PaymentType.COMMISSION),
-            fixedPaymentAmount: z.number().optional(),
             vatOption: z.enum([VATOption.NO_VAT, VATOption.VAT_8, VATOption.VAT_23]).default(VATOption.NO_VAT),
         }))
         .mutation(async ({ input, ctx }) => {
@@ -148,8 +146,6 @@ export const apartmentOwnersRouter = createTRPCRouter({
                     phone: input.phone,
                     temporaryPassword,
                     temporaryPasswordExpiresAt,
-                    paymentType: input.paymentType,
-                    fixedPaymentAmount: input.fixedPaymentAmount,
                     vatOption: input.vatOption,
                     createdByAdminId: ctx.session.user.id,
                 },
@@ -224,8 +220,6 @@ export const apartmentOwnersRouter = createTRPCRouter({
             postalCode: z.string().optional(),
             profileImageUrl: z.string().nullable().optional(),
             isActive: z.boolean(),
-            paymentType: z.enum([PaymentType.COMMISSION, PaymentType.FIXED_AMOUNT]),
-            fixedPaymentAmount: z.number().optional(),
             vatOption: z.enum([VATOption.NO_VAT, VATOption.VAT_8, VATOption.VAT_23]),
         }))
         .mutation(async ({ input, ctx }) => {
@@ -423,6 +417,13 @@ export const apartmentOwnersRouter = createTRPCRouter({
             return {
                 ...owner,
                 profileImageUrl,
+                ownedApartments: owner.ownedApartments.map(ownership => ({
+                    ...ownership,
+                    apartment: {
+                        ...ownership.apartment,
+                        id: ownership.apartment.id.toString(),
+                    },
+                })),
             };
         }),
 
@@ -780,6 +781,7 @@ export const apartmentOwnersRouter = createTRPCRouter({
                         const { _count, ...apartmentData } = ownership.apartment;
                         return {
                             ...apartmentData,
+                            id: apartmentData.id.toString(),
                             reservations: _count.reservations,
                         };
                     }),
