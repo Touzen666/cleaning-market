@@ -189,9 +189,19 @@ export default function OwnerReportDetailsPage() {
   );
   const netIncome = totalRevenue - totalExpenses;
 
-  // Rezerwacje/przychody
+  // Rezerwacje/przychody (tylko skutecznie zrealizowane)
   const reservationItems: ReportItemWithReservation[] = revenueItems.filter(
-    (i: ReportItemWithReservation) => i.reservation,
+    (i: ReportItemWithReservation) => {
+      const r = i.reservation;
+      if (!r) return false;
+      const guests = (r.adults ?? 0) + (r.children ?? 0);
+      const unknownGuests = r.adults == null && r.children == null;
+      return (
+        r.status !== "Anulowana" &&
+        r.status !== "Odrzucona przez obsługę" &&
+        (guests > 0 || unknownGuests)
+      );
+    },
   );
 
   // Po pobraniu report (i po warunku ochronnym):
@@ -466,9 +476,6 @@ export default function OwnerReportDetailsPage() {
                       <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                         Kwota
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                        Kategoria
-                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 bg-white">
@@ -528,15 +535,6 @@ export default function OwnerReportDetailsPage() {
                         </td>
                         <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-green-600">
                           +{item.amount.toFixed(2)} {item.currency}
-                        </td>
-                        <td className="px-6 py-4">
-                          <span
-                            className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${getItemTypeColor(
-                              item.type,
-                            )}`}
-                          >
-                            {item.category}
-                          </span>
                         </td>
                       </tr>
                     ))}

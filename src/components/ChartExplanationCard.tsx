@@ -59,14 +59,34 @@ export default function ChartExplanationCard({
   showPieChart = true,
   className = "",
 }: ChartExplanationCardProps) {
-  // Dla trybu costsVsPayout przeliczamy procenty tak, żeby suma wynosiła 100%
+  // Przetwarzanie danych na potrzeby wyświetlenia:
+  // - costsVsPayout: normalizacja do 100%
+  // - normal/fixedCosts: dopełnienie kafelkiem "Pozostałe", aby suma = 100%
   const processedData = React.useMemo(() => {
+    const round1 = (v: number) => Number(v.toFixed(1));
+
     if (mode === "costsVsPayout") {
       const total = data.reduce((sum, item) => sum + item.value, 0);
       return data.map((item) => ({
         ...item,
-        value: total > 0 ? (item.value / total) * 100 : 0,
+        value: total > 0 ? round1((item.value / total) * 100) : 0,
       }));
+    }
+
+    // Tryby: normal, fixedCosts → procenty już są liczone względem przychodu.
+    // Jeżeli suma < 100 (np. brakujące kategorie lub 0%), dodajemy "Pozostałe".
+    const total = data.reduce((sum, item) => sum + item.value, 0);
+    const remainder = Math.max(0, round1(100 - total));
+    if (remainder > 0.0) {
+      return [
+        ...data,
+        {
+          name: "Pozostałe",
+          value: remainder,
+          fill: "#95a5a6",
+          description: "Pozostałe koszty i/lub kategorie nieujęte powyżej",
+        },
+      ];
     }
     return data;
   }, [data, mode]);
@@ -145,6 +165,10 @@ export default function ChartExplanationCard({
   const totalPercentage = processedData.reduce(
     (sum, item) => sum + item.value,
     0,
+  );
+  const missingPercentage = Math.max(
+    0,
+    Number((100 - totalPercentage).toFixed(1)),
   );
 
   // Kolejność kafelków: 1) Wypłata Właściciela, 2) Prowizja Złote Wynajmy, reszta w oryginalnej kolejności
@@ -299,10 +323,9 @@ export default function ChartExplanationCard({
                         : "Suma kategorii"}
                       : {totalPercentage.toFixed(1)}%
                     </p>
-                    {totalPercentage < 100 && mode !== "costsVsPayout" && (
+                    {mode !== "costsVsPayout" && missingPercentage > 0 && (
                       <p className="mt-1 text-sm text-gray-600">
-                        Pozostałe {(100 - totalPercentage).toFixed(1)}% to inne
-                        koszty
+                        Pozostałe {missingPercentage.toFixed(1)}% to inne koszty
                       </p>
                     )}
                     {mode === "costsVsPayout" && (

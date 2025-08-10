@@ -375,9 +375,31 @@ export default function ReportDetailsPage({
     if (finalReport) {
       // Nie nadpisuj lokalnie edytowanych wartości czynszu/mediów
       if (!isRentUtilitiesDirty) {
+        // Prefill z zapisanych wartości lub – jeśli puste/0 – z sugestii (ostatni raport lub domyślne z apartamentu)
+        const existingRent = finalReport.rentAmount ?? 0;
+        const existingUtilities = finalReport.utilitiesAmount ?? 0;
+
+        let prefillRent = existingRent;
+        let prefillUtilities = existingUtilities;
+
+        if (!isHistoricalReport(finalReport)) {
+          const normalReport = finalReport as unknown as {
+            suggestedRent?: number | null;
+            suggestedUtilities?: number | null;
+          };
+          if (!prefillRent || prefillRent === 0) {
+            const s = Number(normalReport.suggestedRent ?? 0);
+            if (s > 0) prefillRent = s;
+          }
+          if (!prefillUtilities || prefillUtilities === 0) {
+            const s = Number(normalReport.suggestedUtilities ?? 0);
+            if (s > 0) prefillUtilities = s;
+          }
+        }
+
         setRentUtilitiesData({
-          rentAmount: finalReport.rentAmount ?? 0,
-          utilitiesAmount: finalReport.utilitiesAmount ?? 0,
+          rentAmount: prefillRent,
+          utilitiesAmount: prefillUtilities,
         });
       }
       // Sort deductions by order and set them to local state
@@ -1006,9 +1028,16 @@ export default function ReportDetailsPage({
       string,
       number
     >;
-    const revenueItems = report.items.filter(
-      (item) => item.type === "REVENUE" && item.reservation,
-    );
+    const revenueItems = report.items.filter((item) => {
+      if (item.type !== "REVENUE" || !item.reservation) return false;
+      const r = item.reservation;
+      const guests = (r.adults ?? 0) + (r.children ?? 0);
+      return (
+        r.status !== "Anulowana" &&
+        r.status !== "Odrzucona przez obsługę" &&
+        guests > 0
+      );
+    });
 
     let totalCleaningCost = 0;
 
@@ -1036,6 +1065,62 @@ export default function ReportDetailsPage({
   };
 
   const suggestedCleaningCost = calculateSuggestedCleaningCost();
+  // Zmiana źródła rezerwacji (admin)
+  // Standardowe źródła rozpoznawane w systemie
+  const STANDARD_SOURCES = ["Booking", "Airbnb", "Złote Wynajmy"] as const;
+  // Pozwalamy na dowolny string jako źródło (może pochodzić z bazy)
+  type ReservationSource = string;
+  const updateReservationSource = api.reservation.updateSource.useMutation({
+    onSuccess: async () => {
+      await reportQuery.refetch();
+      toast.success("Źródło rezerwacji zaktualizowane");
+    },
+    onError: (err: { message: string }) => toast.error(err.message),
+  });
+
+  const handleChangeSource = (
+    reservationId: number,
+    newSource: ReservationSource,
+  ) => {
+    updateReservationSource.mutate({ reservationId, newSource });
+  };
+
+  // Zwraca wartość, która ma być ustawiona w select jako aktualna
+  // - jeżeli źródło z bazy pasuje do standardowych, zwracamy standardową wartość
+  // - w przeciwnym razie zwracamy surową wartość z bazy (dynamiczna opcja)
+  const computeSourceValue = (src?: string | null): string => {
+    const raw = (src ?? "").trim();
+    if (!raw) return "Złote Wynajmy";
+    const lower = raw.toLowerCase();
+    if (lower.includes("airbnb")) return "Airbnb";
+    if (lower.includes("book")) return "Booking";
+    if (lower === "złote wynajmy" || lower === "zlote wynajmy")
+      return "Złote Wynajmy";
+    return raw;
+  };
+
+  // Buduje listę opcji do selecta: standardowe + ewentualna dynamiczna z bazy
+  const buildSourceOptions = (src?: string | null): string[] => {
+    const value = computeSourceValue(src);
+    const options = new Set<string>([...STANDARD_SOURCES]);
+    if (
+      value &&
+      !STANDARD_SOURCES.map((s) => s.toLowerCase()).includes(
+        value.toLowerCase(),
+      )
+    ) {
+      options.add(value);
+    }
+    return Array.from(options);
+  };
+
+  const getCreateDateSafe = (
+    res?: { createDate?: Date } | null,
+    fallback?: Date,
+  ): Date | undefined => {
+    if (res?.createDate instanceof Date) return res.createDate;
+    return fallback;
+  };
 
   // Funkcja obliczająca sugerowaną kwotę za pranie
   const calculateSuggestedLaundryCost = () => {
@@ -1078,9 +1163,16 @@ export default function ReportDetailsPage({
     const wineCost = apartment.wineCost ?? 250; // Koszt wina
 
     // Oblicz liczbę gości ze wszystkich rezerwacji
-    const revenueItems = (report?.items ?? []).filter(
-      (item) => item.type === "REVENUE" && item.reservation,
-    );
+    const revenueItems = (report?.items ?? []).filter((item) => {
+      if (item.type !== "REVENUE" || !item.reservation) return false;
+      const r = item.reservation;
+      const guests = (r.adults ?? 0) + (r.children ?? 0);
+      return (
+        r.status !== "Anulowana" &&
+        r.status !== "Odrzucona przez obsługę" &&
+        guests > 0
+      );
+    });
 
     let totalGuests = 0;
     revenueItems.forEach((item) => {
@@ -1204,6 +1296,18 @@ export default function ReportDetailsPage({
   const revenueItems = (finalReport?.items ?? []).filter(
     (item) => item.type === "REVENUE",
   );
+  // Rezerwacje/przychody (tylko skutecznie zrealizowane)
+  const reservationItems = revenueItems.filter((item) => {
+    const r = item.reservation;
+    if (!r) return false;
+    const guests = (r.adults ?? 0) + (r.children ?? 0);
+    const unknownGuests = r.adults == null && r.children == null;
+    return (
+      r.status !== "Anulowana" &&
+      r.status !== "Odrzucona przez obsługę" &&
+      (guests > 0 || unknownGuests)
+    );
+  });
   const expenseItems = (finalReport?.items ?? []).filter((item) =>
     ["EXPENSE", "FEE", "TAX", "COMMISSION"].includes(item.type),
   );
@@ -2162,11 +2266,11 @@ export default function ReportDetailsPage({
         <div className="mb-8 overflow-hidden rounded-lg bg-white shadow">
           <div className="px-6 py-4">
             <h3 className="text-lg font-semibold leading-6 text-gray-900">
-              Rezerwacje i Przychody ({revenueItems.length})
+              Rezerwacje i Przychody ({reservationItems.length})
             </h3>
           </div>
           <div className="border-t border-gray-200">
-            {revenueItems.length === 0 ? (
+            {reservationItems.length === 0 ? (
               <div className="py-12 text-center">
                 <p className="text-gray-500">Brak rezerwacji w tym okresie</p>
               </div>
@@ -2188,6 +2292,9 @@ export default function ReportDetailsPage({
                         Data zameldowania
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                        Data złożenia
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                         Data wymeldowania
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
@@ -2203,15 +2310,12 @@ export default function ReportDetailsPage({
                         Kwota
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                        Kategoria
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                         Akcje
                       </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 bg-white">
-                    {revenueItems.map((item, index) => (
+                    {reservationItems.map((item, index) => (
                       <tr key={item.id}>
                         <td className="px-6 py-4 text-sm font-medium text-gray-500">
                           {index + 1}
@@ -2220,10 +2324,28 @@ export default function ReportDetailsPage({
                           {item.reservation?.guest ?? "-"}
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-900">
-                          {item.reservation?.source ? (
-                            <span className="inline-flex rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800">
-                              {item.reservation.source}
-                            </span>
+                          {item.reservation ? (
+                            <select
+                              value={computeSourceValue(
+                                item.reservation.source,
+                              )}
+                              onChange={(e) =>
+                                handleChangeSource(
+                                  item.reservation!.id,
+                                  e.target.value,
+                                )
+                              }
+                              className="rounded border border-gray-300 bg-white px-2 py-1 text-xs"
+                              disabled={updateReservationSource.isPending}
+                            >
+                              {buildSourceOptions(item.reservation.source).map(
+                                (opt) => (
+                                  <option key={opt} value={opt}>
+                                    {opt}
+                                  </option>
+                                ),
+                              )}
+                            </select>
                           ) : (
                             <span className="text-gray-400">Nieznane</span>
                           )}
@@ -2232,6 +2354,20 @@ export default function ReportDetailsPage({
                           {item.reservation
                             ? new Date(
                                 item.reservation.start,
+                              ).toLocaleDateString("pl-PL", { timeZone: "UTC" })
+                            : "-"}
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
+                          {item.reservation
+                            ? new Date(
+                                getCreateDateSafe(
+                                  {
+                                    createDate: (
+                                      item.reservation as { createDate?: Date }
+                                    ).createDate,
+                                  },
+                                  item.reservation.start,
+                                )!,
                               ).toLocaleDateString("pl-PL", { timeZone: "UTC" })
                             : "-"}
                         </td>
@@ -2290,27 +2426,20 @@ export default function ReportDetailsPage({
                           +{item.amount.toFixed(2)} {item.currency}
                         </td>
                         <td className="px-6 py-4">
-                          <span
-                            className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${getItemTypeColorLocal(
-                              item.type,
-                            )}`}
-                          >
-                            {item.category}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          {item.reservation?.source?.toLowerCase() ===
-                            "airbnb" && (
-                            <button
-                              onClick={() =>
-                                handleAddDiscount(item.reservation!.id)
-                              }
-                              className="rounded bg-orange-100 px-2 py-1 text-xs font-medium text-orange-700 disabled:opacity-50 hover:bg-orange-200"
-                              disabled={addDiscountMutation.isPending}
-                            >
-                              Dodaj Rabat 10%
-                            </button>
-                          )}
+                          <div className="flex items-center gap-2">
+                            {item.reservation?.source?.toLowerCase() ===
+                              "airbnb" && (
+                              <button
+                                onClick={() =>
+                                  handleAddDiscount(item.reservation!.id)
+                                }
+                                className="rounded bg-orange-100 px-2 py-1 text-xs font-medium text-orange-700 disabled:opacity-50 hover:bg-orange-200"
+                                disabled={addDiscountMutation.isPending}
+                              >
+                                Dodaj Rabat 10%
+                              </button>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -4218,7 +4347,9 @@ function OwnerPayoutCalculation({
         // Podstawa opodatkowania = kwota stała (NETTO), dodatkowe odliczenia NIE wpływają na podstawę
         const fixedTaxBase = fixedBaseAmount;
         const ownerPayoutFixed = Math.max(0, fixedBaseAmountAfterDeductions);
-        const hostPayoutFixed = report.netIncome - ownerPayoutFixed;
+        // W trybach z kwotą stałą „Prowizja Złote Wynajmy” to różnica między zyskiem netto a kwotą stałą z umowy
+        // (może być ujemna – wtedy oznacza dopłatę administratora)
+        const hostPayoutFixed = report.netIncome - fixedBaseAmount;
 
         const fixedOwnerPayout = isVatExemptLocal
           ? ownerPayoutFixed
@@ -4238,8 +4369,9 @@ function OwnerPayoutCalculation({
           fixedBaseAmount - rentAndUtilities,
         );
         const ownerPayoutFixedMinusUtilities = Math.max(0, kwotaBazowaNetto);
+        // „Prowizja Złote Wynajmy” = zysk netto - kwota stała z umowy (niezależnie od potrąceń mediów)
         const hostPayoutFixedMinusUtilities =
-          report.netIncome - ownerPayoutFixedMinusUtilities;
+          report.netIncome - fixedBaseAmount;
 
         const fixedMinusUtilitiesOwnerPayout = isVatExemptLocal
           ? ownerPayoutFixedMinusUtilities
