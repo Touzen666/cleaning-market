@@ -782,24 +782,124 @@ export default function OwnerReportDetailsPage() {
                 </div>
               )}
 
-              {/* Karta z prowizją 25% dla administratora */}
+              {/* Karta z prowizją administratora (procent korygowany dynamicznie jak w panelu admina) */}
               {!report.customSummaryEnabled && (
                 <div className="mb-6 rounded-lg bg-blue-50 p-4">
                   <h5 className="mb-2 text-lg font-medium text-blue-800">
-                    Prowizja 25% dla administratora
+                    {(() => {
+                      const net = Number(report?.netIncome ?? 0);
+                      let commission = 0;
+                      let remaining = 0;
+
+                      if (
+                        report?.finalSettlementType === "FIXED" ||
+                        report?.finalSettlementType === "FIXED_MINUS_UTILITIES"
+                      ) {
+                        const fixedAmount = Number(
+                          report?.apartment?.fixedPaymentAmount ?? 0,
+                        );
+                        commission = net - fixedAmount; // może być ujemna – dopłata admina
+
+                        const deductions = report?.additionalDeductions ?? [];
+                        const totalDeductionsGross = deductions.reduce(
+                          (
+                            sum: number,
+                            d: { amount: number; vatOption: string },
+                          ) =>
+                            sum +
+                            (d.vatOption === "VAT_8" || d.vatOption === "VAT_23"
+                              ? getGrossAmount(d.amount, d.vatOption)
+                              : d.amount),
+                          0,
+                        );
+                        const adminTopUp = Math.max(fixedAmount - net, 0);
+                        remaining = net + adminTopUp - totalDeductionsGross;
+                      } else {
+                        commission = net * 0.25;
+                        remaining = net * 0.75;
+                      }
+
+                      const percent =
+                        net > 0
+                          ? (commission / (commission + remaining)) * 100
+                          : 0;
+                      return `Prowizja ${percent.toFixed(2)}% dla administratora`;
+                    })()}
                   </h5>
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div className="rounded-md bg-blue-100 p-3">
                       <p className="text-sm text-blue-700">Kwota prowizji:</p>
-                      <p className="text-xl font-bold text-blue-900">
-                        {(netIncome * 0.25).toFixed(2)} PLN
-                      </p>
+                      <div className="text-xl font-bold text-blue-900">
+                        {(() => {
+                          if (
+                            report?.finalSettlementType === "FIXED" ||
+                            report?.finalSettlementType ===
+                              "FIXED_MINUS_UTILITIES"
+                          ) {
+                            const net = Number(report?.netIncome ?? 0);
+                            const fixedAmount = Number(
+                              report?.apartment?.fixedPaymentAmount ?? 0,
+                            );
+                            const realCommission = net - fixedAmount;
+                            return (
+                              <>
+                                <span
+                                  className={
+                                    realCommission < 0 ? "text-red-600" : ""
+                                  }
+                                >
+                                  {realCommission.toFixed(2)} PLN
+                                </span>
+                                {realCommission < 0 && (
+                                  <div className="mt-2 rounded-md bg-red-100 p-2">
+                                    <p className="text-xs font-medium text-red-700">
+                                      Zarządca dopłaca różnicę:{" "}
+                                      {Math.abs(realCommission).toFixed(2)} PLN
+                                    </p>
+                                  </div>
+                                )}
+                              </>
+                            );
+                          }
+                          return `${((report?.netIncome ?? 0) * 0.25).toFixed(2)} PLN`;
+                        })()}
+                      </div>
                     </div>
                     <div className="rounded-md bg-blue-100 p-3">
                       <p className="text-sm text-blue-700">Pozostało:</p>
-                      <p className="text-xl font-bold text-blue-900">
-                        {(netIncome * 0.75).toFixed(2)} PLN
-                      </p>
+                      <div className="text-xl font-bold text-blue-900">
+                        {(() => {
+                          if (
+                            report?.finalSettlementType === "FIXED" ||
+                            report?.finalSettlementType ===
+                              "FIXED_MINUS_UTILITIES"
+                          ) {
+                            const net = Number(report?.netIncome ?? 0);
+                            const fixedAmount = Number(
+                              report?.apartment?.fixedPaymentAmount ?? 0,
+                            );
+                            const deductions =
+                              report?.additionalDeductions ?? [];
+                            const totalDeductionsGross = deductions.reduce(
+                              (
+                                sum: number,
+                                d: { amount: number; vatOption: string },
+                              ) =>
+                                sum +
+                                (d.vatOption === "VAT_8" ||
+                                d.vatOption === "VAT_23"
+                                  ? getGrossAmount(d.amount, d.vatOption)
+                                  : d.amount),
+                              0,
+                            );
+                            const adminTopUp = Math.max(fixedAmount - net, 0);
+                            const remaining =
+                              net + adminTopUp - totalDeductionsGross;
+                            return `${remaining.toFixed(2)} PLN`;
+                          }
+                          return `${((report?.netIncome ?? 0) * 0.75).toFixed(2)} PLN`;
+                        })()}
+                      </div>
                     </div>
                   </div>
                 </div>
