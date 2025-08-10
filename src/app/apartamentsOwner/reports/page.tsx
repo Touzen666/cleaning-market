@@ -14,6 +14,17 @@ export default function OwnerReportsPage() {
   const router = useRouter();
   const [ownerEmail, setOwnerEmail] = useState<string | null>(null);
   const [loadingReportId, setLoadingReportId] = useState<string | null>(null);
+  const [showRequestModal, setShowRequestModal] = useState(false);
+  const [selectedApartmentId, setSelectedApartmentId] = useState<string | null>(
+    null,
+  );
+  const [selectedYear, setSelectedYear] = useState<number>(
+    new Date().getFullYear(),
+  );
+  const [selectedMonth, setSelectedMonth] = useState<number>(
+    new Date().getMonth() + 1,
+  );
+  const [isSubmittingRequest, setIsSubmittingRequest] = useState(false);
 
   // TRPC queries
   const {
@@ -32,6 +43,30 @@ export default function OwnerReportsPage() {
       { enabled: !!ownerEmail },
     );
 
+  // Get owner's apartments for request modal
+  const { data: ownerData, isLoading: apartmentsLoading } =
+    api.ownerAuth.getOwnerData.useQuery(
+      { email: ownerEmail! },
+      { enabled: !!ownerEmail },
+    );
+  const ownerApartments = ownerData?.apartments ?? [];
+
+  // Contact form mutation
+  const sendContactMessage = api.contact.sendMessage.useMutation({
+    onSuccess: () => {
+      alert(
+        "Żądanie utworzenia raportu zostało wysłane do administratora. Otrzymasz powiadomienie gdy raport zostanie utworzony.",
+      );
+      setShowRequestModal(false);
+      setSelectedApartmentId(null);
+      setIsSubmittingRequest(false);
+    },
+    onError: (error) => {
+      alert(`Błąd podczas wysyłania żądania: ${error.message}`);
+      setIsSubmittingRequest(false);
+    },
+  });
+
   // Debug logging
   console.log("Reports data:", reports);
   console.log("Reports length:", reports?.length);
@@ -46,17 +81,34 @@ export default function OwnerReportsPage() {
       reports.reduce((sum, report) => sum + (report.finalOwnerPayout ?? 0), 0),
     );
   }
+  console.log("Owner email:", ownerEmail);
   console.log("Debug data:", debugData);
+  console.log("Owner apartments:", ownerApartments);
+  console.log("Apartments loading:", apartmentsLoading);
+  console.log("Owner data:", ownerData);
+  if (ownerApartments && ownerApartments.length > 0) {
+    console.log("First apartment:", ownerApartments[0]);
+    console.log("Apartment ID type:", typeof ownerApartments[0]?.id);
+    console.log("Apartment ID value:", ownerApartments[0]?.id);
+    console.log("Selected apartment ID:", selectedApartmentId);
+  } else {
+    console.log("No apartments found or apartments loading");
+  }
 
   useEffect(() => {
     const token = localStorage.getItem("ownerSessionToken");
     const email = localStorage.getItem("ownerEmail");
 
+    console.log("useEffect - token:", token);
+    console.log("useEffect - email:", email);
+
     if (!token || !email) {
+      console.log("No token or email, redirecting to login");
       router.push("/apartamentsOwner/login");
       return;
     }
 
+    console.log("Setting owner email:", email);
     setOwnerEmail(email);
   }, [router]);
 
@@ -71,9 +123,79 @@ export default function OwnerReportsPage() {
     router.push(`/apartamentsOwner/reports/${reportId}`);
   };
 
+  const handleRequestReport = async () => {
+    if (!selectedApartmentId) {
+      alert("Wybierz apartament");
+      return;
+    }
+
+    const selectedApartment = ownerApartments?.find(
+      (apt) => String(apt.id) === selectedApartmentId,
+    );
+    if (!selectedApartment) {
+      alert("Nie można znaleźć wybranego apartamentu");
+      return;
+    }
+
+    setIsSubmittingRequest(true);
+
+    const monthNames = [
+      "Styczeń",
+      "Luty",
+      "Marzec",
+      "Kwiecień",
+      "Maj",
+      "Czerwiec",
+      "Lipiec",
+      "Sierpień",
+      "Wrzesień",
+      "Październik",
+      "Listopad",
+      "Grudzień",
+    ];
+
+    const message = `Żądanie utworzenia raportu miesięcznego
+
+Właściciel: ${ownerEmail}
+Apartament: ${selectedApartment.name} (${selectedApartment.address})
+Okres: ${monthNames[selectedMonth - 1]} ${selectedYear}
+
+Proszę o utworzenie raportu miesięcznego dla powyższego apartamentu i okresu.`;
+
+    try {
+      await sendContactMessage.mutateAsync({
+        name: "System żądań raportów",
+        email: "reports@zlote-wynajmy.com",
+        message: message,
+      });
+    } catch (error) {
+      console.error("Error sending report request:", error);
+    }
+  };
+
   // Używamy nowych funkcji z lib/status-translations
   const getStatusColor = getReportStatusColor;
   const getStatusText = translateReportStatus;
+
+  // Generate years for select
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 5 }, (_, i) => currentYear - 2 + i);
+
+  // Month names in Polish
+  const monthNames = [
+    "Styczeń",
+    "Luty",
+    "Marzec",
+    "Kwiecień",
+    "Maj",
+    "Czerwiec",
+    "Lipiec",
+    "Sierpień",
+    "Wrzesień",
+    "Październik",
+    "Listopad",
+    "Grudzień",
+  ];
 
   // Handle error state
   if (reportsError) {
@@ -113,7 +235,26 @@ export default function OwnerReportsPage() {
                 Moje Raporty Finansowe
               </h1>
             </div>
-            <div className="flex items-center">
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={() => setShowRequestModal(true)}
+                className="inline-flex items-center rounded-md bg-brand-gold px-3 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-gold focus:ring-offset-2 hover:bg-yellow-500"
+              >
+                <svg
+                  className="-ml-0.5 mr-1.5 h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                  />
+                </svg>
+                Poproś o raport
+              </button>
               <button
                 onClick={() => router.push("/apartamentsOwner/dashboard")}
                 className="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-gold focus:ring-offset-2 hover:bg-gray-50"
@@ -137,6 +278,184 @@ export default function OwnerReportsPage() {
           </div>
         </div>
       </header>
+
+      {/* Request Report Modal */}
+      {showRequestModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-lg font-medium text-gray-900">
+                Poproś o utworzenie raportu
+              </h2>
+              <button
+                onClick={() => setShowRequestModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <svg
+                  className="h-6 w-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="mb-2 block text-sm font-medium text-gray-700">
+                  Wybierz apartament
+                </label>
+                {!ownerEmail ? (
+                  <div className="text-sm text-gray-500">
+                    Ładowanie danych właściciela...
+                  </div>
+                ) : apartmentsLoading ? (
+                  <div className="text-sm text-gray-500">
+                    Ładowanie apartamentów...
+                  </div>
+                ) : ownerApartments && ownerApartments.length > 0 ? (
+                  <div className="space-y-2">
+                    {ownerApartments.map((apartment) => (
+                      <label
+                        key={apartment.id}
+                        className={`flex cursor-pointer rounded-lg border p-3 transition-colors ${
+                          selectedApartmentId === String(apartment.id)
+                            ? "border-brand-gold bg-yellow-50"
+                            : "border-gray-300 hover:bg-gray-50"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="apartment"
+                          value={String(apartment.id)}
+                          checked={selectedApartmentId === String(apartment.id)}
+                          onChange={(e) => {
+                            console.log(
+                              "Radio changed:",
+                              e.target.value,
+                              typeof e.target.value,
+                            );
+                            console.log(
+                              "Apartment ID:",
+                              apartment.id,
+                              typeof apartment.id,
+                            );
+                            console.log(
+                              "Selected apartment ID:",
+                              selectedApartmentId,
+                              typeof selectedApartmentId,
+                            );
+                            setSelectedApartmentId(e.target.value);
+                          }}
+                          className="h-4 w-4 cursor-pointer border-gray-300 text-brand-gold focus:ring-brand-gold"
+                        />
+                        <div className="ml-3">
+                          <div className="font-medium text-gray-900">
+                            {apartment.name}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {apartment.address}
+                          </div>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-sm text-gray-500">
+                    Brak dostępnych apartamentów
+                  </div>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-gray-700">
+                    Rok
+                  </label>
+                  <select
+                    value={selectedYear}
+                    onChange={(e) => setSelectedYear(Number(e.target.value))}
+                    className="block w-full rounded-md border-gray-300 px-3 py-2 shadow-sm focus:border-brand-gold focus:outline-none focus:ring-brand-gold"
+                  >
+                    {years.map((year) => (
+                      <option key={year} value={year}>
+                        {year}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-gray-700">
+                    Miesiąc
+                  </label>
+                  <select
+                    value={selectedMonth}
+                    onChange={(e) => setSelectedMonth(Number(e.target.value))}
+                    className="block w-full rounded-md border-gray-300 px-3 py-2 shadow-sm focus:border-brand-gold focus:outline-none focus:ring-brand-gold"
+                  >
+                    {monthNames.map((month, index) => (
+                      <option key={index + 1} value={index + 1}>
+                        {month}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="rounded-lg bg-blue-50 p-4">
+                <p className="text-sm text-blue-800">
+                  <strong>Uwaga:</strong> Po wysłaniu żądania administrator
+                  zostanie powiadomiony i utworzy raport w najbliższym czasie.
+                  Otrzymasz powiadomienie gdy raport będzie gotowy.
+                </p>
+              </div>
+
+              <div className="flex justify-end space-x-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowRequestModal(false)}
+                  className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
+                >
+                  Anuluj
+                </button>
+                <button
+                  onClick={handleRequestReport}
+                  disabled={!selectedApartmentId || isSubmittingRequest}
+                  className="inline-flex items-center rounded-md bg-brand-gold px-4 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-gold focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 hover:bg-yellow-500"
+                >
+                  {isSubmittingRequest ? (
+                    <>
+                      <svg
+                        className="-ml-1 mr-2 h-4 w-4 animate-spin"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                        />
+                      </svg>
+                      Wysyłanie...
+                    </>
+                  ) : (
+                    "Wyślij żądanie"
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main Content */}
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">

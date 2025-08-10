@@ -62,7 +62,11 @@ function ExitImpersonationBanner() {
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-center bg-yellow-400 p-3 text-center font-semibold text-black shadow-lg">
       <ExclamationTriangleIcon className="mr-3 h-6 w-6" />
-      <span>Jesteś w trybie podglądu jako właściciel.</span>
+      <span>
+        Jesteś w trybie podglądu jako właściciel. Możesz przeglądać panel
+        właściciela, ale pamiętaj, że wszystkie zmiany będą widoczne dla
+        właściciela.
+      </span>
       <button
         onClick={handleExitImpersonation}
         className="ml-4 rounded-md bg-black px-3 py-1 text-sm text-white hover:bg-gray-800"
@@ -139,6 +143,8 @@ export default function OwnerDashboard() {
     Media: true,
     "Złote Wynajmy Prowizja": true,
     "Prowizje OTA": true,
+    Inwestycje: true,
+    Parking: true,
     "Wypłata Właściciela": true,
   });
 
@@ -171,9 +177,12 @@ export default function OwnerDashboard() {
     data: dashboardData,
     isLoading: isLoadingDashboard,
     error: dashboardError,
-  } = api.ownerAuth.getDashboardData.useQuery(undefined, {
-    enabled: !!ownerEmail,
-  });
+  } = api.ownerAuth.getDashboardData.useQuery(
+    { ownerEmail: ownerEmail! },
+    {
+      enabled: !!ownerEmail,
+    },
+  );
 
   // Get owner profile data for avatar
   const { data: ownerProfile } = api.ownerAuth.getOwnerProfile.useQuery(
@@ -259,6 +268,11 @@ export default function OwnerDashboard() {
         if (filters.Tekstylia) filteredItem.Tekstylia = item.Tekstylia;
         if (filters.Czynsz) filteredItem.Czynsz = item.Czynsz;
         if (filters.Media) filteredItem.Media = item.Media;
+        // Brakujące mapowania – dodajemy poprawnie sumy z raportu
+        if (filters.Inwestycje)
+          filteredItem["Dodatkowe odliczenia"] = item["Dodatkowe odliczenia"];
+        if (filters.Parking)
+          filteredItem["Parking zysk"] = item["Parking zysk"];
         if (filters["Złote Wynajmy Prowizja"])
           filteredItem["Złote Wynajmy Prowizja"] =
             item["Złote Wynajmy Prowizja"];
@@ -321,6 +335,25 @@ export default function OwnerDashboard() {
       ? getCostsVsPayoutData()
       : getFilteredBarChartData(chartFilters);
 
+  // Map widoczności kategorii na podstawie wartości procentowych –
+  // jeśli procent wynosi 0%, nie pokazujemy słupka dla danej kategorii
+  const nonZeroCategory = useMemo(() => {
+    const map: Record<string, boolean> = {};
+    if (!percentages) return map;
+    map["Wypłata Właściciela"] = (percentages.payout ?? 0) > 0;
+    map["Złote Wynajmy Prowizja"] = (percentages.adminCommission ?? 0) > 0;
+    map.Czynsz = (percentages.rent ?? 0) > 0;
+    map.Media = (percentages.utilities ?? 0) > 0;
+    map["Prowizje OTA"] = (percentages.otaCommissions ?? 0) > 0;
+    map.Sprzątanie = (percentages.cleaning ?? 0) > 0;
+    map.Pranie = (percentages.laundry ?? 0) > 0;
+    map.Tekstylia = (percentages.textiles ?? 0) > 0;
+    // Dodatkowe kategorie
+    map["Dodatkowe odliczenia"] = (percentages.investments ?? 0) > 0;
+    map["Parking zysk"] = (percentages.parkingProfit ?? 0) > 0;
+    return map;
+  }, [percentages]);
+
   // Tooltip dla wykresów słupkowych (pokazuje wartości w PLN)
   // Obiekt z kolorami dla kategorii wykresu
   const chartColors = {
@@ -332,6 +365,11 @@ export default function OwnerDashboard() {
     Media: "#2196f3",
     "Złote Wynajmy Prowizja": "#ffc658",
     "Prowizje OTA": "#ff8042",
+    Inwestycje: "#795548",
+    Parking: "#607D8B",
+    // DaneKey na wykresie odpowiadają poniższym etykietom
+    "Dodatkowe odliczenia": "#795548",
+    "Parking zysk": "#607D8B",
     "Wypłata Właściciela": "#00C49F",
   };
 
@@ -443,6 +481,8 @@ export default function OwnerDashboard() {
       Media: true,
       "Złote Wynajmy Prowizja": true,
       "Prowizje OTA": true,
+      Inwestycje: true,
+      Parking: true,
       "Wypłata Właściciela": true,
     });
     setChartViewMode("normal");
@@ -460,6 +500,8 @@ export default function OwnerDashboard() {
         Media: false,
         "Złote Wynajmy Prowizja": true,
         "Prowizje OTA": false,
+        Inwestycje: false,
+        Parking: false,
         "Wypłata Właściciela": true,
       });
     } else {
@@ -473,6 +515,8 @@ export default function OwnerDashboard() {
         Media: true,
         "Złote Wynajmy Prowizja": true,
         "Prowizje OTA": true,
+        Inwestycje: true,
+        Parking: true,
         "Wypłata Właściciela": true,
       });
     }
@@ -490,6 +534,8 @@ export default function OwnerDashboard() {
         Media: true,
         "Złote Wynajmy Prowizja": false,
         "Prowizje OTA": true,
+        Inwestycje: false,
+        Parking: false,
         "Wypłata Właściciela": false,
       });
     } else {
@@ -503,6 +549,8 @@ export default function OwnerDashboard() {
         Media: true,
         "Złote Wynajmy Prowizja": true,
         "Prowizje OTA": true,
+        Inwestycje: true,
+        Parking: true,
         "Wypłata Właściciela": true,
       });
     }
@@ -957,10 +1005,11 @@ export default function OwnerDashboard() {
                                               ? "#ffc658"
                                               : category === "Prowizje OTA"
                                                 ? "#ff8042"
-                                                : category ===
-                                                    "Podatek dochodowy"
-                                                  ? "#e74c3c"
-                                                  : "#00C49F",
+                                                : category === "Inwestycje"
+                                                  ? "#795548"
+                                                  : category === "Parking"
+                                                    ? "#607D8B"
+                                                    : "#00C49F",
                             }}
                           />
                           {category}
@@ -998,55 +1047,101 @@ export default function OwnerDashboard() {
                       <Tooltip content={<BarChartTooltip />} />
                       {chartViewMode === "costsVsPayout" ? (
                         <>
-                          <Bar dataKey="Wypłata Właściciela" fill="#00C49F" />
-                          <Bar
-                            dataKey="Złote Wynajmy Prowizja"
-                            fill="#ffc658"
-                          />
-                          <Bar dataKey="Czynsz" fill="#ff9800" />
-                          <Bar dataKey="Media" fill="#2196f3" />
+                          {nonZeroCategory["Wypłata Właściciela"] && (
+                            <Bar dataKey="Wypłata Właściciela" fill="#00C49F" />
+                          )}
+                          {nonZeroCategory["Złote Wynajmy Prowizja"] && (
+                            <Bar
+                              dataKey="Złote Wynajmy Prowizja"
+                              fill="#ffc658"
+                            />
+                          )}
+                          {nonZeroCategory.Czynsz && (
+                            <Bar dataKey="Czynsz" fill="#ff9800" />
+                          )}
+                          {nonZeroCategory.Media && (
+                            <Bar dataKey="Media" fill="#2196f3" />
+                          )}
                         </>
                       ) : chartViewMode === "fixedCosts" ? (
                         <>
-                          <Bar dataKey="Sprzątanie" fill="#8884d8" />
-                          <Bar dataKey="Pranie" fill="#ff6b6b" />
-                          <Bar dataKey="Tekstylia" fill="#9c27b0" />
-                          <Bar dataKey="Czynsz" fill="#ff9800" />
-                          <Bar dataKey="Media" fill="#2196f3" />
-                          <Bar dataKey="Prowizje OTA" fill="#ff8042" />
+                          {nonZeroCategory.Sprzątanie && (
+                            <Bar dataKey="Sprzątanie" fill="#8884d8" />
+                          )}
+                          {nonZeroCategory.Pranie && (
+                            <Bar dataKey="Pranie" fill="#ff6b6b" />
+                          )}
+                          {nonZeroCategory.Tekstylia && (
+                            <Bar dataKey="Tekstylia" fill="#9c27b0" />
+                          )}
+                          {nonZeroCategory.Czynsz && (
+                            <Bar dataKey="Czynsz" fill="#ff9800" />
+                          )}
+                          {nonZeroCategory.Media && (
+                            <Bar dataKey="Media" fill="#2196f3" />
+                          )}
+                          {nonZeroCategory["Prowizje OTA"] && (
+                            <Bar dataKey="Prowizje OTA" fill="#ff8042" />
+                          )}
                         </>
                       ) : (
                         <>
                           {chartFilters.Przychód && (
                             <Bar dataKey="Przychód" fill="#82ca9d" />
                           )}
-                          {chartFilters.Sprzątanie && (
-                            <Bar dataKey="Sprzątanie" fill="#8884d8" />
-                          )}
-                          {chartFilters.Pranie && (
-                            <Bar dataKey="Pranie" fill="#ff6b6b" />
-                          )}
-                          {chartFilters.Tekstylia && (
-                            <Bar dataKey="Tekstylia" fill="#9c27b0" />
-                          )}
-                          {chartFilters.Czynsz && (
-                            <Bar dataKey="Czynsz" fill="#ff9800" />
-                          )}
-                          {chartFilters.Media && (
-                            <Bar dataKey="Media" fill="#2196f3" />
-                          )}
-                          {chartFilters["Złote Wynajmy Prowizja"] && (
-                            <Bar
-                              dataKey="Złote Wynajmy Prowizja"
-                              fill="#ffc658"
-                            />
-                          )}
-                          {chartFilters["Prowizje OTA"] && (
-                            <Bar dataKey="Prowizje OTA" fill="#ff8042" />
-                          )}
-                          {chartFilters["Wypłata Właściciela"] && (
-                            <Bar dataKey="Wypłata Właściciela" fill="#00C49F" />
-                          )}
+                          {chartFilters.Inwestycje &&
+                            nonZeroCategory["Dodatkowe odliczenia"] !==
+                              false && (
+                              <Bar
+                                dataKey="Dodatkowe odliczenia"
+                                name="Inwestycje"
+                                fill="#795548"
+                              />
+                            )}
+                          {chartFilters.Parking &&
+                            nonZeroCategory["Parking zysk"] !== false && (
+                              <Bar dataKey="Parking zysk" fill="#607D8B" />
+                            )}
+                          {chartFilters.Sprzątanie &&
+                            nonZeroCategory.Sprzątanie !== false && (
+                              <Bar dataKey="Sprzątanie" fill="#8884d8" />
+                            )}
+                          {chartFilters.Pranie &&
+                            nonZeroCategory.Pranie !== false && (
+                              <Bar dataKey="Pranie" fill="#ff6b6b" />
+                            )}
+                          {chartFilters.Tekstylia &&
+                            nonZeroCategory.Tekstylia !== false && (
+                              <Bar dataKey="Tekstylia" fill="#9c27b0" />
+                            )}
+                          {chartFilters.Czynsz &&
+                            nonZeroCategory.Czynsz !== false && (
+                              <Bar dataKey="Czynsz" fill="#ff9800" />
+                            )}
+                          {chartFilters.Media &&
+                            nonZeroCategory.Media !== false && (
+                              <Bar dataKey="Media" fill="#2196f3" />
+                            )}
+                          {chartFilters["Złote Wynajmy Prowizja"] &&
+                            nonZeroCategory["Złote Wynajmy Prowizja"] !==
+                              false && (
+                              <Bar
+                                dataKey="Złote Wynajmy Prowizja"
+                                fill="#ffc658"
+                              />
+                            )}
+                          {chartFilters["Prowizje OTA"] &&
+                            nonZeroCategory["Prowizje OTA"] !== false && (
+                              <Bar dataKey="Prowizje OTA" fill="#ff8042" />
+                            )}
+                          {chartFilters["Wypłata Właściciela"] &&
+                            nonZeroCategory["Wypłata Właściciela"] !==
+                              false && (
+                              <Bar
+                                dataKey="Wypłata Właściciela"
+                                fill="#00C49F"
+                              />
+                            )}
                         </>
                       )}
                     </BarChart>
@@ -1204,6 +1299,26 @@ export default function OwnerDashboard() {
                           </div>
                         )}
 
+                        {chartFilters.Parking && (
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="h-3 w-3 rounded"
+                              style={{ backgroundColor: "#607D8B" }}
+                            />
+                            <span>Parking</span>
+                          </div>
+                        )}
+
+                        {chartFilters.Inwestycje && (
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="h-3 w-3 rounded"
+                              style={{ backgroundColor: "#795548" }}
+                            />
+                            <span>Inwestycje</span>
+                          </div>
+                        )}
+
                         {chartFilters["Wypłata Właściciela"] && (
                           <div className="flex items-center gap-2">
                             <div
@@ -1348,6 +1463,12 @@ export default function OwnerDashboard() {
                         description: "Końcowa wypłata dla właściciela",
                       },
                       {
+                        name: "Inwestycje",
+                        value: percentages.investments,
+                        fill: "#795548",
+                        description: "Suma Dodatkowych odliczeń (brutto)",
+                      },
+                      {
                         name: "Czynsz",
                         value: percentages.rent,
                         fill: "#ff8042",
@@ -1374,6 +1495,12 @@ export default function OwnerDashboard() {
                         fill: "#ff6b6b",
                         description:
                           "Prowizje od platform bookingowych (Booking.com, Airbnb itp.)",
+                      },
+                      {
+                        name: "Parking",
+                        value: percentages.parkingProfit,
+                        fill: "#607D8B",
+                        description: "Suma zysków z sekcji Parking",
                       },
                       {
                         name: "Sprzątanie",
@@ -1482,6 +1609,11 @@ export default function OwnerDashboard() {
                               name: "Wypłata Właściciela",
                               value: percentages.payout,
                               color: "#00C49F",
+                            },
+                            {
+                              name: "Inwestycje",
+                              value: percentages.investments,
+                              color: "#795548",
                             },
                             {
                               name: "Czynsz",

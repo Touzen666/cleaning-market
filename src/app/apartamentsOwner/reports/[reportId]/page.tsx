@@ -23,12 +23,16 @@ type ReportItemWithReservation = ReportItem & {
 };
 
 type OwnerReport = {
-  apartment: { id: number; name: string; address: string };
+  apartment: {
+    id: number;
+    name: string;
+    address: string;
+    paymentType: PaymentType;
+    fixedPaymentAmount: number | null;
+  };
   owner: {
     id: string;
     isActive: boolean;
-    paymentType: PaymentType;
-    fixedPaymentAmount: number | null;
     vatOption: VATOption;
   };
   items: ReportItemWithReservation[];
@@ -108,13 +112,21 @@ export default function OwnerReportDetailsPage() {
   let reportId = params?.reportId ?? "";
   if (Array.isArray(reportId)) reportId = reportId[0] ?? "";
 
-  const {
-    data: reportRaw,
-    isLoading,
-    error,
-  } = api.monthlyReports.getOwnerReportById.useQuery({ reportId });
+  const reportQuery = api.monthlyReports.getOwnerReportById.useQuery({
+    reportId,
+  });
+  const reportRaw: unknown = reportQuery.data;
+  const isLoading: boolean = reportQuery.isLoading;
+  const error = reportQuery.error;
 
-  const report = reportRaw as unknown as OwnerReport;
+  const report = reportRaw as OwnerReport & {
+    customSummaryEnabled?: boolean;
+    customSummaryNote?: string | null;
+    customTaxBase?: number | null;
+    customOwnerPayout?: number | null;
+    customHostPayout?: number | null;
+    customIncomeTax?: number | null;
+  };
 
   if (isLoading) {
     return (
@@ -165,15 +177,31 @@ export default function OwnerReportDetailsPage() {
     (sum: number, i: ReportItemWithReservation) => sum + i.amount,
     0,
   );
+  const localTotalRevenue =
+    totalRevenue +
+    Number(
+      (report as unknown as { parkingRentalIncome?: number })
+        ?.parkingRentalIncome ?? 0,
+    );
   const totalExpenses = expenseItems.reduce(
     (sum: number, i: ReportItemWithReservation) => sum + i.amount,
     0,
   );
   const netIncome = totalRevenue - totalExpenses;
 
-  // Rezerwacje/przychody
+  // Rezerwacje/przychody (tylko skutecznie zrealizowane)
   const reservationItems: ReportItemWithReservation[] = revenueItems.filter(
-    (i: ReportItemWithReservation) => i.reservation,
+    (i: ReportItemWithReservation) => {
+      const r = i.reservation;
+      if (!r) return false;
+      const guests = (r.adults ?? 0) + (r.children ?? 0);
+      const unknownGuests = r.adults == null && r.children == null;
+      return (
+        r.status !== "Anulowana" &&
+        r.status !== "Odrzucona przez obsługę" &&
+        (guests > 0 || unknownGuests)
+      );
+    },
   );
 
   // Po pobraniu report (i po warunku ochronnym):
@@ -194,9 +222,28 @@ export default function OwnerReportDetailsPage() {
 
   const rentAndUtilities =
     (report.rentAmount ?? 0) + (report.utilitiesAmount ?? 0);
-  const fixedBaseAmount = Number(report.owner.fixedPaymentAmount ?? 0);
+  const fixedBaseAmount = Number(report.apartment.fixedPaymentAmount ?? 0);
   const kwotaBazowaNetto =
     fixedBaseAmount - rentAndUtilities - totalAdditionalDeductionsGross;
+
+  // Wartości wyświetlane w podsumowaniu – respektują niestandardowe wartości
+  const summaryTaxBase: number =
+    report.customSummaryEnabled && report.customTaxBase != null
+      ? Number(report.customTaxBase)
+      : (report.taxBase ?? 0);
+  const summaryOwnerPayout: number =
+    report.customSummaryEnabled && report.customOwnerPayout != null
+      ? Number(report.customOwnerPayout)
+      : (report.finalOwnerPayout ?? 0);
+  const summaryHostPayout: number =
+    report.customSummaryEnabled && report.customHostPayout != null
+      ? Number(report.customHostPayout)
+      : (report.finalHostPayout ?? 0);
+  const summaryIncomeTax: number =
+    report.customSummaryEnabled && report.customIncomeTax != null
+      ? Number(report.customIncomeTax)
+      : ((report as OwnerReport & { finalIncomeTax?: number }).finalIncomeTax ??
+        0);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -288,7 +335,7 @@ export default function OwnerReportDetailsPage() {
                     Przychody
                   </dt>
                   <dd className="text-lg font-medium text-gray-900">
-                    {totalRevenue.toFixed(2)} PLN
+                    {localTotalRevenue.toFixed(2)} PLN
                   </dd>
                 </dl>
               </div>
@@ -391,6 +438,11 @@ export default function OwnerReportDetailsPage() {
           <div className="border-b border-green-200 bg-green-50 px-6 py-4">
             <h3 className="text-lg font-medium text-green-900">
               Rezerwacje i Przychody ({reservationItems.length})
+              {report.customSummaryEnabled && (
+                <span className="ml-2 inline-block rounded bg-blue-200 px-2 py-0.5 align-middle text-xs font-semibold text-blue-800">
+                  poglądowo
+                </span>
+              )}
             </h3>
           </div>
           <div className="border-t border-gray-200">
@@ -424,9 +476,6 @@ export default function OwnerReportDetailsPage() {
                       <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                         Kwota
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                        Kategoria
-                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 bg-white">
@@ -451,14 +500,18 @@ export default function OwnerReportDetailsPage() {
                           {item.reservation
                             ? new Date(
                                 item.reservation.start,
-                              ).toLocaleDateString("pl-PL", { timeZone: "UTC" })
+                              ).toLocaleDateString("pl-PL", {
+                                timeZone: "UTC",
+                              })
                             : "-"}
                         </td>
                         <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
                           {item.reservation
                             ? new Date(item.reservation.end).toLocaleDateString(
                                 "pl-PL",
-                                { timeZone: "UTC" },
+                                {
+                                  timeZone: "UTC",
+                                },
                               )
                             : "-"}
                         </td>
@@ -483,15 +536,6 @@ export default function OwnerReportDetailsPage() {
                         <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-green-600">
                           +{item.amount.toFixed(2)} {item.currency}
                         </td>
-                        <td className="px-6 py-4">
-                          <span
-                            className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${getItemTypeColor(
-                              item.type,
-                            )}`}
-                          >
-                            {item.category}
-                          </span>
-                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -506,6 +550,11 @@ export default function OwnerReportDetailsPage() {
           <div className="border-b border-green-200 bg-green-50 px-6 py-4">
             <h3 className="text-lg font-medium text-green-900">
               Wydatki i Prowizje ({expenseItems.length})
+              {report.customSummaryEnabled && (
+                <span className="ml-2 inline-block rounded bg-blue-200 px-2 py-0.5 align-middle text-xs font-semibold text-blue-800">
+                  poglądowo
+                </span>
+              )}
             </h3>
           </div>
           <div className="border-t border-gray-200">
@@ -574,7 +623,7 @@ export default function OwnerReportDetailsPage() {
           </div>
         </div>
 
-        {/* Additional Deductions Section - Read Only for Owner */}
+        {/* Additional Deductions Section - Read Only for Owner (always visible; marked poglądowo if custom) */}
         {sortedDeductions && sortedDeductions.length > 0 && (
           <div className="mb-8 overflow-hidden rounded-lg bg-purple-50 shadow">
             <div className="border-b border-purple-200 px-6 py-4">
@@ -592,8 +641,13 @@ export default function OwnerReportDetailsPage() {
                     d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
                   />
                 </svg>
-                Dodatkowe Odliczenia
+                Dodatkowe Odliczenia (inwestycje)
               </h3>
+              {report.customSummaryEnabled && (
+                <span className="ml-2 inline-block rounded bg-blue-200 px-2 py-0.5 align-middle text-xs font-semibold text-blue-800">
+                  poglądowo
+                </span>
+              )}
               <p className="mt-1 text-sm text-purple-700">
                 Dodatkowe koszty odejmowane od ostatecznej wypłaty właściciela
               </p>
@@ -692,62 +746,67 @@ export default function OwnerReportDetailsPage() {
           </div>
         )}
 
-        {/* Podsumowanie rozliczenia - sekcja na górze */}
-        <div className="mb-8 overflow-hidden rounded-lg bg-white shadow">
-          <div className="border-b border-green-200 bg-green-50 px-6 py-4">
-            <h3 className="flex items-center text-lg font-medium text-green-900">
-              <svg
-                className="mr-2 h-5 w-5 text-green-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 012-2v16a2 2 0 01-2 2z"
-                />
-              </svg>
-              Rozliczenie Prowizji Złote Wynajmy
-            </h3>
-            <p className="mt-1 text-sm text-green-700">
-              Podstawowe informacje o zyskach i potrąceniach
-            </p>
-          </div>
-          <div className="bg-white p-6">
-            {/* Karta z zyskiem netto apartamentu */}
-            <div className="mb-6 rounded-lg bg-gray-50 p-4">
-              <h5 className="mb-2 text-lg font-medium text-gray-800">
-                Zysk netto apartamentu (przed wszystkimi potrąceniami)
-              </h5>
-              <p className="text-2xl font-bold text-gray-900">
-                {netIncome.toFixed(2)} PLN
+        {/* Podsumowanie rozliczenia - sekcja na górze (hidden when custom summary enabled) */}
+        {!report.customSummaryEnabled && (
+          <div className="mb-8 overflow-hidden rounded-lg bg-white shadow">
+            <div className="border-b border-green-200 bg-green-50 px-6 py-4">
+              <h3 className="flex items-center text-lg font-medium text-green-900">
+                <svg
+                  className="mr-2 h-5 w-5 text-green-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 012-2v16a2 2 0 01-2 2z"
+                  />
+                </svg>
+                Rozliczenie Prowizji Złote Wynajmy
+              </h3>
+              <p className="mt-1 text-sm text-green-700">
+                Podstawowe informacje o zyskach i potrąceniach
               </p>
             </div>
+            <div className="bg-white p-6">
+              {!report.customSummaryEnabled && (
+                <div className="mb-6 rounded-lg bg-gray-50 p-4">
+                  <h5 className="mb-2 text-lg font-medium text-gray-800">
+                    Zysk netto apartamentu (przed wszystkimi potrąceniami)
+                  </h5>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {netIncome.toFixed(2)} PLN
+                  </p>
+                </div>
+              )}
 
-            {/* Karta z prowizją 25% dla administratora */}
-            <div className="mb-6 rounded-lg bg-blue-50 p-4">
-              <h5 className="mb-2 text-lg font-medium text-blue-800">
-                Prowizja 25% dla administratora
-              </h5>
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div className="rounded-md bg-blue-100 p-3">
-                  <p className="text-sm text-blue-700">Kwota prowizji:</p>
-                  <p className="text-xl font-bold text-blue-900">
-                    {(netIncome * 0.25).toFixed(2)} PLN
-                  </p>
+              {/* Karta z prowizją 25% dla administratora */}
+              {!report.customSummaryEnabled && (
+                <div className="mb-6 rounded-lg bg-blue-50 p-4">
+                  <h5 className="mb-2 text-lg font-medium text-blue-800">
+                    Prowizja 25% dla administratora
+                  </h5>
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div className="rounded-md bg-blue-100 p-3">
+                      <p className="text-sm text-blue-700">Kwota prowizji:</p>
+                      <p className="text-xl font-bold text-blue-900">
+                        {(netIncome * 0.25).toFixed(2)} PLN
+                      </p>
+                    </div>
+                    <div className="rounded-md bg-blue-100 p-3">
+                      <p className="text-sm text-blue-700">Pozostało:</p>
+                      <p className="text-xl font-bold text-blue-900">
+                        {(netIncome * 0.75).toFixed(2)} PLN
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <div className="rounded-md bg-blue-100 p-3">
-                  <p className="text-sm text-blue-700">Pozostało:</p>
-                  <p className="text-xl font-bold text-blue-900">
-                    {(netIncome * 0.75).toFixed(2)} PLN
-                  </p>
-                </div>
-              </div>
+              )}
             </div>
           </div>
-        </div>
+        )}
 
         {/* Rozliczenie z Właścicielem - identyczny layout jak admin, bez inputów/radio/checkboxów */}
         <div className="mb-8 overflow-hidden rounded-lg bg-white shadow">
@@ -807,9 +866,15 @@ export default function OwnerReportDetailsPage() {
                     </p>
                   </div>
                 </div>
+                {report.customSummaryEnabled && (
+                  <span className="ml-2 inline-block rounded bg-blue-200 px-2 py-0.5 align-middle text-xs font-semibold text-blue-800">
+                    poglądowo
+                  </span>
+                )}
               </div>
               {/* KWOTA STAŁA */}
-              {report.finalSettlementType === "FIXED" &&
+              {!report.customSummaryEnabled &&
+                report.finalSettlementType === "FIXED" &&
                 report.fixedNetBase !== undefined && (
                   <div className="flex flex-col gap-2 rounded-lg bg-green-50 p-4">
                     <div className="mb-2 flex items-center text-lg font-semibold text-green-800">
@@ -853,7 +918,8 @@ export default function OwnerReportDetailsPage() {
                   </div>
                 )}
               {/* KWOTA STAŁA PO ODL. MEDIÓW */}
-              {report.finalSettlementType === "FIXED_MINUS_UTILITIES" &&
+              {!report.customSummaryEnabled &&
+                report.finalSettlementType === "FIXED_MINUS_UTILITIES" &&
                 report.fixedMinusUtilitiesNetBase !== undefined && (
                   <div className="flex flex-col gap-2 rounded-lg bg-green-50 p-4">
                     <div className="mb-2 flex items-center text-lg font-semibold text-green-800">
@@ -908,93 +974,96 @@ export default function OwnerReportDetailsPage() {
                     </div>
                   </div>
                 )}
-              {/* PROWIZYJNE - zawsze widoczne */}
-              <div className="flex flex-col gap-2 rounded-lg bg-blue-50 p-4">
-                <div className="mb-2 flex items-center text-lg font-semibold text-blue-800">
-                  Rozliczenie właściciela: prowizyjne
-                  {report.finalSettlementType === "COMMISSION" ? (
-                    <FinalBadge />
-                  ) : (
-                    <span className="ml-2 inline-block rounded bg-blue-200 px-2 py-0.5 align-middle text-xs font-semibold text-blue-800">
-                      poglądowo
-                    </span>
-                  )}
-                </div>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-5">
-                  <div className="rounded-md bg-blue-100 p-3">
-                    <p className="text-sm text-blue-700">
-                      Kwota po prowizji Złote Wynajmy
-                      {!isVatExempt && " (netto)"}:
-                    </p>
-                    <p className="text-lg font-bold text-blue-900">
-                      {report.afterCommission !== undefined
-                        ? report.afterCommission.toFixed(2)
-                        : "-"}{" "}
-                      PLN
-                    </p>
-                  </div>
-                  <div className="rounded-md bg-blue-100 p-3">
-                    <p className="text-sm text-blue-700">
-                      Kwota bazowa{!isVatExempt && " (netto)"}:
-                    </p>
-                    <p className="text-lg font-bold text-blue-900">
-                      {(report.afterRentAndUtilities !== undefined
-                        ? report.afterRentAndUtilities -
-                          totalAdditionalDeductionsGross
-                        : 0
-                      ).toFixed(2)}{" "}
-                      PLN
-                      <span className="block text-xs text-blue-600">
-                        (po odliczeniu czynszu:{" "}
-                        {(report.rentAmount ?? 0).toFixed(2)} PLN + mediów:{" "}
-                        {(report.utilitiesAmount ?? 0).toFixed(2)} PLN +
-                        dodatkowych odliczeń:{" "}
-                        {totalAdditionalDeductionsGross.toFixed(2)} PLN brutto ={" "}
-                        {(
-                          (report.rentAmount ?? 0) +
-                          (report.utilitiesAmount ?? 0) +
-                          totalAdditionalDeductionsGross
-                        ).toFixed(2)}{" "}
-                        PLN)
+              {/* PROWIZYJNE */}
+              {!report.customSummaryEnabled && (
+                <div className="flex flex-col gap-2 rounded-lg bg-blue-50 p-4">
+                  <div className="mb-2 flex items-center text-lg font-semibold text-blue-800">
+                    Rozliczenie właściciela: prowizyjne
+                    {report.finalSettlementType === "COMMISSION" ? (
+                      <FinalBadge />
+                    ) : (
+                      <span className="ml-2 inline-block rounded bg-blue-200 px-2 py-0.5 align-middle text-xs font-semibold text-blue-800">
+                        poglądowo
                       </span>
-                    </p>
+                    )}
                   </div>
-                  {!isVatExempt && (
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-5">
                     <div className="rounded-md bg-blue-100 p-3">
-                      <p className="text-sm text-blue-700">VAT:</p>
+                      <p className="text-sm text-blue-700">
+                        Kwota po prowizji Złote Wynajmy
+                        {!isVatExempt && " (netto)"}:
+                      </p>
                       <p className="text-lg font-bold text-blue-900">
-                        {getVatAmount(
-                          report.afterRentAndUtilities !== undefined
-                            ? report.afterRentAndUtilities -
-                                totalAdditionalDeductionsGross
-                            : 0,
-                          report.owner.vatOption,
-                        ).toFixed(2)}{" "}
+                        {report.afterCommission !== undefined
+                          ? report.afterCommission.toFixed(2)
+                          : "-"}{" "}
                         PLN
                       </p>
                     </div>
-                  )}
-                  <div className="rounded-md bg-blue-100 p-3">
-                    <p className="text-sm text-blue-700">DO WYPŁATY:</p>
-                    <p className="text-2xl font-bold text-blue-900">
-                      {isVatExempt
-                        ? (report.afterRentAndUtilities !== undefined
-                            ? (
-                                report.afterRentAndUtilities -
-                                totalAdditionalDeductionsGross
-                              ).toFixed(2)
-                            : "0.00") + " PLN"
-                        : getGrossAmount(
+                    <div className="rounded-md bg-blue-100 p-3">
+                      <p className="text-sm text-blue-700">
+                        Kwota bazowa{!isVatExempt && " (netto)"}:
+                      </p>
+                      <p className="text-lg font-bold text-blue-900">
+                        {(report.afterRentAndUtilities !== undefined
+                          ? report.afterRentAndUtilities -
+                            totalAdditionalDeductionsGross
+                          : 0
+                        ).toFixed(2)}{" "}
+                        PLN
+                        <span className="block text-xs text-blue-600">
+                          (po odliczeniu czynszu:{" "}
+                          {(report.rentAmount ?? 0).toFixed(2)} PLN + mediów:{" "}
+                          {(report.utilitiesAmount ?? 0).toFixed(2)} PLN +
+                          dodatkowych odliczeń:{" "}
+                          {totalAdditionalDeductionsGross.toFixed(2)} PLN brutto
+                          ={" "}
+                          {(
+                            (report.rentAmount ?? 0) +
+                            (report.utilitiesAmount ?? 0) +
+                            totalAdditionalDeductionsGross
+                          ).toFixed(2)}{" "}
+                          PLN)
+                        </span>
+                      </p>
+                    </div>
+                    {!isVatExempt && (
+                      <div className="rounded-md bg-blue-100 p-3">
+                        <p className="text-sm text-blue-700">VAT:</p>
+                        <p className="text-lg font-bold text-blue-900">
+                          {getVatAmount(
                             report.afterRentAndUtilities !== undefined
                               ? report.afterRentAndUtilities -
                                   totalAdditionalDeductionsGross
                               : 0,
                             report.owner.vatOption,
-                          ).toFixed(2) + " PLN"}
-                    </p>
+                          ).toFixed(2)}{" "}
+                          PLN
+                        </p>
+                      </div>
+                    )}
+                    <div className="rounded-md bg-blue-100 p-3">
+                      <p className="text-sm text-blue-700">DO WYPŁATY:</p>
+                      <p className="text-2xl font-bold text-blue-900">
+                        {isVatExempt
+                          ? (report.afterRentAndUtilities !== undefined
+                              ? (
+                                  report.afterRentAndUtilities -
+                                  totalAdditionalDeductionsGross
+                                ).toFixed(2)
+                              : "0.00") + " PLN"
+                          : getGrossAmount(
+                              report.afterRentAndUtilities !== undefined
+                                ? report.afterRentAndUtilities -
+                                    totalAdditionalDeductionsGross
+                                : 0,
+                              report.owner.vatOption,
+                            ).toFixed(2) + " PLN"}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
 
               {/* Sekcja rozliczenia */}
               <div className="mt-8 space-y-6"></div>
@@ -1005,7 +1074,7 @@ export default function OwnerReportDetailsPage() {
                   <h4 className="mb-4 text-xl font-semibold text-gray-800">
                     Podsumowanie
                   </h4>
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+                  <div className="grid grid-cols-4 gap-4">
                     <div
                       className={`rounded-md p-4 ${
                         report.finalSettlementType === "COMMISSION"
@@ -1033,7 +1102,7 @@ export default function OwnerReportDetailsPage() {
                             : "text-green-900"
                         }`}
                       >
-                        {report.taxBase?.toFixed(2) ?? "0.00"} PLN
+                        {summaryTaxBase.toFixed(2)} PLN
                       </p>
                     </div>
                     <div
@@ -1059,9 +1128,7 @@ export default function OwnerReportDetailsPage() {
                             : "text-green-900"
                         }`}
                       >
-                        {report.finalOwnerPayout
-                          ? `${report.finalOwnerPayout.toFixed(2)} PLN`
-                          : "0.00 PLN"}
+                        {summaryOwnerPayout.toFixed(2)} PLN
                       </p>
                     </div>
                     <div className="rounded-md bg-purple-100 p-4">
@@ -1069,9 +1136,7 @@ export default function OwnerReportDetailsPage() {
                         Ostateczna prowizja Złote Wynajmy:
                       </p>
                       <p className="text-2xl font-bold text-purple-900">
-                        {report.finalHostPayout
-                          ? `${report.finalHostPayout.toFixed(2)} PLN`
-                          : "0.00 PLN"}
+                        {summaryHostPayout.toFixed(2)} PLN
                       </p>
                       <p className="mt-1 text-xs text-purple-600">
                         {report.finalSettlementType === "COMMISSION"
@@ -1120,12 +1185,18 @@ export default function OwnerReportDetailsPage() {
                         właściciela:
                       </p>
                       <p className="text-2xl font-bold text-yellow-900">
-                        {(
-                          report as OwnerReport & { finalIncomeTax?: number }
-                        ).finalIncomeTax?.toFixed(2) ?? "0.00"}{" "}
-                        PLN
+                        {summaryIncomeTax.toFixed(2)} PLN
                       </p>
                     </div>
+                    {report.customSummaryEnabled &&
+                      report.customSummaryNote && (
+                        <div className="col-span-full rounded-md bg-orange-50 p-4 text-sm text-orange-800">
+                          <div className="mb-1 font-semibold">Notatka:</div>
+                          <div className="whitespace-pre-wrap">
+                            {report.customSummaryNote}
+                          </div>
+                        </div>
+                      )}
                   </div>
                 </div>
               </div>

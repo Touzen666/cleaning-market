@@ -59,14 +59,77 @@ export default function ChartExplanationCard({
   showPieChart = true,
   className = "",
 }: ChartExplanationCardProps) {
-  // Dla trybu costsVsPayout przeliczamy procenty tak, żeby suma wynosiła 100%
+  // Przetwarzanie danych na potrzeby wyświetlenia:
+  // - costsVsPayout: normalizacja do 100%
+  // - normal/fixedCosts: dopełnienie kafelkiem "Pozostałe", aby suma = 100%
   const processedData = React.useMemo(() => {
+    const round1 = (v: number) => Number(v.toFixed(1));
+
     if (mode === "costsVsPayout") {
       const total = data.reduce((sum, item) => sum + item.value, 0);
-      return data.map((item) => ({
-        ...item,
-        value: total > 0 ? (item.value / total) * 100 : 0,
-      }));
+      if (total <= 0) {
+        return data.map((item) => ({ ...item, value: 0 }));
+      }
+
+      // Wylicz procenty i skoryguj zaokrąglenia, aby suma = 100.0%
+      const rawPercents: number[] = data.map(
+        (item) => (item.value / total) * 100,
+      );
+      if (rawPercents.length === 0) {
+        return data.map((item) => ({ ...item, value: 0 }));
+      }
+      let maxIndex = 0;
+      for (let i = 1; i < rawPercents.length; i++) {
+        const current = rawPercents[i] ?? 0;
+        const currentMax = rawPercents[maxIndex] ?? 0;
+        if (current > currentMax) maxIndex = i;
+      }
+
+      const rounded: number[] = Array.from(
+        { length: rawPercents.length },
+        () => 0,
+      );
+      let sumOthers = 0;
+      for (let i = 0; i < rawPercents.length; i++) {
+        if (i === maxIndex) continue;
+        const p = rawPercents[i] ?? 0;
+        const r = round1(p);
+        rounded[i] = r;
+        sumOthers += r;
+      }
+      let maxRounded = round1(100 - sumOthers);
+      if (maxRounded < 0) {
+        // Korekta, gdy suma zaokrągleń > 100 — odejmij różnicę od największego nie-max kafelka
+        const nonMaxIndex = rounded
+          .map((v, idx) => ({ v, idx }))
+          .filter((x) => x.idx !== maxIndex)
+          .sort((a, b) => b.v - a.v)[0]?.idx;
+        if (nonMaxIndex != null) {
+          const diff = round1(Math.abs(maxRounded));
+          const current = rounded[nonMaxIndex] ?? 0;
+          rounded[nonMaxIndex] = round1(Math.max(0, current - diff));
+          maxRounded = 0;
+        }
+      }
+      rounded[maxIndex] = maxRounded;
+
+      return data.map((item, i) => ({ ...item, value: rounded[i] }));
+    }
+
+    // Tryby: normal, fixedCosts → procenty już są liczone względem przychodu.
+    // Jeżeli suma < 100 (np. brakujące kategorie lub 0%), dodajemy "Pozostałe".
+    const total = data.reduce((sum, item) => sum + item.value, 0);
+    const remainder = Math.max(0, round1(100 - total));
+    if (remainder > 0.0) {
+      return [
+        ...data,
+        {
+          name: "Pozostałe",
+          value: remainder,
+          fill: "#95a5a6",
+          description: "Pozostałe koszty i/lub kategorie nieujęte powyżej",
+        },
+      ];
     }
     return data;
   }, [data, mode]);
@@ -123,38 +186,56 @@ export default function ChartExplanationCard({
     }
   };
 
-  const getCategoryColors = (index: number) => {
-    const colors = [
-      "bg-green-50 text-green-900",
-      "bg-orange-50 text-orange-900",
-      "bg-teal-50 text-teal-900",
-      "bg-yellow-50 text-yellow-900",
-      "bg-red-50 text-red-900",
-      "bg-blue-50 text-blue-900",
-      "bg-indigo-50 text-indigo-900",
-      "bg-purple-50 text-purple-900",
-    ];
-    return colors[index % colors.length];
-  };
+  // Removed unused helpers getCategoryColors/getCategoryValueColors in favor of using item.fill
 
-  const getCategoryValueColors = (index: number) => {
-    const colors = [
-      "text-green-700",
-      "text-orange-700",
-      "text-teal-700",
-      "text-yellow-700",
-      "text-red-700",
-      "text-blue-700",
-      "text-indigo-700",
-      "text-purple-700",
-    ];
-    return colors[index % colors.length];
+  // Helper: convert HEX color to rgba with opacity
+  const hexToRgba = (hex: string, alpha = 1): string => {
+    const sanitized = hex.replace("#", "");
+    const expanded =
+      sanitized.length === 3
+        ? sanitized
+            .split("")
+            .map((c) => c + c)
+            .join("")
+        : sanitized;
+    const bigint = parseInt(expanded, 16);
+    const r = (bigint >> 16) & 255;
+    const g = (bigint >> 8) & 255;
+    const b = bigint & 255;
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
   };
 
   const totalPercentage = processedData.reduce(
-    (sum, item) => sum + item.value,
+    (sum, item) => sum + (item.value ?? 0),
     0,
   );
+  const missingPercentage = Math.max(
+    0,
+    Number((100 - totalPercentage).toFixed(1)),
+  );
+
+  // Kolejność kafelków: 1) Wypłata Właściciela, 2) Prowizja Złote Wynajmy, reszta w oryginalnej kolejności
+  const orderedTiles = React.useMemo(() => {
+    const priorityNames = [
+      "Wypłata Właściciela",
+      "Prowizja Złote Wynajmy",
+      "Złote Wynajmy Prowizja", // alternatywna etykieta
+    ];
+    const seen = new Set<string>();
+    const result: ChartDataItem[] = [];
+    for (const name of priorityNames) {
+      const found = processedData.find((i) => i.name === name);
+      if (found && !seen.has(found.name)) {
+        result.push(found as ChartDataItem);
+        seen.add(found.name);
+      }
+      if (result.length === 2) break;
+    }
+    for (const item of processedData) {
+      if (!seen.has(item.name)) result.push(item as ChartDataItem);
+    }
+    return result;
+  }, [processedData]);
 
   return (
     <div
@@ -215,29 +296,119 @@ export default function ChartExplanationCard({
             <div className="p-4">
               {processedData.length > 0 ? (
                 <div className="space-y-3">
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                    {processedData.map((item, index) => (
-                      <div
-                        key={item.name}
-                        className={`group relative rounded-lg p-3 text-center ${getCategoryColors(index)}`}
-                      >
-                        <span className="block text-sm font-medium">
-                          {item.name}
-                        </span>
-                        <span
-                          className={`mt-1 block text-2xl font-bold ${getCategoryValueColors(index)}`}
-                        >
-                          {item.value.toFixed(1)}%
-                        </span>
-                        {item.description && (
-                          <div className="absolute bottom-full left-1/2 z-10 mb-2 hidden w-48 -translate-x-1/2 rounded-md bg-gray-900 px-3 py-2 text-xs text-white group-hover:block">
-                            {item.description}
-                            <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
-                          </div>
-                        )}
+                  {(() => {
+                    const row1 = orderedTiles.slice(0, 2);
+                    const row2 = orderedTiles.slice(2, 6);
+                    const row3 = orderedTiles.slice(6, 10);
+
+                    const renderRow = (
+                      items: typeof orderedTiles,
+                      startIndex: number,
+                      colsClass: string,
+                    ) => (
+                      <div className={`grid grid-cols-1 ${colsClass} gap-3`}>
+                        {items.map((item) => {
+                          const fill = item.fill || "#888888";
+                          const isWide =
+                            mode === "fixedCosts" &&
+                            item.name.toLowerCase().includes("pozosta");
+                          const spanClass = isWide
+                            ? "sm:col-span-2 lg:col-span-2"
+                            : "";
+                          return (
+                            <div
+                              key={item.name}
+                              className={`group relative rounded-lg p-3 text-center ${spanClass}`}
+                              style={{
+                                backgroundColor: hexToRgba(fill, 0.08),
+                                border: `1px solid ${hexToRgba(fill, 0.35)}`,
+                              }}
+                            >
+                              <span className="block text-sm font-medium">
+                                {item.name}
+                              </span>
+                              <span
+                                className={`mt-1 block text-2xl font-bold`}
+                                style={{ color: fill }}
+                              >
+                                {item.value.toFixed(1)}%
+                              </span>
+                              {item.description && (
+                                <div className="absolute bottom-full left-1/2 z-10 mb-2 hidden w-48 -translate-x-1/2 rounded-md bg-gray-900 px-3 py-2 text-xs text-white group-hover:block">
+                                  {item.description}
+                                  <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
-                    ))}
-                  </div>
+                    );
+
+                    if (mode === "costsVsPayout") {
+                      // Tylko dla trybu podziału: 2x2 – dokładnie 4 kafelki
+                      const tiles = orderedTiles.slice(0, 4);
+                      while (tiles.length < 4) {
+                        tiles.push({
+                          name: "—",
+                          value: 0,
+                          fill: "#e5e7eb",
+                          description: "Brak danych",
+                        });
+                      }
+                      return (
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                          {tiles.map((item) => {
+                            const fill = item.fill || "#888888";
+                            return (
+                              <div
+                                key={item.name}
+                                className={`group relative rounded-lg p-3 text-center`}
+                                style={{
+                                  backgroundColor: hexToRgba(fill, 0.08),
+                                  border: `1px solid ${hexToRgba(fill, 0.35)}`,
+                                }}
+                              >
+                                <span className="block text-sm font-medium">
+                                  {item.name}
+                                </span>
+                                <span
+                                  className={`mt-1 block text-2xl font-bold`}
+                                  style={{ color: fill }}
+                                >
+                                  {item.value.toFixed(1)}%
+                                </span>
+                                {item.description && (
+                                  <div className="absolute bottom-full left-1/2 z-10 mb-2 hidden w-48 -translate-x-1/2 rounded-md bg-gray-900 px-3 py-2 text-xs text-white group-hover:block">
+                                    {item.description}
+                                    <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    }
+                    return (
+                      <>
+                        {row1.length > 0 &&
+                          renderRow(row1, 0, "sm:grid-cols-2")}
+                        {row2.length > 0 &&
+                          renderRow(
+                            row2,
+                            row1.length,
+                            "sm:grid-cols-2 lg:grid-cols-4",
+                          )}
+                        {row3.length > 0 &&
+                          renderRow(
+                            row3,
+                            row1.length + row2.length,
+                            "sm:grid-cols-2 lg:grid-cols-4",
+                          )}
+                      </>
+                    );
+                  })()}
 
                   <div className="mt-4 rounded-lg bg-gray-50 p-3 text-center">
                     <p className="text-lg font-bold text-gray-900">
@@ -246,10 +417,9 @@ export default function ChartExplanationCard({
                         : "Suma kategorii"}
                       : {totalPercentage.toFixed(1)}%
                     </p>
-                    {totalPercentage < 100 && mode !== "costsVsPayout" && (
+                    {mode !== "costsVsPayout" && missingPercentage > 0 && (
                       <p className="mt-1 text-sm text-gray-600">
-                        Pozostałe {(100 - totalPercentage).toFixed(1)}% to inne
-                        koszty
+                        Pozostałe {missingPercentage.toFixed(1)}% to inne koszty
                       </p>
                     )}
                     {mode === "costsVsPayout" && (

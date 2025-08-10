@@ -246,7 +246,7 @@ export default function CreateReportPage() {
                     <label
                       key={apartment.id}
                       className={`flex cursor-pointer rounded-lg border p-4 transition-colors ${
-                        selectedApartmentId === apartment.id
+                        selectedApartmentId === Number(apartment.id)
                           ? "border-indigo-500 bg-indigo-50"
                           : "border-gray-300 hover:bg-gray-50"
                       }`}
@@ -255,7 +255,7 @@ export default function CreateReportPage() {
                         type="radio"
                         name="apartment"
                         value={apartment.id}
-                        checked={selectedApartmentId === apartment.id}
+                        checked={selectedApartmentId === Number(apartment.id)}
                         onChange={(e) =>
                           handleApartmentSelect(Number(e.target.value))
                         }
@@ -329,8 +329,9 @@ export default function CreateReportPage() {
                 <p>
                   <strong>Apartament:</strong>{" "}
                   {
-                    apartments.find((apt) => apt.id === selectedApartmentId)
-                      ?.name
+                    apartments.find(
+                      (apt) => Number(apt.id) === selectedApartmentId,
+                    )?.name
                   }
                 </p>
                 <p>

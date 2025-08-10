@@ -34,6 +34,7 @@ export async function recalculateReportSettlement(reportId: string, ctx: Recalcu
                     rentAmount: true,
                     utilitiesAmount: true,
                     ownerId: true,
+                    apartmentId: true,
                 }
             }),
             // Zoptymalizowane zapytanie - użyj agregacji SQL zamiast pobierania wszystkich rekordów
@@ -60,15 +61,26 @@ export async function recalculateReportSettlement(reportId: string, ctx: Recalcu
             throw new TRPCError({ code: "NOT_FOUND", message: `Raport ${reportId} nie istnieje.` });
         }
 
-        // Pobierz właściciela na podstawie report.ownerId
-        const actualOwner = await ctx.db.apartmentOwner.findUnique({
-            where: { id: report.ownerId },
-            select: { fixedPaymentAmount: true, vatOption: true }
-        });
+        // Pobierz właściciela i apartament na podstawie report.ownerId i report.apartmentId
+        const [actualOwner, actualApartment] = await Promise.all([
+            ctx.db.apartmentOwner.findUnique({
+                where: { id: report.ownerId },
+                select: { vatOption: true }
+            }),
+            ctx.db.apartment.findUnique({
+                where: { id: report.apartmentId },
+                select: { fixedPaymentAmount: true }
+            })
+        ]);
 
         if (!actualOwner) {
             console.error(`[ERROR] Nie znaleziono właściciela dla raportu: ${reportId}`);
             throw new TRPCError({ code: "NOT_FOUND", message: `Właściciel raportu ${reportId} nie istnieje.` });
+        }
+
+        if (!actualApartment) {
+            console.error(`[ERROR] Nie znaleziono apartamentu dla raportu: ${reportId}`);
+            throw new TRPCError({ code: "NOT_FOUND", message: `Apartament raportu ${reportId} nie istnieje.` });
         }
 
         // Zoptymalizowane obliczenia - używamy danych z agregacji SQL
@@ -102,10 +114,10 @@ export async function recalculateReportSettlement(reportId: string, ctx: Recalcu
             const settlementType = report.finalSettlementType;
 
             if (settlementType === 'FIXED' || settlementType === 'FIXED_MINUS_UTILITIES') {
-                if (actualOwner.fixedPaymentAmount === null || actualOwner.fixedPaymentAmount === undefined) {
+                if (actualApartment.fixedPaymentAmount === null || actualApartment.fixedPaymentAmount === undefined) {
                     console.warn(`[WARN] Raport ${reportId}: brak kwoty stałej dla typu ${settlementType}`);
                 } else {
-                    const fixedBaseAmount = Number(actualOwner.fixedPaymentAmount);
+                    const fixedBaseAmount = Number(actualApartment.fixedPaymentAmount);
 
                     if (settlementType === 'FIXED') {
                         baseAmount = fixedBaseAmount;
@@ -123,7 +135,7 @@ export async function recalculateReportSettlement(reportId: string, ctx: Recalcu
             finalOwnerPayout = Math.max(0, baseAmount) + finalVatAmount;
 
             // Zoptymalizowane obliczanie finalHostPayout
-            const fixedAmount = actualOwner.fixedPaymentAmount ? Number(actualOwner.fixedPaymentAmount) : 0;
+            const fixedAmount = actualApartment.fixedPaymentAmount ? Number(actualApartment.fixedPaymentAmount) : 0;
 
             if (settlementType === 'COMMISSION') {
                 finalHostPayout = adminCommissionAmount;

@@ -4,7 +4,6 @@ import { TRPCError } from "@trpc/server";
 import { randomBytes, createHash } from "crypto";
 import { sendEmail } from "@/lib/email/email-service";
 import { createResetPasswordEmail } from "@/lib/email/templates/reset-password";
-import * as jwt from "jsonwebtoken";
 import { ReportStatus } from "@prisma/client";
 
 // Simple password hashing using Node.js crypto
@@ -34,38 +33,6 @@ function verifyPassword(password: string, hash: string): boolean {
 // }
 
 export const ownerAuthRouter = createTRPCRouter({
-    loginAsOwner: publicProcedure
-        .input(z.object({ ownerId: z.string() }))
-        .mutation(async ({ input, ctx }) => {
-            const { ownerId } = input;
-            const owner = await ctx.db.apartmentOwner.findUnique({
-                where: { id: ownerId },
-            });
-
-            if (!owner) {
-                throw new TRPCError({
-                    code: "NOT_FOUND",
-                    message: "Właściciel nie został znaleziony.",
-                });
-            }
-
-            const secret = process.env.AUTH_SECRET;
-            if (!secret) {
-                throw new TRPCError({
-                    code: "INTERNAL_SERVER_ERROR",
-                    message: "Brak sekretu do podpisania tokena.",
-                });
-            }
-
-            const payload = { id: owner.id, email: owner.email, role: "OWNER" };
-            const token = jwt.sign(
-                payload,
-                secret,
-                { expiresIn: "1h" },
-            );
-
-            return { success: true, token };
-        }),
     // Login with email and password/temporary password
     login: publicProcedure
         .input(z.object({
@@ -169,9 +136,9 @@ export const ownerAuthRouter = createTRPCRouter({
         }),
 
     getDashboardData: publicProcedure
-        .input(z.undefined())
-        .query(async ({ ctx }) => {
-            const ownerEmail = ctx.headers.get("X-Owner-Email");
+        .input(z.object({ ownerEmail: z.string().email() }))
+        .query(async ({ input, ctx }) => {
+            const { ownerEmail } = input;
 
             if (!ownerEmail) {
                 throw new TRPCError({
@@ -219,21 +186,39 @@ export const ownerAuthRouter = createTRPCRouter({
 
             const startOfYear = new Date(new Date().getFullYear(), 0, 1);
 
-            const revenue = await ctx.db.monthlyReport.aggregate({
+            // Suma wypłat właściciela za bieżący rok z uwzględnieniem niestandardowych wartości.
+            // Zasady:
+            // - Raporty APPROVED/SENT: bierzemy finalOwnerPayout (jest utrwalone przy zapisie lub rekalkulacji)
+            // - DRAFT z włączonym customSummaryEnabled: uwzględnij customOwnerPayout, aby licznik był zgodny z ręcznym ustawieniem
+            const reportsForYear = await ctx.db.monthlyReport.findMany({
                 where: {
                     ownerId: owner.id,
                     year: startOfYear.getFullYear(),
-                    status: { in: [ReportStatus.APPROVED, ReportStatus.SENT] },
+                    OR: [
+                        { status: { in: [ReportStatus.APPROVED, ReportStatus.SENT] } },
+                        { status: 'DRAFT', customSummaryEnabled: true },
+                    ],
                 },
-                _sum: {
+                select: {
                     finalOwnerPayout: true,
+                    customSummaryEnabled: true,
+                    customOwnerPayout: true,
+                    status: true,
                 },
             });
+
+            const currentYearProfitSum = reportsForYear.reduce((sum, r) => {
+                // Preferuj niestandardową kwotę, jeśli włączona
+                if (r.customSummaryEnabled && r.customOwnerPayout != null) {
+                    return sum + Number(r.customOwnerPayout);
+                }
+                return sum + Number(r.finalOwnerPayout ?? 0);
+            }, 0);
 
             // Debug logging for dashboard
             console.log(`[DEBUG DASHBOARD] Owner ID: ${owner.id}`);
             console.log(`[DEBUG DASHBOARD] Current year: ${startOfYear.getFullYear()}`);
-            console.log(`[DEBUG DASHBOARD] Aggregate sum: ${revenue._sum.finalOwnerPayout}`);
+            console.log(`[DEBUG DASHBOARD] Aggregate sum: ${currentYearProfitSum}`);
 
             const totalReports = await ctx.db.monthlyReport.count({
                 where: {
@@ -246,7 +231,7 @@ export const ownerAuthRouter = createTRPCRouter({
                 stats: {
                     totalApartments,
                     activeReservations,
-                    currentYearProfit: revenue._sum.finalOwnerPayout ?? 0,
+                    currentYearProfit: currentYearProfitSum,
                     totalReports,
                 },
             };

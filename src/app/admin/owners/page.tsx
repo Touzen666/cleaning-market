@@ -4,9 +4,10 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/trpc/react";
 import type { RouterOutputs } from "@/trpc/react";
-import { PaymentType, VATOption } from "@/lib/types";
+import { VATOption } from "@/lib/types";
 import { useSession } from "next-auth/react";
 import ProfileAvatar from "@/components/ProfileAvatar";
+import ManageOwnerApartmentsModal from "@/app/_components/ManageOwnerApartmentsModal";
 
 type ApartmentOwner = RouterOutputs["apartmentOwners"]["getAll"][0] & {
   profileImageUrl?: string | null;
@@ -33,11 +34,25 @@ export default function AdminOwnersPage() {
     isLoading: apartmentsLoading,
   } = apartmentsQuery;
 
-  const loginAsOwnerMutation = api.ownerAuth.loginAsOwner.useMutation();
+  const impersonateOwnerMutation =
+    api.apartmentOwners.impersonate.useMutation();
   const handleLoginAsOwner = async (ownerId: string) => {
+    // Sprawdź czy użytkownik jest administratorem
+    if (!session?.user || session.user.type !== "ADMIN") {
+      alert(
+        "Dostęp tylko dla administratorów! Musisz być zalogowany jako administrator, aby móc włączyć tryb podglądu jako właściciel.",
+      );
+      return;
+    }
+
     try {
-      const result = await loginAsOwnerMutation.mutateAsync({ ownerId });
-      if (result.success && result.token) {
+      const result = await impersonateOwnerMutation.mutateAsync({ ownerId });
+      if (result.sessionToken) {
+        // Zapisz token w localStorage dla właściciela
+        localStorage.setItem("ownerSessionToken", result.sessionToken);
+        localStorage.setItem("ownerEmail", result.owner.email);
+        localStorage.setItem("isImpersonating", "true");
+
         await update({
           ...session,
           user: {
@@ -46,16 +61,26 @@ export default function AdminOwnersPage() {
             role: "OWNER",
             isSuperAdmin: true,
           },
-          token: result.token,
         });
+
+        alert(
+          `Pomyślnie włączono tryb podglądu jako właściciel: ${result.owner.firstName} ${result.owner.lastName}! Możesz teraz przeglądać panel właściciela. Aby wrócić do panelu administratora, kliknij przycisk "Wróć do panelu administratora" na dole strony.`,
+        );
         router.push("/apartamentsOwner/dashboard");
       } else {
-        // @ts-expect-error - result.error can be unknown
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-        console.error("Failed to login as owner:", result.error);
+        alert(
+          "Błąd podczas włączania trybu podglądu jako właściciel. Sprawdź, czy właściciel istnieje i jest aktywny.",
+        );
       }
     } catch (error) {
-      console.error("Error during login as owner:", error);
+      console.error("Error during impersonation:", error);
+      if (error instanceof Error) {
+        alert(`Błąd: ${error.message}`);
+      } else {
+        alert(
+          "Wystąpił nieoczekiwany błąd podczas włączania trybu podglądu jako właściciel. Spróbuj ponownie lub skontaktuj się z administratorem systemu.",
+        );
+      }
     }
   };
 
@@ -393,6 +418,7 @@ function OwnerCard({
 }) {
   const [copied, setCopied] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
+  const [isManageModalOpen, setIsManageModalOpen] = useState(false);
   const router = useRouter();
 
   const sendWelcomeEmailMutation = api.email.sendWelcomeEmail.useMutation({
@@ -490,9 +516,47 @@ function OwnerCard({
                   onLoginAsOwner(owner.id);
                 }}
                 className="inline-flex items-center rounded-md bg-purple-100 px-2 py-1 text-xs font-medium text-purple-800 hover:bg-purple-200"
-                title="Zaloguj się jako właściciel"
+                title="Włącz tryb podglądu jako właściciel - przeglądaj panel właściciela"
               >
-                Zaloguj jako
+                <svg
+                  className="mr-1 h-3 w-3"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  />
+                </svg>
+                Podgląd jako
+              </button>
+
+              {/* Manage apartments assignment */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsManageModalOpen(true);
+                }}
+                className="inline-flex items-center rounded-md bg-teal-100 px-2 py-1 text-xs font-medium text-teal-800 hover:bg-teal-200"
+                title="Przypisz/odłącz apartamenty"
+              >
+                <svg
+                  className="mr-1 h-3 w-3"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                  />
+                </svg>
+                Zarządzaj apartamentami
               </button>
 
               {/* Delete buttons */}
@@ -554,6 +618,17 @@ function OwnerCard({
           </div>
         </div>
       )}
+
+      {isManageModalOpen && (
+        <ManageOwnerApartmentsModal
+          ownerId={owner.id}
+          onClose={() => setIsManageModalOpen(false)}
+          onSuccess={() => {
+            setIsManageModalOpen(false);
+            onRefetch();
+          }}
+        />
+      )}
     </li>
   );
 }
@@ -572,8 +647,6 @@ function AddOwnerModal({
     lastName: string;
     email: string;
     phone: string;
-    paymentType: PaymentType;
-    fixedPaymentAmount: number;
     vatOption: VATOption;
     apartmentIds: number[];
   }>({
@@ -581,8 +654,6 @@ function AddOwnerModal({
     lastName: "",
     email: "",
     phone: "",
-    paymentType: PaymentType.COMMISSION,
-    fixedPaymentAmount: 0,
     vatOption: VATOption.NO_VAT,
     apartmentIds: [],
   });
@@ -653,39 +724,6 @@ function AddOwnerModal({
             onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
             className="w-full rounded-md border-gray-300 p-2"
           />
-
-          <select
-            value={form.paymentType}
-            onChange={(e) =>
-              setForm((f) => ({
-                ...f,
-                paymentType: e.target.value as PaymentType,
-              }))
-            }
-            className="w-full rounded-md border-gray-300 p-2"
-          >
-            <option value={PaymentType.COMMISSION}>
-              Prowizja od przychodów
-            </option>
-            <option value={PaymentType.FIXED_AMOUNT}>Kwota stała</option>
-          </select>
-
-          {form.paymentType === PaymentType.FIXED_AMOUNT && (
-            <input
-              type="number"
-              placeholder="Kwota stała (PLN)"
-              value={form.fixedPaymentAmount}
-              onChange={(e) =>
-                setForm((f) => ({
-                  ...f,
-                  fixedPaymentAmount: Number(e.target.value),
-                }))
-              }
-              min={0}
-              step={0.01}
-              className="w-full rounded-md border-gray-300 p-2"
-            />
-          )}
 
           <select
             value={form.vatOption}

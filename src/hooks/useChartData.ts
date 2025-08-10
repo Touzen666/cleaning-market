@@ -10,8 +10,12 @@ export type BaseChartDataItem = {
     Tekstylia: number;
     Czynsz: number;
     Media: number;
+    "Parking przychód": number;
+    "Parking czynsz": number;
+    "Parking zysk": number;
     "Złote Wynajmy Prowizja": number;
     "Prowizje OTA": number;
+    "Dodatkowe odliczenia": number;
     "Wypłata Właściciela": number;
     "Koszty stałe": number;
     "Inne wydatki": number;
@@ -39,6 +43,8 @@ export type ChartPercentages = {
     rent: number;
     utilities: number;
     otaCommissions: number;
+    investments: number; // Dodatkowe odliczenia (brutto)
+    parkingProfit: number; // Zysk z parkingu
     payout: number;
     otherExpenses: number;
 };
@@ -93,6 +99,8 @@ export function useChartData(
             rent: (data.Czynsz ?? 0) / totalRevenue * 100,
             utilities: (data.Media ?? 0) / totalRevenue * 100,
             otaCommissions: (data["Prowizje OTA"] ?? 0) / totalRevenue * 100,
+            investments: (data["Dodatkowe odliczenia"] ?? 0) / totalRevenue * 100,
+            parkingProfit: (data["Parking zysk"] ?? 0) / totalRevenue * 100,
             payout: (data["Wypłata Właściciela"] ?? 0) / totalRevenue * 100,
             otherExpenses: (data["Inne wydatki"] ?? 0) / totalRevenue * 100,
         };
@@ -113,6 +121,16 @@ export function useChartData(
                 name: "Wypłata Właściciela",
                 value: percentages.payout,
                 fill: "#00C49F",
+            },
+            {
+                name: "Inwestycje",
+                value: percentages.investments,
+                fill: "#795548",
+            },
+            {
+                name: "Parking",
+                value: percentages.parkingProfit,
+                fill: "#607D8B",
             },
             {
                 name: "Prowizja Złote Wynajmy",
@@ -157,8 +175,12 @@ export function useChartData(
                 if (filters.Sprzątanie) filteredItem.Sprzątanie = item.Sprzątanie;
                 if (filters.Pranie) filteredItem.Pranie = item.Pranie;
                 if (filters.Tekstylia) filteredItem.Tekstylia = item.Tekstylia;
+                if (filters["Parking przychód"]) filteredItem["Parking przychód"] = item["Parking przychód"];
+                if (filters["Parking czynsz"]) filteredItem["Parking czynsz"] = item["Parking czynsz"];
+                if (filters["Parking zysk"]) filteredItem["Parking zysk"] = item["Parking zysk"];
                 if (filters["Złote Wynajmy Prowizja"]) filteredItem["Złote Wynajmy Prowizja"] = item["Złote Wynajmy Prowizja"];
                 if (filters["Prowizje OTA"]) filteredItem["Prowizje OTA"] = item["Prowizje OTA"];
+                if (filters["Dodatkowe odliczenia"]) filteredItem["Dodatkowe odliczenia"] = item["Dodatkowe odliczenia"];
                 if (filters["Wypłata Właściciela"]) filteredItem["Wypłata Właściciela"] = item["Wypłata Właściciela"];
                 if (filters["Koszty stałe"]) filteredItem["Koszty stałe"] = item["Koszty stałe"];
                 if (filters["Inne wydatki"]) filteredItem["Inne wydatki"] = item["Inne wydatki"];
@@ -232,6 +254,16 @@ export function useChartData(
                             name: "Wypłata Właściciela",
                             value: percentages.payout,
                             fill: "#00C49F",
+                        },
+                        {
+                            name: "Inwestycje",
+                            value: percentages.investments,
+                            fill: "#795548",
+                        },
+                        {
+                            name: "Parking",
+                            value: percentages.parkingProfit,
+                            fill: "#607D8B",
                         },
                         {
                             name: "Prowizja Złote Wynajmy",

@@ -345,4 +345,25 @@ export const reservationsRouter = createTRPCRouter({
 
       return apartmentsData;
     }),
+
+  // Update reservation source (admin only)
+  updateSource: protectedProcedure
+    .input(z.object({
+      reservationId: z.number(),
+      // Accept any non-empty source string to allow dynamic options coming from DB/UI
+      newSource: z.string().min(1),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.session.user.type !== UserType.ADMIN) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Only administrators can perform this action." });
+      }
+
+      const updated = await ctx.db.reservation.update({
+        where: { id: input.reservationId },
+        data: { source: input.newSource.trim() },
+        select: { id: true, source: true },
+      });
+
+      return { success: true, reservation: updated };
+    }),
 });

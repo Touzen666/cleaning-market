@@ -22,7 +22,6 @@ async function createOwner() {
                 phone: '+48 123 456 789',
                 isActive: true,
                 isFirstLogin: true,
-                paymentType: 'COMMISSION',
                 vatOption: 'NO_VAT',
                 createdByAdminId: adminUser.id,
                 temporaryPassword: 'temp123456',
