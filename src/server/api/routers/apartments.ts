@@ -118,46 +118,54 @@ export const apartmentsRouter = createTRPCRouter({
             }
         }),
 
-    getForOwner: protectedProcedure.query(async ({ ctx }) => {
-        const ownerEmail = ctx.session?.user?.email;
-        if (!ownerEmail) {
-            throw new TRPCError({
-                code: "UNAUTHORIZED",
-                message: "Musisz być zalogowany, aby zobaczyć swoje apartamenty.",
-            });
-        }
+    getForOwner: protectedProcedure
+        .input(z.object({ ownerEmail: z.string().email().optional() }).optional())
+        .query(async ({ ctx, input }) => {
+            const sessionEmail = ctx.session?.user?.email;
+            let effectiveEmail = sessionEmail;
 
-        const owner = await ctx.db.apartmentOwner.findUnique({
-            where: { email: ownerEmail },
-            select: {
-                ownedApartments: {
-                    include: {
-                        apartment: {
-                            select: {
-                                id: true,
-                                name: true,
-                                address: true,
-                                averageRating: true,
-                                images: {
-                                    where: { isPrimary: true },
-                                    take: 1,
+            if (ctx.session.user.type === UserType.ADMIN && input?.ownerEmail) {
+                effectiveEmail = input.ownerEmail;
+            }
+
+            if (!effectiveEmail) {
+                throw new TRPCError({
+                    code: "UNAUTHORIZED",
+                    message: "Musisz być zalogowany, aby zobaczyć swoje apartamenty.",
+                });
+            }
+
+            const owner = await ctx.db.apartmentOwner.findUnique({
+                where: { email: effectiveEmail },
+                select: {
+                    ownedApartments: {
+                        include: {
+                            apartment: {
+                                select: {
+                                    id: true,
+                                    name: true,
+                                    address: true,
+                                    averageRating: true,
+                                    images: {
+                                        where: { isPrimary: true },
+                                        take: 1,
+                                    },
                                 },
                             },
                         },
                     },
                 },
-            },
-        });
-
-        if (!owner) {
-            throw new TRPCError({
-                code: "NOT_FOUND",
-                message: "Nie znaleziono właściciela.",
             });
-        }
 
-        return owner.ownedApartments.map((oa) => oa.apartment);
-    }),
+            if (!owner) {
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: "Nie znaleziono właściciela.",
+                });
+            }
+
+            return owner.ownedApartments.map((oa) => oa.apartment);
+        }),
 
     getDetails: publicProcedure
         .input(z.object({
