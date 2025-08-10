@@ -1207,6 +1207,12 @@ export default function ReportDetailsPage({
   const expenseItems = (finalReport?.items ?? []).filter((item) =>
     ["EXPENSE", "FEE", "TAX", "COMMISSION"].includes(item.type),
   );
+  const localTotalRevenue =
+    revenueItems.reduce((sum, i) => sum + i.amount, 0) +
+    Number(
+      (finalReport as unknown as { parkingRentalIncome?: number })
+        ?.parkingRentalIncome ?? 0,
+    );
 
   // Odliczenia są obliczane w komponencie OwnerPayoutCalculation
 
@@ -1587,7 +1593,7 @@ export default function ReportDetailsPage({
                     Przychody
                   </dt>
                   <dd className="text-lg font-medium text-gray-900">
-                    {finalReport.totalRevenue.toFixed(2)} PLN
+                    {localTotalRevenue.toFixed(2)} PLN
                   </dd>
                 </dl>
               </div>
@@ -2811,7 +2817,7 @@ export default function ReportDetailsPage({
                     d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
                   />
                 </svg>
-                Dodatkowe Odliczenia
+                Dodatkowe Odliczenia (inwestycje)
               </h3>
               <p className="mt-1 text-sm text-purple-700">
                 Dodatkowe koszty odejmowane od ostatecznej wypłaty właściciela.
@@ -3911,6 +3917,7 @@ const PayoutOption = ({
   children,
   color = "green",
   isDisabled = false,
+  disabledTitle,
 }: {
   id: string;
   label: string;
@@ -3921,6 +3928,7 @@ const PayoutOption = ({
   children: React.ReactNode;
   color?: "green" | "blue";
   isDisabled?: boolean;
+  disabledTitle?: string;
 }) => {
   const colorClasses = {
     green: {
@@ -3940,8 +3948,14 @@ const PayoutOption = ({
   const selectedColor = colorClasses[color];
 
   return (
-    <div className={`flex flex-col gap-2 rounded-lg ${selectedColor.bg} p-4`}>
-      <div className="mb-2 flex items-center gap-2">
+    <div
+      className={`flex flex-col gap-2 rounded-lg ${selectedColor.bg} p-4`}
+      title={isDisabled ? disabledTitle : undefined}
+    >
+      <div
+        className="mb-2 flex items-center gap-2"
+        title={isDisabled ? disabledTitle : undefined}
+      >
         <input
           type="radio"
           id={id}
@@ -3950,15 +3964,12 @@ const PayoutOption = ({
           onChange={() => handleFinalPayoutTypeChange(payoutType)}
           disabled={isDisabled}
           className={`h-4 w-4 ${isDisabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"} ${selectedColor.radio}`}
-          title={
-            isDisabled
-              ? "Raport został wysłany i nie można go edytować. Jedynym rozwiązaniem jest usunięcie raportu."
-              : ""
-          }
+          title={isDisabled ? disabledTitle : ""}
         />
         <label
           htmlFor={id}
           className={`text-lg font-semibold ${isDisabled ? "cursor-not-allowed opacity-50" : ""} ${selectedColor.label}`}
+          title={isDisabled ? disabledTitle : undefined}
         >
           {label}
         </label>
@@ -4283,8 +4294,14 @@ function OwnerPayoutCalculation({
   // =========================
   const setCustomSummaryMutation =
     api.monthlyReports.setCustomSummary.useMutation({
-      onSuccess: () => {
+      onSuccess: async () => {
         toast.success("Zapisano niestandardowe podsumowanie");
+        // Jeśli włączono niestandardowe wartości – ustaw rozliczenie prowizyjne (lokalnie i w bazie) zanim odświeżymy dane
+        if (customEnabled && finalPayoutType !== LocalPayoutType.COMMISSION) {
+          setFinalPayoutType(LocalPayoutType.COMMISSION);
+          await handleFinalPayoutTypeChange(LocalPayoutType.COMMISSION);
+        }
+        // Odśwież dane po ewentualnej zmianie typu rozliczenia
         onRefetch();
         setIsCustomDirty(false);
         // Natychmiast pokaż zapisaną notatkę w widoku tylko do odczytu
@@ -4496,7 +4513,14 @@ function OwnerPayoutCalculation({
         handleFinalPayoutTypeChange={handleFinalPayoutTypeChange}
         isSelected={finalPayoutType === LocalPayoutType.COMMISSION}
         color="blue"
-        isDisabled={isReportSent}
+        isDisabled={isReportSent || customEnabled}
+        disabledTitle={
+          isReportSent
+            ? "Raport został wysłany i nie można go edytować. Jedynym rozwiązaniem jest usunięcie raportu."
+            : customEnabled
+              ? 'Opcje rozliczenia są zablokowane, ponieważ używasz niestandardowych wartości. Aby wrócić do standardowego sposobu liczenia, odznacz "Użyj niestandardowych wartości w podsumowaniu" i zapisz.'
+              : undefined
+        }
       >
         <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
           <SummaryField
@@ -4551,7 +4575,14 @@ function OwnerPayoutCalculation({
         handleFinalPayoutTypeChange={handleFinalPayoutTypeChange}
         isSelected={finalPayoutType === LocalPayoutType.FIXED_AMOUNT}
         color="green"
-        isDisabled={isReportSent}
+        isDisabled={isReportSent || customEnabled}
+        disabledTitle={
+          isReportSent
+            ? "Raport został wysłany i nie można go edytować. Jedynym rozwiązaniem jest usunięcie raportu."
+            : customEnabled
+              ? 'Opcje rozliczenia są zablokowane, ponieważ używasz niestandardowych wartości. Aby wrócić do standardowego sposobu liczenia, odznacz "Użyj niestandardowych wartości w podsumowaniu" i zapisz.'
+              : undefined
+        }
       >
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <SummaryField
@@ -4605,7 +4636,14 @@ function OwnerPayoutCalculation({
           finalPayoutType === LocalPayoutType.FIXED_AMOUNT_MINUS_UTILITIES
         }
         color="green"
-        isDisabled={isReportSent}
+        isDisabled={isReportSent || customEnabled}
+        disabledTitle={
+          isReportSent
+            ? "Raport został wysłany i nie można go edytować. Jedynym rozwiązaniem jest usunięcie raportu."
+            : customEnabled
+              ? 'Opcje rozliczenia są zablokowane, ponieważ używasz niestandardowych wartości. Aby wrócić do standardowego sposobu liczenia, odznacz "Użyj niestandardowych wartości w podsumowaniu" i zapisz.'
+              : undefined
+        }
       >
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <SummaryField
@@ -4701,7 +4739,33 @@ function OwnerPayoutCalculation({
                 type="checkbox"
                 checked={customEnabled}
                 onChange={(e) => {
-                  setCustomEnabled(e.target.checked);
+                  const next = e.target.checked;
+                  setCustomEnabled(next);
+                  // Po wyłączeniu niestandardowych wartości przeładuj podsumowanie
+                  if (!next) {
+                    // Przywróć domyślne rozliczenie prowizyjne lokalnie i w bazie
+                    if (finalPayoutType !== LocalPayoutType.COMMISSION) {
+                      void handleFinalPayoutTypeChange(
+                        LocalPayoutType.COMMISSION,
+                      );
+                    }
+                    // Wyłącz niestandardowe wartości także po stronie serwera i odśwież raport
+                    void (async () => {
+                      try {
+                        await setCustomSummaryMutation.mutateAsync({
+                          reportId: report.id,
+                          enabled: false,
+                          taxBase: null,
+                          ownerPayout: null,
+                          hostPayout: null,
+                          incomeTax: null,
+                          note: null,
+                        });
+                      } finally {
+                        onRefetch();
+                      }
+                    })();
+                  }
                   setIsCustomDirty(true);
                 }}
               />

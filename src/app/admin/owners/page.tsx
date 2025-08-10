@@ -4,9 +4,10 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/trpc/react";
 import type { RouterOutputs } from "@/trpc/react";
-import { PaymentType, VATOption } from "@/lib/types";
+import { VATOption } from "@/lib/types";
 import { useSession } from "next-auth/react";
 import ProfileAvatar from "@/components/ProfileAvatar";
+import ManageOwnerApartmentsModal from "@/app/_components/ManageOwnerApartmentsModal";
 
 type ApartmentOwner = RouterOutputs["apartmentOwners"]["getAll"][0] & {
   profileImageUrl?: string | null;
@@ -417,6 +418,7 @@ function OwnerCard({
 }) {
   const [copied, setCopied] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
+  const [isManageModalOpen, setIsManageModalOpen] = useState(false);
   const router = useRouter();
 
   const sendWelcomeEmailMutation = api.email.sendWelcomeEmail.useMutation({
@@ -532,6 +534,31 @@ function OwnerCard({
                 Podgląd jako
               </button>
 
+              {/* Manage apartments assignment */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsManageModalOpen(true);
+                }}
+                className="inline-flex items-center rounded-md bg-teal-100 px-2 py-1 text-xs font-medium text-teal-800 hover:bg-teal-200"
+                title="Przypisz/odłącz apartamenty"
+              >
+                <svg
+                  className="mr-1 h-3 w-3"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                  />
+                </svg>
+                Zarządzaj apartamentami
+              </button>
+
               {/* Delete buttons */}
             </div>
             <div>
@@ -590,6 +617,17 @@ function OwnerCard({
             )}
           </div>
         </div>
+      )}
+
+      {isManageModalOpen && (
+        <ManageOwnerApartmentsModal
+          ownerId={owner.id}
+          onClose={() => setIsManageModalOpen(false)}
+          onSuccess={() => {
+            setIsManageModalOpen(false);
+            onRefetch();
+          }}
+        />
       )}
     </li>
   );

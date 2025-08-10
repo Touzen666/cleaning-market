@@ -177,6 +177,12 @@ export default function OwnerReportDetailsPage() {
     (sum: number, i: ReportItemWithReservation) => sum + i.amount,
     0,
   );
+  const localTotalRevenue =
+    totalRevenue +
+    Number(
+      (report as unknown as { parkingRentalIncome?: number })
+        ?.parkingRentalIncome ?? 0,
+    );
   const totalExpenses = expenseItems.reduce(
     (sum: number, i: ReportItemWithReservation) => sum + i.amount,
     0,
@@ -319,7 +325,7 @@ export default function OwnerReportDetailsPage() {
                     Przychody
                   </dt>
                   <dd className="text-lg font-medium text-gray-900">
-                    {totalRevenue.toFixed(2)} PLN
+                    {localTotalRevenue.toFixed(2)} PLN
                   </dd>
                 </dl>
               </div>
@@ -637,7 +643,7 @@ export default function OwnerReportDetailsPage() {
                     d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
                   />
                 </svg>
-                Dodatkowe Odliczenia
+                Dodatkowe Odliczenia (inwestycje)
               </h3>
               {report.customSummaryEnabled && (
                 <span className="ml-2 inline-block rounded bg-blue-200 px-2 py-0.5 align-middle text-xs font-semibold text-blue-800">

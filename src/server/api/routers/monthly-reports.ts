@@ -19,10 +19,26 @@ type RecalculateContext = {
     db: PrismaClient;
 };
 
-// Helper to safely read optional parking profit without using `any`
+// Helper to read parking profit
+// Business rule: Always prefer the explicit value saved in the report (even if 0).
+// Only when it is null/undefined do we fall back to computed (rental income - admin rent).
 function getParkingProfit(report: unknown): number {
-    const r = report as { parkingProfit?: number } | null | undefined;
-    return Number(r?.parkingProfit ?? 0);
+    const r = report as {
+        parkingProfit?: number | null;
+        parkingRentalIncome?: number | null;
+        parkingAdminRent?: number | null;
+    } | null | undefined;
+
+    const explicit = r?.parkingProfit;
+    if (explicit !== null && explicit !== undefined) {
+        const n = Number(explicit);
+        return Number.isFinite(n) ? n : 0;
+    }
+
+    const rentalIncome = Number(r?.parkingRentalIncome ?? 0);
+    const adminRent = Number(r?.parkingAdminRent ?? 0);
+    const computed = rentalIncome - adminRent;
+    return Number.isFinite(computed) ? Math.max(0, computed) : 0;
 }
 
 function safeNumber(value: unknown): number {
@@ -314,6 +330,8 @@ async function recalculateReportSettlement(reportId: string, ctx: RecalculateCon
                     utilitiesAmount: true,
                     ownerId: true,
                     apartmentId: true,
+                    // Jeśli włączone niestandardowe podsumowanie, nie nadpisujemy finalnych wartości podczas rekalkulacji
+                    customSummaryEnabled: true,
                 }
             }),
             // Pobierz wszystkie pozycje raportu z rezerwacjami - używamy tej samej logiki co w getById
@@ -450,21 +468,39 @@ async function recalculateReportSettlement(reportId: string, ctx: RecalculateCon
         };
 
         // Zoptymalizowany update - aktualizuj tylko pola związane z rozliczeniem
+        const dataToUpdate: {
+            totalRevenue: number;
+            totalExpenses: number;
+            netIncome: number;
+            adminCommissionAmount: number;
+            afterCommission: number;
+            afterRentAndUtilities: number;
+            totalAdditionalDeductions: number;
+            finalOwnerPayout?: number;
+            finalHostPayout?: number;
+            finalIncomeTax?: number;
+            finalVatAmount?: number;
+        } = {
+            totalRevenue,
+            totalExpenses,
+            netIncome,
+            adminCommissionAmount,
+            afterCommission,
+            afterRentAndUtilities,
+            totalAdditionalDeductions: totalAdditionalDeductionsGross,
+        };
+
+        // Nie nadpisuj finalnych wartości jeśli admin włączył niestandardowe podsumowanie
+        if (!report.customSummaryEnabled) {
+            dataToUpdate.finalOwnerPayout = finalOwnerPayout;
+            dataToUpdate.finalHostPayout = finalHostPayout;
+            dataToUpdate.finalIncomeTax = finalIncomeTax;
+            dataToUpdate.finalVatAmount = finalVatAmount;
+        }
+
         await ctx.db.monthlyReport.update({
             where: { id: reportId },
-            data: {
-                finalOwnerPayout,
-                finalHostPayout,
-                finalIncomeTax,
-                finalVatAmount,
-                totalRevenue,
-                totalExpenses,
-                netIncome,
-                adminCommissionAmount,
-                afterCommission,
-                afterRentAndUtilities,
-                totalAdditionalDeductions: totalAdditionalDeductionsGross,
-            },
+            data: dataToUpdate,
         });
 
         // WYŁĄCZONE: cache powoduje problemy z niepoprawnymi wartościami
@@ -2213,6 +2249,17 @@ export const monthlyReportsRouter = createTRPCRouter({
                     customHostPayout: input.hostPayout,
                     customIncomeTax: input.incomeTax,
                     customSummaryNote: input.note ?? null,
+                    // W momencie zapisu niestandardowego podsumowania utrwalamy te wartości również jako finalne,
+                    // aby były widoczne we wszystkich raportach i nie zostały nadpisane przez rekalkulacje.
+                    // Dodatkowo rekalkulacja (patrz wyżej) nie nadpisuje wartości finalnych, gdy customSummaryEnabled=true.
+                    ...(input.enabled
+                        ? {
+                            taxBase: input.taxBase ?? null,
+                            finalOwnerPayout: input.ownerPayout ?? null,
+                            finalHostPayout: input.hostPayout ?? null,
+                            finalIncomeTax: input.incomeTax ?? null,
+                        }
+                        : {}),
                 },
             });
 
@@ -2811,6 +2858,10 @@ export const monthlyReportsRouter = createTRPCRouter({
                     year: true,
                     month: true,
                     totalRevenue: true,
+                    // Parking section fields needed for dashboard charts
+                    parkingAdminRent: true as unknown as boolean,
+                    parkingRentalIncome: true as unknown as boolean,
+                    parkingProfit: true as unknown as boolean,
                     adminCommissionAmount: true,
                     rentAmount: true,
                     utilitiesAmount: true,
@@ -2931,8 +2982,12 @@ export const monthlyReportsRouter = createTRPCRouter({
                 Tekstylia: number;
                 Czynsz: number;
                 Media: number;
+                "Parking przychód": number;
+                "Parking czynsz": number;
+                "Parking zysk": number;
                 "Złote Wynajmy Prowizja": number;
                 "Prowizje OTA": number;
+                "Dodatkowe odliczenia": number;
                 "Wypłata Właściciela": number;
                 "Koszty stałe": number;
                 "Inne wydatki": number;
@@ -2954,15 +3009,24 @@ export const monthlyReportsRouter = createTRPCRouter({
                             Tekstylia: 0,
                             Czynsz: 0,
                             Media: 0,
+                            "Parking przychód": 0,
+                            "Parking czynsz": 0,
+                            "Parking zysk": 0,
                             "Złote Wynajmy Prowizja": 0,
                             "Prowizje OTA": 0,
+                            "Dodatkowe odliczenia": 0,
                             "Wypłata Właściciela": 0,
                             "Koszty stałe": 0,
                             "Inne wydatki": 0,
                         });
                     }
                     const data = yearlyData.get(year)!;
-                    data.Przychód += report.totalRevenue ?? 0;
+                    // Przychód zgodnie z widokiem raportu: suma pozycji REVENUE + przychód z parkingu
+                    const reportRevenue = report.items
+                        .filter(i => i.type === "REVENUE")
+                        .reduce((s, i) => s + i.amount, 0);
+                    const parkingRevenue = safeNumber((report as unknown as { parkingRentalIncome?: number }).parkingRentalIncome);
+                    data.Przychód += reportRevenue + parkingRevenue;
                     data.Sprzątanie += report.items
                         .filter(i => i.type === "EXPENSE" &&
                             (i.category.toLowerCase().includes("sprzątanie") ||
@@ -2985,12 +3049,21 @@ export const monthlyReportsRouter = createTRPCRouter({
                             (i.category.toLowerCase().includes("prąd") ||
                                 i.category.toLowerCase().includes("prad")))
                         .reduce((s, i) => s + i.amount, 0);
+                    // Parking
+                    data["Parking przychód"] += safeNumber((report as unknown as { parkingRentalIncome?: number }).parkingRentalIncome);
+                    data["Parking czynsz"] += safeNumber((report as unknown as { parkingAdminRent?: number }).parkingAdminRent);
+                    data["Parking zysk"] += getParkingProfit(report);
                     // Oblicz wartości na nowo zamiast pobierać z bazy
                     const calculatedValues = calculateSettlementValues(report);
                     data["Złote Wynajmy Prowizja"] += calculatedValues.finalHostPayout;
                     data["Prowizje OTA"] += report.items.filter(i => i.type === "COMMISSION").reduce((s, i) => s + i.amount, 0);
 
                     data["Wypłata Właściciela"] += calculatedValues.finalOwnerPayout;
+                    // Sumuj dodatkowe odliczenia (brutto)
+                    data["Dodatkowe odliczenia"] += report.additionalDeductions.reduce((sum: number, d) => {
+                        const vatMultiplier = d.vatOption === "VAT_23" ? 1.23 : d.vatOption === "VAT_8" ? 1.08 : 1;
+                        return sum + d.amount * vatMultiplier;
+                    }, 0);
                     data["Koszty stałe"] += report.items
                         .filter(i => i.type === "EXPENSE" &&
                             (i.category.toLowerCase().includes("sprzątanie") ||
@@ -3031,15 +3104,24 @@ export const monthlyReportsRouter = createTRPCRouter({
                             Tekstylia: 0,
                             Czynsz: 0,
                             Media: 0,
+                            "Parking przychód": 0,
+                            "Parking czynsz": 0,
+                            "Parking zysk": 0,
                             "Złote Wynajmy Prowizja": 0,
                             "Prowizje OTA": 0,
+                            "Dodatkowe odliczenia": 0,
                             "Wypłata Właściciela": 0,
                             "Koszty stałe": 0,
                             "Inne wydatki": 0,
                         });
                     }
                     const data = monthlyData.get(monthKey)!;
-                    data.Przychód += report.totalRevenue ?? 0;
+                    // Przychód zgodnie z widokiem raportu: suma pozycji REVENUE + przychód z parkingu
+                    const reportRevenue = report.items
+                        .filter(i => i.type === "REVENUE")
+                        .reduce((s, i) => s + i.amount, 0);
+                    const parkingRevenue = safeNumber((report as unknown as { parkingRentalIncome?: number }).parkingRentalIncome);
+                    data.Przychód += reportRevenue + parkingRevenue;
                     data.Sprzątanie += report.items
                         .filter(i => i.type === "EXPENSE" &&
                             (i.category.toLowerCase().includes("sprzątanie") ||
@@ -3062,12 +3144,21 @@ export const monthlyReportsRouter = createTRPCRouter({
                             (i.category.toLowerCase().includes("prąd") ||
                                 i.category.toLowerCase().includes("prad")))
                         .reduce((s, i) => s + i.amount, 0);
+                    // Parking
+                    data["Parking przychód"] += safeNumber((report as unknown as { parkingRentalIncome?: number }).parkingRentalIncome);
+                    data["Parking czynsz"] += safeNumber((report as unknown as { parkingAdminRent?: number }).parkingAdminRent);
+                    data["Parking zysk"] += getParkingProfit(report);
                     // Oblicz wartości na nowo zamiast pobierać z bazy
                     const calculatedValues = calculateSettlementValues(report);
                     data["Złote Wynajmy Prowizja"] += calculatedValues.finalHostPayout;
                     data["Prowizje OTA"] += report.items.filter(i => i.type === "COMMISSION").reduce((s, i) => s + i.amount, 0);
 
                     data["Wypłata Właściciela"] += calculatedValues.finalOwnerPayout;
+                    // Sumuj dodatkowe odliczenia (brutto)
+                    data["Dodatkowe odliczenia"] += report.additionalDeductions.reduce((sum: number, d) => {
+                        const vatMultiplier = d.vatOption === "VAT_23" ? 1.23 : d.vatOption === "VAT_8" ? 1.08 : 1;
+                        return sum + d.amount * vatMultiplier;
+                    }, 0);
                     data["Koszty stałe"] += report.items
                         .filter(i => i.type === "EXPENSE" &&
                             (i.category.toLowerCase().includes("sprzątanie") ||
@@ -3104,7 +3195,14 @@ export const monthlyReportsRouter = createTRPCRouter({
                 // Single report view
                 chartData = reports.map(report => ({
                     name: `${report.apartment.name} - ${report.month}/${report.year}`,
-                    Przychód: report.totalRevenue ?? 0,
+                    // Przychód zgodnie z widokiem raportu: suma pozycji REVENUE + przychód z parkingu
+                    Przychód: (() => {
+                        const r = report.items
+                            .filter(i => i.type === "REVENUE")
+                            .reduce((s, i) => s + i.amount, 0);
+                        const pr = safeNumber((report as unknown as { parkingRentalIncome?: number }).parkingRentalIncome);
+                        return r + pr;
+                    })(),
                     Sprzątanie: report.items
                         .filter(i => i.type === "EXPENSE" &&
                             (i.category.toLowerCase().includes("sprzątanie") ||
@@ -3127,6 +3225,9 @@ export const monthlyReportsRouter = createTRPCRouter({
                             (i.category.toLowerCase().includes("prąd") ||
                                 i.category.toLowerCase().includes("prad")))
                         .reduce((s, i) => s + i.amount, 0),
+                    "Parking przychód": safeNumber((report as unknown as { parkingRentalIncome?: number }).parkingRentalIncome),
+                    "Parking czynsz": safeNumber((report as unknown as { parkingAdminRent?: number }).parkingAdminRent),
+                    "Parking zysk": getParkingProfit(report),
                     // Oblicz wartości na nowo zamiast pobierać z bazy
                     ...(() => {
                         const calculatedValues = calculateSettlementValues(report);
@@ -3136,6 +3237,11 @@ export const monthlyReportsRouter = createTRPCRouter({
                             "Wypłata Właściciela": calculatedValues.finalOwnerPayout,
                         };
                     })(),
+                    // Dodatkowe odliczenia (brutto)
+                    "Dodatkowe odliczenia": report.additionalDeductions.reduce((sum: number, d) => {
+                        const vatMultiplier = d.vatOption === "VAT_23" ? 1.23 : d.vatOption === "VAT_8" ? 1.08 : 1;
+                        return sum + d.amount * vatMultiplier;
+                    }, 0),
                     "Koszty stałe": report.items
                         .filter(i => i.type === "EXPENSE" &&
                             (i.category.toLowerCase().includes("sprzątanie") ||

@@ -186,21 +186,39 @@ export const ownerAuthRouter = createTRPCRouter({
 
             const startOfYear = new Date(new Date().getFullYear(), 0, 1);
 
-            const revenue = await ctx.db.monthlyReport.aggregate({
+            // Suma wypłat właściciela za bieżący rok z uwzględnieniem niestandardowych wartości.
+            // Zasady:
+            // - Raporty APPROVED/SENT: bierzemy finalOwnerPayout (jest utrwalone przy zapisie lub rekalkulacji)
+            // - DRAFT z włączonym customSummaryEnabled: uwzględnij customOwnerPayout, aby licznik był zgodny z ręcznym ustawieniem
+            const reportsForYear = await ctx.db.monthlyReport.findMany({
                 where: {
                     ownerId: owner.id,
                     year: startOfYear.getFullYear(),
-                    status: { in: [ReportStatus.APPROVED, ReportStatus.SENT] },
+                    OR: [
+                        { status: { in: [ReportStatus.APPROVED, ReportStatus.SENT] } },
+                        { status: 'DRAFT', customSummaryEnabled: true },
+                    ],
                 },
-                _sum: {
+                select: {
                     finalOwnerPayout: true,
+                    customSummaryEnabled: true,
+                    customOwnerPayout: true,
+                    status: true,
                 },
             });
+
+            const currentYearProfitSum = reportsForYear.reduce((sum, r) => {
+                // Preferuj niestandardową kwotę, jeśli włączona
+                if (r.customSummaryEnabled && r.customOwnerPayout != null) {
+                    return sum + Number(r.customOwnerPayout);
+                }
+                return sum + Number(r.finalOwnerPayout ?? 0);
+            }, 0);
 
             // Debug logging for dashboard
             console.log(`[DEBUG DASHBOARD] Owner ID: ${owner.id}`);
             console.log(`[DEBUG DASHBOARD] Current year: ${startOfYear.getFullYear()}`);
-            console.log(`[DEBUG DASHBOARD] Aggregate sum: ${revenue._sum.finalOwnerPayout}`);
+            console.log(`[DEBUG DASHBOARD] Aggregate sum: ${currentYearProfitSum}`);
 
             const totalReports = await ctx.db.monthlyReport.count({
                 where: {
@@ -213,7 +231,7 @@ export const ownerAuthRouter = createTRPCRouter({
                 stats: {
                     totalApartments,
                     activeReservations,
-                    currentYearProfit: revenue._sum.finalOwnerPayout ?? 0,
+                    currentYearProfit: currentYearProfitSum,
                     totalReports,
                 },
             };

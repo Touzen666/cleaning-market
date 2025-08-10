@@ -123,38 +123,52 @@ export default function ChartExplanationCard({
     }
   };
 
-  const getCategoryColors = (index: number) => {
-    const colors = [
-      "bg-green-50 text-green-900",
-      "bg-orange-50 text-orange-900",
-      "bg-teal-50 text-teal-900",
-      "bg-yellow-50 text-yellow-900",
-      "bg-red-50 text-red-900",
-      "bg-blue-50 text-blue-900",
-      "bg-indigo-50 text-indigo-900",
-      "bg-purple-50 text-purple-900",
-    ];
-    return colors[index % colors.length];
-  };
+  // Removed unused helpers getCategoryColors/getCategoryValueColors in favor of using item.fill
 
-  const getCategoryValueColors = (index: number) => {
-    const colors = [
-      "text-green-700",
-      "text-orange-700",
-      "text-teal-700",
-      "text-yellow-700",
-      "text-red-700",
-      "text-blue-700",
-      "text-indigo-700",
-      "text-purple-700",
-    ];
-    return colors[index % colors.length];
+  // Helper: convert HEX color to rgba with opacity
+  const hexToRgba = (hex: string, alpha = 1): string => {
+    const sanitized = hex.replace("#", "");
+    const expanded =
+      sanitized.length === 3
+        ? sanitized
+            .split("")
+            .map((c) => c + c)
+            .join("")
+        : sanitized;
+    const bigint = parseInt(expanded, 16);
+    const r = (bigint >> 16) & 255;
+    const g = (bigint >> 8) & 255;
+    const b = bigint & 255;
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
   };
 
   const totalPercentage = processedData.reduce(
     (sum, item) => sum + item.value,
     0,
   );
+
+  // Kolejność kafelków: 1) Wypłata Właściciela, 2) Prowizja Złote Wynajmy, reszta w oryginalnej kolejności
+  const orderedTiles = React.useMemo(() => {
+    const priorityNames = [
+      "Wypłata Właściciela",
+      "Prowizja Złote Wynajmy",
+      "Złote Wynajmy Prowizja", // alternatywna etykieta
+    ];
+    const seen = new Set<string>();
+    const result: ChartDataItem[] = [];
+    for (const name of priorityNames) {
+      const found = processedData.find((i) => i.name === name);
+      if (found && !seen.has(found.name)) {
+        result.push(found);
+        seen.add(found.name);
+      }
+      if (result.length === 2) break;
+    }
+    for (const item of processedData) {
+      if (!seen.has(item.name)) result.push(item);
+    }
+    return result;
+  }, [processedData]);
 
   return (
     <div
@@ -215,29 +229,68 @@ export default function ChartExplanationCard({
             <div className="p-4">
               {processedData.length > 0 ? (
                 <div className="space-y-3">
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                    {processedData.map((item, index) => (
-                      <div
-                        key={item.name}
-                        className={`group relative rounded-lg p-3 text-center ${getCategoryColors(index)}`}
-                      >
-                        <span className="block text-sm font-medium">
-                          {item.name}
-                        </span>
-                        <span
-                          className={`mt-1 block text-2xl font-bold ${getCategoryValueColors(index)}`}
-                        >
-                          {item.value.toFixed(1)}%
-                        </span>
-                        {item.description && (
-                          <div className="absolute bottom-full left-1/2 z-10 mb-2 hidden w-48 -translate-x-1/2 rounded-md bg-gray-900 px-3 py-2 text-xs text-white group-hover:block">
-                            {item.description}
-                            <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
-                          </div>
-                        )}
+                  {(() => {
+                    const row1 = orderedTiles.slice(0, 2);
+                    const row2 = orderedTiles.slice(2, 6);
+                    const row3 = orderedTiles.slice(6, 10);
+
+                    const renderRow = (
+                      items: typeof orderedTiles,
+                      startIndex: number,
+                      colsClass: string,
+                    ) => (
+                      <div className={`grid grid-cols-1 ${colsClass} gap-3`}>
+                        {items.map((item) => {
+                          const fill = item.fill || "#888888";
+                          return (
+                            <div
+                              key={item.name}
+                              className={`group relative rounded-lg p-3 text-center`}
+                              style={{
+                                backgroundColor: hexToRgba(fill, 0.08),
+                                border: `1px solid ${hexToRgba(fill, 0.35)}`,
+                              }}
+                            >
+                              <span className="block text-sm font-medium">
+                                {item.name}
+                              </span>
+                              <span
+                                className={`mt-1 block text-2xl font-bold`}
+                                style={{ color: fill }}
+                              >
+                                {item.value.toFixed(1)}%
+                              </span>
+                              {item.description && (
+                                <div className="absolute bottom-full left-1/2 z-10 mb-2 hidden w-48 -translate-x-1/2 rounded-md bg-gray-900 px-3 py-2 text-xs text-white group-hover:block">
+                                  {item.description}
+                                  <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
-                    ))}
-                  </div>
+                    );
+
+                    return (
+                      <>
+                        {row1.length > 0 &&
+                          renderRow(row1, 0, "sm:grid-cols-2")}
+                        {row2.length > 0 &&
+                          renderRow(
+                            row2,
+                            row1.length,
+                            "sm:grid-cols-2 lg:grid-cols-4",
+                          )}
+                        {row3.length > 0 &&
+                          renderRow(
+                            row3,
+                            row1.length + row2.length,
+                            "sm:grid-cols-2 lg:grid-cols-4",
+                          )}
+                      </>
+                    );
+                  })()}
 
                   <div className="mt-4 rounded-lg bg-gray-50 p-3 text-center">
                     <p className="text-lg font-bold text-gray-900">
