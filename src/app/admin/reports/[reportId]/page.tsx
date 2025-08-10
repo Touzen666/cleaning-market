@@ -4448,11 +4448,9 @@ function OwnerPayoutCalculation({
 
       case LocalPayoutType.COMMISSION:
       default:
-        // Podstawa opodatkowania (NETTO) a wypłata właściciela (brutto u podatników VAT)
-        // ZGODNIE Z REGUŁĄ: Podstawa nie uwzględnia dodatkowych odliczeń
-        const commissionTaxBase = deductRentAndUtilities
-          ? netIncomeAfterAdminCommission - rentAndUtilities
-          : netIncomeAfterAdminCommission;
+        // Podstawa opodatkowania = "Kwota po prowizji Złote Wynajmy" (netto po prowizji admina)
+        // Nie odejmujemy czynszu, mediów ani dodatkowych odliczeń
+        const commissionTaxBase = netIncomeAfterAdminCommission;
         const commissionOwnerPayout = isVatExemptLocal
           ? netIncomeAfterAllDeductions
           : getGrossAmount(netIncomeAfterAllDeductions, report.owner.vatOption);
@@ -5151,22 +5149,11 @@ function OwnerPayoutCalculation({
                     ? (() => {
                         const isVat = report.owner.vatOption !== "NO_VAT";
                         if (finalPayoutType === LocalPayoutType.COMMISSION) {
-                          // Podstawa = kwota po prowizji ZW (netto) [- czynsz - media]
-                          const rent = report.rentAmount ?? 0;
-                          const utilities = report.utilitiesAmount ?? 0;
+                          // Podstawa = Kwota po prowizji Złote Wynajmy (netto)
                           return (
                             <span className="block text-xs text-gray-600">
                               {isVat ? "(netto) " : ""}Kwota po prowizji:{" "}
-                              {netIncomeAfterAdminCommission.toFixed(2)} PLN
-                              {deductRentAndUtilities && (
-                                <>
-                                  {" - czynsz: "}
-                                  {rent.toFixed(2)} PLN
-                                  {" - media: "}
-                                  {utilities.toFixed(2)} PLN
-                                </>
-                              )}
-                              {" = "}
+                              {netIncomeAfterAdminCommission.toFixed(2)} PLN ={" "}
                               {taxBaseValue.toFixed(2)} PLN
                             </span>
                           );

@@ -8,12 +8,16 @@ import { ReservationCalendar } from "./ReservationCalendar";
 export default function OwnerReservationsPage() {
   const router = useRouter();
   const [isClient, setIsClient] = useState(false);
+  const [ownerEmail, setOwnerEmail] = useState<string | null>(null);
 
   useEffect(() => {
     setIsClient(true);
     const token = localStorage.getItem("ownerSessionToken");
+    const email = localStorage.getItem("ownerEmail");
     if (!token) {
       router.push("/apartamentsOwner/login");
+    } else {
+      setOwnerEmail(email);
     }
   }, [router]);
 
@@ -21,7 +25,10 @@ export default function OwnerReservationsPage() {
     data: apartments,
     isLoading,
     error,
-  } = api.reservation.getForOwner.useQuery(undefined, { enabled: isClient });
+  } = api.reservation.getForOwner.useQuery(
+    ownerEmail ? { ownerEmail } : undefined,
+    { enabled: isClient && !!ownerEmail },
+  );
 
   if (!isClient || isLoading) {
     return <div>Ładowanie...</div>;
