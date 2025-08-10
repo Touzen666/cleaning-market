@@ -1025,9 +1025,9 @@ export const monthlyReportsRouter = createTRPCRouter({
                     : commissionGrossAfterUtilities;
                 finalHostPayout = adminCommissionAmount;
 
-                // Podstawa opodatkowania: bez dodatkowych odliczeń, netto dla podatników VAT
-                const commissionNetBaseBeforeAdditionalDeductions = afterRentAndUtilities; // bez totalAdditionalDeductions
-                taxBase = isVatExempt ? finalOwnerPayout : commissionNetBaseBeforeAdditionalDeductions;
+                // Podstawa opodatkowania = kwota po prowizji ZW (netto po prowizji admina)
+                // Nie odejmujemy czynszu, mediów ani dodatkowych odliczeń
+                taxBase = isVatExempt ? finalOwnerPayout : afterCommission;
                 finalIncomeTax = taxBase * 0.085; // 8.5% income tax od podstawy opodatkowania
             } else if (report.finalSettlementType === "FIXED") {
                 // Fixed amount settlement
@@ -2304,9 +2304,8 @@ export const monthlyReportsRouter = createTRPCRouter({
                 // Calculate taxBase dynamically for APPROVED reports
                 const isVatExempt = report.owner.vatOption === "NO_VAT";
                 if (report.finalSettlementType === "COMMISSION") {
-                    // Podstawa opodatkowania bez dodatkowych odliczeń
-                    const commissionNetBaseBeforeAdditionalDeductions = afterRentAndUtilities;
-                    taxBase = isVatExempt ? finalOwnerPayout : commissionNetBaseBeforeAdditionalDeductions;
+                    // Podstawa opodatkowania = kwota po prowizji ZW (netto po prowizji admina)
+                    taxBase = isVatExempt ? finalOwnerPayout : afterCommission;
                 } else if (report.finalSettlementType === "FIXED") {
                     const fixedBaseAmount = Number(report.apartment.fixedPaymentAmount ?? 0);
                     taxBase = isVatExempt ? finalOwnerPayout : fixedBaseAmount;
