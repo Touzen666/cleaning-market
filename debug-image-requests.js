@@ -14,10 +14,10 @@ window.fetch = function (...args) {
   return originalFetch.apply(this, args);
 };
 
-// Intercept Image constructor
-const originalImage = window.Image;
+// Intercept Image constructor (keep type as constructor for TS/Next build)
+const OriginalImageCtor = window.Image;
 window.Image = function (...args) {
-  const img = new originalImage(...args);
+  const img = new OriginalImageCtor(...args);
   const originalSrc = Object.getOwnPropertyDescriptor(
     HTMLImageElement.prototype,
     "src",
@@ -38,6 +38,8 @@ window.Image = function (...args) {
 
   return img;
 };
+// Preserve prototype to satisfy constructor shape
+window.Image.prototype = OriginalImageCtor.prototype;
 
 // Monitor DOM changes for new images
 const observer = new MutationObserver((mutations) => {
