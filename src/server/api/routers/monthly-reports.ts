@@ -18,6 +18,38 @@ import { type PrismaClient } from "@prisma/client";
 type RecalculateContext = {
     db: PrismaClient;
 };
+
+// Helper to safely read optional parking profit without using `any`
+function getParkingProfit(report: unknown): number {
+    const r = report as { parkingProfit?: number } | null | undefined;
+    return Number(r?.parkingProfit ?? 0);
+}
+
+function safeNumber(value: unknown): number {
+    const n = Number(value ?? 0);
+    return Number.isFinite(n) ? n : 0;
+}
+
+function getParkingSuggestionsFromReport(report: Partial<{
+    parkingAdminRent?: number | null;
+    parkingRentalIncome?: number | null;
+    parkingProfit?: number | null;
+}> | null | undefined): {
+    suggestedParkingAdminRent: number;
+    suggestedParkingRentalIncome: number;
+    suggestedParkingProfit: number;
+} {
+    const obj = report ?? {};
+    const adminRent = safeNumber(obj.parkingAdminRent);
+    const rentalIncome = safeNumber(obj.parkingRentalIncome);
+    const profit = safeNumber(obj.parkingProfit);
+    const computedProfit = Math.max(0, rentalIncome - adminRent);
+    return {
+        suggestedParkingAdminRent: adminRent,
+        suggestedParkingRentalIncome: rentalIncome,
+        suggestedParkingProfit: profit || computedProfit,
+    };
+}
 // Zod schemas
 const createReportSchema = z.object({
     apartmentId: z.number(),
@@ -337,7 +369,7 @@ async function recalculateReportSettlement(reportId: string, ctx: RecalculateCon
         const totalRevenue = revenueItems.reduce((sum, i) => sum + i.amount, 0);
         const totalExpenses = expenseItems.reduce((sum, i) => sum + i.amount, 0);
         const otaCommissions = commissionItems.reduce((sum, i) => sum + i.amount, 0);
-        const netIncome = totalRevenue - totalExpenses - otaCommissions;
+        const netIncome = totalRevenue - totalExpenses - otaCommissions + getParkingProfit(report);
         const adminCommissionAmount = netIncome * 0.25;
         const afterCommission = netIncome - adminCommissionAmount;
         const rentAndUtilities = (report.rentAmount ?? 0) + (report.utilitiesAmount ?? 0);
@@ -844,6 +876,9 @@ export const monthlyReportsRouter = createTRPCRouter({
                 select: {
                     rentAmount: true,
                     utilitiesAmount: true,
+                    parkingAdminRent: true as unknown as boolean,
+                    parkingRentalIncome: true as unknown as boolean,
+                    parkingProfit: true as unknown as boolean,
                 },
             });
 
@@ -857,7 +892,7 @@ export const monthlyReportsRouter = createTRPCRouter({
             const totalRevenue = revenueItems.reduce((sum, i) => sum + i.amount, 0);
             const totalExpenses = expenseItems.reduce((sum, i) => sum + i.amount, 0);
             const otaCommissions = commissionItems.reduce((sum, i) => sum + i.amount, 0);
-            const netIncome = totalRevenue - totalExpenses - otaCommissions;
+            const netIncome = totalRevenue - totalExpenses - otaCommissions + getParkingProfit(report);
 
             const adminCommissionRate = 0.25;
             const adminCommissionAmount = netIncome * adminCommissionRate;
@@ -891,8 +926,9 @@ export const monthlyReportsRouter = createTRPCRouter({
                     : commissionGrossAfterUtilities;
                 finalHostPayout = adminCommissionAmount;
 
-                // Podstawa opodatkowania - dla podatników VAT to kwota netto, dla zwolnionych to brutto
-                taxBase = isVatExempt ? finalOwnerPayout : commissionNetBaseAfterUtilities;
+                // Podstawa opodatkowania: bez dodatkowych odliczeń, netto dla podatników VAT
+                const commissionNetBaseBeforeAdditionalDeductions = afterRentAndUtilities; // bez totalAdditionalDeductions
+                taxBase = isVatExempt ? finalOwnerPayout : commissionNetBaseBeforeAdditionalDeductions;
                 finalIncomeTax = taxBase * 0.085; // 8.5% income tax od podstawy opodatkowania
             } else if (report.finalSettlementType === "FIXED") {
                 // Fixed amount settlement
@@ -919,12 +955,22 @@ export const monthlyReportsRouter = createTRPCRouter({
                 finalIncomeTax = taxBase * 0.085; // 8.5% income tax od podstawy opodatkowania
             }
 
+            // Local, backward-compatible access to optional custom summary fields
+            const custom = report as unknown as {
+                customSummaryEnabled?: boolean | null;
+                customTaxBase?: number | null;
+                customOwnerPayout?: number | null;
+                customHostPayout?: number | null;
+                customIncomeTax?: number | null;
+            };
+
             return {
                 ...report,
                 finalSettlementType: report.finalSettlementType,
                 // Dodaj sugerowane wartości
                 suggestedRent: lastApprovedReport?.rentAmount ?? report.apartment.defaultRentAmount ?? 0,
                 suggestedUtilities: lastApprovedReport?.utilitiesAmount ?? report.apartment.defaultUtilitiesAmount ?? 0,
+                ...getParkingSuggestionsFromReport(lastApprovedReport),
                 // Dodaj kalkulacje
                 totalRevenue: totalRevenue, // Przeliczona wartość przychodów
                 totalExpenses: totalExpenses, // Przeliczona wartość wydatków
@@ -936,6 +982,12 @@ export const monthlyReportsRouter = createTRPCRouter({
                 finalHostPayout,
                 finalIncomeTax,
                 taxBase, // Podstawa opodatkowania
+                // Custom summary override fields (przekazujemy do klienta, aby UI mogło je wykorzystać)
+                customSummaryEnabled: custom.customSummaryEnabled ?? null,
+                customTaxBase: custom.customTaxBase ?? null,
+                customOwnerPayout: custom.customOwnerPayout ?? null,
+                customHostPayout: custom.customHostPayout ?? null,
+                customIncomeTax: custom.customIncomeTax ?? null,
             };
         }),
 
@@ -960,22 +1012,23 @@ export const monthlyReportsRouter = createTRPCRouter({
             if (!report) {
                 throw new TRPCError({ code: "NOT_FOUND" });
             }
-            if (report.status === "SENT") {
-                throw new TRPCError({ code: "BAD_REQUEST", message: "Nie można edytować wysłanego raportu." });
-            }
+            // (Removed stray unused locals here; real flags declared in owner query below)
 
+            // Nie zeruj zachowanych wartości czynszu/mediów przy zmianie typu rozliczenia.
+            // Aktualizuj je tylko, jeśli przekazano nowe wartości.
             const updateData: {
                 finalSettlementType: SettlementType;
-                rentAmount?: number | null;
-                utilitiesAmount?: number | null;
+                rentAmount?: number;
+                utilitiesAmount?: number;
             } = { finalSettlementType };
 
             if (finalSettlementType === 'COMMISSION' || finalSettlementType === 'FIXED_MINUS_UTILITIES') {
-                updateData.rentAmount = rentAmount;
-                updateData.utilitiesAmount = utilitiesAmount;
-            } else {
-                updateData.rentAmount = null;
-                updateData.utilitiesAmount = null;
+                if (typeof rentAmount === 'number') {
+                    updateData.rentAmount = rentAmount;
+                }
+                if (typeof utilitiesAmount === 'number') {
+                    updateData.utilitiesAmount = utilitiesAmount;
+                }
             }
 
             await ctx.db.monthlyReport.update({
@@ -992,6 +1045,53 @@ export const monthlyReportsRouter = createTRPCRouter({
                     adminId: ctx.session.user.id,
                     action: "updated",
                     notes: `Zaktualizowano szczegóły rozliczenia. Typ: ${finalSettlementType}.`
+                }
+            });
+
+            return { success: true };
+        }),
+
+    // Admin: Update parking section values
+    updateParking: protectedProcedure
+        .input(z.object({
+            reportId: z.string().uuid(),
+            parkingAdminRent: z.number().min(0),
+            parkingRentalIncome: z.number().min(0),
+            parkingProfit: z.number().min(0),
+        }))
+        .mutation(async ({ input, ctx }) => {
+            if (ctx.session.user.type !== UserType.ADMIN) {
+                throw new TRPCError({ code: "FORBIDDEN" });
+            }
+
+            const { reportId, parkingAdminRent, parkingRentalIncome, parkingProfit } = input;
+
+            const report = await ctx.db.monthlyReport.findUnique({ where: { id: reportId } });
+            if (!report) {
+                throw new TRPCError({ code: "NOT_FOUND" });
+            }
+            if (report.status === ReportStatus.SENT) {
+                throw new TRPCError({ code: "BAD_REQUEST", message: "Nie można edytować wysłanego raportu." });
+            }
+
+            await ctx.db.monthlyReport.update({
+                where: { id: reportId },
+                data: {
+                    parkingAdminRent: parkingAdminRent as unknown as number,
+                    parkingRentalIncome: parkingRentalIncome as unknown as number,
+                    parkingProfit: parkingProfit as unknown as number,
+                },
+            });
+
+            // Net income should include parking profit
+            await forceRecalculation(reportId, ctx);
+
+            await ctx.db.reportHistory.create({
+                data: {
+                    reportId,
+                    adminId: ctx.session.user.id,
+                    action: "updated",
+                    notes: `Zaktualizowano sekcję Parking.`
                 }
             });
 
@@ -1452,7 +1552,7 @@ export const monthlyReportsRouter = createTRPCRouter({
                     totalRevenue = revenueItems.reduce((sum, i) => sum + i.amount, 0);
                     totalExpenses = expenseItems.reduce((sum, i) => sum + i.amount, 0);
                     const otaCommissions = commissionItems.reduce((sum, i) => sum + i.amount, 0);
-                    netIncome = totalRevenue - totalExpenses - otaCommissions;
+                    netIncome = totalRevenue - totalExpenses - otaCommissions + getParkingProfit(report);
 
                     // Recalculate finalOwnerPayout for APPROVED reports
                     const settlementResult = await recalculateReportSettlement(report.id, ctx);
@@ -1729,7 +1829,7 @@ export const monthlyReportsRouter = createTRPCRouter({
             const totalRevenue = report.items.filter(i => i.type === "REVENUE").reduce((s, i) => s + i.amount, 0);
             const totalExpenses = report.items.filter(i => ["EXPENSE", "FEE", "TAX"].includes(i.type)).reduce((s, i) => s + i.amount, 0);
             const otaCommissions = report.items.filter(i => i.type === "COMMISSION").reduce((s, i) => s + i.amount, 0);
-            const netIncome = totalRevenue - totalExpenses - otaCommissions;
+            const netIncome = totalRevenue - totalExpenses - otaCommissions + getParkingProfit(report);
             const adminCommissionAmount = netIncome * 0.25;
             const afterCommission = netIncome - adminCommissionAmount;
             const rentAndUtilities = (report.rentAmount ?? 0) + (report.utilitiesAmount ?? 0);
@@ -1936,6 +2036,10 @@ export const monthlyReportsRouter = createTRPCRouter({
             let finalVatAmount: number;
             let taxBase: number;
 
+            // Track custom summary visibility and note for owner across branches
+            let customEnabledForOwner = false;
+            let customNoteForOwner: string | null = null;
+
             if (report.status === "SENT") {
                 // For SENT reports - use frozen values from database (immutable)
                 totalRevenue = report.totalRevenue ?? 0;
@@ -1945,11 +2049,23 @@ export const monthlyReportsRouter = createTRPCRouter({
                 afterCommission = report.afterCommission ?? 0;
                 totalAdditionalDeductions = report.totalAdditionalDeductions ?? 0;
                 afterRentAndUtilities = report.afterRentAndUtilities ?? 0;
-                finalOwnerPayout = report.finalOwnerPayout ?? 0;
-                finalHostPayout = report.finalHostPayout ?? 0;
-                finalIncomeTax = report.finalIncomeTax ?? 0;
+                // Jeśli admin włączył niestandardowe podsumowanie, pokażemy je właścicielowi
+                const customSent = report as unknown as {
+                    customSummaryEnabled?: boolean | null;
+                    customTaxBase?: number | null;
+                    customOwnerPayout?: number | null;
+                    customHostPayout?: number | null;
+                    customIncomeTax?: number | null;
+                    customSummaryNote?: string | null;
+                };
+                const useCustom = customSent.customSummaryEnabled === true;
+                finalOwnerPayout = useCustom ? (customSent.customOwnerPayout ?? 0) : (report.finalOwnerPayout ?? 0);
+                finalHostPayout = useCustom ? (customSent.customHostPayout ?? 0) : (report.finalHostPayout ?? 0);
+                finalIncomeTax = useCustom ? (customSent.customIncomeTax ?? 0) : (report.finalIncomeTax ?? 0);
                 finalVatAmount = report.finalVatAmount ?? 0;
-                taxBase = report.taxBase ?? 0;
+                taxBase = useCustom ? (customSent.customTaxBase ?? 0) : (report.taxBase ?? 0);
+                customEnabledForOwner = useCustom;
+                customNoteForOwner = customSent.customSummaryNote ?? null;
             } else {
                 // For APPROVED reports - recalculate dynamically to reflect any changes
                 const revenueItems = report.items.filter((i) => i.type === "REVENUE" && (!i.reservation || (i.reservation.status !== "Anulowana" && i.reservation.status !== "Odrzucona przez obsługę")));
@@ -1959,7 +2075,7 @@ export const monthlyReportsRouter = createTRPCRouter({
                 totalRevenue = revenueItems.reduce((sum, i) => sum + i.amount, 0);
                 totalExpenses = expenseItems.reduce((sum, i) => sum + i.amount, 0);
                 const otaCommissions = commissionItems.reduce((sum, i) => sum + i.amount, 0);
-                netIncome = totalRevenue - totalExpenses - otaCommissions;
+                netIncome = totalRevenue - totalExpenses - otaCommissions + getParkingProfit(report);
                 adminCommissionAmount = netIncome * 0.25;
                 afterCommission = netIncome - adminCommissionAmount;
 
@@ -1981,8 +2097,9 @@ export const monthlyReportsRouter = createTRPCRouter({
                 // Calculate taxBase dynamically for APPROVED reports
                 const isVatExempt = report.owner.vatOption === "NO_VAT";
                 if (report.finalSettlementType === "COMMISSION") {
-                    const commissionNetBaseAfterUtilities = afterRentAndUtilities - totalAdditionalDeductions;
-                    taxBase = isVatExempt ? finalOwnerPayout : commissionNetBaseAfterUtilities;
+                    // Podstawa opodatkowania bez dodatkowych odliczeń
+                    const commissionNetBaseBeforeAdditionalDeductions = afterRentAndUtilities;
+                    taxBase = isVatExempt ? finalOwnerPayout : commissionNetBaseBeforeAdditionalDeductions;
                 } else if (report.finalSettlementType === "FIXED") {
                     const fixedBaseAmount = Number(report.apartment.fixedPaymentAmount ?? 0);
                     taxBase = isVatExempt ? finalOwnerPayout : fixedBaseAmount;
@@ -1993,6 +2110,10 @@ export const monthlyReportsRouter = createTRPCRouter({
                 } else {
                     taxBase = 0;
                 }
+
+                // Propagate custom summary visibility and note for APPROVED reports as well
+                customEnabledForOwner = Boolean((report as unknown as { customSummaryEnabled?: boolean | null }).customSummaryEnabled);
+                customNoteForOwner = (report as unknown as { customSummaryNote?: string | null }).customSummaryNote ?? null;
             }
 
             // const otaCommissions = report.items.filter((i) => i.type === "COMMISSION").reduce((sum, i) => sum + i.amount, 0);
@@ -2053,7 +2174,60 @@ export const monthlyReportsRouter = createTRPCRouter({
                 finalIncomeTax,
                 finalVatAmount,
                 taxBase, // Podstawa opodatkowania
+                // Przekaż informację o custom summary do klienta
+                customSummaryEnabled: customEnabledForOwner,
+                customSummaryNote: customNoteForOwner,
             };
+        }),
+
+    // Admin: Zapis niestandardowego podsumowania rozliczenia
+    setCustomSummary: protectedProcedure
+        .input(z.object({
+            reportId: z.string().uuid(),
+            enabled: z.boolean(),
+            taxBase: z.number().nullable(),
+            ownerPayout: z.number().nullable(),
+            hostPayout: z.number().nullable(),
+            incomeTax: z.number().nullable(),
+            note: z.string().nullable().optional(),
+        }))
+        .mutation(async ({ input, ctx }) => {
+            if (ctx.session.user.type !== UserType.ADMIN) {
+                throw new TRPCError({ code: "FORBIDDEN" });
+            }
+
+            const report = await ctx.db.monthlyReport.findUnique({ where: { id: input.reportId } });
+            if (!report) {
+                throw new TRPCError({ code: "NOT_FOUND", message: "Raport nie został znaleziony" });
+            }
+            if (report.status === ReportStatus.SENT) {
+                throw new TRPCError({ code: "BAD_REQUEST", message: "Nie można edytować wysłanego raportu." });
+            }
+
+            await ctx.db.monthlyReport.update({
+                where: { id: input.reportId },
+                data: {
+                    customSummaryEnabled: input.enabled,
+                    customTaxBase: input.taxBase,
+                    customOwnerPayout: input.ownerPayout,
+                    customHostPayout: input.hostPayout,
+                    customIncomeTax: input.incomeTax,
+                    customSummaryNote: input.note ?? null,
+                },
+            });
+
+            await ctx.db.reportHistory.create({
+                data: {
+                    reportId: input.reportId,
+                    adminId: ctx.session.user.id,
+                    action: input.enabled ? "set_custom_summary" : "unset_custom_summary",
+                    notes: input.enabled ?
+                        `Ustawiono niestandardowe podsumowanie: podstawa=${input.taxBase ?? "-"}, właściciel=${input.ownerPayout ?? "-"}, administrator=${input.hostPayout ?? "-"}, podatek=${input.incomeTax ?? "-"}`
+                        : "Wyłączono niestandardowe podsumowanie",
+                },
+            });
+
+            return { success: true };
         }),
 
     // Admin: Delete report by ID (old version - kept for backward compatibility)
@@ -2559,7 +2733,7 @@ export const monthlyReportsRouter = createTRPCRouter({
                 const totalRevenue = june2025Report.items.filter(i => i.type === "REVENUE").reduce((s, i) => s + i.amount, 0);
                 const totalExpenses = june2025Report.items.filter(i => ["EXPENSE", "FEE", "TAX"].includes(i.type)).reduce((s, i) => s + i.amount, 0);
                 const otaCommissions = june2025Report.items.filter(i => i.type === "COMMISSION").reduce((s, i) => s + i.amount, 0);
-                const netIncome = totalRevenue - totalExpenses - otaCommissions;
+                const netIncome = totalRevenue - totalExpenses - otaCommissions + getParkingProfit(june2025Report);
                 const adminCommissionAmount = netIncome * 0.25;
                 const afterCommission = netIncome - adminCommissionAmount;
                 const rentAndUtilities = (june2025Report.rentAmount ?? 0) + (june2025Report.utilitiesAmount ?? 0);
@@ -2698,7 +2872,7 @@ export const monthlyReportsRouter = createTRPCRouter({
                     .filter((i) => i.type === "COMMISSION")
                     .reduce((sum: number, i) => sum + i.amount, 0);
 
-                const netIncome = totalRevenue - totalExpenses - otaCommissions;
+                const netIncome = totalRevenue - totalExpenses - otaCommissions + getParkingProfit(report);
                 const adminCommissionAmount = netIncome * 0.25;
                 const afterCommission = netIncome - adminCommissionAmount;
                 const rentAndUtilities = (report.rentAmount ?? 0) + (report.utilitiesAmount ?? 0);

@@ -37,6 +37,41 @@ import { toast } from "react-hot-toast";
 
 type ReportDetails = NonNullable<RouterOutputs["monthlyReports"]["getById"]>;
 
+// Rozszerzenie raportu o pola parkingowe i sugestie
+type ReportWithParking = ReportDetails & {
+  parkingAdminRent?: number | null;
+  parkingRentalIncome?: number | null;
+  parkingProfit?: number | null;
+  suggestedParkingAdminRent?: number | null;
+  suggestedParkingRentalIncome?: number | null;
+};
+
+// Custom summary fields returned by API (optional)
+type ReportCustomFields = {
+  customSummaryEnabled?: boolean;
+  customTaxBase?: number | null;
+  customOwnerPayout?: number | null;
+  customHostPayout?: number | null;
+  customIncomeTax?: number | null;
+};
+
+type ReportWithCustom = ReportDetails & ReportCustomFields;
+
+declare global {
+  interface Window {
+    __customSummaryDirty?: boolean;
+    __getCustomSummaryDraft?: () => {
+      enabled: boolean;
+      taxBase: number;
+      ownerPayout: number;
+      hostPayout: number;
+      incomeTax: number;
+    };
+    __saveCustomSummary?: () => Promise<void>;
+    __manualSettlementChange?: boolean;
+  }
+}
+
 // Type for deductions that can handle both regular and historical reports
 type DeductionItem = {
   id: string;
@@ -109,6 +144,16 @@ export default function ReportDetailsPage({
     rentAmount: 0,
     utilitiesAmount: 0,
   });
+  const [isRentUtilitiesDirty, setIsRentUtilitiesDirty] = useState(false);
+
+  // Parking section state
+  const [parkingAdminRent, setParkingAdminRent] = useState<number>(0);
+  const [parkingRentalIncome, setParkingRentalIncome] = useState<number>(0);
+  const [isParkingDirty, setIsParkingDirty] = useState(false);
+  const parkingProfit = Math.max(
+    0,
+    Number(parkingRentalIncome || 0) - Number(parkingAdminRent || 0),
+  );
 
   // Dodaj state dla dodatkowego odliczenia
   const [additionalDeductionData, setAdditionalDeductionData] = useState<{
@@ -147,6 +192,7 @@ export default function ReportDetailsPage({
     api.monthlyReports.updateRentAndUtilities.useMutation({
       onSuccess: () => {
         void reportQuery.refetch();
+        setIsRentUtilitiesDirty(false);
       },
     });
 
@@ -199,6 +245,18 @@ export default function ReportDetailsPage({
         void reportQuery.refetch(); // Refetch to get original order
       },
     });
+
+  // Parking mutation
+  const updateParkingMutation = api.monthlyReports.updateParking.useMutation({
+    onSuccess: () => {
+      toast.success("Zapisano sekcję Parking");
+      void reportQuery.refetch();
+      setIsParkingDirty(false);
+    },
+    onError: (error) => {
+      toast.error(`Błąd zapisu sekcji Parking: ${error.message}`);
+    },
+  });
 
   // TRPC queries
   const reportQuery = api.monthlyReports.getById.useQuery(
@@ -315,17 +373,60 @@ export default function ReportDetailsPage({
   // Zaktualizuj useEffect gdy report się załaduje
   useEffect(() => {
     if (finalReport) {
-      setRentUtilitiesData({
-        rentAmount: finalReport.rentAmount ?? 0,
-        utilitiesAmount: finalReport.utilitiesAmount ?? 0,
-      });
+      // Nie nadpisuj lokalnie edytowanych wartości czynszu/mediów
+      if (!isRentUtilitiesDirty) {
+        setRentUtilitiesData({
+          rentAmount: finalReport.rentAmount ?? 0,
+          utilitiesAmount: finalReport.utilitiesAmount ?? 0,
+        });
+      }
       // Sort deductions by order and set them to local state
       const sortedDeductions = [
         ...(finalReport.additionalDeductions ?? []),
       ].sort((a, b) => a.order - b.order) as DeductionItem[];
       setOrderedDeductions(sortedDeductions);
     }
-  }, [finalReport]);
+  }, [finalReport, isRentUtilitiesDirty, report]);
+
+  // Initialize parking defaults from stored values or suggestions
+  useEffect(() => {
+    const r = report as ReportWithParking | null | undefined;
+    if (!r) return;
+    const hasStoredValues =
+      typeof r.parkingAdminRent === "number" ||
+      typeof r.parkingRentalIncome === "number";
+    const initialAdminRent = hasStoredValues
+      ? Number(r.parkingAdminRent ?? 0)
+      : Number(r.suggestedParkingAdminRent ?? 0);
+    const initialRentalIncome = hasStoredValues
+      ? Number(r.parkingRentalIncome ?? 0)
+      : Number(r.suggestedParkingRentalIncome ?? 0);
+    setParkingAdminRent(initialAdminRent);
+    setParkingRentalIncome(initialRentalIncome);
+  }, [report, report?.id]);
+
+  // Auto-save suggestions if there are no stored values yet
+  useEffect(() => {
+    const r = report as ReportWithParking | null | undefined;
+    if (!r) return;
+    const storedAdmin = Number(r.parkingAdminRent ?? 0);
+    const storedIncome = Number(r.parkingRentalIncome ?? 0);
+    const suggAdmin = Number(r.suggestedParkingAdminRent ?? 0);
+    const suggIncome = Number(r.suggestedParkingRentalIncome ?? 0);
+    if (
+      storedAdmin === 0 &&
+      storedIncome === 0 &&
+      (suggAdmin > 0 || suggIncome > 0)
+    ) {
+      updateParkingMutation.mutate({
+        reportId: report!.id,
+        parkingAdminRent: suggAdmin,
+        parkingRentalIncome: suggIncome,
+        parkingProfit: Math.max(0, suggIncome - suggAdmin),
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [report, report?.id]);
 
   // useEffect do automatycznego aktualizowania typu rozliczenia gdy zmienią się ustawienia apartamentu
   useEffect(() => {
@@ -352,8 +453,10 @@ export default function ReportDetailsPage({
       expectedSettlementType = "COMMISSION"; // Domyślnie
     }
 
-    // Jeśli typ rozliczenia nie pasuje do ustawień apartamentu, zaktualizuj go
-    if (currentSettlementType !== expectedSettlementType) {
+    // Nie nadpisuj ręcznej zmiany użytkownika (flaga globalna) ani ustawionego już typu
+    const manualChange =
+      typeof window !== "undefined" && Boolean(window.__manualSettlementChange);
+    if (!currentSettlementType && expectedSettlementType && !manualChange) {
       console.log(
         `🔄 Aktualizuję typ rozliczenia dla raportu ${finalReport.id}: ${currentSettlementType} -> ${expectedSettlementType} (ustawienia apartamentu: ${apartmentPaymentType})`,
       );
@@ -406,6 +509,7 @@ export default function ReportDetailsPage({
         reportId: reportId,
         ...rentUtilitiesData,
       });
+      setIsRentUtilitiesDirty(false);
     } catch (error) {
       console.error("Error saving rent and utilities:", error);
     }
@@ -647,6 +751,25 @@ export default function ReportDetailsPage({
         toast.error("Wystąpił nieznany błąd podczas dodawania pozycji.");
       }
     }
+  };
+
+  // =========================
+  // Guard przed utratą niezapisanych niestandardowych wartości podsumowania
+  // (stan i modal na poziomie strony)
+  // =========================
+  const [, setShowUnsavedCustomModal] = React.useState(false);
+  const [, setPendingNavigatePath] = React.useState<string | null>(null);
+
+  const handleNavigateWithUnsavedCheck = (path: string) => {
+    try {
+      const dirty = Boolean(window?.__customSummaryDirty);
+      if (dirty) {
+        setPendingNavigatePath(path);
+        setShowUnsavedCustomModal(true);
+        return;
+      }
+    } catch {}
+    router.push(path);
   };
 
   const handleAddSuggestedCommission = async (
@@ -1068,7 +1191,7 @@ export default function ReportDetailsPage({
             {reportQuery.error?.message ?? "Raport nie został znaleziony"}
           </p>
           <button
-            onClick={() => router.push(getBackToListPath())}
+            onClick={() => handleNavigateWithUnsavedCheck(getBackToListPath())}
             className="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700"
           >
             Powrót do listy
@@ -1166,7 +1289,9 @@ export default function ReportDetailsPage({
             <div className="mt-4 sm:mt-0">
               <div className="flex gap-3">
                 <button
-                  onClick={() => router.push(getBackToListPath())}
+                  onClick={() =>
+                    handleNavigateWithUnsavedCheck(getBackToListPath())
+                  }
                   className="inline-flex items-center rounded-md bg-gray-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-500"
                 >
                   <svg
@@ -2586,12 +2711,13 @@ export default function ReportDetailsPage({
                       step="0.01"
                       min="0"
                       value={rentUtilitiesData.rentAmount}
-                      onChange={(e) =>
+                      onChange={(e) => {
                         setRentUtilitiesData((prev) => ({
                           ...prev,
                           rentAmount: parseFloat(e.target.value) || 0,
-                        }))
-                      }
+                        }));
+                        setIsRentUtilitiesDirty(true);
+                      }}
                       className="block w-full rounded-md border-gray-300 px-3 py-2 shadow-sm focus:border-yellow-500 focus:outline-none focus:ring-yellow-500"
                       placeholder="0.00"
                     />
@@ -2616,12 +2742,13 @@ export default function ReportDetailsPage({
                       step="0.01"
                       min="0"
                       value={rentUtilitiesData.utilitiesAmount}
-                      onChange={(e) =>
+                      onChange={(e) => {
                         setRentUtilitiesData((prev) => ({
                           ...prev,
                           utilitiesAmount: parseFloat(e.target.value) || 0,
-                        }))
-                      }
+                        }));
+                        setIsRentUtilitiesDirty(true);
+                      }}
                       className="block w-full rounded-md border-gray-300 px-3 py-2 shadow-sm focus:border-yellow-500 focus:outline-none focus:ring-yellow-500"
                       placeholder="0.00"
                     />
@@ -2894,7 +3021,86 @@ export default function ReportDetailsPage({
               Podstawowe informacje o zyskach i potrąceniach
             </p>
           </div>
+          {/* Parking section (before commission settlement) */}
           <div className="bg-white p-6">
+            <div className="mb-6 rounded-lg bg-yellow-50 p-4">
+              <h5 className="mb-2 text-lg font-medium text-yellow-800">
+                Parking
+              </h5>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                <div>
+                  <label className="block text-sm font-medium text-yellow-800">
+                    Czynsz administracyjny
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={parkingAdminRent}
+                    onChange={(e) => {
+                      setParkingAdminRent(Number(e.target.value));
+                      setIsParkingDirty(true);
+                    }}
+                    className="mt-1 block w-full rounded-md border-yellow-300 px-3 py-2 shadow-sm focus:border-yellow-500 focus:outline-none focus:ring-yellow-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-yellow-800">
+                    Przychód z najmy
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={parkingRentalIncome}
+                    onChange={(e) => {
+                      setParkingRentalIncome(Number(e.target.value));
+                      setIsParkingDirty(true);
+                    }}
+                    className="mt-1 block w-full rounded-md border-yellow-300 px-3 py-2 shadow-sm focus:border-yellow-500 focus:outline-none focus:ring-yellow-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-yellow-800">
+                    Zysk
+                  </label>
+                  <div className="mt-1 rounded-md bg-white px-3 py-2 text-right font-semibold text-yellow-900">
+                    {parkingProfit.toFixed(2)} PLN
+                  </div>
+                </div>
+              </div>
+              <div className="mt-4 flex items-center justify-between">
+                <p className="text-xs text-yellow-700">
+                  Domyślne wartości pochodzą z ostatniego wysłanego raportu dla
+                  tego apartamentu.
+                </p>
+                <button
+                  type="button"
+                  disabled={
+                    !report ||
+                    updateParkingMutation.isPending ||
+                    !isParkingDirty
+                  }
+                  onClick={() => {
+                    if (!report) return;
+                    updateParkingMutation.mutate({
+                      reportId: report.id,
+                      parkingAdminRent: Number(parkingAdminRent || 0),
+                      parkingRentalIncome: Number(parkingRentalIncome || 0),
+                      parkingProfit: Math.max(
+                        0,
+                        Number(parkingRentalIncome || 0) -
+                          Number(parkingAdminRent || 0),
+                      ),
+                    });
+                  }}
+                  className="inline-flex items-center rounded-md bg-yellow-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50 hover:bg-yellow-700"
+                >
+                  {updateParkingMutation.isPending
+                    ? "Zapisywanie..."
+                    : "Zapisz"}
+                </button>
+              </div>
+            </div>
+
             {/* Karta z zyskiem netto apartamentu */}
             <div className="mb-6 rounded-lg bg-gray-50 p-4">
               <h5 className="mb-2 text-lg font-medium text-gray-800">
@@ -2903,6 +3109,37 @@ export default function ReportDetailsPage({
               <p className="text-2xl font-bold text-gray-900">
                 {report?.netIncome?.toFixed(2) ?? "0.00"} PLN
               </p>
+              {report && (
+                <p className="mt-1 text-xs text-gray-600">
+                  Uwzględniono zysk z parkingu:{" "}
+                  {Math.max(
+                    0,
+                    Number(parkingRentalIncome || 0) -
+                      Number(parkingAdminRent || 0),
+                  ).toFixed(2)}{" "}
+                  PLN
+                </p>
+              )}
+              {(() => {
+                if (
+                  report?.finalSettlementType === "FIXED" ||
+                  report?.finalSettlementType === "FIXED_MINUS_UTILITIES"
+                ) {
+                  const netIncome = report?.netIncome ?? 0;
+                  const fixedAmount = Number(
+                    report?.apartment?.fixedPaymentAmount ?? 0,
+                  );
+                  if (fixedAmount > netIncome) {
+                    return (
+                      <p className="mt-1 text-sm text-gray-600">
+                        Uwaga: kwota stała dla właściciela wynosi{" "}
+                        {fixedAmount.toFixed(2)} PLN
+                      </p>
+                    );
+                  }
+                }
+                return null;
+              })()}
             </div>
 
             {/* Karta z prowizją 25% dla administratora */}
@@ -2913,15 +3150,91 @@ export default function ReportDetailsPage({
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="rounded-md bg-blue-100 p-3">
                   <p className="text-sm text-blue-700">Kwota prowizji:</p>
-                  <p className="text-xl font-bold text-blue-900">
-                    {((report?.netIncome ?? 0) * 0.25).toFixed(2)} PLN
-                  </p>
+                  <div className="text-xl font-bold text-blue-900">
+                    {(() => {
+                      // Sprawdź czy raport ma ustawiony finalSettlementType
+                      if (
+                        report?.finalSettlementType === "FIXED" ||
+                        report?.finalSettlementType === "FIXED_MINUS_UTILITIES"
+                      ) {
+                        const netIncome = report.netIncome ?? 0;
+                        const fixedAmount = Number(
+                          report.apartment?.fixedPaymentAmount ?? 0,
+                        );
+                        const realCommission = netIncome - fixedAmount;
+                        return (
+                          <>
+                            <span
+                              className={
+                                realCommission < 0 ? "text-red-600" : ""
+                              }
+                            >
+                              {realCommission.toFixed(2)} PLN
+                            </span>
+                            {realCommission < 0 && (
+                              <div className="mt-2 rounded-md bg-red-100 p-2">
+                                <p className="text-xs font-medium text-red-700">
+                                  Zarządca dopłaca różnicę:{" "}
+                                  {Math.abs(realCommission).toFixed(2)} PLN
+                                </p>
+                              </div>
+                            )}
+                          </>
+                        );
+                      }
+
+                      // Standardowa prowizja 25% gdy nie ma rozliczenia z kwotą stałą
+                      return `${((report?.netIncome ?? 0) * 0.25).toFixed(2)} PLN`;
+                    })()}
+                  </div>
                 </div>
                 <div className="rounded-md bg-blue-100 p-3">
                   <p className="text-sm text-blue-700">Pozostało:</p>
-                  <p className="text-xl font-bold text-blue-900">
-                    {((report?.netIncome ?? 0) * 0.75).toFixed(2)} PLN
-                  </p>
+                  <div className="text-xl font-bold text-blue-900">
+                    {(() => {
+                      if (
+                        report?.finalSettlementType === "FIXED" ||
+                        report?.finalSettlementType === "FIXED_MINUS_UTILITIES"
+                      ) {
+                        const netIncome = Number(report?.netIncome ?? 0);
+                        const fixedAmount = Number(
+                          report?.apartment?.fixedPaymentAmount ?? 0,
+                        );
+                        const deductions = report?.additionalDeductions ?? [];
+                        const totalDeductionsGross = deductions.reduce(
+                          (
+                            sum: number,
+                            d: { amount: number; vatOption: string },
+                          ) =>
+                            sum +
+                            (d.vatOption === "VAT_8" || d.vatOption === "VAT_23"
+                              ? getGrossAmount(d.amount, d.vatOption)
+                              : d.amount),
+                          0,
+                        );
+                        const adminTopUp = Math.max(fixedAmount - netIncome, 0);
+                        const remaining =
+                          netIncome + adminTopUp - totalDeductionsGross;
+
+                        return (
+                          <>
+                            {`${remaining.toFixed(2)} PLN`}
+                            <div className="mt-2 text-xs text-blue-700">
+                              <span className="block">
+                                dopłata administratora: {adminTopUp.toFixed(2)}{" "}
+                                PLN
+                                {" + zysk netto: "}
+                                {netIncome.toFixed(2)} PLN
+                                {" - dodatkowe odliczenia: "}
+                                {totalDeductionsGross.toFixed(2)} PLN
+                              </span>
+                            </div>
+                          </>
+                        );
+                      }
+                      return `${((report?.netIncome ?? 0) * 0.75).toFixed(2)} PLN`;
+                    })()}
+                  </div>
                 </div>
               </div>
             </div>
@@ -3804,11 +4117,17 @@ function OwnerPayoutCalculation({
     }
 
     try {
-      // Wykonaj mutację w tle (nie czekaj na zakończenie)
-      setFinalSettlementTypeMutation.mutate({
+      // Oznacz ręczną zmianę, aby logika auto-dopasowania nie nadpisała wyboru
+      if (typeof window !== "undefined") {
+        window.__manualSettlementChange = true;
+      }
+      // Wykonaj mutację i poczekaj na zakończenie, następnie odśwież dane
+      await setFinalSettlementTypeMutation.mutateAsync({
         reportId: report.id,
         finalSettlementType: settlementType,
       });
+      // Odśwież dane raportu po zmianie typu rozliczenia
+      onRefetch();
     } catch (error) {
       console.error("Error saving final settlement type:", error);
       // Revert the state change if save failed
@@ -3819,6 +4138,13 @@ function OwnerPayoutCalculation({
             ? LocalPayoutType.FIXED_AMOUNT_MINUS_UTILITIES
             : LocalPayoutType.COMMISSION,
       );
+    } finally {
+      // Po krótkim czasie zdejmij flagę ręcznej zmiany
+      if (typeof window !== "undefined") {
+        setTimeout(() => {
+          window.__manualSettlementChange = false;
+        }, 500);
+      }
     }
   };
 
@@ -3873,45 +4199,227 @@ function OwnerPayoutCalculation({
     fixedBaseAmount - rentAndUtilities - totalAdditionalDeductionsGross;
 
   // NOWE: Obliczanie kwot w podsumowaniu na podstawie wybranego typu rozliczenia
-  const getSummaryValues = () => {
+  const getSummaryValues = React.useCallback(() => {
+    const isVatExemptLocal = report.owner.vatOption === "NO_VAT";
     switch (finalPayoutType) {
       case LocalPayoutType.FIXED_AMOUNT:
         // Kwota stała: właściciel dostaje ustaloną kwotę, administrator dopłaca różnicę jeśli potrzeba
+        // Podstawa opodatkowania = kwota stała (NETTO), dodatkowe odliczenia NIE wpływają na podstawę
+        const fixedTaxBase = fixedBaseAmount;
         const ownerPayoutFixed = Math.max(0, fixedBaseAmountAfterDeductions);
         const hostPayoutFixed = report.netIncome - ownerPayoutFixed;
 
+        const fixedOwnerPayout = isVatExemptLocal
+          ? ownerPayoutFixed
+          : getGrossAmount(ownerPayoutFixed, report.owner.vatOption);
+
         return {
-          finalOwnerPayout: ownerPayoutFixed,
+          finalOwnerPayout: fixedOwnerPayout,
           finalHostPayout: hostPayoutFixed, // Może być ujemne (administrator dopłaca)
-          finalIncomeTax: ownerPayoutFixed * 0.085,
-          taxBase: ownerPayoutFixed,
+          finalIncomeTax: fixedTaxBase * 0.085,
+          taxBase: fixedTaxBase,
         };
 
       case LocalPayoutType.FIXED_AMOUNT_MINUS_UTILITIES:
-        // Kwota stała po mediach: właściciel dostaje ustaloną kwotę, administrator dopłaca różnicę jeśli potrzeba
+        // Kwota stała po mediach: Podstawa opodatkowania = kwota stała - (czynsz + media), bez dodatkowych odliczeń
+        const fixedMinusUtilitiesTaxBase = Math.max(
+          0,
+          fixedBaseAmount - rentAndUtilities,
+        );
         const ownerPayoutFixedMinusUtilities = Math.max(0, kwotaBazowaNetto);
         const hostPayoutFixedMinusUtilities =
           report.netIncome - ownerPayoutFixedMinusUtilities;
 
+        const fixedMinusUtilitiesOwnerPayout = isVatExemptLocal
+          ? ownerPayoutFixedMinusUtilities
+          : getGrossAmount(
+              ownerPayoutFixedMinusUtilities,
+              report.owner.vatOption,
+            );
+
         return {
-          finalOwnerPayout: ownerPayoutFixedMinusUtilities,
+          finalOwnerPayout: fixedMinusUtilitiesOwnerPayout,
           finalHostPayout: hostPayoutFixedMinusUtilities, // Może być ujemne (administrator dopłaca)
-          finalIncomeTax: ownerPayoutFixedMinusUtilities * 0.085,
-          taxBase: ownerPayoutFixedMinusUtilities,
+          finalIncomeTax: fixedMinusUtilitiesTaxBase * 0.085,
+          taxBase: fixedMinusUtilitiesTaxBase,
         };
 
       case LocalPayoutType.COMMISSION:
       default:
+        // Podstawa opodatkowania (NETTO) a wypłata właściciela (brutto u podatników VAT)
+        // ZGODNIE Z REGUŁĄ: Podstawa nie uwzględnia dodatkowych odliczeń
+        const commissionTaxBase = deductRentAndUtilities
+          ? netIncomeAfterAdminCommission - rentAndUtilities
+          : netIncomeAfterAdminCommission;
+        const commissionOwnerPayout = isVatExemptLocal
+          ? netIncomeAfterAllDeductions
+          : getGrossAmount(netIncomeAfterAllDeductions, report.owner.vatOption);
+
         return {
-          finalOwnerPayout: netIncomeAfterAllDeductions, // Kwota po prowizji i odliczeniach
+          finalOwnerPayout: commissionOwnerPayout, // DO WYPŁATY (brutto jeśli VAT)
           finalHostPayout: adminCommissionAmount, // Prowizja admina
-          finalIncomeTax: netIncomeAfterAllDeductions * 0.085, // 8.5% podatku
-          taxBase: netIncomeAfterAllDeductions,
+          finalIncomeTax: commissionTaxBase * 0.085, // 8.5% podatku
+          taxBase: commissionTaxBase,
         };
     }
-  };
+  }, [
+    report.owner.vatOption,
+    report.netIncome,
+    finalPayoutType,
+    deductRentAndUtilities,
+    fixedBaseAmount,
+    fixedBaseAmountAfterDeductions,
+    kwotaBazowaNetto,
+    netIncomeAfterAdminCommission,
+    netIncomeAfterAllDeductions,
+    rentAndUtilities,
+    adminCommissionAmount,
+  ]);
 
   // Wartości podsumowania są obliczane w getSummaryValues() i używane bezpośrednio
+
+  // =========================
+  // Niestandardowe podsumowanie – stan lokalny i mutacja
+  // =========================
+  const setCustomSummaryMutation =
+    api.monthlyReports.setCustomSummary.useMutation({
+      onSuccess: () => {
+        toast.success("Zapisano niestandardowe podsumowanie");
+        onRefetch();
+        setIsCustomDirty(false);
+        // Natychmiast pokaż zapisaną notatkę w widoku tylko do odczytu
+        setSavedCustomNote(
+          Boolean(customEnabled) ? (customNote ?? "").trim() : "",
+        );
+      },
+      onError: (err) => {
+        toast.error(`Błąd zapisu: ${err.message}`);
+      },
+    });
+
+  // Stabilizujemy dependencies, aby nie zmieniały rozmiaru (bez funkcji w tablicy)
+  const initialSummary = React.useMemo(
+    () => getSummaryValues(),
+    [getSummaryValues],
+  );
+  const [showCustomEditor, setShowCustomEditor] = React.useState(false);
+  const reportWithCustom = report as ReportWithCustom;
+  const [customEnabled, setCustomEnabled] = React.useState<boolean>(
+    Boolean(reportWithCustom.customSummaryEnabled ?? false),
+  );
+  const [customTaxBase, setCustomTaxBase] = React.useState<number | "">(
+    Number(reportWithCustom.customTaxBase ?? initialSummary.taxBase ?? 0),
+  );
+  const [customOwnerPayout, setCustomOwnerPayout] = React.useState<number | "">(
+    Number(
+      reportWithCustom.customOwnerPayout ??
+        initialSummary.finalOwnerPayout ??
+        0,
+    ),
+  );
+  const [customHostPayout, setCustomHostPayout] = React.useState<number | "">(
+    Number(
+      reportWithCustom.customHostPayout ?? initialSummary.finalHostPayout ?? 0,
+    ),
+  );
+  const [customIncomeTax, setCustomIncomeTax] = React.useState<number | "">(
+    Number(
+      reportWithCustom.customIncomeTax ?? initialSummary.finalIncomeTax ?? 0,
+    ),
+  );
+  const [customNote, setCustomNote] = React.useState<string>(
+    (reportWithCustom as ReportWithCustom & { customSummaryNote?: string })
+      .customSummaryNote ?? "",
+  );
+  // Notatka zapisana – do wyświetlania pod podsumowaniem bez odświeżania
+  const [savedCustomNote, setSavedCustomNote] = React.useState<string>(
+    (
+      (reportWithCustom as ReportWithCustom & { customSummaryNote?: string })
+        .customSummaryNote ?? ""
+    ).trim(),
+  );
+  const [isCustomDirty, setIsCustomDirty] = React.useState(false);
+
+  React.useEffect(() => {
+    // Aktualizuj stan przy zmianie raportu
+    const nextInitial = getSummaryValues();
+    const r = report as ReportWithCustom;
+    setCustomEnabled(Boolean(r.customSummaryEnabled ?? false));
+    setCustomTaxBase(Number(r.customTaxBase ?? nextInitial.taxBase ?? 0));
+    setCustomOwnerPayout(
+      Number(r.customOwnerPayout ?? nextInitial.finalOwnerPayout ?? 0),
+    );
+    setCustomHostPayout(
+      Number(r.customHostPayout ?? nextInitial.finalHostPayout ?? 0),
+    );
+    setCustomIncomeTax(
+      Number(r.customIncomeTax ?? nextInitial.finalIncomeTax ?? 0),
+    );
+    setSavedCustomNote(
+      (
+        (r as ReportWithCustom & { customSummaryNote?: string })
+          .customSummaryNote ?? ""
+      ).trim(),
+    );
+    setIsCustomDirty(false);
+  }, [
+    report,
+    report?.id,
+    finalPayoutType,
+    deductRentAndUtilities,
+    getSummaryValues,
+  ]);
+
+  // Ochrona przed przypadkowym opuszczeniem strony
+  React.useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (isCustomDirty) {
+        e.preventDefault();
+        e.returnValue = "Masz niezapisane zmiany";
+        return "Masz niezapisane zmiany";
+      }
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [isCustomDirty]);
+
+  // Udostępnij globalnie, aby rodzic mógł wyświetlić modal i zapisać
+  React.useEffect(() => {
+    window.__customSummaryDirty = isCustomDirty;
+    window.__getCustomSummaryDraft = () => ({
+      enabled: customEnabled,
+      taxBase: Number(customTaxBase || 0),
+      ownerPayout: Number(customOwnerPayout || 0),
+      hostPayout: Number(customHostPayout || 0),
+      incomeTax: Number(customIncomeTax || 0),
+    });
+    window.__saveCustomSummary = async () => {
+      await setCustomSummaryMutation.mutateAsync({
+        reportId: report.id,
+        enabled: Boolean(customEnabled),
+        taxBase: customEnabled ? Number(customTaxBase || 0) : null,
+        ownerPayout: customEnabled ? Number(customOwnerPayout || 0) : null,
+        hostPayout: customEnabled ? Number(customHostPayout || 0) : null,
+        incomeTax: customEnabled ? Number(customIncomeTax || 0) : null,
+        note: customEnabled ? customNote : null,
+      });
+    };
+    return () => {
+      delete window.__customSummaryDirty;
+      delete window.__getCustomSummaryDraft;
+      delete window.__saveCustomSummary;
+    };
+  }, [
+    isCustomDirty,
+    customEnabled,
+    customTaxBase,
+    customOwnerPayout,
+    customHostPayout,
+    customIncomeTax,
+    report?.id,
+    setCustomSummaryMutation,
+    customNote,
+  ]);
 
   return (
     <div className="space-y-6">
@@ -4147,33 +4655,369 @@ function OwnerPayoutCalculation({
         <h4 className="mb-4 text-lg font-semibold text-gray-800">
           Podsumowanie rozliczenia
         </h4>
+        {customEnabled && (
+          <div className="mb-4 flex items-start gap-2 rounded-md bg-orange-100 p-3 text-orange-800">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5 flex-shrink-0"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z"
+              />
+            </svg>
+            <p className="text-sm">
+              Raport został przeliczony na zasadach indywidualnych opisanych w
+              notatce poniżej.
+            </p>
+          </div>
+        )}
+
+        {/* Przycisk i edytor niestandardowego podsumowania */}
+        <div className="mb-4 flex items-center justify-between">
+          <button
+            type="button"
+            onClick={() => setShowCustomEditor((v) => !v)}
+            className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+          >
+            {showCustomEditor ? "Ukryj edytor" : "Wprowadź własne parametry"}
+          </button>
+          {customEnabled && (
+            <span className="text-sm text-indigo-700">
+              Niestandardowe wartości są włączone
+            </span>
+          )}
+        </div>
+
+        {showCustomEditor && (
+          <div className="mb-6 rounded-md border border-indigo-200 bg-white p-4">
+            <label className="mb-3 flex items-center gap-2 text-sm text-gray-700">
+              <input
+                type="checkbox"
+                checked={customEnabled}
+                onChange={(e) => {
+                  setCustomEnabled(e.target.checked);
+                  setIsCustomDirty(true);
+                }}
+              />
+              Użyj niestandardowych wartości w podsumowaniu (widoczne dla
+              właściciela po wysłaniu)
+            </label>
+
+            <div className="mt-3 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <div>
+                <div className="mb-1 text-sm text-gray-600">
+                  Podstawa opodatkowania
+                </div>
+                <input
+                  type="number"
+                  step="0.01"
+                  className="w-full rounded-md border border-gray-300 px-3 py-2"
+                  value={customTaxBase}
+                  onChange={(e) => {
+                    setCustomTaxBase(
+                      e.target.value === "" ? "" : Number(e.target.value),
+                    );
+                    setIsCustomDirty(true);
+                  }}
+                  disabled={!customEnabled}
+                />
+              </div>
+              <div>
+                <div className="mb-1 text-sm text-gray-600">
+                  Wypłata właściciela
+                </div>
+                <input
+                  type="number"
+                  step="0.01"
+                  className="w-full rounded-md border border-gray-300 px-3 py-2"
+                  value={customOwnerPayout}
+                  onChange={(e) => {
+                    setCustomOwnerPayout(
+                      e.target.value === "" ? "" : Number(e.target.value),
+                    );
+                    setIsCustomDirty(true);
+                  }}
+                  disabled={!customEnabled}
+                />
+              </div>
+              <div>
+                <div className="mb-1 text-sm text-gray-600">
+                  Prowizja Złote Wynajmy
+                </div>
+                <input
+                  type="number"
+                  step="0.01"
+                  className="w-full rounded-md border border-gray-300 px-3 py-2"
+                  value={customHostPayout}
+                  onChange={(e) => {
+                    setCustomHostPayout(
+                      e.target.value === "" ? "" : Number(e.target.value),
+                    );
+                    setIsCustomDirty(true);
+                  }}
+                  disabled={!customEnabled}
+                />
+              </div>
+              <div>
+                <div className="mb-1 text-sm text-gray-600">
+                  Podatek dochodowy
+                </div>
+                <input
+                  type="number"
+                  step="0.01"
+                  className="w-full rounded-md border border-gray-300 px-3 py-2"
+                  value={customIncomeTax}
+                  onChange={(e) => {
+                    setCustomIncomeTax(
+                      e.target.value === "" ? "" : Number(e.target.value),
+                    );
+                    setIsCustomDirty(true);
+                  }}
+                  disabled={!customEnabled}
+                />
+              </div>
+            </div>
+
+            {/* Notatka do niestandardowego podsumowania */}
+            <div className="mt-6">
+              <div className="mb-1 text-sm text-gray-600">Notatka</div>
+              <textarea
+                className="min-h-[120px] w-full rounded-md border border-gray-300 px-3 py-2"
+                value={customNote}
+                onChange={(e) => {
+                  setCustomNote(e.target.value);
+                  setIsCustomDirty(true);
+                }}
+                placeholder="Opisz indywidualne zasady rozliczenia..."
+              />
+              <p className="mt-1 text-xs text-gray-500">
+                Notatka będzie widoczna dla właściciela w raporcie.
+              </p>
+            </div>
+
+            <div className="mt-4 flex gap-3">
+              <button
+                type="button"
+                onClick={async () => {
+                  await setCustomSummaryMutation.mutateAsync({
+                    reportId: report.id,
+                    enabled: Boolean(customEnabled),
+                    taxBase: customEnabled ? Number(customTaxBase || 0) : null,
+                    ownerPayout: customEnabled
+                      ? Number(customOwnerPayout || 0)
+                      : null,
+                    hostPayout: customEnabled
+                      ? Number(customHostPayout || 0)
+                      : null,
+                    incomeTax: customEnabled
+                      ? Number(customIncomeTax || 0)
+                      : null,
+                    note: customEnabled ? customNote : null,
+                  });
+                }}
+                className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+                disabled={setCustomSummaryMutation.isPending}
+              >
+                Zapisz
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const base = getSummaryValues();
+                  setCustomTaxBase(base.taxBase ?? 0);
+                  setCustomOwnerPayout(base.finalOwnerPayout ?? 0);
+                  setCustomHostPayout(base.finalHostPayout ?? 0);
+                  setCustomIncomeTax(base.finalIncomeTax ?? 0);
+                  setIsCustomDirty(true);
+                }}
+                className="rounded-md bg-gray-200 px-3 py-2 text-sm font-medium text-gray-800 hover:bg-gray-300"
+              >
+                Uzupełnij wartości automatyczne
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Zapisana notatka – widok tylko do odczytu pod podsumowaniem */}
+        {(() => {
+          const r = report as ReportWithCustom & { customSummaryNote?: string };
+          const noteToShow = (
+            (typeof savedCustomNote === "string" && savedCustomNote.length > 0
+              ? savedCustomNote
+              : r.customSummaryNote) ?? ""
+          ).trim();
+          if (!customEnabled || noteToShow.length === 0) return null;
+          return (
+            <div className="mb-6 rounded-md border border-orange-200 bg-orange-50 p-4 text-orange-900">
+              <div className="mb-2 flex items-center gap-2">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 flex-shrink-0"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z"
+                  />
+                </svg>
+                <span className="text-sm font-medium">
+                  Notatka do niestandardowego rozliczenia
+                </span>
+              </div>
+              <div className="whitespace-pre-wrap break-words text-sm">
+                {noteToShow}
+              </div>
+            </div>
+          );
+        })()}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <SummaryField
-            label="Podstawa opodatkowania"
-            value={`${getSummaryValues().taxBase.toFixed(2)} PLN`}
-            color="gray"
-          />
-          <SummaryField
-            label="Wypłata właściciela"
-            value={`${getSummaryValues().finalOwnerPayout.toFixed(2)} PLN`}
-            isPayout
-            color="green"
-          />
-          <SummaryField
-            label="Prowizja Złote Wynajmy"
-            value={`${getSummaryValues().finalHostPayout.toFixed(2)} PLN`}
-            color={getSummaryValues().finalHostPayout < 0 ? "red" : "blue"}
-            subtext={
-              getSummaryValues().finalHostPayout < 0
-                ? "Zarządca dopłaca różnicę w kwocie stałej!"
-                : undefined
-            }
-          />
-          <SummaryField
-            label="Podatek dochodowy"
-            value={`${getSummaryValues().finalIncomeTax.toFixed(2)} PLN`}
-            color="gray"
-          />
+          {(() => {
+            const r = report as ReportWithCustom;
+            const taxBaseValue: number =
+              r.customSummaryEnabled && r.customTaxBase != null
+                ? Number(r.customTaxBase)
+                : getSummaryValues().taxBase;
+            return (
+              <SummaryField
+                label="Podstawa opodatkowania"
+                value={`${taxBaseValue.toFixed(2)} PLN`}
+                subtext={
+                  !customEnabled
+                    ? (() => {
+                        const isVat = report.owner.vatOption !== "NO_VAT";
+                        if (finalPayoutType === LocalPayoutType.COMMISSION) {
+                          // Podstawa = kwota po prowizji ZW (netto) [- czynsz - media]
+                          const rent = report.rentAmount ?? 0;
+                          const utilities = report.utilitiesAmount ?? 0;
+                          return (
+                            <span className="block text-xs text-gray-600">
+                              {isVat ? "(netto) " : ""}Kwota po prowizji:{" "}
+                              {netIncomeAfterAdminCommission.toFixed(2)} PLN
+                              {deductRentAndUtilities && (
+                                <>
+                                  {" - czynsz: "}
+                                  {rent.toFixed(2)} PLN
+                                  {" - media: "}
+                                  {utilities.toFixed(2)} PLN
+                                </>
+                              )}
+                              {" = "}
+                              {taxBaseValue.toFixed(2)} PLN
+                            </span>
+                          );
+                        }
+                        if (finalPayoutType === LocalPayoutType.FIXED_AMOUNT) {
+                          return (
+                            <span className="block text-xs text-gray-600">
+                              {isVat ? "(netto) " : ""}Kwota stała:{" "}
+                              {fixedBaseAmount.toFixed(2)} PLN
+                            </span>
+                          );
+                        }
+                        // FIXED_MINUS_UTILITIES
+                        return (
+                          <span className="block text-xs text-gray-600">
+                            {isVat ? "(netto) " : ""}Kwota stała:{" "}
+                            {fixedBaseAmount.toFixed(2)} PLN
+                            {" - czynsz: "}
+                            {(report.rentAmount ?? 0).toFixed(2)} PLN
+                            {" - media: "}
+                            {(report.utilitiesAmount ?? 0).toFixed(2)} PLN
+                            {" = "}
+                            {taxBaseValue.toFixed(2)} PLN
+                          </span>
+                        );
+                      })()
+                    : undefined
+                }
+                color="gray"
+              />
+            );
+          })()}
+          {(() => {
+            const r = report as ReportWithCustom;
+            const ownerValue: number =
+              r.customSummaryEnabled && r.customOwnerPayout != null
+                ? Number(r.customOwnerPayout)
+                : getSummaryValues().finalOwnerPayout;
+            return (
+              <SummaryField
+                label="Wypłata właściciela"
+                value={(() => {
+                  const isVat = report.owner.vatOption !== "NO_VAT";
+                  if (!isVat) return `${ownerValue.toFixed(2)} PLN`;
+                  const netto =
+                    finalPayoutType === LocalPayoutType.COMMISSION
+                      ? netIncomeAfterAllDeductions
+                      : finalPayoutType === LocalPayoutType.FIXED_AMOUNT
+                        ? fixedBaseAmountAfterDeductions
+                        : kwotaBazowaNetto;
+                  const vat = getVatAmount(netto, report.owner.vatOption);
+                  const brutto = netto + vat;
+                  return `${netto.toFixed(2)} PLN + ${vat.toFixed(2)} PLN = ${brutto.toFixed(2)} PLN`;
+                })()}
+                isPayout
+                color="green"
+                subtext={
+                  !customEnabled
+                    ? (() => {
+                        if (report.owner.vatOption === "NO_VAT") return null;
+                        return (
+                          <span className="text-xs text-gray-600">
+                            (netto + VAT = brutto)
+                          </span>
+                        );
+                      })()
+                    : undefined
+                }
+              />
+            );
+          })()}
+          {(() => {
+            const r = report as ReportWithCustom;
+            const hostValue: number =
+              r.customSummaryEnabled && r.customHostPayout != null
+                ? Number(r.customHostPayout)
+                : getSummaryValues().finalHostPayout;
+            return (
+              <SummaryField
+                label="Prowizja Złote Wynajmy"
+                value={`${hostValue.toFixed(2)} PLN`}
+                color={hostValue < 0 ? "red" : "blue"}
+                subtext={
+                  !customEnabled
+                    ? hostValue < 0
+                      ? "Zarządca dopłaca różnicę w kwocie stałej!"
+                      : undefined
+                    : undefined
+                }
+              />
+            );
+          })()}
+          {(() => {
+            const r = report as ReportWithCustom;
+            const taxValue: number =
+              r.customSummaryEnabled && r.customIncomeTax != null
+                ? Number(r.customIncomeTax)
+                : getSummaryValues().finalIncomeTax;
+            return (
+              <SummaryField
+                label="Podatek dochodowy"
+                value={`${taxValue.toFixed(2)} PLN`}
+                color="gray"
+              />
+            );
+          })()}
         </div>
       </div>
     </div>

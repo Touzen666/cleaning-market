@@ -322,6 +322,19 @@ model MonthlyReport {
   afterCommission      Float?
   afterRentAndUtilities Float?
   totalAdditionalDeductions Float?
+  // Parking section fields
+  parkingAdminRent       Float?                @default(0)
+  parkingRentalIncome    Float?                @default(0)
+  parkingProfit          Float?                @default(0)
+
+
+  // Custom summary override (admin-entered values shown to owner)
+  customSummaryEnabled  Boolean              @default(false)
+  customTaxBase         Float?
+  customOwnerPayout     Float?
+  customHostPayout      Float?
+  customIncomeTax       Float?
+  customSummaryNote     String?
   apartmentId          Int
   additionalDeductions AdditionalDeduction[]
   apartment            Apartment             @relation(fields: [apartmentId], references: [id])
@@ -402,6 +415,11 @@ model HistoricalReport {
   afterCommission      Float?
   afterRentAndUtilities Float?
   totalAdditionalDeductions Float?
+  // Parking section snapshot fields
+  parkingAdminRent       Float?
+  parkingRentalIncome    Float?
+  parkingProfit          Float?
+
   sentAt               DateTime              @default(now())
   frozenAt             DateTime              @default(now()) // Moment zamrożenia raportu
   deletedAt            DateTime?             // Moment usunięcia raportu
