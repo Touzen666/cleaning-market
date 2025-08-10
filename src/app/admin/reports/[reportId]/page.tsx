@@ -341,6 +341,16 @@ export default function ReportDetailsPage({
     },
   });
 
+  const rebuildRevenueMutation =
+    api.monthlyReports.rebuildRevenueItems.useMutation({
+      onSuccess: async (res) => {
+        toast.success(`Przychody odświeżone (dodano: ${res.created})`);
+        await reportQuery.refetch();
+      },
+      onError: (err) =>
+        toast.error(`Błąd przeliczania przychodów: ${err.message}`),
+    });
+
   const updateSettlementDetailsMutation =
     api.monthlyReports.updateSettlementDetails.useMutation({
       onSuccess: () => {
@@ -1296,18 +1306,15 @@ export default function ReportDetailsPage({
   const revenueItems = (finalReport?.items ?? []).filter(
     (item) => item.type === "REVENUE",
   );
-  // Rezerwacje/przychody (tylko skutecznie zrealizowane)
+  // Rezerwacje/przychody (tylko skutecznie zrealizowane – nie filtrujemy po liczbie gości)
   const reservationItems = revenueItems.filter((item) => {
     const r = item.reservation;
     if (!r) return false;
-    const guests = (r.adults ?? 0) + (r.children ?? 0);
-    const unknownGuests = r.adults == null && r.children == null;
-    return (
-      r.status !== "Anulowana" &&
-      r.status !== "Odrzucona przez obsługę" &&
-      (guests > 0 || unknownGuests)
-    );
+    return r.status !== "Anulowana" && r.status !== "Odrzucona przez obsługę";
   });
+  // Jeżeli brak rezerwacji powiązanych (np. ręczne przychody), pokaż wszystkie przychody
+  const displayedRevenueItems =
+    reservationItems.length > 0 ? reservationItems : revenueItems;
   const expenseItems = (finalReport?.items ?? []).filter((item) =>
     ["EXPENSE", "FEE", "TAX", "COMMISSION"].includes(item.type),
   );
@@ -1418,6 +1425,15 @@ export default function ReportDetailsPage({
                     />
                   </svg>
                   Powrót do listy
+                </button>
+                <button
+                  onClick={() => rebuildRevenueMutation.mutate({ reportId })}
+                  className="inline-flex items-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm disabled:opacity-50 hover:bg-blue-500"
+                  disabled={rebuildRevenueMutation.isPending}
+                >
+                  {rebuildRevenueMutation.isPending
+                    ? "Przeliczanie..."
+                    : "Przelicz przychody"}
                 </button>
                 {/* Przycisk usuń raport - tylko dla admina */}
                 <button
@@ -2266,11 +2282,11 @@ export default function ReportDetailsPage({
         <div className="mb-8 overflow-hidden rounded-lg bg-white shadow">
           <div className="px-6 py-4">
             <h3 className="text-lg font-semibold leading-6 text-gray-900">
-              Rezerwacje i Przychody ({reservationItems.length})
+              Rezerwacje i Przychody ({displayedRevenueItems.length})
             </h3>
           </div>
           <div className="border-t border-gray-200">
-            {reservationItems.length === 0 ? (
+            {displayedRevenueItems.length === 0 ? (
               <div className="py-12 text-center">
                 <p className="text-gray-500">Brak rezerwacji w tym okresie</p>
               </div>
@@ -2315,7 +2331,7 @@ export default function ReportDetailsPage({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 bg-white">
-                    {reservationItems.map((item, index) => (
+                    {displayedRevenueItems.map((item, index) => (
                       <tr key={item.id}>
                         <td className="px-6 py-4 text-sm font-medium text-gray-500">
                           {index + 1}
