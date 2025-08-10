@@ -67,10 +67,53 @@ export default function ChartExplanationCard({
 
     if (mode === "costsVsPayout") {
       const total = data.reduce((sum, item) => sum + item.value, 0);
-      return data.map((item) => ({
-        ...item,
-        value: total > 0 ? round1((item.value / total) * 100) : 0,
-      }));
+      if (total <= 0) {
+        return data.map((item) => ({ ...item, value: 0 }));
+      }
+
+      // Wylicz procenty i skoryguj zaokrąglenia, aby suma = 100.0%
+      const rawPercents: number[] = data.map(
+        (item) => (item.value / total) * 100,
+      );
+      if (rawPercents.length === 0) {
+        return data.map((item) => ({ ...item, value: 0 }));
+      }
+      let maxIndex = 0;
+      for (let i = 1; i < rawPercents.length; i++) {
+        const current = rawPercents[i] ?? 0;
+        const currentMax = rawPercents[maxIndex] ?? 0;
+        if (current > currentMax) maxIndex = i;
+      }
+
+      const rounded: number[] = Array.from(
+        { length: rawPercents.length },
+        () => 0,
+      );
+      let sumOthers = 0;
+      for (let i = 0; i < rawPercents.length; i++) {
+        if (i === maxIndex) continue;
+        const p = rawPercents[i] ?? 0;
+        const r = round1(p);
+        rounded[i] = r;
+        sumOthers += r;
+      }
+      let maxRounded = round1(100 - sumOthers);
+      if (maxRounded < 0) {
+        // Korekta, gdy suma zaokrągleń > 100 — odejmij różnicę od największego nie-max kafelka
+        const nonMaxIndex = rounded
+          .map((v, idx) => ({ v, idx }))
+          .filter((x) => x.idx !== maxIndex)
+          .sort((a, b) => b.v - a.v)[0]?.idx;
+        if (nonMaxIndex != null) {
+          const diff = round1(Math.abs(maxRounded));
+          const current = rounded[nonMaxIndex] ?? 0;
+          rounded[nonMaxIndex] = round1(Math.max(0, current - diff));
+          maxRounded = 0;
+        }
+      }
+      rounded[maxIndex] = maxRounded;
+
+      return data.map((item, i) => ({ ...item, value: rounded[i] }));
     }
 
     // Tryby: normal, fixedCosts → procenty już są liczone względem przychodu.
@@ -163,7 +206,7 @@ export default function ChartExplanationCard({
   };
 
   const totalPercentage = processedData.reduce(
-    (sum, item) => sum + item.value,
+    (sum, item) => sum + (item.value ?? 0),
     0,
   );
   const missingPercentage = Math.max(
@@ -183,13 +226,13 @@ export default function ChartExplanationCard({
     for (const name of priorityNames) {
       const found = processedData.find((i) => i.name === name);
       if (found && !seen.has(found.name)) {
-        result.push(found);
+        result.push(found as ChartDataItem);
         seen.add(found.name);
       }
       if (result.length === 2) break;
     }
     for (const item of processedData) {
-      if (!seen.has(item.name)) result.push(item);
+      if (!seen.has(item.name)) result.push(item as ChartDataItem);
     }
     return result;
   }, [processedData]);
@@ -266,10 +309,16 @@ export default function ChartExplanationCard({
                       <div className={`grid grid-cols-1 ${colsClass} gap-3`}>
                         {items.map((item) => {
                           const fill = item.fill || "#888888";
+                          const isWide =
+                            mode === "fixedCosts" &&
+                            item.name.toLowerCase().includes("pozosta");
+                          const spanClass = isWide
+                            ? "sm:col-span-2 lg:col-span-2"
+                            : "";
                           return (
                             <div
                               key={item.name}
-                              className={`group relative rounded-lg p-3 text-center`}
+                              className={`group relative rounded-lg p-3 text-center ${spanClass}`}
                               style={{
                                 backgroundColor: hexToRgba(fill, 0.08),
                                 border: `1px solid ${hexToRgba(fill, 0.35)}`,
@@ -296,6 +345,51 @@ export default function ChartExplanationCard({
                       </div>
                     );
 
+                    if (mode === "costsVsPayout") {
+                      // Tylko dla trybu podziału: 2x2 – dokładnie 4 kafelki
+                      const tiles = orderedTiles.slice(0, 4);
+                      while (tiles.length < 4) {
+                        tiles.push({
+                          name: "—",
+                          value: 0,
+                          fill: "#e5e7eb",
+                          description: "Brak danych",
+                        });
+                      }
+                      return (
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                          {tiles.map((item) => {
+                            const fill = item.fill || "#888888";
+                            return (
+                              <div
+                                key={item.name}
+                                className={`group relative rounded-lg p-3 text-center`}
+                                style={{
+                                  backgroundColor: hexToRgba(fill, 0.08),
+                                  border: `1px solid ${hexToRgba(fill, 0.35)}`,
+                                }}
+                              >
+                                <span className="block text-sm font-medium">
+                                  {item.name}
+                                </span>
+                                <span
+                                  className={`mt-1 block text-2xl font-bold`}
+                                  style={{ color: fill }}
+                                >
+                                  {item.value.toFixed(1)}%
+                                </span>
+                                {item.description && (
+                                  <div className="absolute bottom-full left-1/2 z-10 mb-2 hidden w-48 -translate-x-1/2 rounded-md bg-gray-900 px-3 py-2 text-xs text-white group-hover:block">
+                                    {item.description}
+                                    <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    }
                     return (
                       <>
                         {row1.length > 0 &&

@@ -3293,10 +3293,48 @@ export default function ReportDetailsPage({
               })()}
             </div>
 
-            {/* Karta z prowizją 25% dla administratora */}
+            {/* Karta z prowizją 25% dla administratora (procent korygowany dynamicznie) */}
             <div className="mb-6 rounded-lg bg-blue-50 p-4">
               <h5 className="mb-2 text-lg font-medium text-blue-800">
-                Prowizja 25% dla administratora
+                {(() => {
+                  // Oblicz dynamiczny procent prowizji na podstawie "kwota prowizji" i "pozostało"
+                  const netIncome = Number(report?.netIncome ?? 0);
+                  let commission = 0;
+                  let remaining = 0;
+
+                  if (
+                    report?.finalSettlementType === "FIXED" ||
+                    report?.finalSettlementType === "FIXED_MINUS_UTILITIES"
+                  ) {
+                    const fixedAmount = Number(
+                      report?.apartment?.fixedPaymentAmount ?? 0,
+                    );
+                    commission = netIncome - fixedAmount; // może być ujemna – dopłata admina
+
+                    const deductions = report?.additionalDeductions ?? [];
+                    const totalDeductionsGross = deductions.reduce(
+                      (sum: number, d: { amount: number; vatOption: string }) =>
+                        sum +
+                        (d.vatOption === "VAT_8" || d.vatOption === "VAT_23"
+                          ? getGrossAmount(d.amount, d.vatOption)
+                          : d.amount),
+                      0,
+                    );
+                    const adminTopUp = Math.max(fixedAmount - netIncome, 0);
+                    remaining = netIncome + adminTopUp - totalDeductionsGross;
+                  } else {
+                    // Rozliczenie prowizyjne – klasyczne 25% od zysku netto
+                    commission = netIncome * 0.25;
+                    remaining = netIncome * 0.75;
+                  }
+
+                  const percent =
+                    netIncome > 0
+                      ? (commission / (commission + remaining)) * 100
+                      : 0;
+                  const labelPct = `${percent.toFixed(2)}%`;
+                  return `Prowizja ${labelPct} dla administratora`;
+                })()}
               </h5>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="rounded-md bg-blue-100 p-3">
@@ -4018,6 +4056,15 @@ const SummaryField = ({
   };
 
   const selectedColor = colorClasses[color];
+  // Zmniejsz czcionkę o połowę gdy wartość prezentuje rozbicie netto + VAT = brutto
+  const isVatBreakdown =
+    isPayout && (value.includes(" + ") || value.includes("="));
+  // Jeszcze mniejsze o ~25% względem poprzedniego: z text-xl na text-lg
+  const sizeClass = isPayout
+    ? isVatBreakdown
+      ? "text-lg"
+      : "text-2xl"
+    : "text-lg";
 
   return (
     <div className={`rounded-md ${selectedColor.bg} p-3`}>
@@ -4030,11 +4077,7 @@ const SummaryField = ({
           </p>
         </div>
       ) : (
-        <p
-          className={`font-bold ${selectedColor.valueText} ${
-            isPayout ? "text-2xl" : "text-lg"
-          }`}
-        >
+        <p className={`font-bold ${selectedColor.valueText} ${sizeClass}`}>
           {value}
         </p>
       )}
@@ -5227,6 +5270,13 @@ function OwnerPayoutCalculation({
                 label="Podatek dochodowy"
                 value={`${taxValue.toFixed(2)} PLN`}
                 color="gray"
+                subtext={
+                  <span className="text-xs text-gray-600">
+                    Zryczałtowany podatek dochodowy liczony od przychodów
+                    (8,5%). Właściciel może rozliczać się inną metodą – zgłoś
+                    nam to, aby dostosować sposób liczenia podatku w raportach.
+                  </span>
+                }
               />
             );
           })()}
