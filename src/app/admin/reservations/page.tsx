@@ -63,7 +63,9 @@ export default function AdminReservationsPage() {
   const apartments =
     selectedOwner?.ownedApartments?.map((o) => o.apartment) ?? [];
   const selectedApartment = apartments.find(
-    (apt) => apt.id === selectedApartmentId,
+    (apt) =>
+      selectedApartmentId !== null &&
+      parseInt(apt.id, 10) === selectedApartmentId,
   );
 
   const handleOwnerSelect = (ownerId: string) => {
@@ -165,7 +167,7 @@ export default function AdminReservationsPage() {
               <div className="flex gap-3">
                 <button
                   onClick={() => router.push("/admin/owners")}
-                  className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                  className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 hover:bg-indigo-500"
                 >
                   <svg
                     className="-ml-0.5 mr-1.5 h-5 w-5"
@@ -184,7 +186,7 @@ export default function AdminReservationsPage() {
                 </button>
                 <button
                   onClick={() => router.push("/admin/reports")}
-                  className="inline-flex items-center rounded-md bg-purple-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-purple-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-600"
+                  className="inline-flex items-center rounded-md bg-purple-600 px-3 py-2 text-sm font-semibold text-white shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-600 hover:bg-purple-500"
                 >
                   <svg
                     className="-ml-0.5 mr-1.5 h-5 w-5"
@@ -250,9 +252,9 @@ export default function AdminReservationsPage() {
                 {apartments.map((apartment) => (
                   <button
                     key={apartment.id}
-                    onClick={() => handleApartmentSelect(apartment.id)}
+                    onClick={() => handleApartmentSelect(Number(apartment.id))}
                     className={`w-full rounded-lg border p-3 text-left transition-colors ${
-                      selectedApartmentId === apartment.id
+                      selectedApartmentId === Number(apartment.id)
                         ? "border-indigo-500 bg-indigo-50 text-indigo-900"
                         : "border-gray-300 hover:bg-gray-50"
                     }`}
@@ -477,7 +479,7 @@ export default function AdminReservationsPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label className="textsm block font-medium text-gray-700">
                       Status
                     </label>
                     <select
@@ -504,7 +506,7 @@ export default function AdminReservationsPage() {
                   <button
                     type="submit"
                     disabled={createReservationMutation.isPending}
-                    className="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700 disabled:opacity-50"
+                    className="rounded-lg bg-indigo-600 px-4 py-2 text-white disabled:opacity-50 hover:bg-indigo-700"
                   >
                     {createReservationMutation.isPending
                       ? "Dodawanie..."
