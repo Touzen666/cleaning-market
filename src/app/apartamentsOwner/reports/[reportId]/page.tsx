@@ -309,7 +309,7 @@ export default function OwnerReportDetailsPage() {
         </div>
 
         {/* Report Info - Karty podsumowań */}
-        <div className="mb-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 xl:grid-cols-4">
           <div className="rounded-lg bg-white p-6 shadow">
             <div className="flex items-center">
               <div className="flex-shrink-0">
@@ -484,10 +484,10 @@ export default function OwnerReportDetailsPage() {
                         <td className="px-6 py-4 text-sm font-medium text-gray-500">
                           {index + 1}
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-900">
+                        <td className="whitespace-normal break-words px-6 py-4 text-sm text-gray-900">
                           {obfuscateGuest(item.reservation?.guest)}
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-900">
+                        <td className="whitespace-normal break-words px-6 py-4 text-sm text-gray-900">
                           {item.reservation?.source ? (
                             <span className="inline-flex rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800">
                               {item.reservation.source}
@@ -605,13 +605,13 @@ export default function OwnerReportDetailsPage() {
                             {getItemTypeText(item.type)}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-900">
+                        <td className="whitespace-normal break-words px-6 py-4 text-sm text-gray-900">
                           {item.category}
                         </td>
                         <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-red-600">
                           -{item.amount.toFixed(2)} {item.currency}
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-500">
+                        <td className="whitespace-normal break-words px-6 py-4 text-sm text-gray-500">
                           {item.notes ?? "-"}
                         </td>
                       </tr>
@@ -681,7 +681,7 @@ export default function OwnerReportDetailsPage() {
                         <div className="mb-2 text-sm font-medium text-purple-900">
                           {deduction.name}
                         </div>
-                        <div className="grid grid-cols-4 items-center gap-2 text-center text-sm">
+                        <div className="grid grid-cols-2 items-center gap-2 text-center text-sm sm:grid-cols-4">
                           <div>
                             <div className="font-semibold text-purple-700">
                               Kwota netto
@@ -1087,7 +1087,7 @@ export default function OwnerReportDetailsPage() {
                       </span>
                     )}
                   </div>
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-5">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
                     <div className="rounded-md bg-blue-100 p-3">
                       <p className="text-sm text-blue-700">
                         Kwota po prowizji Złote Wynajmy
@@ -1174,7 +1174,7 @@ export default function OwnerReportDetailsPage() {
                   <h4 className="mb-4 text-xl font-semibold text-gray-800">
                     Podsumowanie
                   </h4>
-                  <div className="grid grid-cols-4 gap-4">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
                     <div
                       className={`rounded-md p-4 ${
                         report.finalSettlementType === "COMMISSION"
