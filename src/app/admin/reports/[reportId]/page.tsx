@@ -4466,7 +4466,6 @@ function OwnerPayoutCalculation({
     report.owner.vatOption,
     report.netIncome,
     finalPayoutType,
-    deductRentAndUtilities,
     fixedBaseAmount,
     fixedBaseAmountAfterDeductions,
     kwotaBazowaNetto,
