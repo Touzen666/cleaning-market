@@ -1,6 +1,6 @@
-# 🏢 Book Market - System Zarządzania Apartamentami
+# 🏢 Book Market — System Zarządzania Apartamentami
 
-**Book Market** to zaawansowana aplikacja full-stack do kompleksowego zarządzania krótkookresowym wynajmem apartamentów. System oferuje wielopoziomową autoryzację, automatyczne generowanie raportów finansowych, zarządzanie rezerwacjami, system email templates oraz intuicyjne dashboardy dla różnych typów użytkowników.
+**Book Market** to aplikacja full‑stack do kompleksowego zarządzania krótkookresowym wynajmem apartamentów, zbudowana na stacku T3 (Next.js + tRPC + Prisma) z NextAuth, React Query, Tailwind CSS oraz PostgreSQL. Oferuje wielopoziomową autoryzację, automatyczne raporty finansowe, zarządzanie rezerwacjami, modularny system emaili oraz panele dla administratora, właściciela i gościa.
 
 ## 📋 **Główne Funkcjonalności**
 
@@ -188,7 +188,7 @@
 
 ### **Frontend & UI**
 
-- **Next.js 15** (App Router) - React framework z SSR/SSG
+- **Next.js 15** (App Router) — SSR/SSG
 - **TypeScript** - Statyczne typowanie
 - **Tailwind CSS** - Utility-first styling
 - **React 18** - Biblioteka UI z Concurrent Features
@@ -196,7 +196,7 @@
 
 ### **Backend & API**
 
-- **tRPC v11** - End-to-end typesafe APIs z automatyczną inferencją typów
+- **tRPC v11** — End‑to‑end typesafe APIs (T3App)
 - **Zod** - Runtime schema validation i type inference
 - **Next.js API Routes** - Serverless functions
 - **NextAuth.js v5** - Autoryzacja i zarządzanie sesjami
@@ -204,14 +204,14 @@
 
 ### **Baza Danych & ORM**
 
-- **PostgreSQL** - Relacyjna baza danych
+- **PostgreSQL** — relacyjna baza danych
 - **Prisma ORM** - Type-safe database toolkit z automatyczną generacją typów
 - **Database sessions** - Persistent session storage
 - **Automatyczne migracje** - Schema versioning
 
 ### **Email System**
 
-- **Nodemailer** - Wysyłanie emaili
+- **Nodemailer** — wysyłanie emaili
 - **Gmail SMTP** - Produkcyjny serwer SMTP
 - **Ethereal Email** - Testowy serwer SMTP dla development
 - **Modularne template'y** - System komponentów email
@@ -219,14 +219,14 @@
 
 ### **Security & Validation**
 
-- **Node.js Crypto** - Hashowanie haseł (SHA-256)
+- **Node.js Crypto** — hash haseł (SHA‑256)
 - **NextAuth.js callbacks** - Custom authorization logic
 - **Zod schemas** - Input validation na wszystkich poziomach
 - **Middleware protection** - Route-level authorization
 
 ### **DevOps & Development**
 
-- **Docker Compose** - Lokalna baza danych
+- **Docker Compose** — lokalna baza danych
 - **ESLint + Prettier** - Code quality i formatowanie
 - **TypeScript Compiler** - Static analysis
 - **Hot Reload** - Development experience
@@ -255,10 +255,10 @@ src/
 │   │   └── [apartmentSlug]/      # Check-in dla konkretnego apartamentu
 │   ├── guest-login/              # 👤 Logowanie gości
 │   ├── guest-dashboard/          # 📊 Panel gościa
-│   └── api/                      # 🔧 API Endpoints
+│   └── api/                      # 🔧 API Endpoints (Next.js routes)
 │       ├── auth/[...nextauth]/   # NextAuth.js handlers
 │       ├── trpc/[trpc]/          # tRPC router endpoint
-│       └── version/              # Version info API
+│       └── version/              # Version info API (NEXT_PUBLIC_* z build script)
 ├── server/                       # 🔧 Backend Logic
 │   ├── api/                      # tRPC Configuration
 │   │   ├── root.ts               # Main tRPC router
@@ -304,7 +304,7 @@ src/
 │   └── ui/                       # UI Components
 │       └── Modal.tsx             # Modal dialog
 ├── styles/                       # 🎨 Global Styles
-└── trpc/                         # 📡 tRPC Client Setup
+└── trpc/                         # 📡 tRPC Client Setup (React Query + RSC)
     ├── react.tsx                 # React Query integration
     ├── server.ts                 # Server-side tRPC client
     └── query-client.ts           # React Query configuration
@@ -336,54 +336,63 @@ cp .env.example .env
 
 ### **Konfiguracja Environment Variables**
 
+Projekt używa `@t3-oss/env-nextjs` do walidacji env (zob. `src/env.js`). Poniżej przykładowy zestaw zmiennych. Dodatkowo podczas build/dev uruchamiany jest skrypt `scripts/update-version.js`, który aktualizuje `NEXT_PUBLIC_APP_VERSION` oraz `NEXT_PUBLIC_BUILD_TIME` w `.env.local`.
+
 ```env
-# Database
+## Database
 DATABASE_URL="postgresql://user:password@localhost:5432/book_market"
 DIRECT_URL="postgresql://user:password@localhost:5432/book_market"
 
-# NextAuth.js
+## NextAuth.js
 NEXTAUTH_URL="http://localhost:3000"
 NEXTAUTH_SECRET="your-secret-key"
 
-# Discord OAuth (dla autoryzacji administratora)
+## Discord OAuth (dla autoryzacji administratora)
 DISCORD_CLIENT_ID="your-discord-client-id"
 DISCORD_CLIENT_SECRET="your-discord-client-secret"
 
-# Admin Configuration
+## Admin Configuration
 ADMIN_EMAIL="ochedowski.bartosz@gmail.com"
 
-# SMTP Configuration (Gmail)
+## SMTP Configuration (Gmail)
 SMTP_HOST="smtp.gmail.com"
 SMTP_PORT="587"
 SMTP_USER="your-email@gmail.com"
-SMTP_FROM_USER="your-send-as-email@gmail.com" # Opcjonalnie, do wysyłania z innego adresu
+SMTP_FROM_USER="your-send-as-email@gmail.com" # opcjonalne nadpisanie From
 SMTP_PASS="your-app-password"
+EMAIL_PROVIDER="smtp" # lub "ethereal"
 
-# Development (opcjonalne)
+## Development (opcjonalne)
 ETHEREAL_USER="test@ethereal.email"
 ETHEREAL_PASS="test123"
+
+## Vercel Blob (upload obrazów)
+BLOB_READ_WRITE_TOKEN="vercel-blob-token"
+
+## CRON (opcjonalnie, gdy włączysz autoryzację)
+CRON_SECRET="some-secret"
 ```
 
-### **Konfiguracja Bazy Danych**
+### **Baza danych (Docker/Prisma)**
 
 ```bash
-# Uruchomienie PostgreSQL (Docker)
+# Uruchom lokalną bazę PostgreSQL
 docker-compose up -d
 
 # Generowanie Prisma Client
 npm run db:generate
 
-# Sync schema z bazą danych
+# Synchronizacja schematu z bazą danych
 npm run db:push
 
-# (Opcjonalnie) Prisma Studio - GUI dla bazy danych
+# (Opcjonalnie) Prisma Studio
 npm run db:studio
 ```
 
 ### **Development**
 
 ```bash
-# Uruchomienie w trybie deweloperskim
+# Uruchomienie w trybie deweloperskim (aktualizuje wersję i build time)
 npm run dev
 
 # Aplikacja dostępna na http://localhost:3000
@@ -414,7 +423,7 @@ npm run dev
 - **MonthlyReport** → **ReportItem** (one-to-many)
 - **Reservation** → **ReportItem** (one-to-one dla przychodów)
 
-### **Ważne Komendy Prisma**
+### **Ważne komendy Prisma**
 
 ```bash
 # Sync schema bez migracji (szybkie zmiany)
@@ -530,14 +539,14 @@ export const createNewEmailTemplate = (data: any) => {
 
 ## 🔒 **Bezpieczeństwo**
 
-- **Role-based access control** z walidacją na poziomie API
-- **Discord OAuth** z weryfikacją email i nazwy użytkownika
-- **Hashowanie haseł** właścicieli (SHA-256)
-- **Session management** z bezpiecznym przechowywaniem tokenów
-- **Input validation** na wszystkich poziomach (Zod schemas)
-- **CSRF protection** przez NextAuth.js
-- **Type safety** na całej długości aplikacji (TypeScript + tRPC)
-- **SMTP security** z app passwords dla Gmail
+- **RBAC w tRPC** — `protectedProcedure`, `adminProcedure`
+- **Discord OAuth** — dodatkowa weryfikacja email + nazwy „Bartosz” w callbacku
+- **Hash haseł** właścicieli (SHA‑256)
+- **Session management** — sesje w bazie (NextAuth `strategy: database`)
+- **Input validation** — Zod na wejściu, centralny `errorFormatter`
+- **CSRF** — NextAuth
+- **Type safety** — TypeScript + tRPC + Prisma
+- **SMTP security** — app passwords (Gmail) lub Ethereal w dev
 
 ## 🚀 **Roadmap i Rozwój**
 
@@ -566,11 +575,61 @@ export const createNewEmailTemplate = (data: any) => {
 
 - **~15,000 linii kodu** TypeScript
 - **20+ komponentów React**
-- **10+ tRPC routerów**
+- **15+ tRPC routerów**
 - **8 głównych tabel** w bazie danych
 - **3 typy użytkowników** z różnymi uprawnieniami
 - **Modularny system email** z 6+ komponentów UI
 - **100% type safety** z TypeScript i tRPC
+
+---
+
+## 🔌 API i Integracje
+
+- **tRPC (src/server/api/routers/...)**: główne routery: `adminDashboard`, `apartment-owners`, `apartments`, `check-in`, `contact`, `csv-import`, `email`, `guest-auth`, `guest-checkin`, `idobooking`, `lead-application`, `monthly-reports`, `owner-auth`, `owner-notes`, `post`, `reservations`.
+- **Next.js API routes**:
+  - `GET /api/version` — metadane wersji (`NEXT_PUBLIC_APP_VERSION`, `NEXT_PUBLIC_BUILD_TIME`)
+  - `GET /api/cron/sync-reservations` — ręczna synchronizacja IdoBooking (opcjonalne zabezpieczenie `CRON_SECRET`)
+  - `POST /api/upload?filename=...` — upload pliku do Vercel Blob
+  - `POST /api/upload-profile-image` — upload obrazów profilowych do Vercel Blob (walidacja typu/rozmiaru)
+
+## 🔐 Middleware i Auth
+
+- `middleware.ts`:
+  - Chroni: `/apartments/:path*`, `/admin/:path*`
+  - Specjalna obsługa gości: `/guest-dashboard/:slug` sprawdza cookie `guest-session` i w razie braku przekierowuje do `/guest-login/:slug`
+- NextAuth v5 (`src/server/auth/config.ts` i `src/app/api/auth/[...nextauth]/route.ts`):
+  - Provider: Discord
+  - Tylko zweryfikowany admin (email = `ADMIN_EMAIL` + nazwa zawiera „Bartosz”)
+  - Sesje w bazie (`strategy: database`)
+
+## 🧪 Testy
+
+- Uruchamianie: `npm test` lub `npm test -- --ui` (Vitest)
+- Konfiguracja: `vitest.config.ts` (alias `@` → `./src`)
+- Dodatkowa dokumentacja i przykłady: zob. `README-testy.md`
+
+## 🖼️ Avatary profilowe
+
+- Funkcjonalność opisana w `README-avatars.md` (upload do Vercel Blob, wybór predefiniowanych avatarów, spójność z panelem admina)
+
+## 📦 Skrypty npm (wybrane)
+
+- `dev`: uruchamia Next.js z turbo oraz aktualizuje numer wersji i build time
+- `build`: aktualizacja wersji + kompilacja
+- `preview`: produkcyjne uruchomienie lokalne
+- `db:*`: komendy Prisma (`generate`, `migrate`, `push`, `studio`, `seed`)
+- `test`, `test:ui`: Vitest
+- `format:*`, `lint:*`, `typecheck`
+
+## 🖼️ Konfiguracja obrazów (Next.js)
+
+- Zdalne obrazy konfigurowane w `next.config.js` (`images.remotePatterns`) — konieczne dla plików hostowanych w Vercel Blob.
+
+## 🧭 Wskazówki wdrożeniowe
+
+- Ustaw `NEXT_PUBLIC_APP_URL` w env zgodnie z `NEXTAUTH_URL` (walidowane przez `src/env.js`)
+- Skonfiguruj Vercel Blob i ustaw `BLOB_READ_WRITE_TOKEN`
+- Zmień domyślne dane w `docker-compose.yml` na bezpieczne w środowiskach zewnętrznych
 
 ---
 
