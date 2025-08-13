@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { api } from "@/trpc/react";
 
@@ -730,42 +731,50 @@ Proszę o utworzenie raportu miesięcznego dla powyższego apartamentu i okresu.
                     Raporty Zatwierdzone i Wysłane
                   </h4>
                   <ul className="max-h-48 space-y-2 overflow-y-auto scrollbar-thin scrollbar-track-amber-100 scrollbar-thumb-amber-600">
-                    {debugData.allReports.map((report, index) => (
-                      <li
-                        key={index}
-                        className="flex cursor-pointer items-center justify-between rounded-md border border-blue-200 bg-gradient-to-r from-blue-50 to-purple-50 p-2 transition-all duration-200 hover:from-blue-100 hover:to-purple-100"
-                        onClick={() => {
-                          // Znajdź pełny raport w danych reports na podstawie month/year
-                          const fullReport = reports?.find(
-                            (r) =>
-                              r.month === report.month &&
-                              r.year === report.year,
-                          );
-                          if (fullReport) {
-                            setLoadingReportId(fullReport.id);
-                            handleViewReport(fullReport.id);
-                          }
-                        }}
-                      >
-                        <span className="font-medium text-gray-700">
-                          {report.month}/{report.year}
-                        </span>
-                        <div className="flex items-center space-x-2">
-                          <span
-                            className={`rounded-full px-2 py-1 text-xs font-semibold ${
-                              report.status === "APPROVED"
-                                ? "bg-green-100 text-green-800"
-                                : "bg-yellow-100 text-yellow-800"
-                            }`}
+                    {reports.map((report) => {
+                      const aptNameFull = report.apartment?.name ?? null;
+                      const aptName = aptNameFull
+                        ? aptNameFull.length > 20
+                          ? `${aptNameFull.slice(0, 20)}…`
+                          : aptNameFull
+                        : null;
+                      return (
+                        <li
+                          key={report.id}
+                          className="rounded-md border border-blue-200 bg-gradient-to-r from-blue-50 to-purple-50 transition-all duration-200 hover:from-blue-100 hover:to-purple-100"
+                        >
+                          <Link
+                            href={`/apartamentsOwner/reports/${report.id}`}
+                            prefetch={false}
+                            className="flex items-center justify-between p-2"
+                            onClick={() => setLoadingReportId(report.id)}
                           >
-                            {translateReportStatus(report.status)}
-                          </span>
-                          <span className="font-bold text-green-600">
-                            {report.finalOwnerPayout?.toFixed(2) ?? "null"} PLN
-                          </span>
-                        </div>
-                      </li>
-                    ))}
+                            <span className="font-medium text-gray-700">
+                              Raport {String(report.month).padStart(2, "0")}/
+                              {report.year}
+                              {aptName ? ` — ${aptName}` : ""}
+                            </span>
+                            <div className="flex items-center space-x-2">
+                              <span
+                                className={`rounded-full px-2 py-1 text-xs font-semibold ${
+                                  report.status === "APPROVED"
+                                    ? "bg-green-100 text-green-800"
+                                    : "bg-yellow-100 text-yellow-800"
+                                }`}
+                              >
+                                {translateReportStatus(report.status)}
+                              </span>
+                              <span className="font-bold text-green-600">
+                                {report.finalOwnerPayout
+                                  ? report.finalOwnerPayout.toFixed(2)
+                                  : "null"}{" "}
+                                PLN
+                              </span>
+                            </div>
+                          </Link>
+                        </li>
+                      );
+                    })}
                   </ul>
                 </div>
               </div>
