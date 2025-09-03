@@ -26,7 +26,7 @@ export default function OwnerReservationsPage() {
     isLoading,
     error,
   } = api.reservation.getForOwner.useQuery(
-    ownerEmail ? { ownerEmail } : undefined,
+    { ownerEmail: ownerEmail ?? "" },
     { enabled: isClient && !!ownerEmail },
   );
 
