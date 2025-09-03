@@ -141,7 +141,7 @@ const reservationSchema = z.object({
     id: z.number(),
     reservationDetails: reservationDetailsSchema,
     items: z.array(reservationItemSchema),
-    client: reservationClientSchema,
+    client: reservationClientSchema.optional(), // Uczynione opcjonalnym
 });
 
 const reservationSourceDescriptionSchema = z.object({
@@ -387,6 +387,13 @@ export async function mapToDBReservations(
             const smallChildrenCount = firstItem?.numberOfSmallChildren ?? 0;
             const totalChildrenCount = bigChildrenCount + smallChildrenCount;
 
+            // Bezpieczne pobieranie nazwy gościa
+            let guestName = "Nieznany gość";
+            if (client) {
+                guestName = `${client.firstName} ${client.lastName}`.trim();
+                if (!guestName) guestName = "Nieznany gość";
+            }
+
             reservationsToCreate.push({
                 idobookingId,
                 status: mapIdobookingStatus(details.status),
@@ -394,7 +401,7 @@ export async function mapToDBReservations(
                 currency: details.currency,
                 source: sourceName,
                 createDate: new Date(details.dateAdd),
-                guest: `${client.firstName} ${client.lastName}`.trim(),
+                guest: guestName,
                 start: new Date(details.dateFrom),
                 end: new Date(details.dateTo),
                 payment: details.price.toString(),

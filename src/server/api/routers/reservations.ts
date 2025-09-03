@@ -268,17 +268,13 @@ export const reservationsRouter = createTRPCRouter({
       };
     }),
 
-  getForOwner: protectedProcedure
-    .input(z.object({ ownerEmail: z.string().email().optional() }).optional())
+  getForOwner: publicProcedure
+    .input(z.object({ ownerEmail: z.string().email() }))
     .output(z.array(apartmentWithReservationsSchema))
     .query(async ({ ctx, input }) => {
-      const sessionEmail = ctx.session?.user?.email;
-      const effectiveEmail =
-        ctx.session.user.type === UserType.ADMIN && input?.ownerEmail
-          ? input.ownerEmail
-          : sessionEmail;
+      const { ownerEmail } = input;
 
-      if (!effectiveEmail) {
+      if (!ownerEmail) {
         throw new TRPCError({
           code: "UNAUTHORIZED",
           message: "Musisz być zalogowany, aby zobaczyć swoje rezerwacje.",
@@ -286,7 +282,7 @@ export const reservationsRouter = createTRPCRouter({
       }
 
       const ownerWithApartments = await ctx.db.apartmentOwner.findUnique({
-        where: { email: effectiveEmail },
+        where: { email: ownerEmail },
         include: {
           ownedApartments: {
             where: { isActive: true },

@@ -118,17 +118,12 @@ export const apartmentsRouter = createTRPCRouter({
             }
         }),
 
-    getForOwner: protectedProcedure
-        .input(z.object({ ownerEmail: z.string().email().optional() }).optional())
+    getForOwner: publicProcedure
+        .input(z.object({ ownerEmail: z.string().email() }))
         .query(async ({ ctx, input }) => {
-            const sessionEmail = ctx.session?.user?.email;
-            let effectiveEmail = sessionEmail;
+            const { ownerEmail } = input;
 
-            if (ctx.session.user.type === UserType.ADMIN && input?.ownerEmail) {
-                effectiveEmail = input.ownerEmail;
-            }
-
-            if (!effectiveEmail) {
+            if (!ownerEmail) {
                 throw new TRPCError({
                     code: "UNAUTHORIZED",
                     message: "Musisz być zalogowany, aby zobaczyć swoje apartamenty.",
@@ -136,7 +131,7 @@ export const apartmentsRouter = createTRPCRouter({
             }
 
             const owner = await ctx.db.apartmentOwner.findUnique({
-                where: { email: effectiveEmail },
+                where: { email: ownerEmail },
                 select: {
                     ownedApartments: {
                         include: {

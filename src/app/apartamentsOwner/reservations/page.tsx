@@ -3,6 +3,7 @@
 import { api } from "@/trpc/react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { skipToken } from "@tanstack/react-query";
 import { ReservationCalendar } from "./ReservationCalendar";
 
 export default function OwnerReservationsPage() {
@@ -26,7 +27,7 @@ export default function OwnerReservationsPage() {
     isLoading,
     error,
   } = api.reservation.getForOwner.useQuery(
-    ownerEmail ? { ownerEmail } : undefined,
+    ownerEmail ? { ownerEmail } : skipToken,
     { enabled: isClient && !!ownerEmail },
   );
 

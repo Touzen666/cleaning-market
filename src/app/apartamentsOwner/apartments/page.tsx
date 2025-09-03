@@ -26,7 +26,7 @@ export default function OwnerApartmentsPage() {
   }, [router]);
 
   const { data, isLoading, error } = api.apartments.getForOwner.useQuery(
-    ownerEmail ? { ownerEmail } : undefined,
+    { ownerEmail: ownerEmail ?? "" },
     {
       enabled: !!ownerEmail,
     },
