@@ -65,19 +65,29 @@ export const authConfig: NextAuthConfig = {
       credentials?: Record<string, unknown>;
     }) {
       const { user, account, profile } = params;
-      // Only allow Discord authentication for the main admin
+      // Only allow Discord authentication for authorized admins
       if (account?.provider === "discord") {
-        const adminEmail = process.env.ADMIN_EMAIL ?? "ochedowski.bartosz@gmail.com";
+        const adminEmails = [
+          process.env.ADMIN_EMAIL ?? "ochedowski.bartosz@gmail.com",
+          "biuro@zlote-wynajmy.com",
+          "koordynatorzy@zlote-wynajmy.com"
+        ];
 
-        // Check if user has admin email and name Bartosz
-        const isAdminEmail = user.email === adminEmail;
+        // Check if user has one of the authorized admin emails
+        const isAdminEmail = adminEmails.includes(user.email ?? "");
+
+        // For the main admin (Bartosz), also check the name
+        const isMainAdmin = user.email === (process.env.ADMIN_EMAIL ?? "ochedowski.bartosz@gmail.com");
         const discordProfile = profile as { global_name?: string; username?: string } | undefined;
         const isNameBartosz = discordProfile?.global_name?.includes("Bartosz") ??
           discordProfile?.username?.includes("Bartosz") ??
           user.name?.includes("Bartosz") ??
           false;
 
-        if (!isAdminEmail || !isNameBartosz) {
+        // Main admin needs both email and name check, other admins only need email
+        const isAuthorized = isAdminEmail && (isMainAdmin ? isNameBartosz : true);
+
+        if (!isAuthorized) {
           console.log(`Authentication rejected for ${user.email ?? 'unknown'} (${user.name ?? 'unknown'})`);
           return false; // Reject sign in
         }

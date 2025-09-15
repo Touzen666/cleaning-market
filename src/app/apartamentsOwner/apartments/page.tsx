@@ -101,7 +101,11 @@ export default function OwnerApartmentsPage() {
                   <div className="mt-2 flex items-center justify-between text-sm text-gray-500">
                     <div className="flex items-center">
                       <FaMapMarkerAlt className="mr-2 h-4 w-4 flex-shrink-0 text-gray-400" />
-                      <span className="truncate">{apartment.address}</span>
+                      <span className="truncate">
+                        {apartment.address.length > 26
+                          ? `${apartment.address.substring(0, 26)}...`
+                          : apartment.address}
+                      </span>
                     </div>
                     {apartment.averageRating && (
                       <div className="flex items-center">

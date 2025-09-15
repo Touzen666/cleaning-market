@@ -353,6 +353,9 @@ DISCORD_CLIENT_SECRET="your-discord-client-secret"
 
 ## Admin Configuration
 ADMIN_EMAIL="ochedowski.bartosz@gmail.com"
+# Dodatkowi administratorzy (hardcoded w kodzie):
+# - biuro@zlote-wynajmy.com
+# - koordynatorzy@zlote-wynajmy.com
 
 ## SMTP Configuration (Gmail)
 SMTP_HOST="smtp.gmail.com"
@@ -599,7 +602,7 @@ export const createNewEmailTemplate = (data: any) => {
   - Specjalna obsługa gości: `/guest-dashboard/:slug` sprawdza cookie `guest-session` i w razie braku przekierowuje do `/guest-login/:slug`
 - NextAuth v5 (`src/server/auth/config.ts` i `src/app/api/auth/[...nextauth]/route.ts`):
   - Provider: Discord
-  - Tylko zweryfikowany admin (email = `ADMIN_EMAIL` + nazwa zawiera „Bartosz”)
+  - Administratorzy: `ADMIN_EMAIL` (wymaga nazwy "Bartosz") + `biuro@zlote-wynajmy.com` + `koordynatorzy@zlote-wynajmy.com`
   - Sesje w bazie (`strategy: database`)
 
 ## 🧪 Testy
