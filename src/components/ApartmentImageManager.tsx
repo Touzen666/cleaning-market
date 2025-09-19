@@ -102,32 +102,45 @@ export default function ApartmentImageManager({
           if (!pendingImage) continue;
 
           try {
-            const response = await fetch(
-              `/api/upload?filename=${encodeURIComponent(pendingImage.file.name)}`,
-              {
-                method: "POST",
-                body: pendingImage.file,
-              },
-            );
+            // Konwertuj plik na base64
+            const reader = new FileReader();
+            reader.onload = async () => {
+              const base64Content = reader.result as string;
+              const base64Data = base64Content.split(",")[1]; // Usuń prefix "data:image/...;base64,"
 
-            const newBlob = (await response.json()) as { url: string };
+              try {
+                // Użyj tRPC mutation do uploadu
+                const uploadMutation = api.upload.uploadFile.useMutation();
+                const result = await uploadMutation.mutateAsync({
+                  filename: pendingImage.file.name,
+                  content: base64Data ?? "",
+                });
 
-            if (response.ok) {
-              // Mamy publiczny URL, teraz dodajemy do bazy danych
-              addImage.mutate({
-                apartmentId,
-                url: newBlob.url,
-                alt: pendingImage.alt ?? undefined,
-              });
-            } else {
-              console.error("Upload failed:", newBlob);
-              // Remove from pending on failure
-              setPendingImages((prev) =>
-                prev.filter((p) => p.localId !== pendingImage.localId),
-              );
-            }
+                if (result.success) {
+                  // Mamy publiczny URL, teraz dodajemy do bazy danych
+                  addImage.mutate({
+                    apartmentId,
+                    url: result.url,
+                    alt: pendingImage.alt ?? undefined,
+                  });
+                } else {
+                  console.error("Upload failed:", result);
+                  // Remove from pending on failure
+                  setPendingImages((prev) =>
+                    prev.filter((p) => p.localId !== pendingImage.localId),
+                  );
+                }
+              } catch (error) {
+                console.error("Error uploading file:", error);
+                // Remove from pending on failure
+                setPendingImages((prev) =>
+                  prev.filter((p) => p.localId !== pendingImage.localId),
+                );
+              }
+            };
+            reader.readAsDataURL(pendingImage.file);
           } catch (error) {
-            console.error("Error uploading file:", error);
+            console.error("Error reading file:", error);
             // Remove from pending on failure
             setPendingImages((prev) =>
               prev.filter((p) => p.localId !== pendingImage.localId),

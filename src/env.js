@@ -68,7 +68,7 @@ export const env = createEnv({
     EMAIL_PROVIDER: process.env.EMAIL_PROVIDER,
     SMTP_PASSWORD: process.env.SMTP_PASSWORD,
     CRON_SECRET: process.env.CRON_SECRET,
-    NEXT_PUBLIC_APP_URL: process.env.NEXTAUTH_URL,
+    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
