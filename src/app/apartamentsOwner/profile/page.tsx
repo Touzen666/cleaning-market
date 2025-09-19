@@ -130,39 +130,39 @@ export default function OwnerProfile() {
     if (!profileImage || !ownerEmail) return;
 
     try {
-      // First upload the file to Vercel Blob via API route
-      const formData = new FormData();
-      formData.append("file", profileImage);
+      // Konwertuj plik na base64
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const base64Content = reader.result as string;
+        const base64Data = base64Content.split(",")[1]; // Usuń prefix "data:image/...;base64,"
 
-      const uploadResponse = await fetch("/api/upload-profile-image", {
-        method: "POST",
-        body: formData,
-      });
+        try {
+          // Użyj tRPC mutation do uploadu
+          const uploadMutation = api.upload.uploadProfileImage.useMutation();
+          const result = await uploadMutation.mutateAsync({
+            file: base64Data ?? "",
+            filename: profileImage.name,
+          });
 
-      if (!uploadResponse.ok) {
-        throw new Error("Failed to upload image");
-      }
-
-      const uploadResult = (await uploadResponse.json()) as {
-        success: boolean;
-        url: string;
-        message?: string;
+          if (result.success) {
+            // Then save the image URL to database via TRPC
+            await uploadImageMutation.mutateAsync({
+              imageUrl: result.url,
+              ownerEmail: ownerEmail,
+              filename: profileImage.name,
+              mimeType: profileImage.type,
+              size: profileImage.size,
+            });
+          } else {
+            throw new Error("Upload failed");
+          }
+        } catch (error) {
+          console.error("Błąd uploadu:", error);
+        }
       };
-
-      if (!uploadResult.success) {
-        throw new Error(uploadResult.message ?? "Upload failed");
-      }
-
-      // Then save the image URL to database via TRPC
-      await uploadImageMutation.mutateAsync({
-        imageUrl: uploadResult.url,
-        ownerEmail: ownerEmail,
-        filename: profileImage.name,
-        mimeType: profileImage.type,
-        size: profileImage.size,
-      });
+      reader.readAsDataURL(profileImage);
     } catch (error) {
-      console.error("Błąd uploadu:", error);
+      console.error("Błąd czytania pliku:", error);
     }
   };
 

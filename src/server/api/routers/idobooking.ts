@@ -4,7 +4,6 @@ import { TRPCError } from "@trpc/server";
 import { createHash } from "crypto";
 import { UserType, type Prisma } from "@prisma/client";
 import { type createTRPCContext } from "@/server/api/trpc";
-import { env } from "@/env";
 
 // Mapping statusów IdoBooking na polskie statusy
 const IDOBOOKING_STATUS_MAP: Record<string, string> = {
@@ -165,6 +164,15 @@ const sourcesApiResponseSchemaV2 = z.object({
     id: z.string().optional(),
 });
 
+// Schema dla odpowiedzi synchronizacji
+const syncResponseSchema = z.object({
+    success: z.boolean(),
+    message: z.string(),
+    syncId: z.string(),
+    reservationsCount: z.number(),
+    duration: z.string(),
+});
+
 
 // Funkcja do generowania system_key zgodnie z dokumentacją idobooking
 function generateSystemKey(password: string): string {
@@ -214,6 +222,12 @@ export async function getReservations(): Promise<z.infer<typeof reservationSchem
     let currentPage = 1;
     let totalPages = 1;
 
+    logWithTag("===== ROZPOCZĘCIE POBIERANIA REZERWACJI =====");
+    logWithTag("NODE_ENV:", process.env.NODE_ENV);
+    logWithTag("DATABASE_URL dostępny:", !!process.env.DATABASE_URL);
+    logWithTag("NEXT_PUBLIC_APP_URL:", process.env.NEXT_PUBLIC_APP_URL);
+    logWithTag("NEXTAUTH_URL:", process.env.NEXTAUTH_URL);
+    logWithTag("Timestamp:", new Date().toISOString());
     logWithTag("Rozpoczęto pobieranie rezerwacji z IdoBooking API...");
 
     do {
@@ -317,10 +331,14 @@ export async function mapToDBReservations(
     reservations: z.infer<typeof reservationSchema>[],
     ctx: Awaited<ReturnType<typeof createTRPCContext>>,
 ) {
+    logWithTag("===== ROZPOCZĘCIE MAPOWANIA DO BAZY DANYCH =====");
     logWithTag(`Rozpoczęto mapowanie ${reservations.length} rezerwacji do bazy danych.`);
+    logWithTag("Czy kontekst bazy danych dostępny:", !!ctx.db);
+    logWithTag("Timestamp:", new Date().toISOString());
 
     if (reservations.length === 0) {
         logWithTag("Brak rezerwacji do zmapowania.");
+        logWithTag("===== ZAKOŃCZENIE MAPOWANIA (BRAK DANYCH) =====");
         return;
     }
 
@@ -465,6 +483,7 @@ export async function mapToDBReservations(
         logWithTag("Brak rezerwacji do zaktualizowania.");
     }
 
+    logWithTag("===== ZAKOŃCZENIE MAPOWANIA (SUCCESS) =====");
     logWithTag("Zakończono mapowanie wszystkich rezerwacji.");
 }
 
@@ -522,34 +541,74 @@ async function getSources(): Promise<z.infer<typeof reservationSourceDescription
 
 
 export const idobookingRouter = createTRPCRouter({
-    syncReservations: protectedProcedure.mutation(async ({ ctx }) => {
-        if (ctx.session.user.type !== UserType.ADMIN) {
-            throw new TRPCError({
-                code: "FORBIDDEN",
-                message: "Tylko administratorzy mogą synchronizować rezerwacje.",
-            });
-        }
+    syncReservations: protectedProcedure
+        .output(syncResponseSchema)
+        .mutation(async ({ ctx }) => {
+            if (ctx.session.user.type !== UserType.ADMIN) {
+                throw new TRPCError({
+                    code: "FORBIDDEN",
+                    message: "Tylko administratorzy mogą synchronizować rezerwacje.",
+                });
+            }
 
-        console.log("▶️ Otrzymano żądanie ręcznej synchronizacji. Wywoływanie API crona...");
+            const startTime = Date.now();
+            const syncId = Math.random().toString(36).substring(7);
 
-        // Użyj "fire-and-forget" - nie czekaj na odpowiedź
-        fetch(`${env.NEXT_PUBLIC_APP_URL}/api/cron/sync-reservations`, {
-            method: "GET",
-            headers: {
-                // Opcjonalnie: dodaj klucz zabezpieczający, jeśli go ustawiłeś
-                // Authorization: `Bearer ${process.env.CRON_SECRET}`,
-            },
-        }).catch((err) => {
-            // Logujemy błąd, ale nie rzucamy go do klienta,
-            // bo główna operacja i tak ma działać w tle.
-            console.error("Błąd przy wywoływaniu API crona (fire-and-forget):", err);
-        });
+            console.log("🔧 [SYNC-TRPC] ===== ROZPOCZĘCIE SYNCHRONIZACJI tRPC =====");
+            console.log("🔧 [SYNC-TRPC] Użytkownik:", ctx.session.user.email);
+            console.log("🔧 [SYNC-TRPC] Typ użytkownika:", ctx.session.user.type);
+            console.log("🔧 [SYNC-TRPC] Sync ID:", syncId);
+            console.log("🔧 [SYNC-TRPC] NODE_ENV:", process.env.NODE_ENV);
+            console.log("🔧 [SYNC-TRPC] Timestamp:", new Date().toISOString());
 
-        return {
-            success: true,
-            message: "Synchronizacja została uruchomiona w tle. Odśwież stronę za kilka minut, aby zobaczyć wyniki.",
-        };
-    }),
+            try {
+                console.log("🔧 [SYNC-TRPC] Pobieranie rezerwacji z API IdoBooking...");
+                const reservations = await getReservations();
+                console.log(`🔧 [SYNC-TRPC] ✅ Pobrano ${reservations.length} rezerwacji z API`);
+
+                if (reservations.length > 0) {
+                    console.log("🔧 [SYNC-TRPC] Przykładowa rezerwacja:", {
+                        id: reservations[0]?.id,
+                        status: reservations[0]?.reservationDetails?.status,
+                        guest: reservations[0]?.client?.firstName + " " + reservations[0]?.client?.lastName,
+                        dateFrom: reservations[0]?.reservationDetails?.dateFrom,
+                        dateTo: reservations[0]?.reservationDetails?.dateTo
+                    });
+                }
+
+                console.log("🔧 [SYNC-TRPC] Rozpoczynanie mapowania do bazy danych...");
+                await mapToDBReservations(reservations, ctx);
+
+                const duration = Date.now() - startTime;
+                console.log("🔧 [SYNC-TRPC] ✅ Synchronizacja zakończona pomyślnie.");
+                console.log("🔧 [SYNC-TRPC] Czas wykonania:", `${duration}ms`);
+                console.log("🔧 [SYNC-TRPC] ===== ZAKOŃCZENIE SYNCHRONIZACJI tRPC (SUCCESS) =====");
+
+                return {
+                    success: true,
+                    message: `Synchronizacja zakończona pomyślnie. Przetworzono ${reservations.length} rezerwacji w ${duration}ms.`,
+                    syncId,
+                    reservationsCount: reservations.length,
+                    duration: `${duration}ms`
+                };
+            } catch (error) {
+                const duration = Date.now() - startTime;
+                const errorMessage = error instanceof Error ? error.message : "Nieznany błąd";
+
+                console.error("🔧 [SYNC-TRPC] ❌ Wystąpił błąd podczas synchronizacji:", {
+                    error: errorMessage,
+                    stack: error instanceof Error ? error.stack : undefined,
+                    syncId,
+                    duration: `${duration}ms`
+                });
+                console.log("🔧 [SYNC-TRPC] ===== ZAKOŃCZENIE SYNCHRONIZACJI tRPC (ERROR) =====");
+
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    message: `Błąd synchronizacji: ${errorMessage}`,
+                });
+            }
+        }),
     getReservationSources: protectedProcedure.mutation(async ({ ctx }) => {
         if (ctx.session.user.type !== UserType.ADMIN) {
             throw new TRPCError({
