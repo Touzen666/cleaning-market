@@ -1,9 +1,10 @@
 import { z } from "zod";
-import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
+import { createTRPCRouter, protectedProcedure, publicProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { createHash } from "crypto";
 import { UserType, type Prisma } from "@prisma/client";
 import { type createTRPCContext } from "@/server/api/trpc";
+import { env } from "@/env";
 
 // Mapping statusów IdoBooking na polskie statusy
 const IDOBOOKING_STATUS_MAP: Record<string, string> = {
@@ -217,16 +218,31 @@ function getAuth() {
     };
 }
 
-export async function getReservations(): Promise<z.infer<typeof reservationSchema>[]> {
+type ReservationFetchOptions = {
+    startDateISO?: string;
+    endDateISO?: string;
+};
+
+export async function getReservations(options: ReservationFetchOptions = {}): Promise<z.infer<typeof reservationSchema>[]> {
     const allReservations: z.infer<typeof reservationSchema>[] = [];
     let currentPage = 1;
     let totalPages = 1;
+
+    const now = new Date();
+    const defaultStart = new Date(now);
+    defaultStart.setDate(defaultStart.getDate() - 180); // past 180 days
+    const defaultEnd = new Date(now);
+    defaultEnd.setDate(defaultEnd.getDate() + 365); // next 365 days
+
+    const startDateISO = options.startDateISO ?? defaultStart.toISOString();
+    const endDateISO = options.endDateISO ?? defaultEnd.toISOString();
 
     logWithTag("===== ROZPOCZĘCIE POBIERANIA REZERWACJI =====");
     logWithTag("NODE_ENV:", process.env.NODE_ENV);
     logWithTag("DATABASE_URL dostępny:", !!process.env.DATABASE_URL);
     logWithTag("NEXT_PUBLIC_APP_URL:", process.env.NEXT_PUBLIC_APP_URL);
     logWithTag("NEXTAUTH_URL:", process.env.NEXTAUTH_URL);
+    logWithTag("Zakres dat:", { startDateISO, endDateISO });
     logWithTag("Timestamp:", new Date().toISOString());
     logWithTag("Rozpoczęto pobieranie rezerwacji z IdoBooking API...");
 
@@ -245,8 +261,8 @@ export async function getReservations(): Promise<z.infer<typeof reservationSchem
                     authenticate: getAuth(),
                     paramsSearch: {
                         fromDateRange: {
-                            startDate: "2024-11-01T00:00:00",
-                            endDate: "2026-07-07T00:00:00",
+                            startDate: startDateISO,
+                            endDate: endDateISO,
                         },
                     },
                     result: {
@@ -431,7 +447,33 @@ export async function mapToDBReservations(
         }
     }
 
-    // 4. Wykonaj operacje hurtowe
+    // 4a. Spróbuj przypisać apartmentId dla nowych rezerwacji po idobookingId/objectName
+    if (reservationsToCreate.length > 0) {
+        // Zbuduj mapę Apartamentów: po idobookingId i po name (fallback)
+        const apartmentCandidates = await ctx.db.apartment.findMany({
+            select: { id: true, idobookingId: true, name: true },
+        });
+
+        // Rezerwacje z API nie mają bezpośrednio objectId w naszym wpisie,
+        // więc obecnie używamy dopasowania po nazwie apartamentu.
+        const aptByName = new Map(
+            apartmentCandidates.map((a) => [a.name.trim().toLowerCase(), a.id]),
+        );
+
+        for (const rec of reservationsToCreate) {
+            // Spróbuj dopasować po idobookingId rezerwacji (Reservation.items[0]?.objectId - ale nie przechowujemy go tutaj)
+            // Zamiast tego użyjemy nazwy apartamentu z IdoBooking jako fallback
+            const normalizedName = rec.apartmentName?.trim().toLowerCase() ?? null;
+            if (normalizedName && aptByName.has(normalizedName)) {
+                const aptId = aptByName.get(normalizedName);
+                if (typeof aptId === "number") {
+                    (rec).apartmentId = aptId;
+                }
+            }
+        }
+    }
+
+    // 4b. Wykonaj operacje hurtowe
     if (reservationsToCreate.length > 0) {
         logWithTag(`Tworzenie ${reservationsToCreate.length} nowych rezerwacji...`);
         try {
@@ -540,6 +582,29 @@ async function getSources(): Promise<z.infer<typeof reservationSourceDescription
 }
 
 
+// (tymczasowy placeholder — właściwy router eksportowany niżej)
+
+// Internal shared sync implementation (outside router)
+async function internalSync(
+    ctx: Awaited<ReturnType<typeof createTRPCContext>>,
+    options: ReservationFetchOptions = {},
+) {
+    const startTime = Date.now();
+    const syncId = Math.random().toString(36).substring(7);
+
+    const reservations = await getReservations(options);
+    await mapToDBReservations(reservations, ctx);
+
+    const duration = Date.now() - startTime;
+    return {
+        success: true as const,
+        message: `Synchronizacja zakończona pomyślnie. Przetworzono ${reservations.length} rezerwacji w ${duration}ms.`,
+        syncId,
+        reservationsCount: reservations.length,
+        duration: `${duration}ms`,
+    };
+}
+
 export const idobookingRouter = createTRPCRouter({
     syncReservations: protectedProcedure
         .output(syncResponseSchema)
@@ -562,35 +627,11 @@ export const idobookingRouter = createTRPCRouter({
             console.log("🔧 [SYNC-TRPC] Timestamp:", new Date().toISOString());
 
             try {
-                console.log("🔧 [SYNC-TRPC] Pobieranie rezerwacji z API IdoBooking...");
-                const reservations = await getReservations();
-                console.log(`🔧 [SYNC-TRPC] ✅ Pobrano ${reservations.length} rezerwacji z API`);
-
-                if (reservations.length > 0) {
-                    console.log("🔧 [SYNC-TRPC] Przykładowa rezerwacja:", {
-                        id: reservations[0]?.id,
-                        status: reservations[0]?.reservationDetails?.status,
-                        guest: reservations[0]?.client?.firstName + " " + reservations[0]?.client?.lastName,
-                        dateFrom: reservations[0]?.reservationDetails?.dateFrom,
-                        dateTo: reservations[0]?.reservationDetails?.dateTo
-                    });
-                }
-
-                console.log("🔧 [SYNC-TRPC] Rozpoczynanie mapowania do bazy danych...");
-                await mapToDBReservations(reservations, ctx);
-
-                const duration = Date.now() - startTime;
+                const result = await internalSync(ctx);
                 console.log("🔧 [SYNC-TRPC] ✅ Synchronizacja zakończona pomyślnie.");
-                console.log("🔧 [SYNC-TRPC] Czas wykonania:", `${duration}ms`);
+                console.log("🔧 [SYNC-TRPC] Czas wykonania:", result.duration);
                 console.log("🔧 [SYNC-TRPC] ===== ZAKOŃCZENIE SYNCHRONIZACJI tRPC (SUCCESS) =====");
-
-                return {
-                    success: true,
-                    message: `Synchronizacja zakończona pomyślnie. Przetworzono ${reservations.length} rezerwacji w ${duration}ms.`,
-                    syncId,
-                    reservationsCount: reservations.length,
-                    duration: `${duration}ms`
-                };
+                return result;
             } catch (error) {
                 const duration = Date.now() - startTime;
                 const errorMessage = error instanceof Error ? error.message : "Nieznany błąd";
@@ -608,6 +649,24 @@ export const idobookingRouter = createTRPCRouter({
                     message: `Błąd synchronizacji: ${errorMessage}`,
                 });
             }
+        }),
+    syncReservationsCron: publicProcedure
+        .input(z.object({ startDateISO: z.string().optional(), endDateISO: z.string().optional() }).optional())
+        .output(syncResponseSchema)
+        .mutation(async ({ ctx, input }) => {
+            // Guard with CRON_SECRET if set
+            if (env.CRON_SECRET) {
+                const auth = ctx.headers.get?.("authorization");
+                const ok = auth === `Bearer ${env.CRON_SECRET}`;
+                if (!ok) {
+                    throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid CRON secret" });
+                }
+            }
+
+            return internalSync(ctx, {
+                startDateISO: input?.startDateISO,
+                endDateISO: input?.endDateISO,
+            });
         }),
     getReservationSources: protectedProcedure.mutation(async ({ ctx }) => {
         if (ctx.session.user.type !== UserType.ADMIN) {
