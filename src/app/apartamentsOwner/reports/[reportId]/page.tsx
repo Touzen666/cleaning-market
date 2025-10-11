@@ -189,6 +189,10 @@ export default function OwnerReportDetailsPage() {
   );
   const netIncome = totalRevenue - totalExpenses;
 
+  // Ręczne przychody (np. faktury przychodowe) – bez rezerwacji
+  const manualRevenueItems: ReportItemWithReservation[] = revenueItems.filter(
+    (i) => !i.reservation,
+  );
   // Rezerwacje/przychody (tylko skutecznie zrealizowane)
   const reservationItems: ReportItemWithReservation[] = revenueItems.filter(
     (i: ReportItemWithReservation) => {
@@ -535,6 +539,53 @@ export default function OwnerReportDetailsPage() {
                         </td>
                         <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-green-600">
                           +{item.amount.toFixed(2)} {item.currency}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Manual Revenue (e.g., income invoices) */}
+        <div className="mb-8 overflow-hidden rounded-lg bg-white shadow">
+          <div className="border-b border-green-200 bg-green-50 px-6 py-4">
+            <h3 className="text-lg font-medium text-green-900">
+              Dodatkowe przychody (faktury) ({manualRevenueItems.length})
+            </h3>
+            <p className="mt-1 text-sm text-green-700">
+              Te pozycje dodane zostały przez administratora i są widoczne tylko
+              do odczytu.
+            </p>
+          </div>
+          <div className="border-t border-gray-200">
+            {manualRevenueItems.length === 0 ? (
+              <div className="py-12 text-center">
+                <p className="text-gray-500">Brak dodatkowych przychodów</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                        Opis
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
+                        Kwota (PLN)
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200 bg-white">
+                    {manualRevenueItems.map((item) => (
+                      <tr key={item.id}>
+                        <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
+                          {item.description ?? "Faktura przychodowa"}
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-semibold text-gray-900">
+                          {Number(item.amount).toFixed(2)}
                         </td>
                       </tr>
                     ))}

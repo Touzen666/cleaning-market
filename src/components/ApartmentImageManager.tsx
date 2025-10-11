@@ -79,6 +79,9 @@ export default function ApartmentImageManager({
     },
   });
 
+  // Upload plików (tRPC)
+  const uploadFile = api.upload.uploadFile.useMutation();
+
   // Drag & Drop dla plików
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
@@ -109,9 +112,8 @@ export default function ApartmentImageManager({
               const base64Data = base64Content.split(",")[1]; // Usuń prefix "data:image/...;base64,"
 
               try {
-                // Użyj tRPC mutation do uploadu
-                const uploadMutation = api.upload.uploadFile.useMutation();
-                const result = await uploadMutation.mutateAsync({
+                // Użyj tRPC mutation do uploadu (hook zainicjowany na poziomie komponentu)
+                const result = await uploadFile.mutateAsync({
                   filename: pendingImage.file.name,
                   content: base64Data ?? "",
                 });
@@ -159,7 +161,7 @@ export default function ApartmentImageManager({
 
       void uploadFiles();
     },
-    [apartmentId, addImage],
+    [apartmentId, addImage, uploadFile],
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({

@@ -351,6 +351,27 @@ export default function ReportDetailsPage({
         toast.error(`Błąd przeliczania przychodów: ${err.message}`),
     });
 
+  // Dodawanie faktury przychodowej (ręcznej)
+  const addIncomeInvoiceMutation =
+    api.monthlyReports.addIncomeInvoice.useMutation({
+      onSuccess: async () => {
+        toast.success("Dodano fakturę przychodową");
+        await reportQuery.refetch();
+        setIncomeInvoiceAmount(0);
+      },
+      onError: (err) => toast.error(`Błąd: ${err.message}`),
+    });
+  const [incomeInvoiceAmount, setIncomeInvoiceAmount] = useState<number>(0);
+  const [invoiceStart, setInvoiceStart] = useState<string>("");
+  const [invoiceEnd, setInvoiceEnd] = useState<string>("");
+  const updateIncomeInvoice =
+    api.monthlyReports.updateIncomeInvoice.useMutation({
+      onSuccess: async () => {
+        await reportQuery.refetch();
+      },
+      onError: (e) => toast.error(e.message),
+    });
+
   const updateSettlementDetailsMutation =
     api.monthlyReports.updateSettlementDetails.useMutation({
       onSuccess: () => {
@@ -1404,7 +1425,7 @@ export default function ReportDetailsPage({
               </div>
             </div>
             <div className="mt-4 sm:mt-0">
-              <div className="flex gap-3">
+              <div className="flex flex-wrap items-center gap-3">
                 <button
                   onClick={() =>
                     handleNavigateWithUnsavedCheck(getBackToListPath())
@@ -1435,6 +1456,7 @@ export default function ReportDetailsPage({
                     ? "Przeliczanie..."
                     : "Przelicz przychody"}
                 </button>
+
                 {/* Przycisk usuń raport - tylko dla admina */}
                 <button
                   onClick={() => {
@@ -2463,6 +2485,191 @@ export default function ReportDetailsPage({
                 </table>
               </div>
             )}
+          </div>
+        </div>
+
+        {/* Faktury przychodowe (ręcznie dodane) */}
+        <div className="mb-8 overflow-hidden rounded-lg bg-white shadow">
+          <div className="px-6 py-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h3 className="text-lg font-semibold leading-6 text-gray-900">
+                  Faktury przychodowe (ręczne)
+                </h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  Pozycje dodane do raportu, ponieważ rezerwacje były
+                  realizowane przed integracją z systemem rezerwacji.
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 rounded-md bg-white px-2 py-1 shadow-sm ring-1 ring-gray-200">
+                <label className="text-sm text-gray-700">Kwota (PLN)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min={0}
+                  value={
+                    Number.isFinite(incomeInvoiceAmount)
+                      ? incomeInvoiceAmount
+                      : 0
+                  }
+                  onChange={(e) =>
+                    setIncomeInvoiceAmount(Number(e.target.value))
+                  }
+                  className="h-8 w-28 rounded border border-gray-300 px-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+                <label className="ml-2 text-sm text-gray-700">Okres</label>
+                <input
+                  type="date"
+                  value={invoiceStart || ""}
+                  onChange={(e) => setInvoiceStart(e.target.value)}
+                  className="h-8 rounded border border-gray-300 px-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+                <span className="px-1 text-gray-500">-</span>
+                <input
+                  type="date"
+                  value={invoiceEnd || ""}
+                  onChange={(e) => setInvoiceEnd(e.target.value)}
+                  className="h-8 rounded border border-gray-300 px-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+                <button
+                  onClick={() =>
+                    addIncomeInvoiceMutation.mutate({
+                      reportId,
+                      amount: Number(incomeInvoiceAmount),
+                      startDate: invoiceStart
+                        ? new Date(invoiceStart)
+                        : undefined,
+                      endDate: invoiceEnd ? new Date(invoiceEnd) : undefined,
+                    })
+                  }
+                  disabled={
+                    addIncomeInvoiceMutation.isPending ||
+                    !incomeInvoiceAmount ||
+                    incomeInvoiceAmount <= 0
+                  }
+                  className="inline-flex items-center rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm disabled:opacity-50 hover:bg-emerald-500"
+                >
+                  {addIncomeInvoiceMutation.isPending
+                    ? "Dodawanie..."
+                    : "Dodaj fakturę"}
+                </button>
+              </div>
+            </div>
+          </div>
+          <div className="border-t border-gray-200">
+            {((): JSX.Element => {
+              const items = revenueItems.filter((i) => !i.reservation);
+              if (items.length === 0) {
+                return (
+                  <div className="py-12 text-center">
+                    <p className="text-gray-500">Brak faktur przychodowych</p>
+                  </div>
+                );
+              }
+              return (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                          Data
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                          Opis
+                        </th>
+                        <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
+                          Kwota (PLN)
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200 bg-white">
+                      {items.map((item) => (
+                        <tr key={item.id}>
+                          <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
+                            {new Date(item.date).toLocaleDateString("pl-PL", {
+                              timeZone: "UTC",
+                            })}
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-900">
+                            <div className="flex flex-col">
+                              <span>
+                                {item.description ??
+                                  "Faktura przychodowa (ręczna) – dodana do raportu z powodu rezerwacji sprzed integracji"}
+                              </span>
+                              <span className="mt-1 inline-flex w-fit items-center rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-700">
+                                ręcznie dodane
+                              </span>
+                            </div>
+                          </td>
+                          <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-semibold text-gray-900">
+                            {Number(item.amount).toFixed(2)}
+                          </td>
+                          <td className="whitespace-nowrap px-6 py-4 text-right text-sm">
+                            {!isHistorical &&
+                              finalReport.status !== ReportStatus.SENT && (
+                                <div className="flex justify-end gap-2">
+                                  <button
+                                    onClick={async () => {
+                                      const val = prompt(
+                                        "Nowa kwota (PLN)",
+                                        String(item.amount),
+                                      );
+                                      if (val == null) return;
+                                      const next = Number(val);
+                                      if (!Number.isFinite(next) || next <= 0)
+                                        return;
+                                      const period = prompt(
+                                        "Okres (YYYY-MM-DD - YYYY-MM-DD), opcjonalnie",
+                                        (item.notes ?? "").replace(
+                                          /^Okres:\s*/,
+                                          "",
+                                        ),
+                                      );
+                                      let startDate: Date | undefined;
+                                      let endDate: Date | undefined;
+                                      if (period) {
+                                        const m =
+                                          /^(\d{4}-\d{2}-\d{2})\s*-\s*(\d{4}-\d{2}-\d{2})$/.exec(
+                                            period,
+                                          );
+                                        if (m) {
+                                          startDate = new Date(m[1]!);
+                                          endDate = new Date(m[2]!);
+                                        }
+                                      }
+                                      updateIncomeInvoice.mutate({
+                                        itemId: item.id,
+                                        amount: next,
+                                        startDate,
+                                        endDate,
+                                      });
+                                    }}
+                                    className="rounded-md bg-indigo-600 px-2 py-1 text-xs font-medium text-white hover:bg-indigo-700"
+                                  >
+                                    Edytuj
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      if (!confirm("Usunąć tę fakturę?"))
+                                        return;
+                                      deleteReportItemMutation.mutate({
+                                        itemId: item.id,
+                                      });
+                                    }}
+                                    className="rounded-md bg-red-600 px-2 py-1 text-xs font-medium text-white hover:bg-red-700"
+                                  >
+                                    Usuń
+                                  </button>
+                                </div>
+                              )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              );
+            })()}
           </div>
         </div>
 
