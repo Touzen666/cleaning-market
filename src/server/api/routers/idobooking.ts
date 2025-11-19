@@ -249,8 +249,10 @@ export async function getReservations(options: ReservationFetchOptions = {}): Pr
     do {
         logWithTag(`Pobieranie strony ${currentPage}...`);
 
+        // NOTE: The segment `/get/<id>/json` must match your property group ID used across IdoBooking API.
+        // We align it with the same identifier used in getSources (34) to ensure both endpoints address the same scope.
         const response = await fetch(
-            `https://zlote-wynajmy.pl/api/reservations/get/1/json`,
+            `https://zlote-wynajmy.pl/api/reservations/get/34/json`,
             {
                 method: "POST",
                 headers: {
@@ -272,6 +274,13 @@ export async function getReservations(options: ReservationFetchOptions = {}): Pr
                 }),
             },
         );
+
+        if (!response.ok) {
+            const errorText = await response.text().catch(() => "<no-body>");
+            const errorMsg = `IdoBooking GET reservations failed: ${response.status} ${response.statusText}. Body: ${errorText}`;
+            logWithTag(errorMsg);
+            throw new Error(errorMsg);
+        }
 
         const responseData = (await response.json()) as unknown;
 
