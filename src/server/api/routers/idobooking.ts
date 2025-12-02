@@ -27,6 +27,16 @@ function mapIdobookingStatus(idobookingStatus: string): string {
 }
 
 // Zod schemas dla API responses
+// Bezpieczne parsowanie pól liczbowych, które mogą przyjść jako string/boolean/null
+const safeNumberOptional = z.preprocess((val) => {
+    if (val === null || val === undefined || val === "") return undefined;
+    if (val === "y") return 1;
+    if (val === "n") return 0;
+    if (typeof val === "boolean") return val ? 1 : 0;
+    const num = Number(val as unknown);
+    return Number.isNaN(num) ? undefined : num;
+}, z.number().optional());
+
 const reservationDetailsSchema = z.object({
     price: z.number(),
     advance: z.number(),
@@ -65,7 +75,8 @@ const reservationDetailsSchema = z.object({
     modificationDate: z.string().optional(),
     note: z.string().optional(),
     languageCode: z.string().optional(),
-    isSurplus: z.coerce.number().optional(),
+    // API potrafi zwrócić 0/1, 'y'/'n', boolean, pusty string – normalizujemy do liczby lub undefined
+    isSurplus: safeNumberOptional,
 });
 
 const reservationItemSchema = z.object({
@@ -74,14 +85,16 @@ const reservationItemSchema = z.object({
     objectName: z.string().optional(),
     itemCode: z.string().optional(),
     objectId: z.number().optional(),
-    numberOfAdults: z.number().optional(),
-    numberOfBigChildren: z.number().optional(),
-    numberOfSmallChildren: z.number().optional(),
+    // Pola często przychodzą jako stringi – koercja/normalizacja do liczby
+    numberOfAdults: z.coerce.number().optional(),
+    numberOfBigChildren: z.coerce.number().optional(),
+    numberOfSmallChildren: z.coerce.number().optional(),
     priceCorrection: z.number(),
     price: z.number(),
     vat: z.number(),
-    numberOfGuests: z.number().optional(),
-    isSurplus: z.coerce.number().optional(), // API returns number, not enum
+    numberOfGuests: z.coerce.number().optional(),
+    // API returns number zwykle, ale może być też 'y'/'n'/boolean/pusty – normalizujemy
+    isSurplus: safeNumberOptional, // API returns number, not enum
     prices: z.array(z.unknown()).optional(),
     addons: z.array(z.unknown()).optional(),
 });
