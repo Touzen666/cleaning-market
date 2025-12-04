@@ -391,6 +391,12 @@ export default function AdminReservationsListPage() {
                     scope="col"
                     className="px-3 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
                   >
+                    Numer pokoju
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-3 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+                  >
                     Status
                   </th>
                   <th
@@ -444,6 +450,9 @@ export default function AdminReservationsListPage() {
                       <div className="text-sm text-gray-500">
                         {reservation.apartmentName}
                       </div>
+                    </td>
+                    <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                      {reservation.itemCode ?? "-"}
                     </td>
                     <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                       <span

@@ -33,6 +33,8 @@ const apartmentWithReservationsSchema = z.object({
   address: z.string(),
   imageUrl: z.string().nullable(),
   reservations: z.array(reservationSchema),
+  parentApartmentId: z.number().optional(),
+  parentApartmentName: z.string().optional(),
 });
 
 export const reservationsRouter = createTRPCRouter({
@@ -281,7 +283,37 @@ export const reservationsRouter = createTRPCRouter({
         });
       }
 
-      const ownerWithApartments = await ctx.db.apartmentOwner.findUnique({
+      // Narrow raw Prisma result to a safe, minimal shape to satisfy strict eslint rules
+      type RoomReservationShape = {
+        id: number;
+        guest: string;
+        start: Date;
+        end: Date;
+        status: string;
+      };
+      type RoomShape = {
+        id: number;
+        name: string | null;
+        code: string;
+        address: string | null;
+        reservations: RoomReservationShape[];
+      };
+      type ApartmentShape = {
+        id: number;
+        name: string;
+        address: string;
+        images: Array<{ url: string | null }>;
+        rooms: RoomShape[];
+        reservations: RoomReservationShape[];
+      };
+      type OwnedAptsShape = {
+        ownedApartments: Array<{ apartment: ApartmentShape }>;
+      };
+      const isOwnedAptsShape = (value: unknown): value is OwnedAptsShape => {
+        return !!value && typeof value === "object" && Array.isArray((value as { ownedApartments?: unknown }).ownedApartments);
+      };
+
+      const ownerWithApartmentsRaw = await ctx.db.apartmentOwner.findUnique({
         where: { email: ownerEmail },
         include: {
           ownedApartments: {
@@ -289,6 +321,35 @@ export const reservationsRouter = createTRPCRouter({
             include: {
               apartment: {
                 include: {
+                  // Primary apartment image (fallback for rooms without own images)
+                  images: {
+                    where: { isPrimary: true },
+                    take: 1,
+                  },
+                  // Include rooms with their own reservations to show per-room calendars
+                  rooms: {
+                    include: {
+                      reservations: {
+                        where: {
+                          NOT: {
+                            status: {
+                              in: ["Anulowana", "Odrzucona przez obsługę"],
+                            },
+                          },
+                        },
+                        orderBy: { start: "asc" },
+                        select: {
+                          id: true,
+                          guest: true,
+                          start: true,
+                          end: true,
+                          status: true,
+                        },
+                      },
+                    },
+                    orderBy: { code: "asc" },
+                  },
+                  // Keep apartment-level reservations for single-room apartments (legacy)
                   reservations: {
                     where: {
                       NOT: {
@@ -297,9 +358,7 @@ export const reservationsRouter = createTRPCRouter({
                         },
                       },
                     },
-                    orderBy: {
-                      start: "asc",
-                    },
+                    orderBy: { start: "asc" },
                     select: {
                       id: true,
                       guest: true,
@@ -308,10 +367,6 @@ export const reservationsRouter = createTRPCRouter({
                       status: true,
                     },
                   },
-                  images: {
-                    where: { isPrimary: true },
-                    take: 1,
-                  },
                 },
               },
             },
@@ -319,31 +374,74 @@ export const reservationsRouter = createTRPCRouter({
         },
       });
 
-      if (!ownerWithApartments) {
+      if (!ownerWithApartmentsRaw) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "Nie znaleziono właściciela.",
         });
       }
+      if (!isOwnedAptsShape(ownerWithApartmentsRaw)) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Błąd danych właściciela apartamentów.",
+        });
+      }
 
-      const apartmentsData = ownerWithApartments.ownedApartments.map(
-        (ownership) => {
-          const { apartment } = ownership;
-          return {
-            id: apartment.id,
-            name: apartment.name,
-            address: apartment.address,
-            imageUrl: apartment.images[0]?.url ?? null,
-            reservations: apartment.reservations.map((res) => ({
+      // Flatten into "calendar units":
+      // - if apartment has multiple rooms -> one unit per room
+      // - else -> single unit for apartment
+      const ownedApts: OwnedAptsShape["ownedApartments"] =
+        ownerWithApartmentsRaw.ownedApartments;
+
+      const apartmentsData: Array<z.infer<typeof apartmentWithReservationsSchema>> = [];
+
+      for (const ownership of ownedApts) {
+        const apartment: ApartmentShape = ownership.apartment;
+        const primaryImageUrl: string | null = apartment.images[0]?.url ?? null;
+        const hasMultipleRooms: boolean = Array.isArray(apartment.rooms) && apartment.rooms.length > 1;
+
+        if (hasMultipleRooms) {
+          for (const room of apartment.rooms) {
+            const reservations = room.reservations.map((res: RoomReservationShape) => ({
               id: res.id,
               start: res.start,
               end: res.end,
               status: res.status,
               guest: res.guest,
-            })),
-          };
-        },
-      );
+            }));
+
+            apartmentsData.push({
+              id: room.id,
+              name: room.name ?? `${apartment.name} ${room.code}`,
+              address: room.address ?? apartment.address,
+              imageUrl: primaryImageUrl, // Fallback until Room images exist
+              reservations,
+              parentApartmentId: apartment.id,
+              parentApartmentName: apartment.name,
+            });
+          }
+          continue;
+        }
+
+        // Single-room or no-room apartments -> show as apartment
+        const reservations = apartment.reservations.map((res: RoomReservationShape) => ({
+          id: res.id,
+          start: res.start,
+          end: res.end,
+          status: res.status,
+          guest: res.guest,
+        }));
+
+        apartmentsData.push({
+          id: apartment.id,
+          name: apartment.name,
+          address: apartment.address,
+          imageUrl: primaryImageUrl,
+          reservations,
+          parentApartmentId: apartment.id,
+          parentApartmentName: apartment.name,
+        });
+      }
 
       return apartmentsData;
     }),

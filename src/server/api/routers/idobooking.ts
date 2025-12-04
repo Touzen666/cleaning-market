@@ -219,6 +219,24 @@ const logWithTag = (message: string, data?: unknown) => {
     }
 };
 
+// Normalizacja nazw: usuwamy nawiasowe prefiksy (np. "(Primary)"),
+// diakrytyki, znaki niealfanumeryczne i podwójne spacje
+function canonicalizeName(input: string | null | undefined): string {
+    if (!input) return "";
+    const withoutLeadingParenTag = input.replace(/^\s*\([^)]*\)\s*/g, ""); // usuń np. "(Primary) "
+    const lower = withoutLeadingParenTag.toLowerCase();
+    // usuwanie diakrytyków
+    const noDiacritics = lower.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    // zamiana wszystkiego co nie litera/cyfra na spację
+    const lettersOnly = noDiacritics.replace(/[^a-z0-9]+/g, " ");
+    // redukcja wielokrotnych spacji
+    return lettersOnly.trim().replace(/\s+/g, " ");
+}
+
+// Opcjonalny filtr debugowania: podaj pełną nazwę apartamentu w env DEBUG_APARTMENT_NAME,
+// aby zalogować identyfikatory pozycji (objectItemId/itemId/objectId/itemCode)
+const DEBUG_APARTMENT_NAME_CANON = canonicalizeName(process.env.DEBUG_APARTMENT_NAME ?? "");
+
 function getAuth() {
     const login = "barwil128";
     const password = "Metalcat133c!";
@@ -241,11 +259,13 @@ export async function getReservations(options: ReservationFetchOptions = {}): Pr
     let currentPage = 1;
     let totalPages = 1;
 
+    // Domyślne okno synchronizacji:
+    // - start: zawsze 2 miesiące wstecz od "teraz"
+    // - end: bardzo szerokie w przyszłość (można zawęzić przez przekazanie endDateISO)
     const now = new Date();
     const defaultStart = new Date(now);
-    defaultStart.setDate(defaultStart.getDate() - 180); // past 180 days
-    const defaultEnd = new Date(now);
-    defaultEnd.setDate(defaultEnd.getDate() + 365); // next 365 days
+    defaultStart.setMonth(defaultStart.getMonth() - 2);
+    const defaultEnd = new Date("2100-01-01T00:00:00.000Z");
 
     const startDateISO = options.startDateISO ?? defaultStart.toISOString();
     const endDateISO = options.endDateISO ?? defaultEnd.toISOString();
@@ -385,6 +405,13 @@ export async function mapToDBReservations(
 
     // 2. Pobierz wszystkie istniejące rezerwacje jednym zapytaniem
     logWithTag(`Pobieranie istniejących rezerwacji dla ${idobookingIds.length} ID...`);
+    type ExistingReservationLookup = {
+        idobookingId: number;
+        status: string;
+        itemCode: string | null;
+        apartmentName: string;
+    };
+
     const existingReservations = await ctx.db.reservation.findMany({
         where: {
             idobookingId: {
@@ -394,31 +421,93 @@ export async function mapToDBReservations(
         select: {
             idobookingId: true,
             status: true,
+            itemCode: true,
+            apartmentName: true,
         },
     });
 
-    const existingReservationsMap = new Map(
-        existingReservations.map((r) => [r.idobookingId, r]),
+    const existingReservationsMap = new Map<number, ExistingReservationLookup>(
+        existingReservations.map((r) => {
+            const mapped: ExistingReservationLookup = {
+                idobookingId: r.idobookingId!,
+                status: r.status,
+                itemCode: (r.itemCode ?? null) as string | null,
+                apartmentName: r.apartmentName,
+            };
+            return [mapped.idobookingId, mapped] as const;
+        }),
     );
     logWithTag(`Znaleziono ${existingReservationsMap.size} pasujących istniejących rezerwacji.`);
 
     // 3. Podziel rezerwacje na do utworzenia i do aktualizacji
-    const reservationsToCreate: Prisma.ReservationCreateManyInput[] = [];
-    const reservationsToUpdate: { idobookingId: number; status: string, oldStatus: string }[] = [];
+    type ReservationCreateManyInputExtended = Prisma.ReservationCreateManyInput & { itemCode?: string | null };
+    const reservationsToCreate: ReservationCreateManyInputExtended[] = [];
+    // Przechowuj metadane potrzebne do późniejszego dopasowania apartamentu (wielokrotne pokoje)
+    const reservationsCreateMeta: {
+        index: number;
+        objectItemId?: number;
+        itemId?: number;
+        objectId?: number;
+        itemCode?: string | null;
+        objectName?: string | null;
+        apartmentId?: number;
+    }[] = [];
+    const reservationsToUpdate: { idobookingId: number; data: Prisma.ReservationUpdateInput }[] = [];
+
+    // Zbierz warianty (itemCode) dla bazowych nazw apartamentów, aby rozpoznać wielowariantowe obiekty
+    const variantsByBaseName = new Map<string, Set<string>>();
 
     for (const reservation of reservations) {
         const { id: idobookingId, reservationDetails, items, client } = reservation;
         const existing = existingReservationsMap.get(idobookingId);
+        const firstItem = items[0];
+        const itemCode = firstItem?.itemCode ?? null;
+        const objectName = firstItem?.objectName ?? null;
+
+        // Zarejestruj wariant (itemCode) dla danej bazowej nazwy obiektu
+        if (objectName && itemCode) {
+            const baseKey = canonicalizeName(objectName);
+            const set = variantsByBaseName.get(baseKey) ?? new Set<string>();
+            set.add(itemCode);
+            variantsByBaseName.set(baseKey, set);
+        }
 
         if (existing) {
-            // Rezerwacja istnieje, sprawdź czy status się zmienił
+            // Rezerwacja istnieje – przygotuj ewentualną aktualizację statusu / itemCode / nazwy
             const mappedStatus = mapIdobookingStatus(reservationDetails.status);
-            if (existing.status !== mappedStatus) {
-                reservationsToUpdate.push({
-                    idobookingId,
-                    status: mappedStatus,
-                    oldStatus: existing.status,
-                });
+
+            // DEBUG: loguj identyfikatory pozycji dla wskazanego apartamentu
+            if (DEBUG_APARTMENT_NAME_CANON) {
+                const itemNameCanon = canonicalizeName(firstItem?.objectName ?? "");
+                if (itemNameCanon && itemNameCanon === DEBUG_APARTMENT_NAME_CANON) {
+                    logWithTag("DBG(existing) Identyfikatory pozycji:", {
+                        idobookingReservationId: idobookingId,
+                        objectItemId: firstItem?.objectItemId,
+                        itemId: firstItem?.itemId,
+                        objectId: firstItem?.objectId,
+                        itemCode: firstItem?.itemCode,
+                        objectName: firstItem?.objectName,
+                    });
+                }
+            }
+
+            // Ustal docelową nazwę apartamentu (wariantowa gdy wiele itemCode)
+            const baseNameCanon = canonicalizeName(objectName ?? "");
+            const codes = variantsByBaseName.get(baseNameCanon);
+            const isMultiVariant = !!codes && codes.size > 1;
+            const normalizedItemCode = (itemCode ?? "").trim();
+            const desiredApartmentName =
+                isMultiVariant && normalizedItemCode
+                    ? `${objectName ?? ""} ${normalizedItemCode}`.trim()
+                    : objectName ?? existing.apartmentName ?? "N/A";
+
+            const data: Prisma.ReservationUpdateInput = {};
+            if (existing.status !== mappedStatus) data.status = mappedStatus;
+            if (existing.itemCode !== itemCode) data.itemCode = itemCode;
+            if (existing.apartmentName !== desiredApartmentName) data.apartmentName = desiredApartmentName;
+
+            if (Object.keys(data).length > 0) {
+                reservationsToUpdate.push({ idobookingId, data });
             }
         } else {
             // Rezerwacja nie istnieje, przygotuj dane do utworzenia
@@ -437,7 +526,21 @@ export async function mapToDBReservations(
                 sourceName = "Brak";
             }
 
-            const firstItem = items[0];
+            // DEBUG: loguj identyfikatory pozycji dla wskazanego apartamentu
+            if (DEBUG_APARTMENT_NAME_CANON) {
+                const itemNameCanon = canonicalizeName(firstItem?.objectName ?? "");
+                if (itemNameCanon && itemNameCanon === DEBUG_APARTMENT_NAME_CANON) {
+                    logWithTag("DBG(new) Identyfikatory pozycji:", {
+                        idobookingReservationId: idobookingId,
+                        objectItemId: firstItem?.objectItemId,
+                        itemId: firstItem?.itemId,
+                        objectId: firstItem?.objectId,
+                        itemCode: firstItem?.itemCode,
+                        objectName: firstItem?.objectName,
+                    });
+                }
+            }
+
             const adultsCount = firstItem?.numberOfAdults ?? firstItem?.numberOfGuests ?? 1;
             const bigChildrenCount = firstItem?.numberOfBigChildren ?? 0;
             const smallChildrenCount = firstItem?.numberOfSmallChildren ?? 0;
@@ -450,10 +553,26 @@ export async function mapToDBReservations(
                 if (!guestName) guestName = "Nieznany gość";
             }
 
+            // Zachowaj identyfikatory pozycji z IdoBooking (pozwoli dopasować 5 identycznych pokoi po ID)
+            const objectItemId = firstItem?.objectItemId;
+            const objectId = firstItem?.objectId;
+            const itemId = firstItem?.itemId;
+            const itemCode = firstItem?.itemCode ?? null;
+            const objectName = firstItem?.objectName ?? null;
+
+            // Zarejestruj wariant (itemCode) dla danej bazowej nazwy obiektu
+            if (objectName && itemCode) {
+                const baseKey = canonicalizeName(objectName);
+                const set = variantsByBaseName.get(baseKey) ?? new Set<string>();
+                set.add(itemCode);
+                variantsByBaseName.set(baseKey, set);
+            }
+
             reservationsToCreate.push({
                 idobookingId,
                 status: mapIdobookingStatus(details.status),
-                apartmentName: firstItem?.objectName ?? "N/A",
+                apartmentName: objectName ?? "N/A",
+                itemCode: itemCode ?? undefined,
                 currency: details.currency,
                 source: sourceName,
                 createDate: new Date(details.dateAdd),
@@ -466,6 +585,16 @@ export async function mapToDBReservations(
                 address: firstItem?.objectName ?? "Brak adresu",
                 paymantValue: details.price,
             });
+
+            reservationsCreateMeta.push({
+                index: reservationsToCreate.length - 1,
+                objectItemId,
+                itemId,
+                objectId,
+                itemCode,
+                objectName,
+                apartmentId: undefined as unknown as number,
+            });
         }
     }
 
@@ -476,27 +605,146 @@ export async function mapToDBReservations(
             select: { id: true, idobookingId: true, name: true },
         });
 
-        // Rezerwacje z API nie mają bezpośrednio objectId w naszym wpisie,
-        // więc obecnie używamy dopasowania po nazwie apartamentu.
-        const aptByName = new Map(
-            apartmentCandidates.map((a) => [a.name.trim().toLowerCase(), a.id]),
-        );
+        // 1) Dokładne dopasowanie po idobookingId (w IdoBooking: objectItemId/itemId)
+        const aptByIdobookingId = new Map<number, number>();
+        for (const a of apartmentCandidates) {
+            if (typeof a.idobookingId === "number") {
+                aptByIdobookingId.set(a.idobookingId, a.id);
+            }
+        }
 
-        for (const rec of reservationsToCreate) {
-            // Spróbuj dopasować po idobookingId rezerwacji (Reservation.items[0]?.objectId - ale nie przechowujemy go tutaj)
-            // Zamiast tego użyjemy nazwy apartamentu z IdoBooking jako fallback
-            const normalizedName = rec.apartmentName?.trim().toLowerCase() ?? null;
-            if (normalizedName && aptByName.has(normalizedName)) {
-                const aptId = aptByName.get(normalizedName);
-                if (typeof aptId === "number") {
-                    (rec).apartmentId = aptId;
+        // 2) Fallback po nazwie (dla starszych wpisów bez idobookingId),
+        //    ale z kanonizacją i preferencją wpisu oznaczonego jako "(Primary)"
+        const aptByCanonicalName = new Map<string, number | { primary?: number; any?: number }>();
+        for (const a of apartmentCandidates) {
+            const canonical = canonicalizeName(a.name);
+            const current = aptByCanonicalName.get(canonical);
+            const isPrimary = /^\s*\(primary\)/i.test(a.name);
+            if (!current) {
+                if (isPrimary) {
+                    aptByCanonicalName.set(canonical, { primary: a.id });
+                } else {
+                    aptByCanonicalName.set(canonical, { any: a.id });
                 }
+            } else {
+                if (typeof current === "number") {
+                    // zamień na obiekt i zaznacz preferencję primary, jeśli dotyczy
+                    const obj = isPrimary ? { primary: a.id } : { any: current };
+                    aptByCanonicalName.set(canonical, obj);
+                } else {
+                    if (isPrimary) current.primary = a.id;
+                    else current.any ??= a.id;
+                }
+            }
+        }
+        const pickFromBucket = (bucket?: number | { primary?: number; any?: number }): number | undefined => {
+            if (bucket === undefined) return undefined;
+            if (typeof bucket === "number") return bucket;
+            return bucket.primary ?? bucket.any;
+        };
+
+        for (const meta of reservationsCreateMeta) {
+            const rec = reservationsToCreate[meta.index];
+            if (!rec) continue;
+
+            // Jeśli obiekt ma wiele wariantów (różne itemCode), dopisz itemCode do nazwy apartamentu,
+            // aby rozróżnić pokoje i ułatwić przypisanie do odpowiedniego wpisu
+            const baseNameCanon = canonicalizeName(meta.objectName ?? rec.apartmentName ?? "");
+            const codes = variantsByBaseName.get(baseNameCanon);
+            const isMultiVariant = !!codes && codes.size > 1;
+            const normalizedItemCode = (meta.itemCode ?? "").trim();
+            if (isMultiVariant && normalizedItemCode) {
+                const displayName = `${meta.objectName ?? rec.apartmentName ?? ""} ${normalizedItemCode}`.trim();
+                rec.apartmentName = displayName;
+            }
+
+            // Najpierw spróbuj dopasować po dokładnym ID
+            const idCandidates: Array<number | undefined> = [
+                meta.objectItemId,
+                meta.itemId,
+                meta.objectId,
+            ];
+            let matchedApartmentId: number | undefined;
+            for (const candidateId of idCandidates) {
+                if (typeof candidateId === "number" && aptByIdobookingId.has(candidateId)) {
+                    matchedApartmentId = aptByIdobookingId.get(candidateId);
+                    break;
+                }
+            }
+
+            // Jeśli brak dopasowania po ID, użyj nazwy jako zapas
+            if (!matchedApartmentId) {
+                // Przy wielowariantowych obiektach, najpierw próbuj dopasować nazwę z itemCode,
+                // następnie bazową nazwę
+                const candidates: string[] = [];
+                if (isMultiVariant && normalizedItemCode) {
+                    candidates.push(canonicalizeName(`${meta.objectName ?? rec.apartmentName ?? ""} ${normalizedItemCode}`));
+                }
+                candidates.push(canonicalizeName(meta.objectName ?? rec.apartmentName ?? ""));
+
+                for (const canonical of candidates) {
+                    if (!canonical) continue;
+                    const bucket = aptByCanonicalName.get(canonical);
+                    const maybeId = pickFromBucket(bucket);
+                    if (typeof maybeId === "number") {
+                        matchedApartmentId = maybeId;
+                        break;
+                    }
+                }
+            }
+
+            if (typeof matchedApartmentId === "number") {
+                (rec).apartmentId = matchedApartmentId;
+                // zapisz w meta
+                meta.apartmentId = matchedApartmentId;
             }
         }
     }
 
     // 4b. Wykonaj operacje hurtowe
     if (reservationsToCreate.length > 0) {
+        // Przypisz roomId do rekordów na podstawie apartmentId + itemCode
+        // Klient do obsługi tabeli Room (typowany lokalnie, aby uniknąć any)
+        type RoomClient = {
+            findFirst: (args: unknown) => Promise<{ id: number } | null>;
+            create: (args: unknown) => Promise<{ id: number }>;
+        };
+        const roomClient = (ctx.db as unknown as { room: RoomClient }).room;
+        for (const meta of reservationsCreateMeta) {
+            const rec = reservationsToCreate[meta.index];
+            if (!rec?.apartmentId || !meta.itemCode) continue;
+            try {
+                const keyApartmentId = rec.apartmentId;
+                const code = meta.itemCode;
+                // Znajdź lub utwórz pokój
+                const existingRoom = await roomClient.findFirst({
+                    where: { apartmentId: keyApartmentId, code },
+                    select: { id: true },
+                });
+                let roomId = existingRoom?.id;
+                if (!roomId) {
+                    const name = `${rec.apartmentName ?? "Pokój"} ${code}`.trim();
+                    const slug = name
+                        .toLowerCase()
+                        .replace(/[^a-z0-9]+/g, "-")
+                        .replace(/(^-|-$)/g, "");
+                    const created = await roomClient.create({
+                        data: {
+                            apartmentId: keyApartmentId,
+                            code,
+                            name,
+                            slug,
+                            address: rec.address ?? "",
+                        },
+                        select: { id: true },
+                    });
+                    roomId = created.id;
+                }
+                (rec as unknown as { roomId?: number }).roomId = roomId;
+            } catch {
+                // pomiń błędy przypisania roomId – rezerwacja i tak zostanie zapisana
+            }
+        }
         logWithTag(`Tworzenie ${reservationsToCreate.length} nowych rezerwacji...`);
         try {
             const result = await ctx.db.reservation.createMany({
@@ -512,36 +760,19 @@ export async function mapToDBReservations(
     }
 
     if (reservationsToUpdate.length > 0) {
-        logWithTag(`Aktualizowanie statusu dla ${reservationsToUpdate.length} rezerwacji...`);
-
-        // Grupuj rezerwacje do aktualizacji po nowym statusie
-        const updatesByStatus: Record<string, { idobookingId: number; oldStatus: string }[]> = {};
-        for (const res of reservationsToUpdate) {
-            (updatesByStatus[res.status] ??= []).push({ idobookingId: res.idobookingId, oldStatus: res.oldStatus });
-        }
-
-        const updatePromises = Object.entries(updatesByStatus).map(async ([status,
-            reservationsGroup]) => {
-            const idsToUpdate = reservationsGroup.map(r => r.idobookingId);
-            logWithTag(`Aktualizowanie ${idsToUpdate.length} rezerwacji na status "${status}"`);
-            return ctx.db.reservation.updateMany({
-                where: {
-                    idobookingId: {
-                        in: idsToUpdate
-                    }
-                },
-                data: {
-                    status: status
-                },
-            });
-        });
-
+        logWithTag(`Aktualizowanie danych dla ${reservationsToUpdate.length} rezerwacji...`);
         try {
-            const results = await Promise.all(updatePromises);
-            const totalUpdated = results.reduce((acc, result) => acc + result.count, 0);
-            logWithTag(`✅ Zaktualizowano status dla ${totalUpdated} rezerwacji w ${results.length} grupach.`);
+            await Promise.all(
+                reservationsToUpdate.map((u) =>
+                    ctx.db.reservation.update({
+                        where: { idobookingId: u.idobookingId },
+                        data: u.data,
+                    }),
+                ),
+            );
+            logWithTag(`✅ Zaktualizowano ${reservationsToUpdate.length} rezerwacji.`);
         } catch (error) {
-            logWithTag(`❌ Błąd podczas hurtowej aktualizacji statusów rezerwacji:`, error);
+            logWithTag(`❌ Błąd podczas aktualizacji rezerwacji:`, error);
         }
     } else {
         logWithTag("Brak rezerwacji do zaktualizowania.");

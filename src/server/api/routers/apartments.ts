@@ -15,6 +15,16 @@ export const apartmentsRouter = createTRPCRouter({
                 slug: z.string(),
                 address: z.string(),
                 reservations: z.number(), // Dodajemy pole z liczbą rezerwacji
+                rooms: z.array(z.object({
+                    code: z.string(),
+                    reservations: z.number(),
+                    apartmentId: z.string().optional(),
+                    id: z.string().optional(),
+                    name: z.string().optional(),
+                    slug: z.string().optional(),
+                    address: z.string().optional(),
+                    imageUrl: z.string().optional(),
+                })).optional(),
                 defaultRentAmount: z.number().nullable(),
                 defaultUtilitiesAmount: z.number().nullable(),
                 weeklyLaundryCost: z.number().nullable(),
@@ -93,12 +103,52 @@ export const apartmentsRouter = createTRPCRouter({
                     },
                 });
 
+                // Pobierz pokoje (itemCode) dla każdego apartamentu
+                const roomsByApartmentId = new Map<number, { code: string, reservations: number }[]>();
+                type RoomRow = { id: number; code: string; name: string; slug: string; address: string; _count: { reservations: number } };
+                type RoomClient = {
+                    findMany: (args: unknown) => Promise<RoomRow[]>;
+                    findFirst: (args: unknown) => Promise<{ id: number } | null>;
+                    create: (args: unknown) => Promise<{ id: number }>;
+                };
+                const roomClient = (ctx.db as unknown as { room: RoomClient }).room;
+                await Promise.all(apartments.map(async (apt) => {
+                    const rooms = await roomClient.findMany({
+                        where: { apartmentId: apt.id },
+                        select: {
+                            id: true,
+                            code: true,
+                            name: true,
+                            slug: true,
+                            address: true,
+                            _count: { select: { reservations: true } },
+                        },
+                        orderBy: { code: 'asc' },
+                    });
+                    roomsByApartmentId.set(
+                        apt.id,
+                        rooms.length > 1
+                            ? rooms.map(r => ({
+                                id: r.id.toString(),
+                                code: r.code,
+                                reservations: r._count.reservations,
+                                apartmentId: apt.id.toString(),
+                                name: r.name,
+                                slug: r.slug,
+                                address: r.address,
+                                imageUrl: undefined,
+                            }))
+                            : [],
+                    );
+                }));
+
                 return {
                     success: true,
                     apartments: apartments.map(apt => ({
                         ...apt,
                         id: apt.id.toString(),
                         reservations: apt._count.reservations, // Przekazujemy liczbę rezerwacji
+                        rooms: roomsByApartmentId.get(apt.id) ?? [],
                         images: apt.images.map(img => ({
                             ...img,
                             id: img.id,
@@ -112,10 +162,169 @@ export const apartmentsRouter = createTRPCRouter({
                         }))
                     })),
                 };
-            } catch (error) {
+            } catch (error: unknown) {
                 console.error("❌ Error fetching apartments:", error);
                 throw new Error("Błąd podczas pobierania apartamentów");
             }
+        }),
+
+    // Jednorazowe budowanie tabeli Room i powiązań reservation.roomId na podstawie istniejących rezerwacji
+    backfillRoomsFromReservations: protectedProcedure
+        .output(z.object({
+            success: z.boolean(),
+            createdRooms: z.number(),
+            updatedReservations: z.number(),
+        }))
+        .mutation(async ({ ctx }) => {
+            if (ctx.session.user.type !== UserType.ADMIN) {
+                throw new TRPCError({
+                    code: "FORBIDDEN",
+                    message: "Tylko administratorzy mogą wykonywać tę akcję.",
+                });
+            }
+
+            // Lokalny typowany klient dla tabeli Room (unikanie błędów typów, kiedy typy Prisma nie są zregenerowane)
+            type RoomClient = {
+                findFirst: (args: unknown) => Promise<{ id: number } | null>;
+                create: (args: unknown) => Promise<{ id: number }>;
+            };
+            const roomClient = (ctx.db as unknown as { room: RoomClient }).room;
+
+            // Zgrupuj istniejące rezerwacje według (apartmentId, itemCode)
+            const groups = await ctx.db.reservation.groupBy({
+                by: ["apartmentId", "itemCode"],
+                where: {
+                    apartmentId: { not: null },
+                    itemCode: { not: null },
+                },
+                _count: { _all: true },
+            });
+
+            let createdRooms = 0;
+            let updatedReservations = 0;
+
+            for (const g of groups) {
+                const apartmentId = (g.apartmentId ?? null) as unknown as number | null;
+                const code = (g.itemCode ?? null) as unknown as string | null;
+                if (!apartmentId || !code) continue;
+
+                // Czy pokój już istnieje?
+                const existing = await roomClient.findFirst({
+                    where: { apartmentId, code },
+                    select: { id: true },
+                });
+                let roomId = existing?.id;
+                if (!roomId) {
+                    // Potrzebujemy nazwy/adresu z apartamentu
+                    const parent = await ctx.db.apartment.findUnique({
+                        where: { id: apartmentId },
+                        select: { name: true, address: true },
+                    });
+                    const baseName = parent?.name ?? "Pokój";
+                    const name = `${baseName} ${code}`.trim();
+                    const slug = slugify(name);
+                    const created = await roomClient.create({
+                        data: {
+                            apartmentId,
+                            code,
+                            name,
+                            slug,
+                            address: parent?.address ?? "",
+                        },
+                        select: { id: true },
+                    });
+                    roomId = created.id;
+                    createdRooms += 1;
+                }
+
+                // Uzupełnij powiązania reservation.roomId
+                const updated = await ctx.db.reservation.updateMany({
+                    where: {
+                        apartmentId,
+                        itemCode: code,
+                        roomId: null,
+                    },
+                    data: { roomId },
+                });
+                updatedReservations += updated.count;
+            }
+
+            return { success: true, createdRooms, updatedReservations };
+        }),
+
+    // Utwórz osobny wpis apartamentu-variantu dla danego itemCode na bazie apartamentu nadrzędnego
+    createVariant: protectedProcedure
+        .input(z.object({
+            parentApartmentId: z.string(),
+            code: z.string().min(1),
+        }))
+        .output(z.object({
+            success: z.boolean(),
+            roomId: z.string(),
+        }))
+        .mutation(async ({ ctx, input }) => {
+            if (ctx.session.user.type !== UserType.ADMIN) {
+                throw new TRPCError({
+                    code: "FORBIDDEN",
+                    message: "Tylko administratorzy mogą tworzyć warianty apartamentów",
+                });
+            }
+
+            const parentIdNum = Number(input.parentApartmentId);
+            const parent = await ctx.db.apartment.findUnique({
+                where: { id: parentIdNum },
+                select: {
+                    name: true,
+                    address: true,
+                    defaultRentAmount: true,
+                    defaultUtilitiesAmount: true,
+                    weeklyLaundryCost: true,
+                    cleaningSuppliesCost: true,
+                    capsuleCostPerGuest: true,
+                    wineCost: true,
+                    hasBalcony: true,
+                    hasParking: true,
+                    maxGuests: true,
+                },
+            });
+            if (!parent) {
+                throw new TRPCError({ code: "NOT_FOUND", message: "Apartament nadrzędny nie istnieje" });
+            }
+
+            const name = `${parent.name} ${input.code}`.trim();
+            const slug = slugify(name);
+
+            // Upewnij się, że nie istnieje już taki pokój
+            type RoomClient = { findFirst: (args: unknown) => Promise<{ id: number } | null>; create: (args: unknown) => Promise<{ id: number }> };
+            const roomClient = (ctx.db as unknown as { room: RoomClient }).room;
+            const existing = await roomClient.findFirst({
+                where: { apartmentId: parentIdNum, code: input.code },
+                select: { id: true },
+            });
+            if (existing) {
+                return { success: true, roomId: existing.id.toString() };
+            }
+
+            const variant = await roomClient.create({
+                data: {
+                    apartmentId: parentIdNum,
+                    code: input.code,
+                    name,
+                    slug,
+                    address: parent.address,
+                    defaultRentAmount: parent.defaultRentAmount,
+                    defaultUtilitiesAmount: parent.defaultUtilitiesAmount,
+                    weeklyLaundryCost: parent.weeklyLaundryCost ?? 120,
+                    cleaningSuppliesCost: parent.cleaningSuppliesCost ?? 132,
+                    capsuleCostPerGuest: parent.capsuleCostPerGuest ?? 2.5,
+                    wineCost: parent.wineCost ?? 250,
+                    hasBalcony: parent.hasBalcony,
+                    hasParking: parent.hasParking,
+                    maxGuests: parent.maxGuests ?? 4,
+                },
+            });
+
+            return { success: true, roomId: variant.id.toString() };
         }),
 
     getForOwner: publicProcedure
@@ -145,6 +354,9 @@ export const apartmentsRouter = createTRPCRouter({
                                         where: { isPrimary: true },
                                         take: 1,
                                     },
+                                    _count: {
+                                        select: { rooms: true },
+                                    },
                                 },
                             },
                         },
@@ -159,7 +371,23 @@ export const apartmentsRouter = createTRPCRouter({
                 });
             }
 
-            return owner.ownedApartments.map((oa) => oa.apartment);
+            type OwnerWithApartments = {
+                ownedApartments: Array<{
+                    apartment: {
+                        id: number;
+                        name: string;
+                        address: string;
+                        averageRating: number | null;
+                        images: Array<{ id: string; url: string; alt: string | null; isPrimary: boolean; order: number }>;
+                        _count: { rooms: number };
+                    };
+                }>;
+            };
+            const typedOwner = owner as unknown as OwnerWithApartments;
+            return typedOwner.ownedApartments.map(({ apartment }) => {
+                const { _count, ...rest } = apartment;
+                return { ...rest, roomsCount: _count.rooms };
+            });
         }),
 
     getDetails: publicProcedure

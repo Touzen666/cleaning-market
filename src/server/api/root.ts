@@ -16,6 +16,7 @@ import { csvImportRouter } from "@/server/api/routers/csv-import";
 import { emailRouter } from "@/server/api/routers/email";
 import { adminDashboardRouter } from "@/server/api/routers/admin-dashboard";
 import { uploadRouter } from "@/server/api/routers/upload";
+import { roomsRouter } from "@/server/api/routers/rooms";
 
 /**
  * This is the primary router for your server.
@@ -40,6 +41,7 @@ export const appRouter = createTRPCRouter({
     email: emailRouter,
     adminDashboard: adminDashboardRouter,
     upload: uploadRouter,
+    rooms: roomsRouter,
 });
 
 // export type definition of API

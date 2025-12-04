@@ -55,6 +55,22 @@ export default function ApartmentsManagementPage() {
       },
     });
 
+  const backfillRoomsMutation = api.apartments.backfillRoomsFromReservations.useMutation({
+    onSuccess: (data) => {
+      setStatus({
+        type: "success",
+        message: `Utworzono pokoi: ${data.createdRooms}, zaktualizowano rezerwacji: ${data.updatedReservations}`,
+      });
+      void apartmentsListQuery.refetch();
+    },
+    onError: (error) => {
+      setStatus({
+        type: "error",
+        message: `Błąd backfillu: ${error.message}`,
+      });
+    },
+  });
+
   const handleMapReservations = () => {
     setStatus(null);
     mapReservationsMutation.mutate();
@@ -188,6 +204,13 @@ export default function ApartmentsManagementPage() {
                 {mapReservationsMutation.isPending
                   ? "Mapowanie..."
                   : "Mapuj rezerwacje na apartamenty"}
+              </button>
+              <button
+                onClick={() => backfillRoomsMutation.mutate()}
+                disabled={backfillRoomsMutation.isPending}
+                className="inline-flex items-center rounded-md bg-purple-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-purple-500 disabled:opacity-50"
+              >
+                {backfillRoomsMutation.isPending ? "Budowanie pokoi..." : "Zbuduj pokoje z rezerwacji"}
               </button>
             </div>
           </div>
