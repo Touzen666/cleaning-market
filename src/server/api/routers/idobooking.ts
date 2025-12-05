@@ -431,7 +431,7 @@ export async function mapToDBReservations(
             const mapped: ExistingReservationLookup = {
                 idobookingId: r.idobookingId!,
                 status: r.status,
-                itemCode: (r.itemCode ?? null) as string | null,
+                itemCode: r.itemCode ?? null,
                 apartmentName: r.apartmentName,
             };
             return [mapped.idobookingId, mapped] as const;
