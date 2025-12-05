@@ -4,9 +4,11 @@ import { createCaller } from "@/server/api/root";
 import { env } from "@/env";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
     try {
+        console.log("[CRON] /api/cron/idobooking invoked at", new Date().toISOString());
         // Prepare headers for context; inject CRON auth for the public cron procedure
         const headers = new Headers(req.headers);
         if (env.CRON_SECRET) {
@@ -17,6 +19,7 @@ export async function GET(req: Request) {
         const trpc = createCaller(ctx);
 
         const result = await trpc.idobooking.syncReservationsCron({});
+        console.log("[CRON] /api/cron/idobooking completed");
         return NextResponse.json(result);
     } catch (error) {
         const message =

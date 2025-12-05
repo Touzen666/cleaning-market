@@ -2,6 +2,8 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createTRPCContext } from "@/server/api/trpc";
 import { appRouter } from "@/server/api/root";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: NextRequest) {
     const startTime = Date.now();
     const requestId = Math.random().toString(36).slice(2);
