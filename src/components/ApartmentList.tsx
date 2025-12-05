@@ -3,8 +3,12 @@
 import React from "react";
 import Image from "next/image";
 import type { RouterOutputs } from "@/trpc/react";
+import { api } from "@/trpc/react";
+import { useRouter } from "next/navigation";
 
 type Apartment = RouterOutputs["apartments"]["getAll"]["apartments"][0];
+type ApartmentRoom = { code: string; reservations: number };
+type ApartmentWithRooms = Apartment & { rooms?: ApartmentRoom[] };
 
 interface ApartmentListProps {
   apartments: Apartment[];
@@ -31,6 +35,27 @@ export default function ApartmentList({
   className = "",
   deletingApartmentId = null,
 }: ApartmentListProps) {
+  const router = useRouter();
+  const [expanded, setExpanded] = React.useState<Record<string, boolean>>({});
+  const toggleExpanded = (id: string) =>
+    setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
+
+  // Mutacje muszą być hookami na najwyższym poziomie komponentu
+  const createVariantMutation = api.apartments.createVariant.useMutation();
+  const handleCreateVariant = async (
+    parentApartmentId: string,
+    code: string,
+  ) => {
+    try {
+      const res = await createVariantMutation.mutateAsync({
+        parentApartmentId,
+        code,
+      });
+      router.push(`/admin/rooms/${res.roomId}`);
+    } catch {
+      // noop
+    }
+  };
   const getPrimaryImage = (apartment: Apartment) => {
     if (!apartment.images || apartment.images.length === 0) {
       return null;
@@ -44,7 +69,7 @@ export default function ApartmentList({
     return primaryImage;
   };
 
-  const renderApartmentCard = (apartment: Apartment) => {
+  const renderApartmentCard = (apartment: Apartment, index?: number) => {
     const primaryImage = getPrimaryImage(apartment);
 
     return (
@@ -61,6 +86,7 @@ export default function ApartmentList({
               fill
               className="object-cover"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              priority={index === 0}
             />
           ) : (
             <div className="flex h-full items-center justify-center">
@@ -300,147 +326,166 @@ export default function ApartmentList({
 
   const renderTableRow = (apartment: Apartment) => {
     const primaryImage = getPrimaryImage(apartment);
+    const aptWithRooms = apartment as ApartmentWithRooms;
+    const rooms = aptWithRooms.rooms ?? [];
+    const hasRooms = rooms.length > 1;
 
     return (
-      <tr key={apartment.id} className="hover:bg-gray-50">
-        <td className="px-6 py-4 text-sm text-gray-900">
-          <div className="flex items-center space-x-4">
-            <div className="flex-shrink-0">
-              <div className="relative h-16 w-16 overflow-hidden rounded-lg bg-gray-100">
-                {primaryImage ? (
-                  <Image
-                    src={primaryImage.url}
-                    alt={primaryImage.alt ?? apartment.name}
-                    fill
-                    className="object-cover"
-                    sizes="64px"
-                    quality={100}
-                  />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center">
-                    <svg
-                      className="h-8 w-8 text-gray-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                      />
-                    </svg>
-                  </div>
-                )}
+      <React.Fragment key={apartment.id}>
+        <tr className="hover:bg-gray-50">
+          <td className="px-6 py-4 text-sm text-gray-900">
+            <div className="flex items-center space-x-3">
+              {hasRooms && (
+                <button
+                  aria-label="toggle-rooms"
+                  onClick={() => toggleExpanded(apartment.id)}
+                  className="rounded p-1 hover:bg-gray-100"
+                >
+                  <svg
+                    className={`h-4 w-4 transition-transform ${expanded[apartment.id] ? "rotate-90" : ""}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </button>
+              )}
+              <div className="flex-shrink-0">
+                <div className="relative h-16 w-16 overflow-hidden rounded-lg bg-gray-100">
+                  {primaryImage ? (
+                    <Image
+                      src={primaryImage.url}
+                      alt={primaryImage.alt ?? apartment.name}
+                      fill
+                      className="object-cover"
+                      sizes="64px"
+                      quality={100}
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center">
+                      <svg
+                        className="h-8 w-8 text-gray-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                        />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div>
+                <div className="font-medium">{apartment.name}</div>
               </div>
             </div>
-            <div>
-              <div className="font-medium">{apartment.name}</div>
-            </div>
-          </div>
-        </td>
-        <td className="whitespace-nowrap px-6 py-4">
-          <div className="text-sm text-gray-500">{apartment.address}</div>
-        </td>
-        <td className="whitespace-nowrap px-6 py-4">
-          <div className="text-sm text-gray-900">{apartment.slug}</div>
-        </td>
-        <td className="whitespace-nowrap px-4 py-4 text-sm text-gray-500">
-          <button className="inline-flex items-center rounded-md bg-blue-100 px-2.5 py-1.5 text-sm font-semibold text-blue-800 hover:bg-blue-200">
-            {apartment.reservations} Reservation(s)
-          </button>
-        </td>
-        {showActions && (
-          <td className="whitespace-nowrap px-4 py-4 text-right text-sm font-medium">
-            <div className="flex justify-end space-x-2">
-              {mode === "admin" && (
-                <>
-                  {onEdit && (
-                    <button
-                      onClick={() => onEdit(apartment.id)}
-                      className="inline-flex items-center rounded-md bg-yellow-500 px-3 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 hover:bg-yellow-600"
-                    >
-                      <svg
-                        className="-ml-0.5 mr-1.5 h-4 w-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                        />
-                      </svg>
-                      Edytuj
-                    </button>
-                  )}
-                  {onDelete && (
-                    <button
-                      onClick={() => onDelete(apartment.id)}
-                      disabled={deletingApartmentId === apartment.id}
-                      className="inline-flex items-center rounded-md bg-red-500 px-3 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 hover:bg-red-600"
-                    >
-                      {deletingApartmentId === apartment.id
-                        ? "Usuwanie..."
-                        : "Usuń"}
-                    </button>
-                  )}
-                </>
-              )}
-
-              {mode === "owner" && (
-                <>
-                  {onViewReservations && (
-                    <button
-                      onClick={() => onViewReservations(apartment.id)}
-                      className="inline-flex items-center rounded-md bg-blue-500 px-3 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 hover:bg-blue-600"
-                    >
-                      <svg
-                        className="-ml-0.5 mr-1.5 h-4 w-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                        />
-                      </svg>
-                      Rezerwacje
-                    </button>
-                  )}
-                  {onViewReports && (
-                    <button
-                      onClick={() => onViewReports(apartment.id)}
-                      className="inline-flex items-center rounded-md bg-green-500 px-3 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 hover:bg-green-600"
-                    >
-                      <svg
-                        className="-ml-0.5 mr-1.5 h-4 w-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                        />
-                      </svg>
-                      Raporty
-                    </button>
-                  )}
-                </>
-              )}
-            </div>
           </td>
-        )}
-      </tr>
+          <td className="whitespace-nowrap px-6 py-4">
+            <div className="text-sm text-gray-500">{apartment.address}</div>
+          </td>
+          <td className="whitespace-nowrap px-6 py-4">
+            <div className="text-sm text-gray-900">{apartment.slug}</div>
+          </td>
+          <td className="whitespace-nowrap px-4 py-4 text-sm text-gray-500">
+            <button className="inline-flex items-center rounded-md bg-blue-100 px-2.5 py-1.5 text-sm font-semibold text-blue-800 hover:bg-blue-200">
+              {apartment.reservations} Reservation(s)
+            </button>
+          </td>
+          {showActions && (
+            <td className="whitespace-nowrap px-4 py-4 text-right text-sm font-medium">
+              <div className="flex justify-end space-x-2">
+                {mode === "admin" && (
+                  <>
+                    {/* Jeśli apartament NIE jest wielowariantowy (brak wielu pokoi) – pozwól edytować główny wpis */}
+                    {!hasRooms && onEdit && (
+                      <button
+                        onClick={() => onEdit(apartment.id)}
+                        className="inline-flex items-center rounded-md bg-yellow-500 px-3 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 hover:bg-yellow-600"
+                      >
+                        Edytuj
+                      </button>
+                    )}
+                    {/* Jeśli apartament ma wiele pokoi – edycja będzie na poziomie pokoi, tu zostawiamy tylko Usuń */}
+                    {onDelete && (
+                      <button
+                        onClick={() => onDelete(apartment.id)}
+                        disabled={deletingApartmentId === apartment.id}
+                        className="inline-flex items-center rounded-md bg-red-500 px-3 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 hover:bg-red-600"
+                      >
+                        {deletingApartmentId === apartment.id
+                          ? "Usuwanie..."
+                          : "Usuń"}
+                      </button>
+                    )}
+                  </>
+                )}
+              </div>
+            </td>
+          )}
+        </tr>
+        {hasRooms &&
+          expanded[apartment.id] &&
+          rooms.map((room) => (
+            <tr key={`${apartment.id}-${room.code}`} className="bg-gray-50">
+              <td className="px-6 py-3 text-sm text-gray-700">
+                <div className="pl-10">Pokój {room.code}</div>
+              </td>
+              <td className="px-6 py-3 text-sm text-gray-500">
+                {room.address ?? "—"}
+              </td>
+              <td className="px-6 py-3 text-sm text-gray-500">
+                {room.slug ?? "—"}
+              </td>
+              <td className="px-4 py-3 text-sm text-gray-700">
+                {room.reservations} Reservation(s)
+              </td>
+              {showActions && (
+                <td className="px-4 py-3 text-right">
+                  <div className="flex justify-end space-x-2">
+                    {mode === "admin" && room.id && (
+                      <>
+                        <button
+                          onClick={() =>
+                            router.push(
+                              `/admin/apartments/${apartment.id}?roomId=${room.id}`,
+                            )
+                          }
+                          className="inline-flex items-center rounded-md bg-yellow-500 px-3 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 hover:bg-yellow-600"
+                        >
+                          Edytuj
+                        </button>
+                      </>
+                    )}
+                    {mode === "admin" && !room.id && (
+                      <button
+                        onClick={() =>
+                          handleCreateVariant(apartment.id, room.code)
+                        }
+                        disabled={createVariantMutation.isPending}
+                        className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2 disabled:opacity-50 hover:bg-indigo-500"
+                      >
+                        {createVariantMutation.isPending
+                          ? "Tworzenie..."
+                          : "Utwórz pokój"}
+                      </button>
+                    )}
+                  </div>
+                </td>
+              )}
+            </tr>
+          ))}
+      </React.Fragment>
     );
   };
 
@@ -479,7 +524,9 @@ export default function ApartmentList({
       <div
         className={`grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 ${className}`}
       >
-        {apartments.map(renderApartmentCard)}
+        {apartments.map((apartment, index) =>
+          renderApartmentCard(apartment, index),
+        )}
       </div>
     );
   }

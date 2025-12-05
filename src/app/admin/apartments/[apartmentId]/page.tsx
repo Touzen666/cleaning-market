@@ -38,13 +38,13 @@ export default function EditApartmentPage({
   searchParams,
 }: {
   params: Promise<{ apartmentId: string }>;
-  searchParams: Promise<{ ownerId?: string }>;
+  searchParams: Promise<{ ownerId?: string; roomId?: string }>;
 }) {
   const router = useRouter();
   const actualParams = React.use(params);
   const actualSearchParams = React.use(searchParams);
   const { apartmentId } = actualParams;
-  const { ownerId } = actualSearchParams;
+  const { ownerId, roomId } = actualSearchParams;
   const [form, setForm] = useState({
     name: "",
     address: "",
@@ -87,21 +87,39 @@ export default function EditApartmentPage({
     }
   }, [ownerId]);
 
-  // Query do pobierania danych apartamentu
+  // Query do pobierania danych: tryb apartamentu lub pokoju
   const apartmentQuery = api.apartments.getById.useQuery(
     { id: createdApartmentId ?? apartmentId },
     {
       enabled:
-        apartmentId !== "new" ||
-        (createdApartmentId !== null && createdApartmentId !== ""),
+        !roomId &&
+        (apartmentId !== "new" ||
+          (createdApartmentId !== null && createdApartmentId !== "")),
     },
   );
+  const roomQuery = api.rooms.getById.useQuery(
+    { id: roomId ?? "" },
+    { enabled: !!roomId },
+  );
+  // Gdy edytujemy pokój, pobierz adres z apartamentu nadrzędnego do domyślnego wypełnienia
+  const parentApartmentQuery = api.apartments.getById.useQuery(
+    { id: apartmentId },
+    { enabled: !!roomId },
+  );
 
-  // Mutacja do aktualizacji apartamentu
+  // Mutacje
   const updateApartment = api.apartments.update.useMutation({
     onSuccess: () => {
       setStatus("success");
       // Usuwamy automatyczne przekierowanie - użytkownik sam zdecyduje kiedy opuścić stronę
+    },
+    onError: (err) => {
+      setStatus(err.message);
+    },
+  });
+  const updateRoom = api.rooms.update.useMutation({
+    onSuccess: () => {
+      setStatus("success");
     },
     onError: (err) => {
       setStatus(err.message);
@@ -138,7 +156,27 @@ export default function EditApartmentPage({
 
   // Wypełnij formularz danymi apartamentu
   useEffect(() => {
-    if (apartmentQuery.data && (apartmentId !== "new" || createdApartmentId)) {
+    if (roomId && roomQuery.data) {
+      const r = roomQuery.data;
+      setForm({
+        // nazwa automatycznie jako numer pokoju (code)
+        name: r.code,
+        // adres domyślnie z apartamentu nadrzędnego (zostawiamy możliwość edycji)
+        address: parentApartmentQuery.data?.address ?? r.address ?? "",
+        defaultRentAmount: r.defaultRentAmount ?? 0,
+        defaultUtilitiesAmount: r.defaultUtilitiesAmount ?? 0,
+        weeklyLaundryCost: r.weeklyLaundryCost ?? 120,
+        hasBalcony: r.hasBalcony,
+        hasParking: r.hasParking,
+        maxGuests: r.maxGuests ?? 4,
+        cleaningCosts: {},
+        paymentType: "COMMISSION",
+        fixedPaymentAmount: 0,
+      });
+    } else if (
+      apartmentQuery.data &&
+      (apartmentId !== "new" || createdApartmentId)
+    ) {
       const apartment = apartmentQuery.data;
       setForm({
         name: apartment.name,
@@ -155,7 +193,14 @@ export default function EditApartmentPage({
         fixedPaymentAmount: apartment.fixedPaymentAmount ?? 0,
       });
     }
-  }, [apartmentQuery.data, apartmentId, createdApartmentId]);
+  }, [
+    apartmentQuery.data,
+    parentApartmentQuery.data,
+    roomQuery.data,
+    apartmentId,
+    createdApartmentId,
+    roomId,
+  ]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -163,7 +208,7 @@ export default function EditApartmentPage({
 
     const currentApartmentId = createdApartmentId ?? apartmentId;
 
-    if (apartmentId === "new" && !createdApartmentId) {
+    if (!roomId && apartmentId === "new" && !createdApartmentId) {
       createApartment.mutate({
         ...form,
         defaultRentAmount: Number(form.defaultRentAmount),
@@ -173,7 +218,7 @@ export default function EditApartmentPage({
         cleaningCosts: form.cleaningCosts,
         ownerId: ownerId, // Przekaż ID właściciela jeśli jest dostępne
       });
-    } else {
+    } else if (!roomId) {
       updateApartment.mutate({
         id: currentApartmentId,
         ...form,
@@ -182,6 +227,15 @@ export default function EditApartmentPage({
         weeklyLaundryCost: Number(form.weeklyLaundryCost),
         maxGuests: Number(form.maxGuests),
         cleaningCosts: form.cleaningCosts,
+      });
+    } else {
+      updateRoom.mutate({
+        id: roomId,
+        ...form,
+        defaultRentAmount: Number(form.defaultRentAmount),
+        defaultUtilitiesAmount: Number(form.defaultUtilitiesAmount),
+        weeklyLaundryCost: Number(form.weeklyLaundryCost),
+        maxGuests: Number(form.maxGuests),
       });
     }
   };
@@ -232,14 +286,18 @@ export default function EditApartmentPage({
           <div className="sm:flex sm:items-center sm:justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">
-                {apartmentId === "new" && !createdApartmentId
-                  ? "Dodaj nowy apartament"
-                  : "Edytuj apartament"}
+                {roomId
+                  ? "Edytuj pokój"
+                  : apartmentId === "new" && !createdApartmentId
+                    ? "Dodaj nowy apartament"
+                    : "Edytuj apartament"}
               </h1>
               <p className="mt-2 text-sm text-gray-600">
-                {apartmentId === "new" && !createdApartmentId
-                  ? "Wypełnij formularz aby dodać nowy apartament do systemu"
-                  : "Zmień dane apartamentu i zapisz zmiany"}
+                {roomId
+                  ? "Zmień dane pokoju i zapisz zmiany"
+                  : apartmentId === "new" && !createdApartmentId
+                    ? "Wypełnij formularz aby dodać nowy apartament do systemu"
+                    : "Zmień dane apartamentu i zapisz zmiany"}
               </p>
             </div>
             <div className="mt-4 sm:mt-0">

@@ -82,7 +82,7 @@ export const uploadRouter = createTRPCRouter({
 
                 // Generuj unikalną nazwę pliku
                 const timestamp = Date.now();
-                const filename = input.filename || `profile-${timestamp}.jpg`;
+                const filename = input.filename ?? `profile-${timestamp}.jpg`;
                 const fullFilename = `profiles/${filename}`;
 
                 const blob = await put(fullFilename, buffer, {
