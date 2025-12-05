@@ -438,8 +438,7 @@ export const reservationsRouter = createTRPCRouter({
           address: apartment.address,
           imageUrl: primaryImageUrl,
           reservations,
-          parentApartmentId: apartment.id,
-          parentApartmentName: apartment.name,
+          // For single-room or no-room apartments, do not set parent identifiers
         });
       }
 

@@ -643,9 +643,13 @@ export const monthlyReportsRouter = createTRPCRouter({
                     amount: amount ?? existing.amount,
                     description: description ?? existing.description,
                     date: date ?? existing.date,
-                    notes: startDate || endDate
-                        ? `Okres: ${(startDate ?? endDate)!.toISOString().slice(0, 10)} - ${(endDate ?? startDate)!.toISOString().slice(0, 10)}`
-                        : existing.notes,
+                    notes: startDate && endDate
+                        ? `Okres: ${startDate.toISOString().slice(0, 10)} - ${endDate.toISOString().slice(0, 10)}`
+                        : startDate
+                            ? `Od: ${startDate.toISOString().slice(0, 10)}`
+                            : endDate
+                                ? `Do: ${endDate.toISOString().slice(0, 10)}`
+                                : existing.notes,
                 },
             });
 
@@ -697,9 +701,13 @@ export const monthlyReportsRouter = createTRPCRouter({
             const fallbackDate = new Date(Date.UTC(report.year, report.month, 0));
             const date = endDate ?? startDate ?? fallbackDate;
 
-            const periodNote = startDate || endDate
-                ? `Okres: ${(startDate ?? endDate)!.toISOString().slice(0, 10)} - ${(endDate ?? startDate)!.toISOString().slice(0, 10)}`
-                : undefined;
+            const periodNote = startDate && endDate
+                ? `Okres: ${startDate.toISOString().slice(0, 10)} - ${endDate.toISOString().slice(0, 10)}`
+                : startDate
+                    ? `Od: ${startDate.toISOString().slice(0, 10)}`
+                    : endDate
+                        ? `Do: ${endDate.toISOString().slice(0, 10)}`
+                        : undefined;
 
             const item = await ctx.db.reportItem.create({
                 data: {

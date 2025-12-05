@@ -14,7 +14,7 @@ export async function GET(req: Request) {
         }
 
         const ctx = await createTRPCContext({ headers });
-        const trpc = createCaller(async () => ctx);
+        const trpc = createCaller(ctx);
 
         const result = await trpc.idobooking.syncReservationsCron({});
         return NextResponse.json(result);

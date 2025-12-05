@@ -92,10 +92,9 @@ export default function EditApartmentPage({
     { id: createdApartmentId ?? apartmentId },
     {
       enabled:
-        (!roomId &&
-          (apartmentId !== "new" ||
-            (createdApartmentId !== null && createdApartmentId !== ""))) ||
-        false,
+        !roomId &&
+        (apartmentId !== "new" ||
+          (createdApartmentId !== null && createdApartmentId !== "")),
     },
   );
   const roomQuery = api.rooms.getById.useQuery(
@@ -163,10 +162,7 @@ export default function EditApartmentPage({
         // nazwa automatycznie jako numer pokoju (code)
         name: r.code,
         // adres domyślnie z apartamentu nadrzędnego (zostawiamy możliwość edycji)
-        address:
-          parentApartmentQuery.data?.address ??
-          r.address ??
-          "",
+        address: parentApartmentQuery.data?.address ?? r.address ?? "",
         defaultRentAmount: r.defaultRentAmount ?? 0,
         defaultUtilitiesAmount: r.defaultUtilitiesAmount ?? 0,
         weeklyLaundryCost: r.weeklyLaundryCost ?? 120,
@@ -293,15 +289,15 @@ export default function EditApartmentPage({
                 {roomId
                   ? "Edytuj pokój"
                   : apartmentId === "new" && !createdApartmentId
-                  ? "Dodaj nowy apartament"
-                  : "Edytuj apartament"}
+                    ? "Dodaj nowy apartament"
+                    : "Edytuj apartament"}
               </h1>
               <p className="mt-2 text-sm text-gray-600">
                 {roomId
                   ? "Zmień dane pokoju i zapisz zmiany"
                   : apartmentId === "new" && !createdApartmentId
-                  ? "Wypełnij formularz aby dodać nowy apartament do systemu"
-                  : "Zmień dane apartamentu i zapisz zmiany"}
+                    ? "Wypełnij formularz aby dodać nowy apartament do systemu"
+                    : "Zmień dane apartamentu i zapisz zmiany"}
               </p>
             </div>
             <div className="mt-4 sm:mt-0">

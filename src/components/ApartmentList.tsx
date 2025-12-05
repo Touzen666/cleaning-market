@@ -42,7 +42,10 @@ export default function ApartmentList({
 
   // Mutacje muszą być hookami na najwyższym poziomie komponentu
   const createVariantMutation = api.apartments.createVariant.useMutation();
-  const handleCreateVariant = async (parentApartmentId: string, code: string) => {
+  const handleCreateVariant = async (
+    parentApartmentId: string,
+    code: string,
+  ) => {
     try {
       const res = await createVariantMutation.mutateAsync({
         parentApartmentId,
@@ -420,7 +423,9 @@ export default function ApartmentList({
                         disabled={deletingApartmentId === apartment.id}
                         className="inline-flex items-center rounded-md bg-red-500 px-3 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 hover:bg-red-600"
                       >
-                        {deletingApartmentId === apartment.id ? "Usuwanie..." : "Usuń"}
+                        {deletingApartmentId === apartment.id
+                          ? "Usuwanie..."
+                          : "Usuń"}
                       </button>
                     )}
                   </>
@@ -429,49 +434,57 @@ export default function ApartmentList({
             </td>
           )}
         </tr>
-        {hasRooms && expanded[apartment.id] && rooms.map((room) => (
-          <tr key={`${apartment.id}-${room.code}`} className="bg-gray-50">
-            <td className="px-6 py-3 text-sm text-gray-700">
-              <div className="pl-10">
-                Pokój {room.code}
-              </div>
-            </td>
-            <td className="px-6 py-3 text-sm text-gray-500">
-              {room.address ?? "—"}
-            </td>
-            <td className="px-6 py-3 text-sm text-gray-500">
-              {room.slug ?? "—"}
-            </td>
-            <td className="px-4 py-3 text-sm text-gray-700">
-              {room.reservations} Reservation(s)
-            </td>
-            {showActions && (
-              <td className="px-4 py-3 text-right">
-                <div className="flex justify-end space-x-2">
-                  {mode === "admin" && room.id && (
-                    <>
-                      <button
-                        onClick={() => router.push(`/admin/apartments/${apartment.id}?roomId=${room.id}`)}
-                        className="inline-flex items-center rounded-md bg-yellow-500 px-3 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 hover:bg-yellow-600"
-                      >
-                        Edytuj
-                      </button>
-                    </>
-                  )}
-                  {mode === "admin" && !room.apartmentId && (
-                    <button
-                      onClick={() => handleCreateVariant(apartment.id, room.code)}
-                      disabled={createVariantMutation.isPending}
-                      className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2 disabled:opacity-50 hover:bg-indigo-500"
-                    >
-                      {createVariantMutation.isPending ? "Tworzenie..." : "Utwórz pokój"}
-                    </button>
-                  )}
-                </div>
+        {hasRooms &&
+          expanded[apartment.id] &&
+          rooms.map((room) => (
+            <tr key={`${apartment.id}-${room.code}`} className="bg-gray-50">
+              <td className="px-6 py-3 text-sm text-gray-700">
+                <div className="pl-10">Pokój {room.code}</div>
               </td>
-            )}
-          </tr>
-        ))}
+              <td className="px-6 py-3 text-sm text-gray-500">
+                {room.address ?? "—"}
+              </td>
+              <td className="px-6 py-3 text-sm text-gray-500">
+                {room.slug ?? "—"}
+              </td>
+              <td className="px-4 py-3 text-sm text-gray-700">
+                {room.reservations} Reservation(s)
+              </td>
+              {showActions && (
+                <td className="px-4 py-3 text-right">
+                  <div className="flex justify-end space-x-2">
+                    {mode === "admin" && room.id && (
+                      <>
+                        <button
+                          onClick={() =>
+                            router.push(
+                              `/admin/apartments/${apartment.id}?roomId=${room.id}`,
+                            )
+                          }
+                          className="inline-flex items-center rounded-md bg-yellow-500 px-3 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 hover:bg-yellow-600"
+                        >
+                          Edytuj
+                        </button>
+                      </>
+                    )}
+                    {mode === "admin" && !room.id && (
+                      <button
+                        onClick={() =>
+                          handleCreateVariant(apartment.id, room.code)
+                        }
+                        disabled={createVariantMutation.isPending}
+                        className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2 disabled:opacity-50 hover:bg-indigo-500"
+                      >
+                        {createVariantMutation.isPending
+                          ? "Tworzenie..."
+                          : "Utwórz pokój"}
+                      </button>
+                    )}
+                  </div>
+                </td>
+              )}
+            </tr>
+          ))}
       </React.Fragment>
     );
   };
@@ -511,7 +524,9 @@ export default function ApartmentList({
       <div
         className={`grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 ${className}`}
       >
-        {apartments.map((apartment, index) => renderApartmentCard(apartment, index))}
+        {apartments.map((apartment, index) =>
+          renderApartmentCard(apartment, index),
+        )}
       </div>
     );
   }

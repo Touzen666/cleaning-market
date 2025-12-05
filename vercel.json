@@ -2,7 +2,7 @@
   "crons": [
     {
       "path": "/api/cron/idobooking",
-      "schedule": "05 11 * * *"
+      "schedule": "05 12 * * *"
     }
   ]
 }

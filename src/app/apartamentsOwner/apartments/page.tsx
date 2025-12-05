@@ -60,35 +60,34 @@ function ApartmentCard({
         onClick={handleClick}
       >
         <div className="relative h-48 w-full overflow-hidden">
-        <Image
-          src={apartment.images?.[0]?.url ?? "/placeholder.jpg"}
-          alt={apartment.images?.[0]?.alt ?? apartment.name}
-          fill
-          quality={100}
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
-          priority={index === 0}
-        />
-        {typeof apartment.roomsCount === "number" && apartment.roomsCount > 1 && (
-          <span className="absolute right-2 top-2 rounded-full bg-yellow-400 px-2 py-1 text-xs font-semibold text-gray-900 shadow-md">
-            {apartment.roomsCount === 1
-              ? "1 pokój"
-              : apartment.roomsCount >= 2 && apartment.roomsCount <= 4
-                ? `${apartment.roomsCount} pokoje`
-                : `${apartment.roomsCount} pokoi`}
-          </span>
-        )}
-        {hovered && apartment.averageRating && (
-          <>
-            <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/50">
-              <span className="text-6xl font-bold text-yellow-400">
-                {apartment.averageRating.toFixed(2)}
+          <Image
+            src={apartment.images?.[0]?.url ?? "/placeholder.jpg"}
+            alt={apartment.images?.[0]?.alt ?? apartment.name}
+            fill
+            quality={100}
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            priority={index === 0}
+          />
+          {typeof apartment.roomsCount === "number" &&
+            apartment.roomsCount > 1 && (
+              <span className="absolute right-2 top-2 rounded-full bg-yellow-400 px-2 py-1 text-xs font-semibold text-gray-900 shadow-md">
+                {apartment.roomsCount >= 2 && apartment.roomsCount <= 4
+                  ? `${apartment.roomsCount} pokoje`
+                  : `${apartment.roomsCount} pokoi`}
               </span>
-            </div>
-            <FallingStars />
-          </>
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+            )}
+          {hovered && apartment.averageRating && (
+            <>
+              <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/50">
+                <span className="text-6xl font-bold text-yellow-400">
+                  {apartment.averageRating.toFixed(2)}
+                </span>
+              </div>
+              <FallingStars />
+            </>
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
         </div>
         <div className="p-4">
           <h2 className="truncate text-lg font-semibold text-gray-800">
@@ -119,7 +118,7 @@ function ApartmentCard({
       {/* Chipsy w pozycji absolutnej - nie zmieniają szerokości karty */}
       {!isSingle && expanded && (
         <div
-          className="absolute right-2 top-2 z-20 max-w-[calc(100vw-24px)] md:right-0 md:translate-x-full md:max-w-[16rem]"
+          className="absolute right-2 top-2 z-20 max-w-[calc(100vw-24px)] md:right-0 md:max-w-[16rem] md:translate-x-full"
           style={{ transform: "translateX(0)" }}
         >
           <div className="flex flex-col items-start gap-2">
@@ -204,7 +203,11 @@ export default function OwnerApartmentsPage() {
         </h1>
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {data.map((apartment: OwnerApartment, index) => (
-            <ApartmentCard key={apartment.id} apartment={apartment} index={index} />
+            <ApartmentCard
+              key={apartment.id}
+              apartment={apartment}
+              index={index}
+            />
           ))}
         </div>
       </div>
