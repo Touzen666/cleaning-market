@@ -649,7 +649,7 @@ export const monthlyReportsRouter = createTRPCRouter({
                             ? `Od: ${startDate.toISOString().slice(0, 10)}`
                             : endDate
                                 ? `Do: ${endDate.toISOString().slice(0, 10)}`
-                                : existing.notes,
+                        : existing.notes,
                 },
             });
 
@@ -707,7 +707,7 @@ export const monthlyReportsRouter = createTRPCRouter({
                     ? `Od: ${startDate.toISOString().slice(0, 10)}`
                     : endDate
                         ? `Do: ${endDate.toISOString().slice(0, 10)}`
-                        : undefined;
+                : undefined;
 
             const item = await ctx.db.reportItem.create({
                 data: {

@@ -106,6 +106,7 @@ model Reservation {
   id                    Int                    @id @default(autoincrement())
   apartmentId           Int?
   roomId                Int?
+  cleanerUserId         Int?
   idobookingId          Int?                   @unique
   rateCorrection        Float?
   checkInCards          CheckInCard?
@@ -113,6 +114,7 @@ model Reservation {
   historicalReportItems HistoricalReportItem[]
   apartment             Apartment?             @relation(fields: [apartmentId], references: [id])
   room                  Room?                  @relation(fields: [roomId], references: [id], onDelete: SetNull)
+  cleaner               CleaningUser?          @relation(name: "CleaningAssignments", fields: [cleanerUserId], references: [id], onDelete: SetNull)
 }
 
 model Apartment {
@@ -167,6 +169,16 @@ model Room {
   reservations           Reservation[]
 
   @@unique([apartmentId, code])
+}
+
+model CleaningUser {
+  id            Int      @id @default(autoincrement())
+  email         String   @unique
+  passwordHash  String
+  role          String   @default("CLEANER") // CLEANER | MANAGER | ADMIN (panel sprzątania)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  assignedReservations Reservation[] @relation(name: "CleaningAssignments")
 }
 
 model ApartmentImage {

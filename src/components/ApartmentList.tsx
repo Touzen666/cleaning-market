@@ -407,8 +407,8 @@ export default function ApartmentList({
               <div className="flex justify-end space-x-2">
                 {mode === "admin" && (
                   <>
-                    {/* Jeśli apartament NIE jest wielowariantowy (brak wielu pokoi) – pozwól edytować główny wpis */}
-                    {!hasRooms && onEdit && (
+                    {/* Pozwól edytować główny wpis apartamentu niezależnie od liczby pokoi */}
+                    {onEdit && (
                       <button
                         onClick={() => onEdit(apartment.id)}
                         className="inline-flex items-center rounded-md bg-yellow-500 px-3 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 hover:bg-yellow-600"
@@ -416,7 +416,6 @@ export default function ApartmentList({
                         Edytuj
                       </button>
                     )}
-                    {/* Jeśli apartament ma wiele pokoi – edycja będzie na poziomie pokoi, tu zostawiamy tylko Usuń */}
                     {onDelete && (
                       <button
                         onClick={() => onDelete(apartment.id)}

@@ -123,6 +123,15 @@ export function HeaderAdmin() {
           Dashboard Admina
         </Link>
       )}
+      {session?.user?.type === "ADMIN" && (
+        <Link
+          href="/admin/cleaning"
+          className="block px-4 py-2 hover:text-gray-300 md:px-0 md:py-0"
+          onClick={() => setIsMenuOpen(false)}
+        >
+          Sprzątanie
+        </Link>
+      )}
       <Link
         href="/admin/reports"
         className="block px-4 py-2 hover:text-gray-300 md:px-0 md:py-0"
