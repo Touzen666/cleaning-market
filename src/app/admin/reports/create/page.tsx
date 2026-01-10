@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { api } from "@/trpc/react";
+import { toast } from "react-hot-toast";
 
 export default function CreateReportPage() {
   const router = useRouter();
@@ -46,6 +47,7 @@ export default function CreateReportPage() {
       setIsCreating(false);
     },
   });
+  const syncIdobooking = api.idobooking.syncReservations.useMutation();
 
   const owners = ownersQuery.data ?? [];
   const selectedOwner = selectedOwnerQuery.data;
@@ -181,6 +183,22 @@ export default function CreateReportPage() {
                   />
                 </svg>
                 Powrót do listy
+              </button>
+              <button
+                onClick={async () => {
+                  const id = toast.loading("Synchronizacja rezerwacji z IdoBooking...");
+                  try {
+                    await syncIdobooking.mutateAsync();
+                    toast.success("Synchronizacja zakończona", { id });
+                  } catch (e) {
+                    const m = e instanceof Error ? e.message : "Nieznany błąd";
+                    toast.error(`Błąd synchronizacji: ${m}`, { id });
+                  }
+                }}
+                disabled={syncIdobooking.isPending}
+                className="ml-3 inline-flex items-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 disabled:opacity-50"
+              >
+                {syncIdobooking.isPending ? "Synchronizowanie..." : "Synchronizuj rezerwacje"}
               </button>
             </div>
           </div>

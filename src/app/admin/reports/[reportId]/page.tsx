@@ -282,11 +282,15 @@ export default function ReportDetailsPage({
       reportId: reportId,
     },
     {
-      enabled:
-        !!reportId &&
+      enabled: !!reportId &&
         reportQuery.isError &&
+        // uruchamiaj tylko, gdy błąd to NOT_FOUND (a nie np. chwilowy błąd sieci)
+        (reportQuery.error &&
+          typeof (reportQuery.error as { data?: { code?: string } }).data?.code === "string" &&
+          (reportQuery.error as { data?: { code?: string } }).data?.code === "NOT_FOUND") &&
         status === "authenticated" &&
-        !reportQuery.isLoading, // Enable only when regular report fails, session is authenticated, and regular query is not loading
+        !reportQuery.isLoading,
+      retry: false, // nie ponawiaj – to ścieżka awaryjna
     },
   );
 

@@ -4375,8 +4375,64 @@ export const monthlyReportsRouter = createTRPCRouter({
                 });
             }
 
-            const report = await ctx.db.historicalReport.findUnique({
+            // Najpierw spróbuj znaleźć po ID historycznego raportu
+            let report = await ctx.db.historicalReport.findUnique({
                 where: { id: input.reportId },
+                include: {
+                    apartment: {
+                        select: {
+                            id: true,
+                            name: true,
+                            address: true,
+                            defaultRentAmount: true,
+                            defaultUtilitiesAmount: true,
+                            weeklyLaundryCost: true,
+                            cleaningSuppliesCost: true,
+                            capsuleCostPerGuest: true,
+                            wineCost: true,
+                            cleaningCosts: true,
+                            paymentType: true,
+                            fixedPaymentAmount: true
+                        },
+                    },
+                    owner: {
+                        select: {
+                            id: true,
+                            firstName: true,
+                            lastName: true,
+                            email: true,
+                            vatOption: true,
+                        },
+                    },
+                    createdByAdmin: {
+                        select: { name: true, email: true },
+                    },
+                    approvedByAdmin: {
+                        select: { name: true, email: true },
+                    },
+                    sentByAdmin: {
+                        select: { name: true, email: true },
+                    },
+                    deletedByAdmin: {
+                        select: { name: true, email: true },
+                    },
+                    items: {
+                        include: {
+                            reservation: {
+                                select: { id: true, guest: true, start: true, end: true, source: true, adults: true, children: true, status: true },
+                            },
+                        },
+                        orderBy: [{ type: "asc" }, { date: "asc" }],
+                    },
+                    additionalDeductions: {
+                        orderBy: { order: "asc" },
+                    },
+                },
+            });
+
+            // Jeśli nie znaleziono, spróbuj po oryginalnym ID raportu (leniwie dzięki ??=)
+            report ??= await ctx.db.historicalReport.findFirst({
+                where: { originalReportId: input.reportId },
                 include: {
                     apartment: {
                         select: {
