@@ -17,6 +17,8 @@ import { emailRouter } from "@/server/api/routers/email";
 import { adminDashboardRouter } from "@/server/api/routers/admin-dashboard";
 import { uploadRouter } from "@/server/api/routers/upload";
 import { roomsRouter } from "@/server/api/routers/rooms";
+import { cleaningAuthRouter } from "@/server/api/routers/cleaning-auth";
+import { cleaningRouter } from "@/server/api/routers/cleaning";
 
 /**
  * This is the primary router for your server.
@@ -28,6 +30,8 @@ export const appRouter = createTRPCRouter({
     contact: contactRouter,
     reservation: reservationsRouter,
     apartments: apartmentsRouter,
+    cleaningAuth: cleaningAuthRouter,
+    cleaning: cleaningRouter,
     guestAuth: guestAuthRouter,
     checkIn: checkInRouter,
     guestCheckin: guestCheckinRouter,

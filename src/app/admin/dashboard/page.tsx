@@ -47,6 +47,50 @@ const AdminDashboardPage = () => {
 
         {/* Dashboard Grid */}
         <div className="grid grid-cols-1 gap-6 px-4 sm:px-0 md:grid-cols-2 lg:grid-cols-3">
+          {/* Cleaning Management */}
+          <div className="overflow-hidden rounded-lg bg-white shadow">
+            <div className="p-5">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-md bg-emerald-500">
+                    <svg
+                      className="h-5 w-5 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M3 7h18M5 11h14M7 15h10M9 19h6"
+                      />
+                    </svg>
+                  </div>
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt className="truncate text-sm font-medium text-gray-500">
+                      Zarządzanie Sprzątaniem
+                    </dt>
+                    <dd className="text-lg font-medium text-gray-900">
+                      Kreator & Przypisania
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+            <div className="bg-gray-50 px-5 py-3">
+              <div className="text-sm">
+                <button
+                  onClick={() => router.push("/admin/cleaning")}
+                  className="font-medium text-emerald-700 hover:text-emerald-900"
+                >
+                  Otwórz panel sprzątania
+                </button>
+              </div>
+            </div>
+          </div>
           {/* System Statistics */}
           <div className="overflow-hidden rounded-lg bg-white shadow">
             <div className="p-5">
@@ -435,6 +479,25 @@ const AdminDashboardPage = () => {
                     />
                   </svg>
                   Rezerwacje
+                </button>
+                <button
+                  onClick={() => router.push("/admin/cleaning")}
+                  className="inline-flex items-center rounded-md border border-transparent bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
+                >
+                  <svg
+                    className="mr-2 h-4 w-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 7h18M5 11h14M7 15h10M9 19h6"
+                    />
+                  </svg>
+                  Sprzątanie
                 </button>
               </div>
             </div>

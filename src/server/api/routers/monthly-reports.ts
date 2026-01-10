@@ -46,6 +46,50 @@ function safeNumber(value: unknown): number {
     return Number.isFinite(n) ? n : 0;
 }
 
+// Normalize status and determine whether reservation actually took place
+function normalizeStatus(status: string | null | undefined): string {
+    return (status ?? "")
+        .toString()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .trim();
+}
+
+function isReservationRealized(status: string | null | undefined): boolean {
+    const s = normalizeStatus(status);
+    if (!s) return false;
+
+    // Negative/cancelled-like states
+    if (
+        s.includes("anul") || // anulowana
+        s.includes("odrzuc") || // odrzucona przez obsluge
+        s.includes("withdraw") ||
+        s.includes("cancel") ||
+        s.includes("nieopl") || // nieoplacona
+        s.includes("oczekuje") || // oczekuje na wplate
+        s.includes("niepopraw") || // niepoprawny numer karty
+        s.includes("wyjasn") // do wyjasnienia
+    ) {
+        return false;
+    }
+
+    // Positive/realized-like states
+    if (
+        s.includes("zakoncz") ||
+        s.includes("trwa") ||
+        s.includes("przyjet") ||
+        s.includes("accepted") ||
+        s.includes("in progress") ||
+        s.includes("completed")
+    ) {
+        return true;
+    }
+
+    // Default: treat other states as realized for closed periods (safer than hiding real stays)
+    return true;
+}
+
 function getParkingSuggestionsFromReport(report: Partial<{
     parkingAdminRent?: number | null;
     parkingRentalIncome?: number | null;
@@ -69,6 +113,7 @@ function getParkingSuggestionsFromReport(report: Partial<{
 // Zod schemas
 const createReportSchema = z.object({
     apartmentId: z.number(),
+    roomId: z.number().optional(), // gdy apartament ma wiele pokojów, raport jest dla konkretnego pokoju
     year: z.number().min(2020).max(2030),
     month: z.number().min(1).max(12),
 });
@@ -380,7 +425,7 @@ async function recalculateReportSettlement(reportId: string, ctx: RecalculateCon
         }
 
         // Ujednolicona logika obliczania - taka sama jak w getById
-        const revenueItems = items.filter((i) => i.type === "REVENUE" && (!i.reservation || (i.reservation.status !== "Anulowana" && i.reservation.status !== "Odrzucona przez obsługę")));
+        const revenueItems = items.filter((i) => i.type === "REVENUE" && (!i.reservation || isReservationRealized(i.reservation.status)));
         const expenseItems = items.filter((i) => ["EXPENSE", "FEE", "TAX"].includes(i.type));
         const commissionItems = items.filter((i) => i.type === "COMMISSION");
 
@@ -748,7 +793,7 @@ export const monthlyReportsRouter = createTRPCRouter({
                 });
             }
 
-            const { apartmentId, year, month } = input;
+            const { apartmentId, roomId, year, month } = input;
 
             // Check if apartment exists and get owner
             const apartment = await ctx.db.apartment.findUnique({
@@ -777,13 +822,13 @@ export const monthlyReportsRouter = createTRPCRouter({
             }
 
             // Check if report already exists
-            const existingReport = await ctx.db.monthlyReport.findUnique({
+            // Sprawdź czy istnieje raport dla tego okresu i (opcjonalnie) pokoju
+            const existingReport = await ctx.db.monthlyReport.findFirst({
                 where: {
-                    apartmentId_year_month: {
-                        apartmentId,
-                        year,
-                        month,
-                    },
+                    apartmentId,
+                    year,
+                    month,
+                    ...(roomId ? { roomId } : {}),
                 },
             });
 
@@ -804,6 +849,7 @@ export const monthlyReportsRouter = createTRPCRouter({
             const reservationsForRevenue = await ctx.db.reservation.findMany({
                 where: {
                     apartmentId,
+                    ...(roomId ? { roomId } : {}),
                     start: { lt: nextMonthStartDate },
                     end: { gt: startDate },
                 },
@@ -825,6 +871,7 @@ export const monthlyReportsRouter = createTRPCRouter({
             const reservationsEndMonth = await ctx.db.reservation.findMany({
                 where: {
                     apartmentId,
+                    ...(roomId ? { roomId } : {}),
                     end: {
                         gte: startDate,
                         lt: nextMonthStartDate,
@@ -850,6 +897,7 @@ export const monthlyReportsRouter = createTRPCRouter({
             const report = await ctx.db.monthlyReport.create({
                 data: {
                     apartmentId,
+                    ...(roomId ? { roomId } : {}),
                     ownerId: owner.id,
                     year,
                     month,
@@ -869,12 +917,9 @@ export const monthlyReportsRouter = createTRPCRouter({
             // Auto-generate revenue items with proportional split
             const revenueItems = reservationsForRevenue
                 .filter((reservation) => {
-                    const totalGuests = (reservation.adults ?? 0) + (reservation.children ?? 0);
-                    return (
-                        reservation.status !== "Anulowana" &&
-                        reservation.status !== "Odrzucona przez obsługę" &&
-                        totalGuests > 0
-                    );
+                    // Uwzględnij wszystkie rezerwacje poza jawnie anulowanymi/odrzuconymi.
+                    // Nie filtrujemy po liczbie gości – część importów może mieć 0.
+                    return isReservationRealized(reservation.status);
                 })
                 .map((reservation) => {
                     const totalAmount = reservation.rateCorrection ?? reservation.paymantValue;
@@ -1119,7 +1164,7 @@ export const monthlyReportsRouter = createTRPCRouter({
 
 
             // Calculations similar to getOwnerReportById
-            const revenueItems = report.items.filter((i) => i.type === "REVENUE" && (!i.reservation || (i.reservation.status !== "Anulowana" && i.reservation.status !== "Odrzucona przez obsługę")));
+            const revenueItems = report.items.filter((i) => i.type === "REVENUE" && (!i.reservation || isReservationRealized(i.reservation.status)));
             const expenseItems = report.items.filter((i) => ["EXPENSE", "FEE", "TAX"].includes(i.type));
             const commissionItems = report.items.filter((i) => i.type === "COMMISSION");
 
@@ -1779,7 +1824,7 @@ export const monthlyReportsRouter = createTRPCRouter({
                     netIncome = report.netIncome ?? 0;
                 } else {
                     // For APPROVED reports - recalculate dynamically to reflect any changes
-                    const revenueItems = report.items.filter((i) => i.type === "REVENUE" && (!i.reservation || (i.reservation.status !== "Anulowana" && i.reservation.status !== "Odrzucona przez obsługę")));
+                    const revenueItems = report.items.filter((i) => i.type === "REVENUE" && (!i.reservation || isReservationRealized(i.reservation.status)));
                     const expenseItems = report.items.filter((i) => ["EXPENSE", "FEE", "TAX"].includes(i.type));
                     const commissionItems = report.items.filter((i) => i.type === "COMMISSION");
 
@@ -2410,7 +2455,7 @@ export const monthlyReportsRouter = createTRPCRouter({
                 customNoteForOwner = customSent.customSummaryNote ?? null;
             } else {
                 // For APPROVED reports - recalculate dynamically to reflect any changes
-                const revenueItems = report.items.filter((i) => i.type === "REVENUE" && (!i.reservation || (i.reservation.status !== "Anulowana" && i.reservation.status !== "Odrzucona przez obsługę")));
+                const revenueItems = report.items.filter((i) => i.type === "REVENUE" && (!i.reservation || isReservationRealized(i.reservation.status)));
                 const expenseItems = report.items.filter((i) => ["EXPENSE", "FEE", "TAX"].includes(i.type));
                 const commissionItems = report.items.filter((i) => i.type === "COMMISSION");
 
@@ -4330,8 +4375,64 @@ export const monthlyReportsRouter = createTRPCRouter({
                 });
             }
 
-            const report = await ctx.db.historicalReport.findUnique({
+            // Najpierw spróbuj znaleźć po ID historycznego raportu
+            let report = await ctx.db.historicalReport.findUnique({
                 where: { id: input.reportId },
+                include: {
+                    apartment: {
+                        select: {
+                            id: true,
+                            name: true,
+                            address: true,
+                            defaultRentAmount: true,
+                            defaultUtilitiesAmount: true,
+                            weeklyLaundryCost: true,
+                            cleaningSuppliesCost: true,
+                            capsuleCostPerGuest: true,
+                            wineCost: true,
+                            cleaningCosts: true,
+                            paymentType: true,
+                            fixedPaymentAmount: true
+                        },
+                    },
+                    owner: {
+                        select: {
+                            id: true,
+                            firstName: true,
+                            lastName: true,
+                            email: true,
+                            vatOption: true,
+                        },
+                    },
+                    createdByAdmin: {
+                        select: { name: true, email: true },
+                    },
+                    approvedByAdmin: {
+                        select: { name: true, email: true },
+                    },
+                    sentByAdmin: {
+                        select: { name: true, email: true },
+                    },
+                    deletedByAdmin: {
+                        select: { name: true, email: true },
+                    },
+                    items: {
+                        include: {
+                            reservation: {
+                                select: { id: true, guest: true, start: true, end: true, source: true, adults: true, children: true, status: true },
+                            },
+                        },
+                        orderBy: [{ type: "asc" }, { date: "asc" }],
+                    },
+                    additionalDeductions: {
+                        orderBy: { order: "asc" },
+                    },
+                },
+            });
+
+            // Jeśli nie znaleziono, spróbuj po oryginalnym ID raportu (leniwie dzięki ??=)
+            report ??= await ctx.db.historicalReport.findFirst({
+                where: { originalReportId: input.reportId },
                 include: {
                     apartment: {
                         select: {

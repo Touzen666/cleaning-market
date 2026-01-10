@@ -58,6 +58,10 @@ export function TRPCReactProvider(props: { children: React.ReactNode }) {
               if (ownerEmail) {
                 headers.set("X-Owner-Email", ownerEmail);
               }
+              const cleaningToken = localStorage.getItem("cleaningAuthToken");
+              if (cleaningToken) {
+                headers.set("authorization", `Bearer ${cleaningToken}`);
+              }
             }
             return headers;
           },

@@ -29,9 +29,44 @@ import { db } from "@/server/db";
 export const createTRPCContext = async (opts: { headers: Headers }) => {
   const session = await auth();
 
+  // Cleaning Service JWT auth (via Authorization: Bearer <token>)
+  let cleaningAuth:
+    | { userId: string; email?: string; role?: string }
+    | undefined = undefined;
+  try {
+    const authHeader = opts.headers.get("authorization") ?? "";
+    const bearerMatch = /^Bearer\s+(.+)$/i.exec(authHeader);
+    if (bearerMatch) {
+      const token = bearerMatch[1]!.trim();
+      // Lazy import to avoid edge issues if not needed
+      const { env } = await import("@/env");
+      const { verify } = await import("jsonwebtoken");
+
+      // Allow fallback to AUTH_SECRET if dedicated secret isn't configured
+      const secret = env.CLEANING_JWT_SECRET ?? env.AUTH_SECRET;
+      if (!secret) throw new Error("JWT secret is not configured");
+
+      const payload = verify(token, secret) as {
+        sub?: string;
+        email?: string;
+        role?: string;
+      };
+      if (payload?.sub) {
+        cleaningAuth = {
+          userId: payload.sub,
+          email: payload.email,
+          role: payload.role,
+        };
+      }
+    }
+  } catch {
+    // ignore invalid token
+  }
+
   return {
     db,
     session,
+    cleaningAuth,
     ...opts,
   };
 };
