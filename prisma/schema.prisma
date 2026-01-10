@@ -148,36 +148,37 @@ model Apartment {
 }
 
 model Room {
-  id                     Int           @id @default(autoincrement())
+  id                     Int             @id @default(autoincrement())
   apartmentId            Int
   code                   String
   name                   String
-  slug                   String        @unique
+  slug                   String          @unique
   address                String
-  defaultRentAmount      Float?        @default(0)
-  defaultUtilitiesAmount Float?        @default(0)
-  weeklyLaundryCost      Float?        @default(120)
-  cleaningSuppliesCost   Float?        @default(132)
-  capsuleCostPerGuest    Float?        @default(2.5)
-  wineCost               Float?        @default(250)
-  hasBalcony             Boolean       @default(false)
-  hasParking             Boolean       @default(false)
-  maxGuests              Int?          @default(4)
+  defaultRentAmount      Float?          @default(0)
+  defaultUtilitiesAmount Float?          @default(0)
+  weeklyLaundryCost      Float?          @default(120)
+  cleaningSuppliesCost   Float?          @default(132)
+  capsuleCostPerGuest    Float?          @default(2.5)
+  wineCost               Float?          @default(250)
+  hasBalcony             Boolean         @default(false)
+  hasParking             Boolean         @default(false)
+  maxGuests              Int?            @default(4)
   importSource           String?
   importBatchId          String?
-  apartment              Apartment     @relation(fields: [apartmentId], references: [id])
+  apartment              Apartment       @relation(fields: [apartmentId], references: [id])
   reservations           Reservation[]
+  monthlyReports         MonthlyReport[]
 
   @@unique([apartmentId, code])
 }
 
 model CleaningUser {
-  id            Int      @id @default(autoincrement())
-  email         String   @unique
-  passwordHash  String
-  role          String   @default("CLEANER") // CLEANER | MANAGER | ADMIN (panel sprzątania)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id                   Int           @id @default(autoincrement())
+  email                String        @unique
+  passwordHash         String
+  role                 String        @default("CLEANER") // CLEANER | MANAGER | ADMIN (panel sprzątania)
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
   assignedReservations Reservation[] @relation(name: "CleaningAssignments")
 }
 
@@ -375,8 +376,10 @@ model MonthlyReport {
   customIncomeTax      Float?
   customSummaryNote    String?
   apartmentId          Int
+  roomId               Int?
   additionalDeductions AdditionalDeduction[]
   apartment            Apartment             @relation(fields: [apartmentId], references: [id])
+  room                 Room?                 @relation(fields: [roomId], references: [id])
   approvedByAdmin      User?                 @relation("AdminApprovedReports", fields: [approvedByAdminId], references: [id])
   sentByAdmin          User?                 @relation("AdminSentReports", fields: [sentByAdminId], references: [id])
   createdByAdmin       User                  @relation("AdminCreatedReports", fields: [createdByAdminId], references: [id])
@@ -384,7 +387,7 @@ model MonthlyReport {
   history              ReportHistory[]
   items                ReportItem[]
 
-  @@unique([apartmentId, year, month])
+  @@unique([apartmentId, year, month, roomId])
   @@index([status])
   @@index([ownerId, status])
 }

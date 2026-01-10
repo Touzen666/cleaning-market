@@ -102,13 +102,17 @@ function isHistoricalReport(
 
 export default function ReportDetailsPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ reportId: string }>;
+  searchParams: Promise<{ roomId?: string; roomCode?: string }>;
 }) {
   const router = useRouter();
   const { data: session, status } = useSession();
   const actualParams = React.use(params);
+  const actualSearchParams = React.use(searchParams);
   const { reportId } = actualParams;
+  const selectedRoomCode = actualSearchParams?.roomCode;
 
   // Debug logging
   console.log("ReportDetailsPage - reportId:", reportId);
@@ -1049,53 +1053,7 @@ export default function ReportDetailsPage({
     }
   };
 
-  // Funkcja obliczająca sugerowaną kwotę za sprzątanie
-  const calculateSuggestedCleaningCost = () => {
-    if (!report?.apartment?.cleaningCosts || !report?.items) {
-      return 0;
-    }
-
-    const cleaningCosts = report.apartment.cleaningCosts as Record<
-      string,
-      number
-    >;
-    const revenueItems = report.items.filter((item) => {
-      if (item.type !== "REVENUE" || !item.reservation) return false;
-      const r = item.reservation;
-      const guests = (r.adults ?? 0) + (r.children ?? 0);
-      return (
-        r.status !== "Anulowana" &&
-        r.status !== "Odrzucona przez obsługę" &&
-        guests > 0
-      );
-    });
-
-    let totalCleaningCost = 0;
-
-    for (const item of revenueItems) {
-      if (item.reservation) {
-        const totalGuests =
-          (item.reservation.adults ?? 0) + (item.reservation.children ?? 0);
-
-        if (totalGuests > 0) {
-          // Find the cleaning cost for this number of guests
-          // If exact match not found, use the highest available cost for fewer guests
-          let cleaningCost = 0;
-          for (let i = totalGuests; i >= 1; i--) {
-            if (cleaningCosts[i.toString()] !== undefined) {
-              cleaningCost = cleaningCosts[i.toString()]!;
-              break;
-            }
-          }
-          totalCleaningCost += cleaningCost;
-        }
-      }
-    }
-
-    return totalCleaningCost;
-  };
-
-  const suggestedCleaningCost = calculateSuggestedCleaningCost();
+  // (Usunięto automatyczne wyliczanie sugerowanych kosztów sprzątania)
   // Zmiana źródła rezerwacji (admin)
   // Standardowe źródła rozpoznawane w systemie
   const STANDARD_SOURCES = ["Booking", "Airbnb", "Złote Wynajmy"] as const;
@@ -1153,75 +1111,9 @@ export default function ReportDetailsPage({
     return fallback;
   };
 
-  // Funkcja obliczająca sugerowaną kwotę za pranie
-  const calculateSuggestedLaundryCost = () => {
-    const apartment = report?.apartment;
-    if (!apartment?.weeklyLaundryCost) {
-      return 0;
-    }
+  // (Usunięto automatyczne wyliczanie sugerowanych kosztów prania)
 
-    // Koszt prania z ustawień apartamentu
-    const laundryCostPerWeek = apartment.weeklyLaundryCost;
-    const daysPerWeek = 7;
-
-    // Oblicz liczbę dni w miesiącu raportu
-    const year = report?.year ?? 0;
-    const month = report?.month ?? 0;
-    const daysInMonth = new Date(year, month, 0).getDate();
-
-    // Oblicz liczbę tygodni w miesiącu (z dokładnością do 2 miejsc po przecinku)
-    // Przykład: 31 dni / 7 dni = 4.43 tygodni
-    const weeksInMonth = Math.round((daysInMonth / daysPerWeek) * 100) / 100;
-
-    // Oblicz całkowity koszt prania za miesiąc
-    const totalLaundryCost = weeksInMonth * laundryCostPerWeek;
-
-    return totalLaundryCost;
-  };
-
-  const suggestedLaundryCost = calculateSuggestedLaundryCost();
-
-  // Funkcja obliczająca sugerowaną kwotę za tekstylia
-  const calculateSuggestedTextileCost = () => {
-    const apartment = report?.apartment;
-    if (!apartment) {
-      return 0;
-    }
-
-    // Koszty z ustawień apartamentu
-    const cleaningSuppliesCost = apartment.cleaningSuppliesCost ?? 132; // Stały koszt środków czystości
-    const capsuleCostPerGuest = apartment.capsuleCostPerGuest ?? 2.5; // Koszt kapsułki na gościa
-    const wineCost = apartment.wineCost ?? 250; // Koszt wina
-
-    // Oblicz liczbę gości ze wszystkich rezerwacji
-    const revenueItems = (report?.items ?? []).filter((item) => {
-      if (item.type !== "REVENUE" || !item.reservation) return false;
-      const r = item.reservation;
-      const guests = (r.adults ?? 0) + (r.children ?? 0);
-      return (
-        r.status !== "Anulowana" &&
-        r.status !== "Odrzucona przez obsługę" &&
-        guests > 0
-      );
-    });
-
-    let totalGuests = 0;
-    revenueItems.forEach((item) => {
-      if (item.reservation) {
-        const guests =
-          (item.reservation.adults ?? 0) + (item.reservation.children ?? 0);
-        totalGuests += guests;
-      }
-    });
-
-    // Oblicz całkowity koszt tekstyliów: stałe koszty + kapsułki
-    const totalCapsuleCost = totalGuests * capsuleCostPerGuest;
-    const totalTextileCost = cleaningSuppliesCost + wineCost + totalCapsuleCost;
-
-    return totalTextileCost;
-  };
-
-  const suggestedTextileCost = calculateSuggestedTextileCost();
+  // (Usunięto automatyczne wyliczanie sugerowanych kosztów tekstyliów)
 
   // Funkcja obliczająca koszt sprzątania dla pojedynczej rezerwacji
   const calculateCleaningCostForReservation = (reservation: {
@@ -1331,7 +1223,25 @@ export default function ReportDetailsPage({
   const reservationItems = revenueItems.filter((item) => {
     const r = item.reservation;
     if (!r) return false;
-    return r.status !== "Anulowana" && r.status !== "Odrzucona przez obsługę";
+    const s = (r.status ?? "")
+      .toString()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .trim();
+    if (
+      s.includes("anul") ||
+      s.includes("odrzuc") ||
+      s.includes("withdraw") ||
+      s.includes("cancel") ||
+      s.includes("nieopl") ||
+      s.includes("oczekuje") ||
+      s.includes("niepopraw") ||
+      s.includes("wyjasn")
+    ) {
+      return false;
+    }
+    return true;
   });
   // Jeżeli brak rezerwacji powiązanych (np. ręczne przychody), pokaż wszystkie przychody
   const displayedRevenueItems =
@@ -1369,8 +1279,14 @@ export default function ReportDetailsPage({
                 )}
               </h1>
               <p className="mt-2 text-sm text-gray-600">
-                {finalReport.apartment.name} - {finalReport.owner.firstName}{" "}
-                {finalReport.owner.lastName}
+                {finalReport.apartment.name}
+                {selectedRoomCode ? (
+                  <>
+                    {" "}
+                    • Pokój {selectedRoomCode}
+                  </>
+                ) : null}{" "}
+                - {finalReport.owner.firstName} {finalReport.owner.lastName}
               </p>
               {/* Informacja o sposobie rozliczenia */}
               <div className="mt-3 flex items-center space-x-4">
@@ -2132,73 +2048,14 @@ export default function ReportDetailsPage({
                                 )
                               }
                               className="block w-full rounded-md border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-green-500 focus:outline-none focus:ring-green-500"
-                              placeholder={
-                                key === "sprzatanie" &&
-                                suggestedCleaningCost > 0
-                                  ? suggestedCleaningCost.toFixed(2)
-                                  : key === "pranie" && suggestedLaundryCost > 0
-                                    ? suggestedLaundryCost.toFixed(2)
-                                    : key === "tekstylia" &&
-                                        suggestedTextileCost > 0
-                                      ? suggestedTextileCost.toFixed(2)
-                                      : "0.00"
-                              }
+                              placeholder={"0.00"}
                               disabled={addingQuickExpense === key}
                             />
                             <span className="inline-flex items-center rounded-md bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">
                               {category.vatRate}% VAT
                             </span>
                           </div>
-                          {key === "sprzatanie" &&
-                            suggestedCleaningCost > 0 && (
-                              <p className="mt-1 text-xs text-green-600">
-                                💡 Sugerowana kwota:{" "}
-                                {suggestedCleaningCost.toFixed(2)} PLN (na
-                                podstawie{" "}
-                                {
-                                  (finalReport?.items ?? []).filter(
-                                    (item) =>
-                                      item.type === "REVENUE" &&
-                                      item.reservation,
-                                  ).length
-                                }{" "}
-                                rezerwacji) - średnio{" "}
-                                {(
-                                  suggestedCleaningCost /
-                                  (finalReport?.items ?? []).filter(
-                                    (item) =>
-                                      item.type === "REVENUE" &&
-                                      item.reservation,
-                                  ).length
-                                ).toFixed(2)}{" "}
-                                PLN za rezerwację
-                              </p>
-                            )}
-                          {key === "pranie" && suggestedLaundryCost > 0 && (
-                            <p className="mt-1 text-xs text-green-600">
-                              💡 Sugerowana kwota:{" "}
-                              {suggestedLaundryCost.toFixed(2)} PLN (koszt
-                              miesięczny:{" "}
-                              {finalReport?.apartment?.weeklyLaundryCost ?? 120}{" "}
-                              PLN co 7 dni) - średnio{" "}
-                              {finalReport?.apartment?.weeklyLaundryCost ?? 120}{" "}
-                              PLN za tydzień
-                            </p>
-                          )}
-                          {key === "tekstylia" && suggestedTextileCost > 0 && (
-                            <p className="mt-1 text-xs text-green-600">
-                              💡 Sugerowana kwota:{" "}
-                              {suggestedTextileCost.toFixed(2)} PLN (środki:{" "}
-                              {finalReport?.apartment?.cleaningSuppliesCost ??
-                                132}{" "}
-                              PLN + wino:{" "}
-                              {finalReport?.apartment?.wineCost ?? 250} PLN +
-                              kapsułki:{" "}
-                              {finalReport?.apartment?.capsuleCostPerGuest ??
-                                2.5}{" "}
-                              PLN/gość)
-                            </p>
-                          )}
+                          {/* Usunięto automatyczne sugerowanie wartości – użytkownik wpisuje ręcznie */}
                         </div>
 
                         {quickExpenses[key as keyof typeof quickExpenses].net >

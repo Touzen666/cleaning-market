@@ -12,6 +12,8 @@ export default function CreateReportPage() {
   const [selectedApartmentId, setSelectedApartmentId] = useState<number | null>(
     null,
   );
+  const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
+  const [selectedRoomCode, setSelectedRoomCode] = useState<string | null>(null);
   const [selectedYear, setSelectedYear] = useState<number>(
     new Date().getFullYear(),
   );
@@ -31,7 +33,13 @@ export default function CreateReportPage() {
   // TRPC mutations
   const createReportMutation = api.monthlyReports.create.useMutation({
     onSuccess: (data) => {
-      router.push(`/admin/reports/${data.reportId}`);
+      const params =
+        selectedRoomId && selectedRoomCode
+          ? `?roomId=${encodeURIComponent(
+              selectedRoomId,
+            )}&roomCode=${encodeURIComponent(selectedRoomCode)}`
+          : "";
+      router.push(`/admin/reports/${data.reportId}${params}`);
     },
     onError: (error) => {
       setError(error.message);
@@ -43,6 +51,12 @@ export default function CreateReportPage() {
   const selectedOwner = selectedOwnerQuery.data;
   const apartments =
     selectedOwner?.ownedApartments?.map((o) => o.apartment) ?? [];
+
+  // Load rooms for the currently selected apartment (only when selected)
+  const roomsQuery = api.rooms.listByApartmentId.useQuery(
+    { apartmentId: selectedApartmentId ?? -1 },
+    { enabled: selectedApartmentId !== null },
+  );
 
   // Function to determine the correct navigation path based on user role
   const getBackToListPath = () => {
@@ -66,6 +80,14 @@ export default function CreateReportPage() {
 
   const handleApartmentSelect = (apartmentId: number) => {
     setSelectedApartmentId(apartmentId);
+    setSelectedRoomId(null);
+    setSelectedRoomCode(null);
+    setError("");
+  };
+
+  const handleRoomSelect = (roomId: string, roomCode: string) => {
+    setSelectedRoomId(roomId);
+    setSelectedRoomCode(roomCode);
     setError("");
   };
 
@@ -75,6 +97,12 @@ export default function CreateReportPage() {
       setError("Wybierz apartament");
       return;
     }
+    // If apartment has multiple rooms, require explicit room selection
+    const rooms = roomsQuery.data ?? [];
+    if ((rooms?.length ?? 0) > 1 && !selectedRoomId) {
+      setError("Wybierz pokój dla wybranego apartamentu");
+      return;
+    }
 
     setIsCreating(true);
     setError("");
@@ -82,6 +110,7 @@ export default function CreateReportPage() {
     try {
       await createReportMutation.mutateAsync({
         apartmentId: selectedApartmentId,
+        ...(selectedRoomId ? { roomId: Number(selectedRoomId) } : {}),
         year: selectedYear,
         month: selectedMonth,
       });
@@ -268,6 +297,48 @@ export default function CreateReportPage() {
                         <div className="text-sm text-gray-500">
                           {apartment.address}
                         </div>
+                        {/* Rooms selector (visible only when this apartment is selected and has > 1 room) */}
+                        {selectedApartmentId === Number(apartment.id) && (
+                          <div className="mt-3">
+                            {roomsQuery.isLoading ? (
+                              <div className="text-xs text-gray-500">
+                                Ładowanie pokojów...
+                              </div>
+                            ) : (roomsQuery.data?.length ?? 0) > 1 ? (
+                              <div>
+                                <div className="mb-2 text-xs font-medium text-gray-700">
+                                  Wybierz pokój:
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                  {roomsQuery.data!.map((room) => (
+                                    <label
+                                      key={room.id}
+                                      className={`inline-flex items-center rounded border px-2 py-1 text-xs ${
+                                        selectedRoomId === room.id
+                                          ? "border-indigo-500 bg-white"
+                                          : "border-gray-300 bg-white hover:bg-gray-50"
+                                      }`}
+                                    >
+                                      <input
+                                        type="radio"
+                                        name="room"
+                                        value={room.id}
+                                        checked={selectedRoomId === room.id}
+                                        onChange={() =>
+                                          handleRoomSelect(room.id, room.code)
+                                        }
+                                        className="h-3 w-3 cursor-pointer text-indigo-600 focus:ring-indigo-500"
+                                      />
+                                      <span className="ml-2">
+                                        Pokój {room.code}
+                                      </span>
+                                    </label>
+                                  ))}
+                                </div>
+                              </div>
+                            ) : null}
+                          </div>
+                        )}
                       </div>
                     </label>
                   ))}
@@ -334,6 +405,11 @@ export default function CreateReportPage() {
                     )?.name
                   }
                 </p>
+                {(roomsQuery.data?.length ?? 0) > 1 && selectedRoomCode && (
+                  <p>
+                    <strong>Pokój:</strong> {selectedRoomCode}
+                  </p>
+                )}
                 <p>
                   <strong>Okres:</strong> {monthNames[selectedMonth - 1]}{" "}
                   {selectedYear}
@@ -353,7 +429,11 @@ export default function CreateReportPage() {
             </button>
             <button
               type="submit"
-              disabled={!selectedApartmentId || isCreating}
+              disabled={
+                !selectedApartmentId ||
+                isCreating ||
+                ((roomsQuery.data?.length ?? 0) > 1 && !selectedRoomId)
+              }
               className="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 hover:bg-indigo-700"
             >
               {isCreating ? (
