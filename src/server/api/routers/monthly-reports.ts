@@ -612,7 +612,14 @@ export const monthlyReportsRouter = createTRPCRouter({
                 },
                 include: {
                     apartment: {
-                        select: { id: true, name: true, address: true },
+                        // We need the number of rooms to decide whether to display the room code
+                        include: {
+                            _count: { select: { rooms: true } },
+                        },
+                    },
+                    // Include room info to display its code on the list (reports are per-room for multi-room apartments)
+                    room: {
+                        select: { id: true, code: true },
                     },
                     owner: {
                         select: { id: true, firstName: true, lastName: true, email: true },
@@ -4329,7 +4336,10 @@ export const monthlyReportsRouter = createTRPCRouter({
                 },
                 include: {
                     apartment: {
-                        select: { id: true, name: true, address: true },
+                        // Include rooms count to allow conditional room display in UI
+                        include: {
+                            _count: { select: { rooms: true } },
+                        },
                     },
                     owner: {
                         select: { id: true, firstName: true, lastName: true, email: true },
