@@ -1,5 +1,9 @@
 "use client";
 
+// Disable caching for login page
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 import { signIn, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, Suspense } from "react";
