@@ -30,7 +30,8 @@ export default function Header() {
   const navLinks = (
     <>
       <Link
-        href="/apartments"
+        href="/admin/apartments"
+        prefetch={false}
         className="block px-4 py-2 hover:text-gray-300 md:px-0 md:py-0"
         onClick={() => setIsMenuOpen(false)}
       >
@@ -38,6 +39,7 @@ export default function Header() {
       </Link>
       <Link
         href="/check-in-card"
+        prefetch={false}
         className="block px-4 py-2 hover:text-gray-300 md:px-0 md:py-0"
         onClick={() => setIsMenuOpen(false)}
       >
@@ -109,6 +111,7 @@ export function HeaderAdmin() {
     <>
       <Link
         href="/admin"
+        prefetch={false}
         className="block px-4 py-2 hover:text-gray-300 md:px-0 md:py-0"
         onClick={() => setIsMenuOpen(false)}
       >
@@ -117,6 +120,7 @@ export function HeaderAdmin() {
       {session?.user?.type === "ADMIN" && (
         <Link
           href="/admin/dashboard"
+          prefetch={false}
           className="block px-4 py-2 hover:text-gray-300 md:px-0 md:py-0"
           onClick={() => setIsMenuOpen(false)}
         >
@@ -126,6 +130,7 @@ export function HeaderAdmin() {
       {session?.user?.type === "ADMIN" && (
         <Link
           href="/admin/cleaning"
+          prefetch={false}
           className="block px-4 py-2 hover:text-gray-300 md:px-0 md:py-0"
           onClick={() => setIsMenuOpen(false)}
         >
@@ -134,6 +139,7 @@ export function HeaderAdmin() {
       )}
       <Link
         href="/admin/reports"
+        prefetch={false}
         className="block px-4 py-2 hover:text-gray-300 md:px-0 md:py-0"
         onClick={() => setIsMenuOpen(false)}
       >
@@ -141,6 +147,7 @@ export function HeaderAdmin() {
       </Link>
       <Link
         href="/admin/owners"
+        prefetch={false}
         className="block px-4 py-2 hover:text-gray-300 md:px-0 md:py-0"
         onClick={() => setIsMenuOpen(false)}
       >
@@ -148,6 +155,7 @@ export function HeaderAdmin() {
       </Link>
       <Link
         href="/admin/apartments"
+        prefetch={false}
         className="block px-4 py-2 hover:text-gray-300 md:px-0 md:py-0"
         onClick={() => setIsMenuOpen(false)}
       >
@@ -155,6 +163,7 @@ export function HeaderAdmin() {
       </Link>
       <Link
         href="/admin/reservations-list"
+        prefetch={false}
         className="block px-4 py-2 hover:text-gray-300 md:px-0 md:py-0"
         onClick={() => setIsMenuOpen(false)}
       >
@@ -162,6 +171,7 @@ export function HeaderAdmin() {
       </Link>
       <Link
         href="/"
+        prefetch={false}
         className="block px-4 py-2 hover:text-gray-300 md:px-0 md:py-0"
         onClick={() => setIsMenuOpen(false)}
       >
