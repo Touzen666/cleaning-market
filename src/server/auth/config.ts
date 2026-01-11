@@ -1,10 +1,12 @@
 import { PrismaAdapter, } from "@auth/prisma-adapter";
 import { type DefaultSession, type User, type Session, type Account, type Profile, type NextAuthConfig } from "next-auth";
+import type { Adapter } from "next-auth/adapters";
 import { type AdapterUser } from "next-auth/adapters";
 import DiscordProvider from "next-auth/providers/discord";
 import { type UserType } from "@prisma/client";
 
 import { db } from "@/server/db";
+import { env } from "@/env";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -46,11 +48,12 @@ declare module "next-auth/adapters" {
  * @see https://next-auth.js.org/configuration/options
  */
 export const authConfig: NextAuthConfig = {
-  adapter: PrismaAdapter(db),
+  // Ensure type compatibility due to @auth/core resolution across packages
+  adapter: PrismaAdapter(db) as unknown as Adapter,
   providers: [
     DiscordProvider({
-      clientId: process.env.DISCORD_CLIENT_ID!,
-      clientSecret: process.env.DISCORD_CLIENT_SECRET!,
+      clientId: env.AUTH_DISCORD_ID,
+      clientSecret: env.AUTH_DISCORD_SECRET,
     }),
   ],
   pages: {
@@ -114,7 +117,8 @@ export const authConfig: NextAuthConfig = {
       return session;
     },
   },
-  secret: process.env.NEXTAUTH_SECRET!,
+  // Prefer AUTH_SECRET from env schema; compatible with our validated config
+  secret: env.AUTH_SECRET,
   session: {
     strategy: "database" as const,
   },
