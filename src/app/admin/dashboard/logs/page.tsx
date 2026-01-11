@@ -27,14 +27,14 @@ const SystemLogsPage = () => {
       endDate: filters.endDate,
     },
     {
-      enabled: !!session && session.user.type === "ADMIN",
+      enabled: session?.user?.type === "ADMIN",
     },
   );
 
   useEffect(() => {
     if (status === "loading") return;
 
-    if (!session || session.user.type !== "ADMIN") {
+    if (session?.user?.type !== "ADMIN") {
       router.push("/login");
       return;
     }

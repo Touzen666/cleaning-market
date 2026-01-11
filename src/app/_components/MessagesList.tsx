@@ -11,7 +11,7 @@ export default function MessagesList() {
     return (
         <div className="max-w-lg mx-auto mt-4">
             <h2 className="text-xl font-bold mb-4">Lista wiadomości</h2>
-            {messages && messages.length === 0 ? (
+            {messages?.length === 0 ? (
                 <p>Brak wiadomości.</p>
             ) : (
                 <ul className="space-y-4">

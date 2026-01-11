@@ -36,7 +36,7 @@ function ApartmentCard({
   const handleClick = () => {
     if (isSingle) {
       // Bez chipów – od razu przenosimy do jedynego pokoju
-      if (roomsQuery.data && roomsQuery.data.length === 1) {
+      if (roomsQuery.data?.length === 1) {
         router.push(`/apartamentsOwner/rooms/${roomsQuery.data[0]!.id}`);
       } else {
         void roomsQuery.refetch().then((res) => {
@@ -127,9 +127,8 @@ function ApartmentCard({
                 Ładowanie pokoi...
               </div>
             )}
-            {roomsQuery.data &&
-              roomsQuery.data.length > 0 &&
-              roomsQuery.data.map((room) => (
+            {(roomsQuery.data?.length ?? 0) > 0 &&
+              roomsQuery.data!.map((room) => (
                 <button
                   key={room.id}
                   onClick={(e) => {
@@ -142,7 +141,7 @@ function ApartmentCard({
                   {`Pokój ${room.code}`}
                 </button>
               ))}
-            {roomsQuery.data && roomsQuery.data.length === 0 && (
+            {(roomsQuery.data?.length ?? 0) === 0 && (
               <div className="rounded-md bg-white/90 px-2 py-1 text-xs text-gray-500 shadow">
                 Brak zdefiniowanych pokoi.
               </div>

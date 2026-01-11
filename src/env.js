@@ -11,10 +11,9 @@ export const env = createEnv({
       process.env.NODE_ENV === "production"
         ? z.string().min(1)
         : z.string().min(1).optional(),
-    CLEANING_JWT_SECRET:
-      process.env.NODE_ENV === "production"
-        ? z.string().min(1)
-        : z.string().min(1).optional(),
+    // Make CLEANING_JWT_SECRET optional at build time.
+    // Runtime code falls back to AUTH_SECRET if this is not set.
+    CLEANING_JWT_SECRET: z.string().min(1).optional(),
     AUTH_DISCORD_ID: z.string().min(1),
     AUTH_DISCORD_SECRET: z.string().min(1),
     DATABASE_URL: z.string().url(),

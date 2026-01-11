@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return */
 
 import React from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { api } from "@/trpc/react";
 
 type Task = {
@@ -88,15 +88,22 @@ export default function AdminCleaningPage() {
   // Sekcja przypisań: lista zadań jak u cleanera + lista sprzątaczek
   const [daysAhead, setDaysAhead] = React.useState(7);
   const [search, setSearch] = React.useState("");
-  const searchParams = useSearchParams();
   const [view, setView] = React.useState<"assign" | "calendar">("assign");
 
   // Odczytaj widok z URL (np. ?view=calendar)
   React.useEffect(() => {
-    const v = (searchParams?.get("view") ?? "").toLowerCase();
-    if (v === "calendar") setView("calendar");
-    else if (v === "assign") setView("assign");
-  }, [searchParams]);
+    try {
+      const params =
+        typeof window !== "undefined"
+          ? new URLSearchParams(window.location.search)
+          : undefined;
+      const v = (params?.get("view") ?? "").toLowerCase();
+      if (v === "calendar") setView("calendar");
+      else if (v === "assign") setView("assign");
+    } catch {
+      // ignore
+    }
+  }, []);
   const {
     data: jobsData,
     isLoading: jobsLoading,
@@ -278,7 +285,8 @@ export default function AdminCleaningPage() {
   }, [mergedByRow, buildGaps, getMiddayTs, weekEnd, weekStart]);
 
   return (
-    <div className="min-h-screen bg-gray-50 px-4 py-6">
+    <React.Suspense fallback={null}>
+      <div className="min-h-screen bg-gray-50 px-4 py-6">
       <div className="mx-auto w-full max-w-6xl">
         <div className="mb-6 flex items-center justify-between">
           <div>
@@ -1113,6 +1121,7 @@ export default function AdminCleaningPage() {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </React.Suspense>
   );
 }
