@@ -1,6 +1,6 @@
 {
   "name": "cleaning-market",
-  "version": "1.2.83",
+  "version": "1.2.84",
   "private": true,
   "type": "module",
   "scripts": {
@@ -89,7 +89,7 @@
     "prisma": "^5.14.0",
     "tailwind-scrollbar": "^3.0.0",
     "tailwindcss": "^3.4.3",
-    "typescript": "^5.5.3",
+    "typescript": "5.9.3",
     "vitest": "^3.2.4"
   },
   "prisma": {
