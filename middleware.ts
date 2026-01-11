@@ -39,7 +39,9 @@ export function middleware(request: NextRequest) {
 
         if (!hasSessionCookie) {
             const redirectUrl = new URL('/login', request.url);
-            redirectUrl.searchParams.set('callbackUrl', request.nextUrl.pathname);
+            const path =
+                request.nextUrl.pathname === '/admin' ? '/admin/owners' : request.nextUrl.pathname;
+            redirectUrl.searchParams.set('callbackUrl', path);
             return NextResponse.redirect(redirectUrl);
         }
     }
