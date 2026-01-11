@@ -103,18 +103,30 @@ export const authConfig: NextAuthConfig = {
 
       return true; // Allow other providers (if any)
     },
-    async session({ session, user }: { session: Session; user: User | AdapterUser }) {
-      if (session.user && user.id) {
-        session.user.id = user.id;
-
-        // Get full user data with type from database
-        const dbUser = await db.user.findUnique({
-          where: { id: user.id },
-          select: { type: true }
-        });
-
-        // Set user type as ADMIN for verified admin user
-        session.user.type = dbUser?.type === "ADMIN" ? "ADMIN" : "ADMIN"; // Force ADMIN for authenticated Discord users
+    // With JWT sessions, persist user data in token then copy to session
+    async jwt({ token, user }) {
+      // On initial sign-in, 'user' is defined
+      if (user) {
+        token.sub = user.id;
+        token.email = user.email;
+        // fetch type from DB
+        try {
+          const dbUser = await db.user.findUnique({
+            where: { id: user.id },
+            select: { type: true },
+          });
+          (token as Record<string, unknown>).type = dbUser?.type ?? "ADMIN";
+        } catch {
+          (token as Record<string, unknown>).type = "ADMIN";
+        }
+      }
+      return token;
+    },
+    async session({ session, token }: { session: Session; token: any }) {
+      if (session.user) {
+        session.user.id = (token?.sub as string) ?? session.user.id;
+        // default ADMIN for authenticated Discord admins
+        session.user.type = (token?.type as UserType) ?? "ADMIN";
       }
       return session;
     },
