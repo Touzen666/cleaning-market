@@ -14,7 +14,7 @@ const MaintenancePage = () => {
 
   const { data: settings, isLoading: settingsLoading } =
     api.adminDashboard.getSystemSettings.useQuery(undefined, {
-      enabled: !!session && session.user.type === "ADMIN",
+      enabled: session?.user?.type === "ADMIN",
     });
 
   const updateSettingsMutation =
@@ -30,7 +30,7 @@ const MaintenancePage = () => {
   useEffect(() => {
     if (status === "loading") return;
 
-    if (!session || session.user.type !== "ADMIN") {
+    if (session?.user?.type !== "ADMIN") {
       router.push("/login");
       return;
     }

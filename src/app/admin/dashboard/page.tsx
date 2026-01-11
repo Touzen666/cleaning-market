@@ -11,7 +11,7 @@ const AdminDashboardPage = () => {
   useEffect(() => {
     if (status === "loading") return;
 
-    if (!session || session.user.type !== "ADMIN") {
+    if (session?.user?.type !== "ADMIN") {
       router.push("/login");
       return;
     }
