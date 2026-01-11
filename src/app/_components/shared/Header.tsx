@@ -30,7 +30,8 @@ export default function Header() {
   const navLinks = (
     <>
       <Link
-        href="/apartments"
+        href="/admin/apartments"
+        prefetch={false}
         className="block px-4 py-2 hover:text-gray-300 md:px-0 md:py-0"
         onClick={() => setIsMenuOpen(false)}
       >
