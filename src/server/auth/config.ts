@@ -7,6 +7,7 @@ import { type UserType } from "@prisma/client";
 
 import { db } from "@/server/db";
 import { env } from "@/env";
+import { type JWT } from "next-auth/jwt";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -104,29 +105,44 @@ export const authConfig: NextAuthConfig = {
       return true; // Allow other providers (if any)
     },
     // With JWT sessions, persist user data in token then copy to session
-    async jwt({ token, user }) {
+    async jwt({
+      token,
+      user,
+    }: {
+      token: JWT;
+      user?: User | AdapterUser;
+    }) {
       // On initial sign-in, 'user' is defined
       if (user) {
         token.sub = user.id;
-        token.email = user.email;
         // fetch type from DB
         try {
           const dbUser = await db.user.findUnique({
             where: { id: user.id },
             select: { type: true },
           });
-          (token as Record<string, unknown>).type = dbUser?.type ?? "ADMIN";
+          (token as unknown as { type?: UserType }).type =
+            dbUser?.type ?? "ADMIN";
         } catch {
-          (token as Record<string, unknown>).type = "ADMIN";
+          (token as unknown as { type?: UserType }).type = "ADMIN";
         }
       }
       return token;
     },
-    async session({ session, token }: { session: Session; token: any }) {
+    async session({
+      session,
+      token,
+    }: {
+      session: Session;
+      token: JWT & { type?: UserType };
+    }) {
       if (session.user) {
-        session.user.id = (token?.sub as string) ?? session.user.id;
-        // default ADMIN for authenticated Discord admins
-        session.user.type = (token?.type as UserType) ?? "ADMIN";
+        if (typeof token.sub === "string") {
+          session.user.id = token.sub;
+        }
+        const t = token.type;
+        session.user.type =
+          t === "ADMIN" || t === "OWNER" || t === "GUEST" ? t : "ADMIN";
       }
       return session;
     },
