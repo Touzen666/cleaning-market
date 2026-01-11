@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import NextAuth from 'next-auth';
-import { authConfig } from './auth.config'; // Upewnij się, że ta ścieżka jest poprawna
+// Do NOT import NextAuth here — middleware runs on Edge and cannot use Prisma.
 
 export function middleware(request: NextRequest) {
     console.log('[Middleware] Running for path:', request.nextUrl.pathname);
@@ -26,13 +25,31 @@ export function middleware(request: NextRequest) {
         return NextResponse.next();
     }
 
-    // For all other routes, let NextAuth handle it
+    // Protect admin and apartments routes by checking presence of Auth.js/NextAuth session cookie.
+    const isProtected =
+        request.nextUrl.pathname.startsWith('/admin/') ||
+        request.nextUrl.pathname.startsWith('/apartments/');
+
+    if (isProtected) {
+        // Accept any of the possible session cookie names (secure/non-secure)
+        const hasSessionCookie = request.cookies.has('__Secure-authjs.session-token')
+            || request.cookies.has('authjs.session-token')
+            || request.cookies.has('__Secure-next-auth.session-token')
+            || request.cookies.has('next-auth.session-token');
+
+        if (!hasSessionCookie) {
+            const redirectUrl = new URL('/login', request.url);
+            redirectUrl.searchParams.set('callbackUrl', request.nextUrl.pathname);
+            return NextResponse.redirect(redirectUrl);
+        }
+    }
+
+    // Allow request to proceed
     return NextResponse.next();
 }
 
-// Export NextAuth middleware for protected routes (excluding guest routes)
-// eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any
-export default NextAuth(authConfig as any).auth;
+// Default export must be the middleware function (no NextAuth on Edge)
+export default middleware;
 
 // Konfiguracja middleware - definiujemy, które trasy mają być chronione
 export const config = {
