@@ -127,8 +127,8 @@ function ApartmentCard({
                 Ładowanie pokoi...
               </div>
             )}
-            {roomsQuery.data?.length > 0 &&
-              roomsQuery.data.map((room) => (
+            {(roomsQuery.data?.length ?? 0) > 0 &&
+              roomsQuery.data!.map((room) => (
                 <button
                   key={room.id}
                   onClick={(e) => {
@@ -141,7 +141,7 @@ function ApartmentCard({
                   {`Pokój ${room.code}`}
                 </button>
               ))}
-            {roomsQuery.data?.length === 0 && (
+            {(roomsQuery.data?.length ?? 0) === 0 && (
               <div className="rounded-md bg-white/90 px-2 py-1 text-xs text-gray-500 shadow">
                 Brak zdefiniowanych pokoi.
               </div>
