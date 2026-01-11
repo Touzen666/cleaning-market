@@ -23,7 +23,8 @@ function LoginContent() {
 
       // Jeśli jest callbackUrl w parametrach, użyj go
       if (requestedCallbackUrl && requestedCallbackUrl !== "/") {
-        redirectUrl = requestedCallbackUrl;
+        redirectUrl =
+          requestedCallbackUrl === "/admin" ? "/admin/owners" : requestedCallbackUrl;
       }
       // Jeśli użytkownik to ADMIN, przekieruj do panelu administracyjnego
       else if (session.user.type === "ADMIN") {
@@ -59,7 +60,7 @@ function LoginContent() {
   // Dla przycisku logowania również uwzględnij typ użytkownika
   const getCallbackUrl = () => {
     if (requestedCallbackUrl && requestedCallbackUrl !== "/") {
-      return requestedCallbackUrl;
+      return requestedCallbackUrl === "/admin" ? "/admin/owners" : requestedCallbackUrl;
     }
     // Nie możemy tutaj sprawdzić typu użytkownika przed logowaniem,
     // więc użyjemy domyślnej strony, a logika przekierowania zadziała w useEffect

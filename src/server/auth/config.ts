@@ -48,6 +48,8 @@ declare module "next-auth/adapters" {
  * @see https://next-auth.js.org/configuration/options
  */
 export const authConfig: NextAuthConfig = {
+  // allow running behind Vercel proxy/custom domain
+  trustHost: true,
   // Ensure type compatibility due to @auth/core resolution across packages
   adapter: PrismaAdapter(db) as unknown as Adapter,
   providers: [
