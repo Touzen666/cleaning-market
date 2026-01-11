@@ -261,7 +261,24 @@ export default function OwnerReportDetailsPage() {
                 {report.year}
               </h1>
               <p className="mt-2 text-sm text-gray-600">
-                {report.apartment.name} - {report.apartment.address}
+                {report.apartment.name}
+                {(() => {
+                  const roomsCount =
+                    (report as unknown as {
+                      apartment?: { _count?: { rooms?: number } };
+                    })?.apartment?._count?.rooms ?? 0;
+                  const roomCode =
+                    (report as unknown as { room?: { code?: string } })?.room
+                      ?.code ?? undefined;
+                  return roomsCount > 1 && roomCode ? (
+                    <>
+                      {" "}
+                      • Pokój {roomCode}
+                    </>
+                  ) : null;
+                })()}
+                {" - "}
+                {report.apartment.address}
               </p>
               {/* Informacja o sposobie rozliczenia - placeholder bo nie ma danych */}
               <div className="mt-3 flex items-center space-x-4">

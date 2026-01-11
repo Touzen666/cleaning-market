@@ -1058,6 +1058,7 @@ export const monthlyReportsRouter = createTRPCRouter({
     getById: protectedProcedure
         .input(z.object({ reportId: z.string().uuid() }))
         .query(async ({ input, ctx }) => {
+            /* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-argument */
             console.log("🔍 getById called with reportId:", input.reportId);
             console.log("🔍 User type:", ctx.session.user.type);
 
@@ -1074,6 +1075,7 @@ export const monthlyReportsRouter = createTRPCRouter({
                 where: { id: input.reportId },
                 include: {
                     apartment: {
+                        // Select explicit fields plus rooms count for header logic
                         select: {
                             id: true,
                             name: true,
@@ -1086,8 +1088,13 @@ export const monthlyReportsRouter = createTRPCRouter({
                             wineCost: true,
                             cleaningCosts: true,
                             paymentType: true,
-                            fixedPaymentAmount: true
+                            fixedPaymentAmount: true,
+                            _count: { select: { rooms: true } },
                         },
+                    },
+                    // Include room to display its code in header if applicable
+                    room: {
+                        select: { id: true, code: true },
                     },
                     owner: {
                         select: {
@@ -1275,6 +1282,7 @@ export const monthlyReportsRouter = createTRPCRouter({
                 customHostPayout: custom.customHostPayout ?? null,
                 customIncomeTax: custom.customIncomeTax ?? null,
             };
+            /* eslint-enable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-argument */
         }),
 
 
@@ -1757,6 +1765,7 @@ export const monthlyReportsRouter = createTRPCRouter({
             ownerEmail: z.string().email(),
         }))
         .query(async ({ input, ctx }) => {
+            /* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-argument */
             const owner = await ctx.db.apartmentOwner.findUnique({
                 where: { email: input.ownerEmail },
             });
@@ -1787,12 +1796,17 @@ export const monthlyReportsRouter = createTRPCRouter({
                             id: true,
                             name: true,
                             address: true,
+                            _count: { select: { rooms: true } },
                             images: {
                                 where: { isPrimary: true },
                                 select: { url: true, alt: true },
                                 take: 1,
                             },
                         },
+                    },
+                    // include room to know which room the report refers to
+                    room: {
+                        select: { id: true, code: true },
                     },
                     items: {
                         select: {
@@ -1863,6 +1877,7 @@ export const monthlyReportsRouter = createTRPCRouter({
             });
 
             return reportsWithNumbers;
+            /* eslint-enable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-argument */
         }),
 
     // Owner: Get the latest approved/sent report for charts
@@ -1947,14 +1962,45 @@ export const monthlyReportsRouter = createTRPCRouter({
                 });
             }
 
-            // Get channels with their revenue totals
+            // Get channels with their revenue totals (normalized)
             const channelsMap = new Map<string, number>();
-            report.items.forEach((item) => {
-                if (item.reservation?.source) {
-                    const channel = item.reservation.source;
-                    const currentTotal = channelsMap.get(channel) ?? 0;
-                    channelsMap.set(channel, currentTotal + item.amount);
+
+            // Minimal mapping for IdoBooking numeric source IDs -> recognizable OTA names
+            // These IDs come from the IdoBooking "getSources" endpoint for our group.
+            const IDOBOOKING_ID_TO_NAME: Record<number, string> = {
+                8: "Booking", // booking.com
+                // add more here if needed, e.g. 14: "Airbnb"
+            };
+
+            const normalizeChannel = (rawCategory: string | null | undefined, rawSource: string | null | undefined): string | null => {
+                const category = (rawCategory ?? "").toLowerCase();
+                const source = (rawSource ?? "").toLowerCase();
+
+                // Prefer explicit category assigned to revenue items
+                if (category.includes("booking")) return "Booking";
+                if (category.includes("airbnb")) return "Airbnb";
+                if (rawCategory && rawCategory.trim().length > 0) return rawCategory;
+
+                // Fallback to reservation source string
+                if (source.includes("booking")) return "Booking";
+                if (source.includes("airbnb")) return "Airbnb";
+
+                // Parse patterns like "Idobooking (ID: 8)"
+                const idMatch = /idobooking\s*\(id:\s*(\d+)\)/i.exec(rawSource ?? "");
+                if (idMatch) {
+                    const id = Number(idMatch[1]);
+                    const mapped = IDOBOOKING_ID_TO_NAME[id];
+                    if (mapped) return mapped;
                 }
+
+                return rawSource ?? null;
+            };
+
+            report.items.forEach((item) => {
+                const channel = normalizeChannel(item.category, item.reservation?.source);
+                if (!channel) return;
+                const currentTotal = channelsMap.get(channel) ?? 0;
+                channelsMap.set(channel, currentTotal + item.amount);
             });
 
             // Check which commissions already exist
@@ -2350,6 +2396,7 @@ export const monthlyReportsRouter = createTRPCRouter({
     getOwnerReportById: publicProcedure
         .input(z.object({ reportId: z.string().uuid() }))
         .query(async ({ input, ctx }) => {
+            /* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-argument */
             const report = await ctx.db.monthlyReport.findUnique({
                 where: { id: input.reportId },
                 include: {
@@ -2360,8 +2407,10 @@ export const monthlyReportsRouter = createTRPCRouter({
                             address: true,
                             paymentType: true,
                             fixedPaymentAmount: true,
+                            _count: { select: { rooms: true } },
                         },
                     },
+                    room: { select: { id: true, code: true } },
                     owner: {
                         select: {
                             id: true,
@@ -2571,6 +2620,7 @@ export const monthlyReportsRouter = createTRPCRouter({
                 customSummaryEnabled: customEnabledForOwner,
                 customSummaryNote: customNoteForOwner,
             };
+            /* eslint-enable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-argument */
         }),
 
     // Admin: Zapis niestandardowego podsumowania rozliczenia

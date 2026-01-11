@@ -913,6 +913,21 @@ Proszę o utworzenie raportu miesięcznego dla powyższego apartamentu i okresu.
                           <div>
                             <div className="font-medium">
                               {report.apartment.name}
+                              {(() => {
+                                const roomsCount =
+                                  (report as unknown as {
+                                    apartment?: { _count?: { rooms?: number } };
+                                  })?.apartment?._count?.rooms ?? 0;
+                                const roomCode =
+                                  (report as unknown as {
+                                    room?: { code?: string };
+                                  })?.room?.code ?? undefined;
+                                return roomsCount > 1 && roomCode ? (
+                                  <span className="ml-1 text-xs text-gray-600">
+                                    • Pokój {roomCode}
+                                  </span>
+                                ) : null;
+                              })()}
                             </div>
                             <div className="text-gray-500">
                               {report.apartment.address}
