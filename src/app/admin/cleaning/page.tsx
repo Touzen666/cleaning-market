@@ -278,7 +278,8 @@ export default function AdminCleaningPage() {
   }, [mergedByRow, buildGaps, getMiddayTs, weekEnd, weekStart]);
 
   return (
-    <div className="min-h-screen bg-gray-50 px-4 py-6">
+    <React.Suspense fallback={null}>
+      <div className="min-h-screen bg-gray-50 px-4 py-6">
       <div className="mx-auto w-full max-w-6xl">
         <div className="mb-6 flex items-center justify-between">
           <div>
@@ -1113,6 +1114,7 @@ export default function AdminCleaningPage() {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </React.Suspense>
   );
 }
