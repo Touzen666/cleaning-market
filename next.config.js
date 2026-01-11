@@ -6,6 +6,15 @@ import "./src/env.js";
 
 /** @type {import("next").NextConfig} */
 const config = {
+  // Ensure Next/Turbopack uses this folder as the project root
+  experimental: {
+    turbopack: {
+      // Silence “inferred workspace root” warnings and fix module resolution
+      root: __dirname,
+    },
+  },
+  // Also pin file tracing root for monorepo-like setups
+  outputFileTracingRoot: __dirname,
   images: {
     remotePatterns: [
       {
