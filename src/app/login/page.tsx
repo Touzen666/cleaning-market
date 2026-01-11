@@ -9,8 +9,12 @@ function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Odczytaj callbackUrl z URL parametrów
-  const requestedCallbackUrl = searchParams.get("callbackUrl");
+  // Odczytaj callbackUrl z URL parametrów i zsanityzuj potencjalne pętle
+  const rawCallback = searchParams.get("callbackUrl") ?? undefined;
+  const requestedCallbackUrl =
+    rawCallback && !rawCallback.startsWith("/login") && !rawCallback.startsWith("/admin/login")
+      ? rawCallback
+      : undefined;
 
   useEffect(() => {
     // Jeśli już zalogowany, przekieruj zgodnie z typem użytkownika
