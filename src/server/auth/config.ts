@@ -120,6 +120,7 @@ export const authConfig: NextAuthConfig = {
   // Prefer AUTH_SECRET from env schema; compatible with our validated config
   secret: env.AUTH_SECRET,
   session: {
-    strategy: "database" as const,
+    // Avoid Prisma access from edge contexts by using JWT sessions
+    strategy: "jwt",
   },
 };
