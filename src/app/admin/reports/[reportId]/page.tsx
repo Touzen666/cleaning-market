@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-return */
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -1284,12 +1285,20 @@ export default function ReportDetailsPage({
               </h1>
               <p className="mt-2 text-sm text-gray-600">
                 {finalReport.apartment.name}
-                {selectedRoomCode ? (
-                  <>
-                    {" "}
-                    • Pokój {selectedRoomCode}
-                  </>
-                ) : null}{" "}
+                {(() => {
+                  const roomsCount =
+                    (finalReport as unknown as { apartment?: { _count?: { rooms?: number } } })?.apartment?._count?.rooms ??
+                    0;
+                  const roomCode =
+                    selectedRoomCode ??
+                    ((finalReport as unknown as { room?: { code?: string } })?.room?.code ?? undefined);
+                  return roomsCount > 1 && roomCode ? (
+                    <>
+                      {" "}
+                      • Pokój {roomCode}
+                    </>
+                  ) : null;
+                })()}{" "}
                 - {finalReport.owner.firstName} {finalReport.owner.lastName}
               </p>
               {/* Informacja o sposobie rozliczenia */}

@@ -17,6 +17,7 @@ import {
   translateReportStatus,
   getReportStatusColor,
 } from "@/lib/status-translations";
+import type { RouterOutputs } from "@/trpc/react";
 
 export default function AdminReportsPage() {
   const router = useRouter();
@@ -74,9 +75,72 @@ export default function AdminReportsPage() {
   const owners = ownersQuery.data ?? [];
 
   // Połącz aktywne i historyczne raporty
-  const allReports = [
-    ...reports.map((report) => ({ ...report, isHistorical: false })),
-    ...historicalReports.map((report) => ({ ...report, isHistorical: true })),
+  type AdminListReport =
+    RouterOutputs["monthlyReports"]["getAll"][number];
+  type HistoricalListReport =
+    RouterOutputs["monthlyReports"]["getAllHistorical"][number];
+
+  type NormalizedReport = {
+    id: string;
+    year: number;
+    month: number;
+    apartment: { name: string; address: string };
+    owner: { firstName: string; lastName: string; email: string };
+    totalRevenue: number;
+    totalExpenses: number;
+    netIncome: number;
+    status: ReportStatus;
+    isHistorical: boolean;
+    apartmentRoomsCount: number;
+    roomCode: string | null;
+    finalSettlementType?: string | null;
+  };
+
+  /* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment */
+  const normalizeAdmin = (r: AdminListReport): NormalizedReport => ({
+    id: r.id,
+    year: r.year,
+    month: r.month,
+    apartment: { name: r.apartment.name, address: r.apartment.address },
+    owner: {
+      firstName: r.owner.firstName,
+      lastName: r.owner.lastName,
+      email: r.owner.email,
+    },
+    totalRevenue: r.totalRevenue,
+    totalExpenses: r.totalExpenses,
+    netIncome: r.netIncome,
+    status: r.status,
+    isHistorical: false,
+    apartmentRoomsCount: r.apartment._count?.rooms ?? 0,
+    roomCode: r.room?.code ?? null,
+    finalSettlementType: r.finalSettlementType ?? null,
+  });
+
+  const normalizeHistorical = (r: HistoricalListReport): NormalizedReport => ({
+    id: r.id,
+    year: r.year,
+    month: r.month,
+    apartment: { name: r.apartment.name, address: r.apartment.address },
+    owner: {
+      firstName: r.owner.firstName,
+      lastName: r.owner.lastName,
+      email: r.owner.email,
+    },
+    totalRevenue: r.totalRevenue,
+    totalExpenses: r.totalExpenses,
+    netIncome: r.netIncome,
+    status: r.status,
+    isHistorical: true,
+    apartmentRoomsCount: r.apartment._count?.rooms ?? 0,
+    roomCode: null,
+    finalSettlementType: r.finalSettlementType ?? null,
+  });
+  /* eslint-enable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment */
+
+  const allReports: NormalizedReport[] = [
+    ...reports.map(normalizeAdmin),
+    ...historicalReports.map(normalizeHistorical),
   ];
 
   // Używamy nowych funkcji z lib/status-translations
@@ -513,6 +577,12 @@ export default function AdminReportsPage() {
                             <div className="text-gray-500">
                               {report.apartment.address}
                             </div>
+                            {/* Pokaż kod pokoju tylko jeśli apartament ma wiele pokoi i raport jest dla pokoju */}
+                            {report.apartmentRoomsCount > 1 && report.roomCode && (
+                              <div className="mt-0.5 text-xs text-gray-600">
+                                Pokój: {report.roomCode}
+                              </div>
+                            )}
                           </div>
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-900">
