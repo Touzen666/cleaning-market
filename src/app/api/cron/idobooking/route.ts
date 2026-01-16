@@ -5,6 +5,8 @@ import { env } from "@/env";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+// Increase Vercel function time limit to avoid 15s timeout during full sync
+export const maxDuration = 60;
 
 export async function GET(req: Request) {
     try {

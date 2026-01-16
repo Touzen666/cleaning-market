@@ -187,7 +187,26 @@ export default function OwnerReportDetailsPage() {
     (sum: number, i: ReportItemWithReservation) => sum + i.amount,
     0,
   );
-  const netIncome = totalRevenue - totalExpenses;
+
+  // Parking values (read-only for owner). Prefer explicit profit when present; otherwise compute.
+  const parkingAdminRent = Number(
+    (report as unknown as { parkingAdminRent?: number | null })
+      ?.parkingAdminRent ?? 0,
+  );
+  const parkingRentalIncome = Number(
+    (report as unknown as { parkingRentalIncome?: number | null })
+      ?.parkingRentalIncome ?? 0,
+  );
+  const parkingProfit =
+    (report as unknown as { parkingProfit?: number | null })?.parkingProfit !=
+    null
+      ? Number(
+          (report as unknown as { parkingProfit?: number | null })
+            .parkingProfit ?? 0,
+        )
+      : Math.max(0, parkingRentalIncome - parkingAdminRent);
+
+  const netIncome = totalRevenue - totalExpenses + parkingProfit;
 
   // Ręczne przychody (np. faktury przychodowe) – bez rezerwacji
   const manualRevenueItems: ReportItemWithReservation[] = revenueItems.filter(
@@ -453,6 +472,38 @@ export default function OwnerReportDetailsPage() {
             </div>
           </div>
         </div>
+
+      {/* Parking - sekcja informacyjna dla właściciela (zawsze widoczna) */}
+      <div className="mb-8 overflow-hidden rounded-lg bg-white shadow">
+        <div className="border-b border-yellow-200 bg-yellow-50 px-6 py-4">
+          <h3 className="text-lg font-medium text-yellow-800">Parking</h3>
+          <p className="mt-1 text-sm text-yellow-700">
+            Informacje o wynajętym miejscu parkingowym
+          </p>
+        </div>
+        <div className="bg-white p-6">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div className="rounded-md bg-yellow-100 p-3">
+              <p className="text-sm text-yellow-700">Czynsz (parking):</p>
+              <p className="text-lg font-bold text-yellow-900">
+                {parkingAdminRent > 0 ? `-${parkingAdminRent.toFixed(2)} PLN` : "-"}
+              </p>
+            </div>
+            <div className="rounded-md bg-yellow-100 p-3">
+              <p className="text-sm text-yellow-700">Przychód (parking):</p>
+              <p className="text-lg font-bold text-yellow-900">
+                {parkingRentalIncome > 0 ? `+${parkingRentalIncome.toFixed(2)} PLN` : "-"}
+              </p>
+            </div>
+            <div className="rounded-md bg-yellow-100 p-3">
+              <p className="text-sm text-yellow-700">Zysk (parking):</p>
+              <p className="text-lg font-bold text-yellow-900">
+                {parkingProfit.toFixed(2)} PLN
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
 
         {/* Revenue Items (Reservations) */}
         <div className="mb-8 overflow-hidden rounded-lg bg-white shadow">
@@ -1142,6 +1193,8 @@ export default function OwnerReportDetailsPage() {
                     </div>
                   </div>
                 )}
+
+
               {/* PROWIZYJNE */}
               {!report.customSummaryEnabled && (
                 <div className="flex flex-col gap-2 rounded-lg bg-blue-50 p-4">

@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-return */
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
@@ -638,12 +639,36 @@ Proszę o utworzenie raportu miesięcznego dla powyższego apartamentu i okresu.
                       Podsumowanie Finansowe
                     </h4>
                     <div className="space-y-2">
-                      <p className="flex justify-between">
-                        <span className="text-gray-600">Bieżący Rok:</span>
-                        <span className="font-bold text-green-600">
-                          {debugData.currentYearSum?.toFixed(2) ?? "null"} PLN
-                        </span>
-                      </p>
+                      {(() => {
+                        // Suma wypłat właściciela per rok na podstawie listy raportów
+                        const sumsByYear = new Map<number, number>();
+                        (reports ?? []).forEach((r) => {
+                          const year = Number(r.year);
+                          const value = Number(r.finalOwnerPayout ?? 0);
+                          sumsByYear.set(year, (sumsByYear.get(year) ?? 0) + value);
+                        });
+                        const yearsSorted = Array.from(sumsByYear.entries()).sort(
+                          (a, b) => b[0] - a[0],
+                        );
+                        if (yearsSorted.length === 0) {
+                          return (
+                            <p className="text-sm text-gray-500">
+                              Brak danych o wypłatach.
+                            </p>
+                          );
+                        }
+                        const currentYear = new Date().getFullYear();
+                        return yearsSorted.map(([year, sum]) => (
+                          <p key={year} className="flex justify-between">
+                            <span className="text-gray-600">
+                              {year === currentYear ? "Bieżący Rok:" : `Rok ${year}:`}
+                            </span>
+                            <span className="font-bold text-green-600">
+                              {sum.toFixed(2)} PLN
+                            </span>
+                          </p>
+                        ));
+                      })()}
                     </div>
                   </div>
 
