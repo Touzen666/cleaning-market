@@ -2754,22 +2754,41 @@ export const monthlyReportsRouter = createTRPCRouter({
                 });
             }
 
-            // Sprawdź czy już istnieje historyczna kopia (sprawdź po year, month, ownerId, apartmentId)
+            // Sprawdź czy już istnieje historyczna kopia TEGO KONKRETNEGO raportu (po originalReportId).
+            // Pozwala to wielokrotnie archiwizować raporty tego samego miesiąca,
+            // gdy zostały utworzone i wysłane ponownie (z innym reportId).
             const existingHistorical = await ctx.db.historicalReport.findFirst({
                 where: {
-                    year: report.year,
-                    month: report.month,
-                    ownerId: report.ownerId,
-                    apartmentId: report.apartmentId,
+                    originalReportId: report.id,
                     status: ReportStatus.DELETED
                 }
             });
 
             if (existingHistorical) {
-                throw new TRPCError({
-                    code: "BAD_REQUEST",
-                    message: "Raport został już zarchiwizowany",
-                });
+                // Jeśli kopia historyczna dla TEGO raportu już istnieje,
+                // dokończ proces: usuń oryginalny raport i zaktualizuj powód w istniejącym wpisie.
+                await ctx.db.reportItem.deleteMany({ where: { reportId: input.reportId } });
+                await ctx.db.reportHistory.deleteMany({ where: { reportId: input.reportId } });
+                await ctx.db.additionalDeduction.deleteMany({ where: { reportId: input.reportId } });
+                await ctx.db.monthlyReport.delete({ where: { id: input.reportId } });
+
+                // Opcjonalnie dopisz nowy powód do istniejącego wpisu historycznego
+                if (input.deletionReason && input.deletionReason.trim().length > 0) {
+                    const prev = existingHistorical.deletionReason ?? "";
+                    const appended = prev
+                        ? `${prev}\n[Re-archive ${new Date().toISOString()}] ${input.deletionReason}`
+                        : input.deletionReason;
+                    await ctx.db.historicalReport.update({
+                        where: { id: existingHistorical.id },
+                        data: { deletionReason: appended },
+                    });
+                }
+
+                return {
+                    success: true,
+                    historicalReportId: existingHistorical.id,
+                    message: "Raport był już zarchiwizowany — usunięto oryginalny raport.",
+                };
             }
 
             // Utwórz historyczną kopię raportu
@@ -2798,6 +2817,10 @@ export const monthlyReportsRouter = createTRPCRouter({
                     afterCommission: report.afterCommission ? Number(report.afterCommission) : null,
                     afterRentAndUtilities: report.afterRentAndUtilities ? Number(report.afterRentAndUtilities) : null,
                     totalAdditionalDeductions: report.totalAdditionalDeductions ? Number(report.totalAdditionalDeductions) : null,
+                    // Snapshot pola parkingowe
+                    parkingAdminRent: (report as unknown as { parkingAdminRent?: number | null }).parkingAdminRent ?? null,
+                    parkingRentalIncome: (report as unknown as { parkingRentalIncome?: number | null }).parkingRentalIncome ?? null,
+                    parkingProfit: (report as unknown as { parkingProfit?: number | null }).parkingProfit ?? null,
                     sentAt: report.sentAt ?? new Date(),
                     frozenAt: new Date(), // Moment zamrożenia raportu
                     deletedAt: new Date(),
