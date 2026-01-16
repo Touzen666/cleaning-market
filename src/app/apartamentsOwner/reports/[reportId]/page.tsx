@@ -473,37 +473,7 @@ export default function OwnerReportDetailsPage() {
           </div>
         </div>
 
-      {/* Parking - sekcja informacyjna dla właściciela (zawsze widoczna) */}
-      <div className="mb-8 overflow-hidden rounded-lg bg-white shadow">
-        <div className="border-b border-yellow-200 bg-yellow-50 px-6 py-4">
-          <h3 className="text-lg font-medium text-yellow-800">Parking</h3>
-          <p className="mt-1 text-sm text-yellow-700">
-            Informacje o wynajętym miejscu parkingowym
-          </p>
-        </div>
-        <div className="bg-white p-6">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            <div className="rounded-md bg-yellow-100 p-3">
-              <p className="text-sm text-yellow-700">Czynsz (parking):</p>
-              <p className="text-lg font-bold text-yellow-900">
-                {parkingAdminRent > 0 ? `-${parkingAdminRent.toFixed(2)} PLN` : "-"}
-              </p>
-            </div>
-            <div className="rounded-md bg-yellow-100 p-3">
-              <p className="text-sm text-yellow-700">Przychód (parking):</p>
-              <p className="text-lg font-bold text-yellow-900">
-                {parkingRentalIncome > 0 ? `+${parkingRentalIncome.toFixed(2)} PLN` : "-"}
-              </p>
-            </div>
-            <div className="rounded-md bg-yellow-100 p-3">
-              <p className="text-sm text-yellow-700">Zysk (parking):</p>
-              <p className="text-lg font-bold text-yellow-900">
-                {parkingProfit.toFixed(2)} PLN
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+
 
         {/* Revenue Items (Reservations) */}
         <div className="mb-8 overflow-hidden rounded-lg bg-white shadow">
@@ -616,6 +586,38 @@ export default function OwnerReportDetailsPage() {
             )}
           </div>
         </div>
+
+      {/* Parking - sekcja informacyjna dla właściciela (zawsze widoczna) */}
+      <div className="mb-8 overflow-hidden rounded-lg bg-white shadow">
+        <div className="border-b border-yellow-200 bg-yellow-50 px-6 py-4">
+          <h3 className="text-lg font-medium text-yellow-800">Parking</h3>
+          <p className="mt-1 text-sm text-yellow-700">
+            Informacje o wynajętym miejscu parkingowym
+          </p>
+        </div>
+        <div className="bg-white p-6">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div className="rounded-md bg-yellow-100 p-3">
+              <p className="text-sm text-yellow-700">Czynsz (parking):</p>
+              <p className="text-lg font-bold text-yellow-900">
+                {parkingAdminRent > 0 ? `-${parkingAdminRent.toFixed(2)} PLN` : "-"}
+              </p>
+            </div>
+            <div className="rounded-md bg-yellow-100 p-3">
+              <p className="text-sm text-yellow-700">Przychód (parking):</p>
+              <p className="text-lg font-bold text-yellow-900">
+                {parkingRentalIncome > 0 ? `+${parkingRentalIncome.toFixed(2)} PLN` : "-"}
+              </p>
+            </div>
+            <div className="rounded-md bg-yellow-100 p-3">
+              <p className="text-sm text-yellow-700">Zysk (parking):</p>
+              <p className="text-lg font-bold text-yellow-900">
+                {parkingProfit.toFixed(2)} PLN
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
 
         {/* Manual Revenue (e.g., income invoices) */}
         <div className="mb-8 overflow-hidden rounded-lg bg-white shadow">
