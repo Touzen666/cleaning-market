@@ -115,9 +115,6 @@ export default function ReportDetailsPage({
   const { reportId } = actualParams;
   const selectedRoomCode = actualSearchParams?.roomCode;
 
-  // Debug logging
-  console.log("ReportDetailsPage - reportId:", reportId);
-  console.log("ReportDetailsPage - session status:", status);
   const [showAddItemForm, setShowAddItemForm] = useState(false);
   const [loadingCommissionIndex, setLoadingCommissionIndex] = useState<
     number | null
@@ -2068,7 +2065,53 @@ export default function ReportDetailsPage({
                               {category.vatRate}% VAT
                             </span>
                           </div>
-                          {/* Usunięto automatyczne sugerowanie wartości – użytkownik wpisuje ręcznie */}
+                          {(() => {
+                            const suggestedGross =
+                              (
+                                finalReport as {
+                                  suggestedQuickExpenses?: {
+                                    sprzatanie?: number;
+                                    pranie?: number;
+                                    tekstylia?: number;
+                                  };
+                                }
+                              )?.suggestedQuickExpenses?.[
+                                key as keyof typeof quickExpenses
+                              ];
+                            const suggestedNet =
+                              suggestedGross != null && suggestedGross > 0
+                                ? Math.round((suggestedGross / (1 + category.vatRate / 100)) * 100) / 100
+                                : null;
+                            const suggestionNote =
+                              key === "sprzatanie"
+                                ? "na bazie liczby gości w rezerwacjach"
+                                : key === "pranie"
+                                  ? "na bazie dni w miesiącu (pranie co 7 dni)"
+                                  : "na bazie rezerwacji";
+                            return suggestedNet != null && suggestedNet > 0 ? (
+                              <div className="mt-2 flex flex-wrap items-center gap-2">
+                                <span className="text-xs text-gray-600">
+                                  Sugerowana kwota netto:{" "}
+                                  <strong className="text-gray-900">
+                                    {suggestedNet.toFixed(2)} PLN
+                                  </strong>
+                                  {" "}({suggestionNote})
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    handleQuickExpenseChange(
+                                      key as keyof typeof quickExpenses,
+                                      suggestedNet,
+                                    )
+                                  }
+                                  className="rounded border border-green-600 bg-white px-2 py-0.5 text-xs font-medium text-green-700 hover:bg-green-50"
+                                >
+                                  Użyj sugerowanej
+                                </button>
+                              </div>
+                            ) : null;
+                          })()}
                         </div>
 
                         {quickExpenses[key as keyof typeof quickExpenses].net >

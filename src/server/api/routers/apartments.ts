@@ -70,6 +70,7 @@ export const apartmentsRouter = createTRPCRouter({
                         cleaningSuppliesCost: true,
                         capsuleCostPerGuest: true,
                         wineCost: true,
+                        textileCostPerReservation: true,
                         hasBalcony: true,
                         hasParking: true,
                         maxGuests: true,
@@ -443,6 +444,7 @@ export const apartmentsRouter = createTRPCRouter({
                 cleaningSuppliesCost: z.number().optional(),
                 capsuleCostPerGuest: z.number().optional(),
                 wineCost: z.number().optional(),
+                textileCostPerReservation: z.number().optional().nullable(),
                 hasBalcony: z.boolean().optional(),
                 hasParking: z.boolean().optional(),
                 maxGuests: z.number().optional(),
@@ -496,6 +498,7 @@ export const apartmentsRouter = createTRPCRouter({
                     cleaningSuppliesCost: input.cleaningSuppliesCost ?? 132,
                     capsuleCostPerGuest: input.capsuleCostPerGuest ?? 2.5,
                     wineCost: input.wineCost ?? 250,
+                    textileCostPerReservation: input.textileCostPerReservation ?? undefined,
                     hasBalcony: input.hasBalcony ?? false,
                     hasParking: input.hasParking ?? false,
                     maxGuests: input.maxGuests ?? 4,
@@ -533,6 +536,7 @@ export const apartmentsRouter = createTRPCRouter({
                 defaultRentAmount: z.number().optional(),
                 defaultUtilitiesAmount: z.number().optional(),
                 weeklyLaundryCost: z.number().optional(),
+                textileCostPerReservation: z.number().optional().nullable(),
                 hasBalcony: z.boolean().optional(),
                 hasParking: z.boolean().optional(),
                 maxGuests: z.number().optional(),
@@ -550,6 +554,7 @@ export const apartmentsRouter = createTRPCRouter({
                 defaultRentAmount?: number;
                 defaultUtilitiesAmount?: number;
                 weeklyLaundryCost?: number;
+                textileCostPerReservation?: number | null;
                 hasBalcony?: boolean;
                 hasParking?: boolean;
                 maxGuests?: number;
@@ -558,6 +563,10 @@ export const apartmentsRouter = createTRPCRouter({
                 fixedPaymentAmount?: number;
                 slug?: string;
             } = { ...updateData };
+
+            if ("textileCostPerReservation" in input) {
+                data.textileCostPerReservation = input.textileCostPerReservation ?? null;
+            }
 
             // Jeśli zmieniamy nazwę, sprawdź unikalność i wygeneruj nowy slug
             if (updateData.name) {
@@ -579,12 +588,52 @@ export const apartmentsRouter = createTRPCRouter({
                 data.slug = newSlug;
             }
 
-            const updatedApartment = await ctx.db.apartment.update({
-                where: {
-                    id: parseInt(id),
-                },
-                data,
-            });
+            let updatedApartment;
+            try {
+                updatedApartment = await ctx.db.apartment.update({
+                    where: {
+                        id: parseInt(id),
+                    },
+                    data,
+                });
+            } catch (updateErr) {
+                if ("textileCostPerReservation" in data) {
+                    try {
+                        await ctx.db.$executeRawUnsafe(
+                            'ALTER TABLE "Apartment" ADD COLUMN IF NOT EXISTS "textileCostPerReservation" DOUBLE PRECISION'
+                        );
+                        updatedApartment = await ctx.db.apartment.update({
+                            where: { id: parseInt(id) },
+                            data,
+                        });
+                    } catch {
+                        throw updateErr;
+                    }
+                } else {
+                    throw updateErr;
+                }
+            }
+
+            if ("textileCostPerReservation" in input) {
+                try {
+                    await ctx.db.apartment.update({
+                        where: { id: parseInt(id) },
+                        data: {
+                            textileCostPerReservation: input.textileCostPerReservation ?? null,
+                        },
+                    });
+                } catch {
+                    await ctx.db.$executeRawUnsafe(
+                        'ALTER TABLE "Apartment" ADD COLUMN IF NOT EXISTS "textileCostPerReservation" DOUBLE PRECISION'
+                    );
+                    await ctx.db.apartment.update({
+                        where: { id: parseInt(id) },
+                        data: {
+                            textileCostPerReservation: input.textileCostPerReservation ?? null,
+                        },
+                    });
+                }
+            }
 
             // Jeśli zmieniono ustawienia rozliczenia, zaktualizuj wszystkie nierozliczone raporty
             if (updateData.paymentType || updateData.fixedPaymentAmount !== undefined) {
@@ -818,6 +867,7 @@ export const apartmentsRouter = createTRPCRouter({
                         cleaningSuppliesCost: true,
                         capsuleCostPerGuest: true,
                         wineCost: true,
+                        textileCostPerReservation: true,
                         hasBalcony: true,
                         hasParking: true,
                         maxGuests: true,
@@ -850,6 +900,7 @@ export const apartmentsRouter = createTRPCRouter({
                     cleaningCosts: apartment.cleaningCosts as Record<string, number> | null,
                     paymentType: apartment.paymentType,
                     fixedPaymentAmount: apartment.fixedPaymentAmount ? Number(apartment.fixedPaymentAmount) : null,
+                    textileCostPerReservation: apartment.textileCostPerReservation != null ? Number(apartment.textileCostPerReservation) : null,
                     images: apartment.images.map(img => ({
                         ...img,
                         id: img.id.toString(),

@@ -17,6 +17,7 @@ interface ExtendedApartment {
   cleaningSuppliesCost: number | null;
   capsuleCostPerGuest: number | null;
   wineCost: number | null;
+  textileCostPerReservation: number | null;
   hasBalcony: boolean;
   hasParking: boolean;
   maxGuests: number | null;
@@ -51,6 +52,7 @@ export default function EditApartmentPage({
     defaultRentAmount: 0,
     defaultUtilitiesAmount: 0,
     weeklyLaundryCost: 120,
+    textileCostPerReservation: null as number | null,
     hasBalcony: false,
     hasParking: false,
     maxGuests: 4,
@@ -107,10 +109,12 @@ export default function EditApartmentPage({
     { enabled: !!roomId },
   );
 
+  const utils = api.useUtils();
   // Mutacje
   const updateApartment = api.apartments.update.useMutation({
-    onSuccess: () => {
+    onSuccess: async () => {
       setStatus("success");
+      await utils.apartments.getById.invalidate();
       // Usuwamy automatyczne przekierowanie - użytkownik sam zdecyduje kiedy opuścić stronę
     },
     onError: (err) => {
@@ -166,6 +170,7 @@ export default function EditApartmentPage({
         defaultRentAmount: r.defaultRentAmount ?? 0,
         defaultUtilitiesAmount: r.defaultUtilitiesAmount ?? 0,
         weeklyLaundryCost: r.weeklyLaundryCost ?? 120,
+        textileCostPerReservation: null,
         hasBalcony: r.hasBalcony,
         hasParking: r.hasParking,
         maxGuests: r.maxGuests ?? 4,
@@ -178,6 +183,12 @@ export default function EditApartmentPage({
       (apartmentId !== "new" || createdApartmentId)
     ) {
       const apartment = apartmentQuery.data;
+      const rawTextile = (apartment as Record<string, unknown>).textileCostPerReservation;
+      const textileCostPerReservation =
+        rawTextile != null && rawTextile !== "" && Number.isFinite(Number(rawTextile))
+          ? Number(rawTextile)
+          : null;
+
       setForm({
         name: apartment.name,
         address: apartment.address,
@@ -185,6 +196,7 @@ export default function EditApartmentPage({
         defaultUtilitiesAmount: apartment.defaultUtilitiesAmount ?? 0,
         weeklyLaundryCost:
           (apartment as ExtendedApartment).weeklyLaundryCost ?? 120,
+        textileCostPerReservation,
         hasBalcony: apartment.hasBalcony,
         hasParking: apartment.hasParking,
         maxGuests: apartment.maxGuests ?? 4,
@@ -227,6 +239,10 @@ export default function EditApartmentPage({
         weeklyLaundryCost: Number(form.weeklyLaundryCost),
         maxGuests: Number(form.maxGuests),
         cleaningCosts: form.cleaningCosts,
+        textileCostPerReservation:
+          form.textileCostPerReservation != null && Number.isFinite(Number(form.textileCostPerReservation))
+            ? Number(form.textileCostPerReservation)
+            : null,
       });
     } else {
       updateRoom.mutate({
@@ -423,6 +439,34 @@ export default function EditApartmentPage({
                   (domyślnie 120 PLN)
                 </p>
               </div>
+
+              {!roomId && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Koszt tekstyliów za rezerwację (PLN)
+                  </label>
+                  <input
+                    type="number"
+                    value={form.textileCostPerReservation ?? ""}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setForm((f) => ({
+                        ...f,
+                        textileCostPerReservation: v === "" ? null : Number(v),
+                      }));
+                    }}
+                    min={0}
+                    step={0.01}
+                    className="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
+                    placeholder="np. 150"
+                  />
+                  <p className="mt-1 text-sm text-gray-500">
+                    Kwota na tekstylia (pościel, ręczniki, środki) naliczana za
+                    każdą rezerwację. Jeśli ustawiona, używana zamiast wyliczenia
+                    ze środków + wino + kapsułki.
+                  </p>
+                </div>
+              )}
 
               <div>
                 <label className="block text-sm font-medium text-gray-700">

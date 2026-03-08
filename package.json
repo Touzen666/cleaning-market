@@ -1,6 +1,6 @@
 {
   "name": "cleaning-market",
-  "version": "1.2.88",
+  "version": "1.2.92",
   "private": true,
   "type": "module",
   "scripts": {
@@ -9,6 +9,7 @@
     "db:generate": "prisma migrate dev",
     "db:migrate": "prisma migrate deploy",
     "db:push": "prisma db push",
+    "db:add-textile-column": "node scripts/add-textile-column.cjs",
     "db:studio": "prisma studio",
     "db:seed": "NODE_ENV=development prisma db seed",
     "dev": "node scripts/update-version.js && next dev --turbo",
