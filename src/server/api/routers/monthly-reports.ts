@@ -112,10 +112,10 @@ function getParkingSuggestionsFromReport(report: Partial<{
 }
 // Zod schemas
 const createReportSchema = z.object({
-    apartmentId: z.number(),
-    roomId: z.number().optional(), // gdy apartament ma wiele pokojów, raport jest dla konkretnego pokoju
-    year: z.number().min(2020).max(2030),
-    month: z.number().min(1).max(12),
+    apartmentId: z.number().int().positive(),
+    roomId: z.number().int().positive().optional(), // gdy apartament ma wiele pokojów, raport jest dla konkretnego pokoju
+    year: z.number().int().min(2020).max(2030),
+    month: z.number().int().min(1).max(12),
 });
 
 const addReportItemSchema = z.object({
@@ -812,6 +812,13 @@ export const monthlyReportsRouter = createTRPCRouter({
                 });
             }
 
+            if ((apartment as { archived?: boolean }).archived) {
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    message: "Nie można utworzyć raportu dla zarchiwizowanego apartamentu. Wybierz aktywny apartament.",
+                });
+            }
+
             const owner = apartment.ownerships[0]?.owner;
             if (!owner) {
                 throw new TRPCError({
@@ -1233,7 +1240,7 @@ export const monthlyReportsRouter = createTRPCRouter({
                 suggestedRent: lastApprovedReport?.rentAmount ?? report.apartment.defaultRentAmount ?? 0,
                 suggestedUtilities: lastApprovedReport?.utilitiesAmount ?? report.apartment.defaultUtilitiesAmount ?? 0,
                 ...getParkingSuggestionsFromReport(lastApprovedReport),
-                // Sugerowane kwoty brutto dla Szybkiego Dodawania Kosztów (sprzątanie, pranie, tekstylia) – na bazie rezerwacji
+                // Sugerowane kwoty NETTO (sprzątanie: stawka × liczba sprzątań, pranie: tygodnie × stawka, tekstylia: rezerwacje × stawka) – VAT doliczany w UI
                 suggestedQuickExpenses: {
                     sprzatanie: suggestedCleaning,
                     pranie: suggestedLaundry,
@@ -1756,6 +1763,7 @@ export const monthlyReportsRouter = createTRPCRouter({
                 where: {
                     ownerId: owner.id,
                     status: { in: [ReportStatus.APPROVED, ReportStatus.SENT] },
+                    apartment: { archived: false },
                 },
                 select: {
                     id: true,
@@ -3250,6 +3258,7 @@ export const monthlyReportsRouter = createTRPCRouter({
             const whereClause = {
                 ownerId: owner.id,
                 status: { in: [ReportStatus.APPROVED, ReportStatus.SENT] },
+                apartment: { archived: false },
                 ...(input.apartmentId && { apartmentId: input.apartmentId }),
                 ...(input.year && { year: input.year }),
                 ...(input.month && { month: input.month }),
@@ -3725,10 +3734,12 @@ export const monthlyReportsRouter = createTRPCRouter({
             const whereClause: {
                 ownerId: string;
                 status: { in: ReportStatus[] };
+                apartment: { archived: boolean };
                 apartmentId?: number;
             } = {
                 ownerId: owner.id,
                 status: { in: [ReportStatus.APPROVED, ReportStatus.SENT] },
+                apartment: { archived: false },
             };
 
             if (input.apartmentId) {
@@ -3764,6 +3775,7 @@ export const monthlyReportsRouter = createTRPCRouter({
             const whereClause = {
                 ownerId: owner.id,
                 status: { in: [ReportStatus.APPROVED, ReportStatus.SENT] },
+                apartment: { archived: false },
                 year: input.year,
                 ...(input.apartmentId && { apartmentId: input.apartmentId }),
             };
@@ -3798,6 +3810,7 @@ export const monthlyReportsRouter = createTRPCRouter({
             const whereClause = {
                 ownerId: owner.id,
                 status: { in: [ReportStatus.APPROVED, ReportStatus.SENT] },
+                apartment: { archived: false },
                 ...(input.apartmentId && { apartmentId: input.apartmentId }),
                 ...(input.year && { year: input.year }),
                 ...(input.month && { month: input.month }),

@@ -15,12 +15,14 @@ interface ApartmentListProps {
   mode: "admin" | "owner" | "public";
   onEdit?: (apartmentId: string) => void;
   onDelete?: (apartmentId: string) => void;
+  onArchive?: (apartmentId: string, archived: boolean) => void;
   onViewReservations?: (apartmentId: string) => void;
   onViewReports?: (apartmentId: string) => void;
   onManage?: (apartmentId: string) => void;
   showActions?: boolean;
   className?: string;
   deletingApartmentId?: string | null;
+  archivingApartmentId?: string | null;
 }
 
 export default function ApartmentList({
@@ -28,12 +30,14 @@ export default function ApartmentList({
   mode,
   onEdit,
   onDelete,
+  onArchive,
   onViewReservations,
   onViewReports,
   onManage,
   showActions = true,
   className = "",
   deletingApartmentId = null,
+  archivingApartmentId = null,
 }: ApartmentListProps) {
   const router = useRouter();
   const [expanded, setExpanded] = React.useState<Record<string, boolean>>({});
@@ -195,6 +199,21 @@ export default function ApartmentList({
                         />
                       </svg>
                       Edytuj
+                    </button>
+                  )}
+                  {onArchive && (
+                    <button
+                      onClick={() => onArchive(apartment.id, !apartment.archived)}
+                      disabled={archivingApartmentId === apartment.id}
+                      className="inline-flex flex-1 items-center justify-center rounded-md bg-gray-600 px-3 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 hover:bg-gray-700"
+                    >
+                      {archivingApartmentId === apartment.id ? (
+                        "Zapisywanie..."
+                      ) : apartment.archived ? (
+                        "Przywróć"
+                      ) : (
+                        "Archiwizuj"
+                      )}
                     </button>
                   )}
                   {onDelete && (
@@ -419,6 +438,19 @@ export default function ApartmentList({
                         className="inline-flex items-center rounded-md bg-yellow-500 px-3 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 hover:bg-yellow-600"
                       >
                         Edytuj
+                      </button>
+                    )}
+                    {onArchive && (
+                      <button
+                        onClick={() => onArchive(apartment.id, !apartment.archived)}
+                        disabled={archivingApartmentId === apartment.id}
+                        className="inline-flex items-center rounded-md bg-gray-600 px-3 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 hover:bg-gray-700"
+                      >
+                        {archivingApartmentId === apartment.id
+                          ? "Zapisywanie..."
+                          : apartment.archived
+                            ? "Przywróć"
+                            : "Archiwizuj"}
                       </button>
                     )}
                     {onDelete && (

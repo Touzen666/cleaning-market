@@ -2066,7 +2066,8 @@ export default function ReportDetailsPage({
                             </span>
                           </div>
                           {(() => {
-                            const suggestedGross =
+                            // Backend zwraca kwoty NETTO (sprzątanie: stawka × liczba, pranie: tygodnie × stawka, tekstylia: rezerwacje × stawka) – nie dzielimy przez VAT
+                            const suggestedFromApi =
                               (
                                 finalReport as {
                                   suggestedQuickExpenses?: {
@@ -2079,8 +2080,8 @@ export default function ReportDetailsPage({
                                 key as keyof typeof quickExpenses
                               ];
                             const suggestedNet =
-                              suggestedGross != null && suggestedGross > 0
-                                ? Math.round((suggestedGross / (1 + category.vatRate / 100)) * 100) / 100
+                              suggestedFromApi != null && suggestedFromApi > 0
+                                ? Math.round(suggestedFromApi * 100) / 100
                                 : null;
                             const suggestionNote =
                               key === "sprzatanie"
