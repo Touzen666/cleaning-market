@@ -317,7 +317,7 @@ export const reservationsRouter = createTRPCRouter({
         where: { email: ownerEmail },
         include: {
           ownedApartments: {
-            where: { isActive: true },
+            where: { isActive: true, apartment: { archived: false } },
             include: {
               apartment: {
                 include: {

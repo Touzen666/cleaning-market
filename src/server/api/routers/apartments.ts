@@ -349,6 +349,7 @@ export const apartmentsRouter = createTRPCRouter({
                 where: { email: ownerEmail },
                 select: {
                     ownedApartments: {
+                        where: { apartment: { archived: false } },
                         include: {
                             apartment: {
                                 select: {

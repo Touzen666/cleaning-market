@@ -47,6 +47,7 @@ export const ownerAuthRouter = createTRPCRouter({
                 where: { email },
                 include: {
                     ownedApartments: {
+                        where: { apartment: { archived: false } },
                         include: {
                             apartment: {
                                 select: {
@@ -167,12 +168,14 @@ export const ownerAuthRouter = createTRPCRouter({
                 where: {
                     ownerId: owner.id,
                     isActive: true,
+                    apartment: { archived: false },
                 },
             });
 
             const activeReservations = await ctx.db.reservation.count({
                 where: {
                     apartment: {
+                        archived: false,
                         ownerships: {
                             some: {
                                 ownerId: owner.id,
@@ -194,6 +197,7 @@ export const ownerAuthRouter = createTRPCRouter({
                 where: {
                     ownerId: owner.id,
                     year: startOfYear.getFullYear(),
+                    apartment: { archived: false },
                     OR: [
                         { status: { in: [ReportStatus.APPROVED, ReportStatus.SENT] } },
                         { status: 'DRAFT', customSummaryEnabled: true },
@@ -223,6 +227,7 @@ export const ownerAuthRouter = createTRPCRouter({
             const totalReports = await ctx.db.monthlyReport.count({
                 where: {
                     ownerId: owner.id,
+                    apartment: { archived: false },
                 },
             });
 
@@ -304,6 +309,7 @@ export const ownerAuthRouter = createTRPCRouter({
                 where: { email },
                 include: {
                     ownedApartments: {
+                        where: { apartment: { archived: false } },
                         include: {
                             apartment: {
                                 select: {
@@ -372,11 +378,12 @@ export const ownerAuthRouter = createTRPCRouter({
         .query(async ({ input, ctx }) => {
             const { email } = input;
 
-            // Find owner
+            // Find owner (tylko apartamenty niezarchiwizowane)
             const owner = await ctx.db.apartmentOwner.findUnique({
                 where: { email },
                 include: {
                     ownedApartments: {
+                        where: { apartment: { archived: false } },
                         include: {
                             apartment: {
                                 select: { id: true },

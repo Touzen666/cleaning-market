@@ -54,6 +54,7 @@ export const apartmentOwnersRouter = createTRPCRouter({
                             },
                         },
                         ownedApartments: {
+                            where: { apartment: { archived: false } },
                             include: {
                                 apartment: {
                                     select: {
@@ -374,6 +375,7 @@ export const apartmentOwnersRouter = createTRPCRouter({
                         },
                     },
                     ownedApartments: {
+                        where: { apartment: { archived: false } },
                         include: {
                             apartment: {
                                 select: {
@@ -731,6 +733,7 @@ export const apartmentOwnersRouter = createTRPCRouter({
                 where: { id: input.ownerId },
                 include: {
                     ownedApartments: {
+                        where: { apartment: { archived: false } },
                         include: {
                             apartment: {
                                 select: {

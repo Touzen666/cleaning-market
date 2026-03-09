@@ -26,10 +26,24 @@ export default function ApartmentsManagementPage() {
   // Query do pobierania właścicieli (dla filtra)
   const ownersQuery = api.apartmentOwners.getAll.useQuery();
 
-  // Stan do śledzenia, który apartament jest usuwany
+  // Stan do śledzenia, który apartament jest usuwany / archiwizowany
   const [deletingApartmentId, setDeletingApartmentId] = useState<string | null>(
     null,
   );
+  const [archivingApartmentId, setArchivingApartmentId] = useState<string | null>(null);
+
+  // Mutacja do archiwizacji / przywracania
+  const setArchivedMutation = api.apartments.setArchived.useMutation({
+    onSuccess: (data) => {
+      setStatus({ type: "success", message: data.message });
+      void apartmentsListQuery.refetch();
+      setArchivingApartmentId(null);
+    },
+    onError: (error) => {
+      setStatus({ type: "error", message: `Archiwizacja: ${error.message}` });
+      setArchivingApartmentId(null);
+    },
+  });
 
   // Mutacja do usuwania apartamentów
   const deleteApartmentMutation = api.apartments.delete.useMutation({
@@ -132,6 +146,18 @@ export default function ApartmentsManagementPage() {
     ) {
       setDeletingApartmentId(apartmentId);
       deleteApartmentMutation.mutate({ id: apartmentId });
+    }
+  };
+
+  const handleArchive = (apartmentId: string, archived: boolean) => {
+    const apartment = apartmentsListQuery.data?.apartments.find(
+      (apt) => apt.id === apartmentId,
+    );
+    if (!apartment) return;
+    const action = archived ? "zarchiwizować" : "przywrócić z archiwum";
+    if (confirm(`Czy na pewno chcesz ${action} apartament "${apartment.name}"?`)) {
+      setArchivingApartmentId(apartmentId);
+      setArchivedMutation.mutate({ id: apartmentId, archived });
     }
   };
 
@@ -354,8 +380,10 @@ export default function ApartmentsManagementPage() {
               mode="admin"
               onEdit={handleEdit}
               onDelete={handleDelete}
+              onArchive={handleArchive}
               showActions={true}
               deletingApartmentId={deletingApartmentId}
+              archivingApartmentId={archivingApartmentId}
             />
           )}
         </div>

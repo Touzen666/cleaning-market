@@ -110,15 +110,18 @@ export default function CreateReportPage() {
     setError("");
 
     try {
+      const roomIdNum = selectedRoomId ? Number(selectedRoomId) : undefined;
       await createReportMutation.mutateAsync({
         apartmentId: selectedApartmentId,
-        ...(selectedRoomId ? { roomId: Number(selectedRoomId) } : {}),
+        ...(roomIdNum !== undefined && Number.isInteger(roomIdNum) && roomIdNum > 0
+          ? { roomId: roomIdNum }
+          : {}),
         year: selectedYear,
         month: selectedMonth,
       });
-    } catch (error) {
-      // Error is already handled in onError
-      console.error("Create report error:", error);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Nie udało się utworzyć raportu");
+      setIsCreating(false);
     }
   };
 
