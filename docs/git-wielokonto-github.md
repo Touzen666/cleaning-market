@@ -2,7 +2,32 @@
 
 Żeby w różnych repozytoriach używać różnych kont GitHub (np. prywatne vs firmowe), skonfiguruj **conditional include** w Git.
 
-## Krok 1: Drugi klucz SSH (jeśli jeszcze nie masz)
+---
+
+## Dla Touzen666 (book-market, bartosz-wilk-development) – wymagany osobny klucz SSH
+
+Push do repo Touzen666 **musi** iść z klucza SSH dodanego do konta **Touzen666**. W `~/.gitconfig-github-konto2` jest już ustawione `core.sshCommand` na klucz `id_ed25519_touzen666`. Jeśli go jeszcze nie masz:
+
+1. **Wygeneruj klucz** (w PowerShell lub Git Bash):
+
+   ```bash
+   ssh-keygen -t ed25519 -C "touzen666@users.noreply.github.com" -f C:/Users/oched/.ssh/id_ed25519_touzen666
+   ```
+   (Hasło opcjonalne – możesz zostawić puste.)
+
+2. **Dodaj klucz do GitHub** – zaloguj się na **Touzen666** → **Settings → SSH and GPG keys → New SSH key**. Wklej zawartość pliku `C:\Users\oched\.ssh\id_ed25519_touzen666.pub`.
+
+3. **Sprawdź połączenie:**
+   ```bash
+   ssh -i C:/Users/oched/.ssh/id_ed25519_touzen666 -o IdentitiesOnly=yes -T git@github.com
+   ```
+   Powinno wyświetlić: `Hi Touzen666! You've successfully authenticated...`
+
+Po tym w **book-market** i **bartosz-wilk-development** `git push` będzie używał tego klucza i GitHub rozpozna konto Touzen666.
+
+---
+
+## Krok 1: Drugi klucz SSH (ogólnie)
 
 Dla drugiego konta GitHub wygeneruj osobny klucz:
 
