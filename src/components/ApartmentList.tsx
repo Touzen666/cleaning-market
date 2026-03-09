@@ -106,8 +106,13 @@ export default function ApartmentList({
             </div>
           )}
 
-          {/* Badges dla udogodnień */}
-          <div className="absolute left-2 top-2 flex gap-1">
+          {/* Badges dla udogodnień i statusu */}
+          <div className="absolute left-2 top-2 flex flex-wrap gap-1">
+            {apartment.archived && (
+              <span className="rounded-full bg-gray-600 px-2 py-1 text-xs text-white">
+                Zarchiwizowany
+              </span>
+            )}
             {apartment.hasBalcony && (
               <span className="rounded-full bg-brand-gold px-2 py-1 text-xs text-white">
                 Balkon

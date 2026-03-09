@@ -11,14 +11,17 @@ export default function ApartmentsManagementPage() {
     search: "",
     owner: "",
     address: "",
+    includeArchived: false,
   });
   const [status, setStatus] = useState<{
     type: "success" | "error";
     message: string;
   } | null>(null);
 
-  // Query do pobierania listy apartamentów
-  const apartmentsListQuery = api.apartments.getAll.useQuery();
+  // Query do pobierania listy apartamentów (domyślnie bez zarchiwizowanych)
+  const apartmentsListQuery = api.apartments.getAll.useQuery({
+    includeArchived: filters.includeArchived,
+  });
 
   // Query do pobierania właścicieli (dla filtra)
   const ownersQuery = api.apartmentOwners.getAll.useQuery();
@@ -137,6 +140,7 @@ export default function ApartmentsManagementPage() {
       search: "",
       owner: "",
       address: "",
+      includeArchived: false,
     });
   };
 
@@ -313,6 +317,27 @@ export default function ApartmentsManagementPage() {
                 placeholder="Wyszukaj po adresie..."
                 className="w-full rounded-md border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
               />
+            </div>
+
+            <div className="flex items-center gap-2 md:col-span-3">
+              <input
+                id="includeArchived"
+                type="checkbox"
+                checked={filters.includeArchived}
+                onChange={(e) =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    includeArchived: e.target.checked,
+                  }))
+                }
+                className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+              />
+              <label
+                htmlFor="includeArchived"
+                className="text-sm font-medium text-gray-700"
+              >
+                Pokaż zarchiwizowane apartamenty
+              </label>
             </div>
           </div>
           <div className="mt-4 text-sm text-gray-600">

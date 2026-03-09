@@ -25,6 +25,7 @@ interface ExtendedApartment {
   averageRating: number | null;
   paymentType: "COMMISSION" | "FIXED_AMOUNT" | "FIXED_AMOUNT_MINUS_UTILITIES";
   fixedPaymentAmount: number | null;
+  archived?: boolean;
   images: Array<{
     id: string;
     url: string;
@@ -136,6 +137,17 @@ export default function EditApartmentPage({
       setStatus("success");
       setCreatedApartmentId(data.apartment.id);
       // Usuwamy automatyczne przekierowanie - użytkownik sam zdecyduje kiedy opuścić stronę
+    },
+    onError: (err) => {
+      setStatus(err.message);
+    },
+  });
+
+  const setArchivedMutation = api.apartments.setArchived.useMutation({
+    onSuccess: async (data) => {
+      setStatus(data.message);
+      await utils.apartments.getById.invalidate();
+      await utils.apartments.getAll.invalidate();
     },
     onError: (err) => {
       setStatus(err.message);
@@ -700,6 +712,48 @@ export default function EditApartmentPage({
                 )}
               </div>
             )}
+
+            {/* Archiwizacja – tylko dla istniejącego apartamentu (nie pokój, nie nowy) */}
+            {!roomId &&
+              !isNew &&
+              apartmentQuery.data &&
+              (createdApartmentId ?? apartmentId) && (
+                <div className="border-t border-gray-200 pt-6">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Archiwizacja
+                  </label>
+                  <p className="mt-1 text-sm text-gray-600">
+                    {apartmentQuery.data.archived
+                      ? "Ten apartament jest zarchiwizowany i nie pojawia się na liście aktywnych. Możesz go przywrócić."
+                      : "Wycofany z użytku apartament można zarchiwizować – pozostanie w bazie, ale zniknie z domyślnej listy."}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (
+                        confirm(
+                          apartmentQuery.data.archived
+                            ? "Przywrócić apartament z archiwum?"
+                            : "Zarchiwizować ten apartament? Nie zostanie usunięty, ale zniknie z listy aktywnych.",
+                        )
+                      ) {
+                        setArchivedMutation.mutate({
+                          id: createdApartmentId ?? apartmentId,
+                          archived: !apartmentQuery.data.archived,
+                        });
+                      }
+                    }}
+                    disabled={setArchivedMutation.isPending}
+                    className="mt-2 rounded-md bg-gray-600 px-4 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50 hover:bg-gray-700"
+                  >
+                    {setArchivedMutation.isPending
+                      ? "Zapisywanie..."
+                      : apartmentQuery.data.archived
+                        ? "Przywróć z archiwum"
+                        : "Archiwizuj apartament"}
+                  </button>
+                </div>
+              )}
 
             {/* Status messages */}
             {status && (

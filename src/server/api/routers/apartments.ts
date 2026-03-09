@@ -49,17 +49,21 @@ export const apartmentsRouter = createTRPCRouter({
                         lastName: z.string(),
                     })
                 })).optional(),
+                archived: z.boolean(),
             }))
         }))
-        .query(async ({ ctx }) => {
+        .input(z.object({ includeArchived: z.boolean().optional() }).optional())
+        .query(async ({ ctx, input }) => {
             try {
                 console.log("🚀 tRPC apartments.getAll called");
 
                 const apartments = await ctx.db.apartment.findMany({
+                    where: input?.includeArchived ? undefined : { archived: false },
                     select: {
                         id: true,
                         name: true,
                         slug: true,
+                        archived: true,
                         address: true,
                         _count: { // Zliczamy rezerwacje
                             select: { reservations: true },
@@ -150,6 +154,7 @@ export const apartmentsRouter = createTRPCRouter({
                         id: apt.id.toString(),
                         reservations: apt._count.reservations, // Przekazujemy liczbę rezerwacji
                         rooms: roomsByApartmentId.get(apt.id) ?? [],
+                        archived: apt.archived ?? false,
                         images: apt.images.map(img => ({
                             ...img,
                             id: img.id,
@@ -822,6 +827,38 @@ export const apartmentsRouter = createTRPCRouter({
             };
         }),
 
+    setArchived: protectedProcedure
+        .input(z.object({
+            id: z.string().min(1),
+            archived: z.boolean(),
+        }))
+        .output(z.object({
+            success: z.boolean(),
+            message: z.string(),
+        }))
+        .mutation(async ({ input, ctx }) => {
+            const apartment = await ctx.db.apartment.findUnique({
+                where: { id: parseInt(input.id) },
+                select: { id: true, name: true },
+            });
+            if (!apartment) {
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: "Nie znaleziono apartamentu",
+                });
+            }
+            await ctx.db.apartment.update({
+                where: { id: apartment.id },
+                data: { archived: input.archived },
+            });
+            return {
+                success: true,
+                message: input.archived
+                    ? `Apartament "${apartment.name}" został zarchiwizowany`
+                    : `Apartament "${apartment.name}" został przywrócony z archiwum`,
+            };
+        }),
+
     getById: publicProcedure
         .input(z.object({
             id: z.string().min(1),
@@ -844,6 +881,7 @@ export const apartmentsRouter = createTRPCRouter({
             averageRating: z.number().nullable(),
             paymentType: z.enum(["COMMISSION", "FIXED_AMOUNT", "FIXED_AMOUNT_MINUS_UTILITIES"]),
             fixedPaymentAmount: z.number().nullable(),
+            archived: z.boolean(),
             images: z.array(z.object({
                 id: z.string(),
                 url: z.string(),
@@ -868,6 +906,7 @@ export const apartmentsRouter = createTRPCRouter({
                         capsuleCostPerGuest: true,
                         wineCost: true,
                         textileCostPerReservation: true,
+                        archived: true,
                         hasBalcony: true,
                         hasParking: true,
                         maxGuests: true,
