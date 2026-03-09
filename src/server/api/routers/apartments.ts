@@ -49,17 +49,21 @@ export const apartmentsRouter = createTRPCRouter({
                         lastName: z.string(),
                     })
                 })).optional(),
+                archived: z.boolean(),
             }))
         }))
-        .query(async ({ ctx }) => {
+        .input(z.object({ includeArchived: z.boolean().optional() }).optional())
+        .query(async ({ ctx, input }) => {
             try {
                 console.log("🚀 tRPC apartments.getAll called");
 
                 const apartments = await ctx.db.apartment.findMany({
+                    where: input?.includeArchived ? undefined : { archived: false },
                     select: {
                         id: true,
                         name: true,
                         slug: true,
+                        archived: true,
                         address: true,
                         _count: { // Zliczamy rezerwacje
                             select: { reservations: true },
@@ -70,6 +74,7 @@ export const apartmentsRouter = createTRPCRouter({
                         cleaningSuppliesCost: true,
                         capsuleCostPerGuest: true,
                         wineCost: true,
+                        textileCostPerReservation: true,
                         hasBalcony: true,
                         hasParking: true,
                         maxGuests: true,
@@ -149,6 +154,7 @@ export const apartmentsRouter = createTRPCRouter({
                         id: apt.id.toString(),
                         reservations: apt._count.reservations, // Przekazujemy liczbę rezerwacji
                         rooms: roomsByApartmentId.get(apt.id) ?? [],
+                        archived: apt.archived ?? false,
                         images: apt.images.map(img => ({
                             ...img,
                             id: img.id,
@@ -443,6 +449,7 @@ export const apartmentsRouter = createTRPCRouter({
                 cleaningSuppliesCost: z.number().optional(),
                 capsuleCostPerGuest: z.number().optional(),
                 wineCost: z.number().optional(),
+                textileCostPerReservation: z.number().optional().nullable(),
                 hasBalcony: z.boolean().optional(),
                 hasParking: z.boolean().optional(),
                 maxGuests: z.number().optional(),
@@ -496,6 +503,7 @@ export const apartmentsRouter = createTRPCRouter({
                     cleaningSuppliesCost: input.cleaningSuppliesCost ?? 132,
                     capsuleCostPerGuest: input.capsuleCostPerGuest ?? 2.5,
                     wineCost: input.wineCost ?? 250,
+                    textileCostPerReservation: input.textileCostPerReservation ?? undefined,
                     hasBalcony: input.hasBalcony ?? false,
                     hasParking: input.hasParking ?? false,
                     maxGuests: input.maxGuests ?? 4,
@@ -533,6 +541,7 @@ export const apartmentsRouter = createTRPCRouter({
                 defaultRentAmount: z.number().optional(),
                 defaultUtilitiesAmount: z.number().optional(),
                 weeklyLaundryCost: z.number().optional(),
+                textileCostPerReservation: z.number().optional().nullable(),
                 hasBalcony: z.boolean().optional(),
                 hasParking: z.boolean().optional(),
                 maxGuests: z.number().optional(),
@@ -550,6 +559,7 @@ export const apartmentsRouter = createTRPCRouter({
                 defaultRentAmount?: number;
                 defaultUtilitiesAmount?: number;
                 weeklyLaundryCost?: number;
+                textileCostPerReservation?: number | null;
                 hasBalcony?: boolean;
                 hasParking?: boolean;
                 maxGuests?: number;
@@ -558,6 +568,10 @@ export const apartmentsRouter = createTRPCRouter({
                 fixedPaymentAmount?: number;
                 slug?: string;
             } = { ...updateData };
+
+            if ("textileCostPerReservation" in input) {
+                data.textileCostPerReservation = input.textileCostPerReservation ?? null;
+            }
 
             // Jeśli zmieniamy nazwę, sprawdź unikalność i wygeneruj nowy slug
             if (updateData.name) {
@@ -579,12 +593,52 @@ export const apartmentsRouter = createTRPCRouter({
                 data.slug = newSlug;
             }
 
-            const updatedApartment = await ctx.db.apartment.update({
-                where: {
-                    id: parseInt(id),
-                },
-                data,
-            });
+            let updatedApartment;
+            try {
+                updatedApartment = await ctx.db.apartment.update({
+                    where: {
+                        id: parseInt(id),
+                    },
+                    data,
+                });
+            } catch (updateErr) {
+                if ("textileCostPerReservation" in data) {
+                    try {
+                        await ctx.db.$executeRawUnsafe(
+                            'ALTER TABLE "Apartment" ADD COLUMN IF NOT EXISTS "textileCostPerReservation" DOUBLE PRECISION'
+                        );
+                        updatedApartment = await ctx.db.apartment.update({
+                            where: { id: parseInt(id) },
+                            data,
+                        });
+                    } catch {
+                        throw updateErr;
+                    }
+                } else {
+                    throw updateErr;
+                }
+            }
+
+            if ("textileCostPerReservation" in input) {
+                try {
+                    await ctx.db.apartment.update({
+                        where: { id: parseInt(id) },
+                        data: {
+                            textileCostPerReservation: input.textileCostPerReservation ?? null,
+                        },
+                    });
+                } catch {
+                    await ctx.db.$executeRawUnsafe(
+                        'ALTER TABLE "Apartment" ADD COLUMN IF NOT EXISTS "textileCostPerReservation" DOUBLE PRECISION'
+                    );
+                    await ctx.db.apartment.update({
+                        where: { id: parseInt(id) },
+                        data: {
+                            textileCostPerReservation: input.textileCostPerReservation ?? null,
+                        },
+                    });
+                }
+            }
 
             // Jeśli zmieniono ustawienia rozliczenia, zaktualizuj wszystkie nierozliczone raporty
             if (updateData.paymentType || updateData.fixedPaymentAmount !== undefined) {
@@ -773,6 +827,38 @@ export const apartmentsRouter = createTRPCRouter({
             };
         }),
 
+    setArchived: protectedProcedure
+        .input(z.object({
+            id: z.string().min(1),
+            archived: z.boolean(),
+        }))
+        .output(z.object({
+            success: z.boolean(),
+            message: z.string(),
+        }))
+        .mutation(async ({ input, ctx }) => {
+            const apartment = await ctx.db.apartment.findUnique({
+                where: { id: parseInt(input.id) },
+                select: { id: true, name: true },
+            });
+            if (!apartment) {
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: "Nie znaleziono apartamentu",
+                });
+            }
+            await ctx.db.apartment.update({
+                where: { id: apartment.id },
+                data: { archived: input.archived },
+            });
+            return {
+                success: true,
+                message: input.archived
+                    ? `Apartament "${apartment.name}" został zarchiwizowany`
+                    : `Apartament "${apartment.name}" został przywrócony z archiwum`,
+            };
+        }),
+
     getById: publicProcedure
         .input(z.object({
             id: z.string().min(1),
@@ -795,6 +881,7 @@ export const apartmentsRouter = createTRPCRouter({
             averageRating: z.number().nullable(),
             paymentType: z.enum(["COMMISSION", "FIXED_AMOUNT", "FIXED_AMOUNT_MINUS_UTILITIES"]),
             fixedPaymentAmount: z.number().nullable(),
+            archived: z.boolean(),
             images: z.array(z.object({
                 id: z.string(),
                 url: z.string(),
@@ -818,6 +905,8 @@ export const apartmentsRouter = createTRPCRouter({
                         cleaningSuppliesCost: true,
                         capsuleCostPerGuest: true,
                         wineCost: true,
+                        textileCostPerReservation: true,
+                        archived: true,
                         hasBalcony: true,
                         hasParking: true,
                         maxGuests: true,
@@ -850,6 +939,7 @@ export const apartmentsRouter = createTRPCRouter({
                     cleaningCosts: apartment.cleaningCosts as Record<string, number> | null,
                     paymentType: apartment.paymentType,
                     fixedPaymentAmount: apartment.fixedPaymentAmount ? Number(apartment.fixedPaymentAmount) : null,
+                    textileCostPerReservation: apartment.textileCostPerReservation != null ? Number(apartment.textileCostPerReservation) : null,
                     images: apartment.images.map(img => ({
                         ...img,
                         id: img.id.toString(),
