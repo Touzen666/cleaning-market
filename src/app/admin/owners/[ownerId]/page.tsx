@@ -120,7 +120,11 @@ export default function OwnerDetailsPage({
   const ownerApartments = ownerApartmentsQuery.data ?? [];
 
   const handleDeleteApartment = (apartmentId: string) => {
-    if (confirm("Czy na pewno chcesz usunąć ten apartament?")) {
+    const apartment = ownerApartments.find((apt) => apt.id === apartmentId);
+    if (
+      apartment &&
+      confirm(`Czy na pewno chcesz usunąć apartament "${apartment.name}"?`)
+    ) {
       deleteApartmentMutation.mutate({ id: apartmentId });
     }
   };

@@ -502,7 +502,10 @@ export default function ReportDetailsPage({
       | "COMMISSION"
       | "FIXED"
       | "FIXED_MINUS_UTILITIES";
-    if (apartmentPaymentType === "COMMISSION") {
+    if (
+      apartmentPaymentType === "COMMISSION" ||
+      apartmentPaymentType === "OWN_APARTMENT"
+    ) {
       expectedSettlementType = "COMMISSION";
     } else if (apartmentPaymentType === "FIXED_AMOUNT") {
       expectedSettlementType = "FIXED";
@@ -3568,11 +3571,14 @@ export default function ReportDetailsPage({
                   d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 012-2v16a2 2 0 01-2 2z"
                 />
               </svg>
-              Rozliczenie z Właścicielem
+              {report?.apartment?.paymentType === "OWN_APARTMENT"
+                ? "Podsumowanie rozliczenia"
+                : "Rozliczenie z Właścicielem"}
             </h3>
             <p className="mt-1 text-sm text-green-700">
-              Ostateczna kalkulacja płatności dla{" "}
-              {report?.owner?.firstName ?? ""} {report?.owner?.lastName ?? ""}
+              {report?.apartment?.paymentType === "OWN_APARTMENT"
+                ? "Podsumowanie dla apartamentu własnego (bez prowizji zarządcy)."
+                : `Ostateczna kalkulacja płatności dla ${report?.owner?.firstName ?? ""} ${report?.owner?.lastName ?? ""}`}
             </p>
           </div>
           <div className="bg-white p-6">
@@ -4316,6 +4322,7 @@ function OwnerPayoutCalculation({
 }) {
   // Sprawdź czy właściciel jest zwolniony z VAT
   const isVatExempt = report.owner.vatOption === VATOption.NO_VAT;
+  const isOwnApartment = report.apartment.paymentType === "OWN_APARTMENT";
   const isReportSent = report.status === ReportStatus.SENT;
   const [deductRentAndUtilities] = React.useState(true);
   const [isRefreshing, setIsRefreshing] = React.useState(false);
@@ -4499,7 +4506,7 @@ function OwnerPayoutCalculation({
     fixedBaseAmount - totalAdditionalDeductionsGross;
 
   // Zysk procentowy (po prowizji admina i odjęciu czynszu/mediów)
-  const adminCommissionRate = 0.25; // 25%
+  const adminCommissionRate = isOwnApartment ? 0 : 0.25;
   const adminCommissionAmount = report.netIncome * adminCommissionRate;
   const netIncomeAfterAdminCommission =
     report.netIncome - adminCommissionAmount;
@@ -4521,6 +4528,19 @@ function OwnerPayoutCalculation({
   // NOWE: Obliczanie kwot w podsumowaniu na podstawie wybranego typu rozliczenia
   const getSummaryValues = React.useCallback(() => {
     const isVatExemptLocal = report.owner.vatOption === "NO_VAT";
+    if (isOwnApartment) {
+      const ownTaxBase = report.netIncome;
+      const ownOwnerPayout = isVatExemptLocal
+        ? netIncomeAfterAllDeductions
+        : getGrossAmount(netIncomeAfterAllDeductions, report.owner.vatOption);
+
+      return {
+        finalOwnerPayout: ownOwnerPayout,
+        finalHostPayout: 0,
+        finalIncomeTax: ownTaxBase * 0.085,
+        taxBase: ownTaxBase,
+      };
+    }
     switch (finalPayoutType) {
       case LocalPayoutType.FIXED_AMOUNT:
         // Kwota stała: właściciel dostaje ustaloną kwotę, administrator dopłaca różnicę jeśli potrzeba
@@ -4586,6 +4606,7 @@ function OwnerPayoutCalculation({
   }, [
     report.owner.vatOption,
     report.netIncome,
+    isOwnApartment,
     finalPayoutType,
     fixedBaseAmount,
     fixedBaseAmountAfterDeductions,
@@ -4813,7 +4834,9 @@ function OwnerPayoutCalculation({
         )}
       </div>
 
-      {/* Zawsze pokazuj 3 opcje rozliczenia */}
+      {/* Opcje rozliczenia pomijamy dla apartamentu własnego */}
+      {!isOwnApartment && (
+        <>
       <PayoutOption
         id="final-commission"
         label="Rozliczenie właściciela: prowizyjne"
@@ -4996,6 +5019,8 @@ function OwnerPayoutCalculation({
           />
         </div>
       </PayoutOption>
+        </>
+      )}
 
       {/* Sekcja podsumowania z 4 polami */}
       <div className="mt-8 rounded-lg bg-gray-50 p-6">
@@ -5082,7 +5107,9 @@ function OwnerPayoutCalculation({
               właściciela po wysłaniu)
             </label>
 
-            <div className="mt-3 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div
+              className={`mt-3 grid grid-cols-1 gap-4 md:grid-cols-2 ${isOwnApartment ? "lg:grid-cols-3" : "lg:grid-cols-4"}`}
+            >
               <div>
                 <div className="mb-1 text-sm text-gray-600">
                   Podstawa opodatkowania
@@ -5119,7 +5146,8 @@ function OwnerPayoutCalculation({
                   disabled={!customEnabled}
                 />
               </div>
-              <div>
+              {!isOwnApartment && (
+                <div>
                 <div className="mb-1 text-sm text-gray-600">
                   Prowizja Złote Wynajmy
                 </div>
@@ -5137,6 +5165,7 @@ function OwnerPayoutCalculation({
                   disabled={!customEnabled}
                 />
               </div>
+              )}
               <div>
                 <div className="mb-1 text-sm text-gray-600">
                   Podatek dochodowy
@@ -5253,7 +5282,9 @@ function OwnerPayoutCalculation({
             </div>
           );
         })()}
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div
+          className={`grid grid-cols-1 gap-4 md:grid-cols-2 ${isOwnApartment ? "lg:grid-cols-3" : "lg:grid-cols-4"}`}
+        >
           {(() => {
             const r = report as ReportWithCustom;
             const taxBaseValue: number =
@@ -5268,6 +5299,15 @@ function OwnerPayoutCalculation({
                   !customEnabled
                     ? (() => {
                         const isVat = report.owner.vatOption !== "NO_VAT";
+                        if (isOwnApartment) {
+                          return (
+                            <span className="block text-xs text-gray-600">
+                              {isVat ? "(netto) " : ""}Zysk netto apartamentu:{" "}
+                              {report.netIncome.toFixed(2)} PLN ={" "}
+                              {taxBaseValue.toFixed(2)} PLN
+                            </span>
+                          );
+                        }
                         if (finalPayoutType === LocalPayoutType.COMMISSION) {
                           // Podstawa = Kwota po prowizji Złote Wynajmy (netto)
                           return (
@@ -5318,8 +5358,9 @@ function OwnerPayoutCalculation({
                 value={(() => {
                   const isVat = report.owner.vatOption !== "NO_VAT";
                   if (!isVat) return `${ownerValue.toFixed(2)} PLN`;
-                  const netto =
-                    finalPayoutType === LocalPayoutType.COMMISSION
+                  const netto = isOwnApartment
+                    ? netIncomeAfterAllDeductions
+                    : finalPayoutType === LocalPayoutType.COMMISSION
                       ? netIncomeAfterAllDeductions
                       : finalPayoutType === LocalPayoutType.FIXED_AMOUNT
                         ? fixedBaseAmountAfterDeductions
@@ -5345,7 +5386,8 @@ function OwnerPayoutCalculation({
               />
             );
           })()}
-          {(() => {
+          {!isOwnApartment &&
+            (() => {
             const r = report as ReportWithCustom;
             const hostValue: number =
               r.customSummaryEnabled && r.customHostPayout != null

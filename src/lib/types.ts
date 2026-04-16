@@ -95,6 +95,8 @@ export const getPaymentTypeText = (paymentType: PaymentType): string => {
             return "Prowizja";
         case PaymentType.FIXED_AMOUNT:
             return "Stała kwota";
+        case PaymentType.OWN_APARTMENT:
+            return "Apartament własny";
         default:
             return paymentType;
     }

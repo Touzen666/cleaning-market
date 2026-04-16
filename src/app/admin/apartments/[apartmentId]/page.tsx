@@ -23,7 +23,11 @@ interface ExtendedApartment {
   maxGuests: number | null;
   cleaningCosts: Record<string, number> | null;
   averageRating: number | null;
-  paymentType: "COMMISSION" | "FIXED_AMOUNT" | "FIXED_AMOUNT_MINUS_UTILITIES";
+  paymentType:
+    | "COMMISSION"
+    | "FIXED_AMOUNT"
+    | "FIXED_AMOUNT_MINUS_UTILITIES"
+    | "OWN_APARTMENT";
   fixedPaymentAmount: number | null;
   archived?: boolean;
   images: Array<{
@@ -61,7 +65,8 @@ export default function EditApartmentPage({
     paymentType: "COMMISSION" as
       | "COMMISSION"
       | "FIXED_AMOUNT"
-      | "FIXED_AMOUNT_MINUS_UTILITIES",
+      | "FIXED_AMOUNT_MINUS_UTILITIES"
+      | "OWN_APARTMENT",
     fixedPaymentAmount: 0,
   });
   const [status, setStatus] = useState<string | null>(null);
@@ -607,6 +612,25 @@ export default function EditApartmentPage({
                       />
                       <span className="ml-3 text-sm text-gray-700">
                         Rozliczenie właściciela: prowizyjne
+                      </span>
+                    </label>
+
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        name="paymentType"
+                        value="OWN_APARTMENT"
+                        checked={form.paymentType === "OWN_APARTMENT"}
+                        onChange={(e) =>
+                          setForm((f) => ({
+                            ...f,
+                            paymentType: e.target.value as "OWN_APARTMENT",
+                          }))
+                        }
+                        className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                      />
+                      <span className="ml-3 text-sm text-gray-700">
+                        Apartament własny (bez prowizji zarządcy)
                       </span>
                     </label>
 

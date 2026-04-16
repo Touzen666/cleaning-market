@@ -46,6 +46,10 @@ function safeNumber(value: unknown): number {
     return Number.isFinite(n) ? n : 0;
 }
 
+function getAdminCommissionRate(paymentType: PaymentType | string | null | undefined): number {
+    return paymentType === "OWN_APARTMENT" ? 0 : 0.25;
+}
+
 // Normalize status and determine whether reservation actually took place
 function normalizeStatus(status: string | null | undefined): string {
     return (status ?? "")
@@ -169,7 +173,7 @@ function calculateOwnerPayout(
 
     if (apartmentPaymentType === PaymentType.FIXED_AMOUNT && apartmentFixedPaymentAmount) {
         baseAmount = Number(apartmentFixedPaymentAmount);
-    } else if (apartmentPaymentType === PaymentType.COMMISSION) {
+    } else if (apartmentPaymentType === PaymentType.COMMISSION || apartmentPaymentType === "OWN_APARTMENT") {
         // For commission, we'll calculate it based on net income
         // This can be customized with commission percentages in the future
         baseAmount = netIncome; // For now, owner gets all net income
@@ -425,7 +429,8 @@ async function recalculateReportSettlement(reportId: string, ctx: RecalculateCon
         const totalExpenses = expenseItems.reduce((sum, i) => sum + i.amount, 0);
         const otaCommissions = commissionItems.reduce((sum, i) => sum + i.amount, 0);
         const netIncome = totalRevenue - totalExpenses - otaCommissions + getParkingProfit(report);
-        const adminCommissionAmount = netIncome * 0.25;
+        const adminCommissionAmount =
+            netIncome * getAdminCommissionRate(actualApartment.paymentType);
         const afterCommission = netIncome - adminCommissionAmount;
         const rentAndUtilities = (report.rentAmount ?? 0) + (report.utilitiesAmount ?? 0);
         const afterRentAndUtilities = afterCommission - rentAndUtilities;
@@ -887,7 +892,7 @@ export const monthlyReportsRouter = createTRPCRouter({
 
             // Automatycznie ustaw typ rozliczenia na podstawie ustawień apartamentu
             let finalSettlementType: "COMMISSION" | "FIXED" | "FIXED_MINUS_UTILITIES";
-            if (apartment.paymentType === "COMMISSION") {
+            if (apartment.paymentType === "COMMISSION" || apartment.paymentType === "OWN_APARTMENT") {
                 finalSettlementType = "COMMISSION";
             } else if (apartment.paymentType === "FIXED_AMOUNT") {
                 finalSettlementType = "FIXED";
@@ -1163,7 +1168,7 @@ export const monthlyReportsRouter = createTRPCRouter({
             const otaCommissions = commissionItems.reduce((sum, i) => sum + i.amount, 0);
             const netIncome = totalRevenue - totalExpenses - otaCommissions + getParkingProfit(report);
 
-            const adminCommissionRate = 0.25;
+            const adminCommissionRate = getAdminCommissionRate(report.apartment.paymentType);
             const adminCommissionAmount = netIncome * adminCommissionRate;
             const afterCommission = netIncome - adminCommissionAmount;
 
@@ -2145,7 +2150,8 @@ export const monthlyReportsRouter = createTRPCRouter({
             const totalExpenses = report.items.filter(i => ["EXPENSE", "FEE", "TAX"].includes(i.type)).reduce((s, i) => s + i.amount, 0);
             const otaCommissions = report.items.filter(i => i.type === "COMMISSION").reduce((s, i) => s + i.amount, 0);
             const netIncome = totalRevenue - totalExpenses - otaCommissions + getParkingProfit(report);
-            const adminCommissionAmount = netIncome * 0.25;
+            const adminCommissionAmount =
+                netIncome * getAdminCommissionRate(report.apartment.paymentType);
             const afterCommission = netIncome - adminCommissionAmount;
             const rentAndUtilities = (report.rentAmount ?? 0) + (report.utilitiesAmount ?? 0);
             const afterRentAndUtilities = afterCommission - rentAndUtilities;
@@ -2502,7 +2508,8 @@ export const monthlyReportsRouter = createTRPCRouter({
                 totalExpenses = expenseItems.reduce((sum, i) => sum + i.amount, 0);
                 const otaCommissions = commissionItems.reduce((sum, i) => sum + i.amount, 0);
                 netIncome = totalRevenue - totalExpenses - otaCommissions + getParkingProfit(report);
-                adminCommissionAmount = netIncome * 0.25;
+                adminCommissionAmount =
+                    netIncome * getAdminCommissionRate(report.apartment.paymentType);
                 afterCommission = netIncome - adminCommissionAmount;
 
                 // Calculate additional deductions dynamically
@@ -2542,7 +2549,7 @@ export const monthlyReportsRouter = createTRPCRouter({
             }
 
             // const otaCommissions = report.items.filter((i) => i.type === "COMMISSION").reduce((sum, i) => sum + i.amount, 0);
-            const adminCommissionRate = 0.25; // Still needed for some calculations
+            const adminCommissionRate = getAdminCommissionRate(report.apartment.paymentType);
             const rentAndUtilitiesTotal = (report.rentAmount ?? 0) + (report.utilitiesAmount ?? 0);
 
             const commissionNetBase = afterRentAndUtilities - totalAdditionalDeductions;
@@ -3194,7 +3201,8 @@ export const monthlyReportsRouter = createTRPCRouter({
                 const totalExpenses = june2025Report.items.filter(i => ["EXPENSE", "FEE", "TAX"].includes(i.type)).reduce((s, i) => s + i.amount, 0);
                 const otaCommissions = june2025Report.items.filter(i => i.type === "COMMISSION").reduce((s, i) => s + i.amount, 0);
                 const netIncome = totalRevenue - totalExpenses - otaCommissions + getParkingProfit(june2025Report);
-                const adminCommissionAmount = netIncome * 0.25;
+                const adminCommissionAmount =
+                    netIncome * getAdminCommissionRate(june2025Report.apartment.paymentType);
                 const afterCommission = netIncome - adminCommissionAmount;
                 const rentAndUtilities = (june2025Report.rentAmount ?? 0) + (june2025Report.utilitiesAmount ?? 0);
                 const afterRentAndUtilities = afterCommission - rentAndUtilities;
@@ -3350,7 +3358,8 @@ export const monthlyReportsRouter = createTRPCRouter({
                     .reduce((sum: number, i) => sum + i.amount, 0);
 
                 const netIncome = totalRevenue - totalExpenses - otaCommissions + getParkingProfit(report);
-                const adminCommissionAmount = netIncome * 0.25;
+                const adminCommissionAmount =
+                    netIncome * getAdminCommissionRate(report.apartment.paymentType);
                 const afterCommission = netIncome - adminCommissionAmount;
                 const rentAndUtilities = (report.rentAmount ?? 0) + (report.utilitiesAmount ?? 0);
                 const afterRentAndUtilities = afterCommission - rentAndUtilities;
