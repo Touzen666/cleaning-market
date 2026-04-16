@@ -94,6 +94,44 @@ function isReservationRealized(status: string | null | undefined): boolean {
     return true;
 }
 
+const IDOBOOKING_SOURCE_ID_TO_CHANNEL: Record<number, string> = {
+    8: "Booking",
+    14: "Airbnb",
+};
+
+function getRecognizedReservationChannel(rawSource: string | null | undefined): string | null {
+    const source = (rawSource ?? "").trim();
+    const sourceLower = source.toLowerCase();
+
+    if (!source) return null;
+    if (sourceLower.includes("booking")) return "Booking";
+    if (sourceLower.includes("airbnb")) return "Airbnb";
+
+    const idMatch = /idobooking\s*\(id:\s*(\d+)\)/i.exec(source);
+    if (!idMatch) return null;
+
+    const id = Number(idMatch[1]);
+    return IDOBOOKING_SOURCE_ID_TO_CHANNEL[id] ?? null;
+}
+
+function resolveReportChannel(
+    rawCategory: string | null | undefined,
+    rawSource: string | null | undefined,
+): string | null {
+    const recognizedSource = getRecognizedReservationChannel(rawSource);
+    if (recognizedSource) return recognizedSource;
+
+    const category = (rawCategory ?? "").trim();
+    const categoryLower = category.toLowerCase();
+
+    if (categoryLower.includes("booking")) return "Booking";
+    if (categoryLower.includes("airbnb")) return "Airbnb";
+    if (category) return category;
+
+    const source = (rawSource ?? "").trim();
+    return source || null;
+}
+
 function getParkingSuggestionsFromReport(report: Partial<{
     parkingAdminRent?: number | null;
     parkingRentalIncome?: number | null;
@@ -872,6 +910,7 @@ export const monthlyReportsRouter = createTRPCRouter({
                     currency: true,
                     paymantValue: true,
                     rateCorrection: true,
+                    source: true,
                     status: true,
                     adults: true,
                     children: true,
@@ -945,11 +984,13 @@ export const monthlyReportsRouter = createTRPCRouter({
 
                     const otherNights = totalNights - nightsInThisMonth;
                     const note = `Kwota bazowa ${totalAmount.toFixed(2)} / ${totalNights} nocy = ${pricePerNight.toFixed(2)} za noc. W tym raporcie: ${nightsInThisMonth} nocy; pozostałe ${otherNights} nocy rozliczane w sąsiednim miesiącu.`;
+                    const revenueCategory =
+                        resolveReportChannel(null, reservation.source) ?? "Booking";
 
                     return {
                         reportId: report.id,
                         type: ReportItemType.REVENUE,
-                        category: "Booking",
+                        category: revenueCategory,
                         description: `Rezerwacja - ${reservation.guest} (podział proporcjonalny)`,
                         amount: amountForThisMonth,
                         currency: reservation.currency ?? "PLN",
@@ -1953,39 +1994,11 @@ export const monthlyReportsRouter = createTRPCRouter({
             // Get channels with their revenue totals (normalized)
             const channelsMap = new Map<string, number>();
 
-            // Minimal mapping for IdoBooking numeric source IDs -> recognizable OTA names
-            // These IDs come from the IdoBooking "getSources" endpoint for our group.
-            const IDOBOOKING_ID_TO_NAME: Record<number, string> = {
-                8: "Booking", // booking.com
-                // add more here if needed, e.g. 14: "Airbnb"
-            };
-
-            const normalizeChannel = (rawCategory: string | null | undefined, rawSource: string | null | undefined): string | null => {
-                const category = (rawCategory ?? "").toLowerCase();
-                const source = (rawSource ?? "").toLowerCase();
-
-                // Prefer explicit category assigned to revenue items
-                if (category.includes("booking")) return "Booking";
-                if (category.includes("airbnb")) return "Airbnb";
-                if (rawCategory && rawCategory.trim().length > 0) return rawCategory;
-
-                // Fallback to reservation source string
-                if (source.includes("booking")) return "Booking";
-                if (source.includes("airbnb")) return "Airbnb";
-
-                // Parse patterns like "Idobooking (ID: 8)"
-                const idMatch = /idobooking\s*\(id:\s*(\d+)\)/i.exec(rawSource ?? "");
-                if (idMatch) {
-                    const id = Number(idMatch[1]);
-                    const mapped = IDOBOOKING_ID_TO_NAME[id];
-                    if (mapped) return mapped;
-                }
-
-                return rawSource ?? null;
-            };
-
             report.items.forEach((item) => {
-                const channel = normalizeChannel(item.category, item.reservation?.source);
+                const channel = resolveReportChannel(
+                    item.category,
+                    item.reservation?.source,
+                );
                 if (!channel) return;
                 const currentTotal = channelsMap.get(channel) ?? 0;
                 channelsMap.set(channel, currentTotal + item.amount);
@@ -2325,7 +2338,7 @@ export const monthlyReportsRouter = createTRPCRouter({
                 },
                 select: {
                     id: true, guest: true, start: true, end: true, currency: true,
-                    paymantValue: true, rateCorrection: true, status: true, adults: true, children: true,
+                    paymantValue: true, rateCorrection: true, source: true, status: true, adults: true, children: true,
                 }
             });
 
@@ -2358,10 +2371,12 @@ export const monthlyReportsRouter = createTRPCRouter({
                     const amountForThisMonth = Number((pricePerNight * nightsInThisMonth).toFixed(2));
                     const otherNights = totalNights - nightsInThisMonth;
                     const note = `Kwota bazowa ${totalAmount.toFixed(2)} / ${totalNights} nocy = ${pricePerNight.toFixed(2)} za noc. W tym raporcie: ${nightsInThisMonth} nocy; pozostałe ${otherNights} nocy rozliczane w sąsiednim miesiącu.`;
+                    const revenueCategory =
+                        resolveReportChannel(null, r.source) ?? "Booking";
                     return {
                         reportId: report.id,
                         type: ReportItemType.REVENUE,
-                        category: "Booking",
+                        category: revenueCategory,
                         description: `Rezerwacja - ${r.guest ?? "gość"} (podział proporcjonalny)`,
                         amount: amountForThisMonth,
                         currency: r.currency ?? "PLN",
