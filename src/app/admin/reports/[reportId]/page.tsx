@@ -405,6 +405,8 @@ export default function ReportDetailsPage({
 
   // Użyj historycznego raportu, jeśli zwykły nie istnieje
   const finalReport = report ?? historicalReport;
+  const isOwnApartment =
+    finalReport?.apartment?.paymentType === "OWN_APARTMENT";
   const isHistorical = Boolean(!report && historicalReport);
 
   // Zaktualizuj useEffect gdy report się załaduje
@@ -3417,8 +3419,9 @@ export default function ReportDetailsPage({
               })()}
             </div>
 
-            {/* Karta z prowizją 25% dla administratora (procent korygowany dynamicznie) */}
-            <div className="mb-6 rounded-lg bg-blue-50 p-4">
+            {/* Karta z prowizją administratora pomijana dla apartamentów własnych */}
+            {!isOwnApartment && (
+              <div className="mb-6 rounded-lg bg-blue-50 p-4">
               <h5 className="mb-2 text-lg font-medium text-blue-800">
                 {(() => {
                   // Oblicz dynamiczny procent prowizji na podstawie "kwota prowizji" i "pozostało"
@@ -3550,7 +3553,8 @@ export default function ReportDetailsPage({
                   </div>
                 </div>
               </div>
-            </div>
+              </div>
+            )}
           </div>
         </div>
 

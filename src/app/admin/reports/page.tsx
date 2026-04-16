@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/trpc/react";
 import {
@@ -19,19 +19,75 @@ import {
 } from "@/lib/status-translations";
 import type { RouterOutputs } from "@/trpc/react";
 
+const REPORT_FILTERS_STORAGE_KEY = "admin-reports-filters";
+
 export default function AdminReportsPage() {
   const router = useRouter();
   const [selectedStatus, setSelectedStatus] = useState<ReportStatus | "">("");
   const [selectedOwner, setSelectedOwner] = useState<string>("");
+  const [filtersLoaded, setFiltersLoaded] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    try {
+      const rawFilters = window.localStorage.getItem(REPORT_FILTERS_STORAGE_KEY);
+      if (!rawFilters) {
+        setFiltersLoaded(true);
+        return;
+      }
+
+      const parsedFilters = JSON.parse(rawFilters) as {
+        selectedStatus?: string;
+        selectedOwner?: string;
+      };
+
+      const validStatuses = new Set<ReportStatus | "">([
+        "",
+        ReportStatusEnum.DRAFT,
+        ReportStatusEnum.REVIEW,
+        ReportStatusEnum.APPROVED,
+        ReportStatusEnum.SENT,
+      ]);
+
+      const nextStatus = parsedFilters.selectedStatus ?? "";
+      setSelectedStatus(
+        validStatuses.has(nextStatus as ReportStatus | "")
+          ? (nextStatus as ReportStatus | "")
+          : "",
+      );
+      setSelectedOwner(parsedFilters.selectedOwner ?? "");
+    } catch {
+      window.localStorage.removeItem(REPORT_FILTERS_STORAGE_KEY);
+    } finally {
+      setFiltersLoaded(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!filtersLoaded || typeof window === "undefined") return;
+
+    window.localStorage.setItem(
+      REPORT_FILTERS_STORAGE_KEY,
+      JSON.stringify({
+        selectedStatus,
+        selectedOwner,
+      }),
+    );
+  }, [filtersLoaded, selectedOwner, selectedStatus]);
 
   // TRPC queries
   const reportsQuery = api.monthlyReports.getAll.useQuery({
     status: selectedStatus || undefined,
     ownerId: selectedOwner || undefined,
+  }, {
+    enabled: filtersLoaded,
   });
 
   const historicalReportsQuery = api.monthlyReports.getAllHistorical.useQuery({
     ownerId: selectedOwner || undefined,
+  }, {
+    enabled: filtersLoaded,
   });
 
   const ownersQuery = api.apartmentOwners.getAll.useQuery();
@@ -161,7 +217,7 @@ export default function AdminReportsPage() {
     }
   };
 
-  if (reportsQuery.isLoading || ownersQuery.isLoading) {
+  if (!filtersLoaded || reportsQuery.isLoading || ownersQuery.isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-indigo-600"></div>
@@ -300,6 +356,9 @@ export default function AdminReportsPage() {
                 onClick={() => {
                   setSelectedStatus("");
                   setSelectedOwner("");
+                  if (typeof window !== "undefined") {
+                    window.localStorage.removeItem(REPORT_FILTERS_STORAGE_KEY);
+                  }
                 }}
                 className="w-full rounded-md bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200"
               >

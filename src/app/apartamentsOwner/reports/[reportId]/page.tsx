@@ -127,6 +127,7 @@ export default function OwnerReportDetailsPage() {
     customHostPayout?: number | null;
     customIncomeTax?: number | null;
   };
+  const isOwnApartment = report?.apartment?.paymentType === "OWN_APARTMENT";
 
   if (isLoading) {
     return (
@@ -903,8 +904,8 @@ export default function OwnerReportDetailsPage() {
                 </div>
               )}
 
-              {/* Karta z prowizją administratora (procent korygowany dynamicznie jak w panelu admina) */}
-              {!report.customSummaryEnabled && (
+              {/* Karta z prowizją administratora pomijana dla apartamentów własnych */}
+              {!report.customSummaryEnabled && !isOwnApartment && (
                 <div className="mb-6 rounded-lg bg-blue-50 p-4">
                   <h5 className="mb-2 text-lg font-medium text-blue-800">
                     {(() => {
@@ -1297,7 +1298,9 @@ export default function OwnerReportDetailsPage() {
                   <h4 className="mb-4 text-xl font-semibold text-gray-800">
                     Podsumowanie
                   </h4>
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                  <div
+                    className={`grid grid-cols-1 gap-4 sm:grid-cols-2 ${isOwnApartment ? "xl:grid-cols-3" : "xl:grid-cols-4"}`}
+                  >
                     <div
                       className={`rounded-md p-4 ${
                         report.finalSettlementType === "COMMISSION"
@@ -1354,7 +1357,8 @@ export default function OwnerReportDetailsPage() {
                         {summaryOwnerPayout.toFixed(2)} PLN
                       </p>
                     </div>
-                    <div className="rounded-md bg-purple-100 p-4">
+                    {!isOwnApartment && (
+                      <div className="rounded-md bg-purple-100 p-4">
                       <p className="text-sm text-purple-700">
                         Ostateczna prowizja Złote Wynajmy:
                       </p>
@@ -1401,7 +1405,8 @@ export default function OwnerReportDetailsPage() {
                             PLN)
                           </p>
                         )}
-                    </div>
+                      </div>
+                    )}
                     <div className="rounded-md bg-yellow-100 p-4">
                       <p className="text-sm text-yellow-700">
                         Zryczałtowany podatek dochodowy 8.5% od wypłaty

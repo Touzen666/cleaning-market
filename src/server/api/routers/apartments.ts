@@ -19,7 +19,12 @@ async function ensureOwnApartmentPaymentTypeEnum(db: {
 }
 
 function isMissingOwnApartmentEnumError(error: unknown): boolean {
-    const message = error instanceof Error ? error.message : String(error ?? "");
+    const message =
+        error instanceof Error
+            ? error.message
+            : typeof error === "string"
+                ? error
+                : "";
     return (
         message.includes('invalid input value for enum "PaymentType"') &&
         message.includes("OWN_APARTMENT")

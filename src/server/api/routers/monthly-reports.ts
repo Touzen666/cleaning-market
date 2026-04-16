@@ -46,7 +46,7 @@ function safeNumber(value: unknown): number {
     return Number.isFinite(n) ? n : 0;
 }
 
-function getAdminCommissionRate(paymentType: PaymentType | string | null | undefined): number {
+function getAdminCommissionRate(paymentType: unknown): number {
     return paymentType === "OWN_APARTMENT" ? 0 : 0.25;
 }
 
