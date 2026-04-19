@@ -1,6 +1,22 @@
 import nodemailer from "nodemailer";
 import type { Transporter } from "nodemailer";
+import path from "path";
 import { env } from "@/env";
+
+/** Załącznik inline (CID) używany w HTML (`cid:logo@zlote-wynajmy.pl`) przez `createBaseTemplate`. */
+export const getZloteWynajmyLogoAttachments = (): Array<{
+    filename: string;
+    path: string;
+    contentType: string;
+    cid: string;
+}> => [
+    {
+        filename: "logo.png",
+        path: path.join(process.cwd(), "public", "logo.png"),
+        contentType: "image/png",
+        cid: "logo@zlote-wynajmy.pl",
+    },
+];
 
 /**
  * Konfiguracja transportera email

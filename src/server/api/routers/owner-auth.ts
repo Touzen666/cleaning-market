@@ -2,7 +2,7 @@ import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { randomBytes, createHash } from "crypto";
-import { sendEmail } from "@/lib/email/email-service";
+import { sendEmail, getZloteWynajmyLogoAttachments } from "@/lib/email/email-service";
 import { createResetPasswordEmail } from "@/lib/email/templates/reset-password";
 import { ReportStatus } from "@prisma/client";
 
@@ -469,6 +469,7 @@ export const ownerAuthRouter = createTRPCRouter({
                         to: email,
                         subject: "Reset hasła - Złote Wynajmy",
                         html: createResetPasswordEmail(owner.firstName, resetUrl),
+                        attachments: getZloteWynajmyLogoAttachments(),
                     });
                 }
                 // Always return success to not reveal if an email exists in the database

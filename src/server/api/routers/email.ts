@@ -7,9 +7,7 @@ import {
     createWelcomeEmailWithPasswordTemplate,
     createWelcomeEmailWithoutPasswordTemplate
 } from "@/lib/email/templates";
-import { sendEmail, getBaseUrl } from "@/lib/email/email-service";
-import path from "path";
-
+import { sendEmail, getBaseUrl, getZloteWynajmyLogoAttachments } from "@/lib/email/email-service";
 export async function _sendWelcomeEmail({ ownerId, db }: { ownerId: string, db: PrismaClient }) {
     // Pobierz dane właściciela
     const owner = await db.apartmentOwner.findUnique({
@@ -57,14 +55,7 @@ export async function _sendWelcomeEmail({ ownerId, db }: { ownerId: string, db: 
         to: owner.email,
         subject: subject,
         html: htmlContent,
-        attachments: [
-            {
-                filename: 'logo.png',
-                path: path.join(process.cwd(), 'public', 'logo.png'),
-                contentType: 'image/png',
-                cid: 'logo@zlote-wynajmy.pl'
-            }
-        ]
+        attachments: getZloteWynajmyLogoAttachments(),
     });
 
     return {
@@ -154,6 +145,7 @@ export const emailRouter = createTRPCRouter({
                     to: input.email,
                     subject: "🧪 Test - Złote Wynajmy",
                     html: htmlContent,
+                    attachments: getZloteWynajmyLogoAttachments(),
                 });
 
                 return {
