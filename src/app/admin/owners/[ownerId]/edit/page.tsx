@@ -24,7 +24,6 @@ export default function EditOwnerPage({
     address: string;
     city: string;
     postalCode: string;
-    profileImageUrl: string | null;
     isActive: boolean;
     vatOption: VATOption;
   }>({
@@ -37,7 +36,6 @@ export default function EditOwnerPage({
     address: "",
     city: "",
     postalCode: "",
-    profileImageUrl: null,
     isActive: true,
     vatOption: VATOption.NO_VAT,
   });
@@ -69,7 +67,6 @@ export default function EditOwnerPage({
         address: owner.address ?? "",
         city: owner.city ?? "",
         postalCode: owner.postalCode ?? "",
-        profileImageUrl: owner.profileImageUrl,
         isActive: owner.isActive,
         vatOption: owner.vatOption,
       });

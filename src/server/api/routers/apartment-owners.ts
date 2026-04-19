@@ -219,7 +219,6 @@ export const apartmentOwnersRouter = createTRPCRouter({
             address: z.string().optional(),
             city: z.string().optional(),
             postalCode: z.string().optional(),
-            profileImageUrl: z.string().nullable().optional(),
             isActive: z.boolean(),
             vatOption: z.enum([VATOption.NO_VAT, VATOption.VAT_8, VATOption.VAT_23]),
         }))
