@@ -2969,12 +2969,22 @@ export default function ReportDetailsPage({
                 Wprowadź kwoty czynszu i mediów. Sugerowane wartości bazują na
                 ostatnim zatwierdzonym raporcie.
               </p>
-              <div className="mt-2 rounded-md bg-orange-100 p-2">
-                <p className="text-xs font-medium text-orange-800">
-                  ⚠️ Pamiętaj: Czynsz i media są odejmowane PO odjęciu prowizji
-                  25% dla administratora
-                </p>
-              </div>
+              {!isOwnApartment && (
+                <div className="mt-2 rounded-md bg-orange-100 p-2">
+                  <p className="text-xs font-medium text-orange-800">
+                    ⚠️ Pamiętaj: Czynsz i media są odejmowane PO odjęciu prowizji
+                    25% dla administratora
+                  </p>
+                </div>
+              )}
+              {isOwnApartment && (
+                <div className="mt-2 rounded-md bg-orange-100 p-2">
+                  <p className="text-xs font-medium text-orange-800">
+                    Apartament własny: bez prowizji zarządcy — czynsz i media
+                    odejmowane są od pełnego zysku netto.
+                  </p>
+                </div>
+              )}
             </div>
             <div className="bg-white p-6">
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -3292,10 +3302,14 @@ export default function ReportDetailsPage({
                   d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 012-2v16a2 2 0 01-2 2z"
                 />
               </svg>
-              Rozliczenie Prowizji Złote Wynajmy
+              {isOwnApartment
+                ? "Przychody i zysk apartamentu"
+                : "Rozliczenie Prowizji Złote Wynajmy"}
             </h3>
             <p className="mt-1 text-sm text-green-700">
-              Podstawowe informacje o zyskach i potrąceniach
+              {isOwnApartment
+                ? "Zysk netto przed odliczeniami — przy apartamencie własnym bez prowizji zarządcy."
+                : "Podstawowe informacje o zyskach i potrąceniach"}
             </p>
           </div>
           {/* Parking section (before commission settlement) */}

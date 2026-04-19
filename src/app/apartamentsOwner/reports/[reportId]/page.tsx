@@ -128,6 +128,9 @@ export default function OwnerReportDetailsPage() {
     customIncomeTax?: number | null;
   };
   const isOwnApartment = report?.apartment?.paymentType === "OWN_APARTMENT";
+  /** Kolory „prowizyjne” w podsumowaniu tylko gdy to nie apartament własny */
+  const useCommissionSummaryStyle =
+    report?.finalSettlementType === "COMMISSION" && !isOwnApartment;
 
   if (isLoading) {
     return (
@@ -886,10 +889,14 @@ export default function OwnerReportDetailsPage() {
                     d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 012-2v16a2 2 0 01-2 2z"
                   />
                 </svg>
-                Rozliczenie Prowizji Złote Wynajmy
+                {isOwnApartment
+                  ? "Przychody i zysk apartamentu"
+                  : "Rozliczenie Prowizji Złote Wynajmy"}
               </h3>
               <p className="mt-1 text-sm text-green-700">
-                Podstawowe informacje o zyskach i potrąceniach
+                {isOwnApartment
+                  ? "Zysk netto przed odliczeniami — w apartamencie własnym trafia w całości do rozliczenia z właścicielem (bez prowizji zarządcy)."
+                  : "Podstawowe informacje o zyskach i potrąceniach"}
               </p>
             </div>
             <div className="bg-white p-6">
@@ -1047,10 +1054,14 @@ export default function OwnerReportDetailsPage() {
                   d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 012-2v16a2 2 0 01-2 2z"
                 />
               </svg>
-              Rozliczenie z Właścicielem
+              {isOwnApartment
+                ? "Podsumowanie rozliczenia"
+                : "Rozliczenie z Właścicielem"}
             </h3>
             <p className="mt-1 text-sm text-green-700">
-              Ostateczna kalkulacja płatności dla właściciela
+              {isOwnApartment
+                ? "Apartament własny: pełny zysk netto po odliczeniach oraz podstawa opodatkowania i zryczałtowany podatek 8,5%."
+                : "Ostateczna kalkulacja płatności dla właściciela"}
             </p>
           </div>
           <div className="bg-white p-6">
@@ -1096,6 +1107,7 @@ export default function OwnerReportDetailsPage() {
               </div>
               {/* KWOTA STAŁA */}
               {!report.customSummaryEnabled &&
+                !isOwnApartment &&
                 report.finalSettlementType === "FIXED" &&
                 report.fixedNetBase !== undefined && (
                   <div className="flex flex-col gap-2 rounded-lg bg-green-50 p-4">
@@ -1141,6 +1153,7 @@ export default function OwnerReportDetailsPage() {
                 )}
               {/* KWOTA STAŁA PO ODL. MEDIÓW */}
               {!report.customSummaryEnabled &&
+                !isOwnApartment &&
                 report.finalSettlementType === "FIXED_MINUS_UTILITIES" &&
                 report.fixedMinusUtilitiesNetBase !== undefined && (
                   <div className="flex flex-col gap-2 rounded-lg bg-green-50 p-4">
@@ -1198,8 +1211,8 @@ export default function OwnerReportDetailsPage() {
                 )}
 
 
-              {/* PROWIZYJNE */}
-              {!report.customSummaryEnabled && (
+              {/* Prowizyjne — tylko apartamenty rozliczane z prowizją zarządcy */}
+              {!report.customSummaryEnabled && !isOwnApartment && (
                 <div className="flex flex-col gap-2 rounded-lg bg-blue-50 p-4">
                   <div className="mb-2 flex items-center text-lg font-semibold text-blue-800">
                     Rozliczenie właściciela: prowizyjne
@@ -1303,14 +1316,14 @@ export default function OwnerReportDetailsPage() {
                   >
                     <div
                       className={`rounded-md p-4 ${
-                        report.finalSettlementType === "COMMISSION"
+                        useCommissionSummaryStyle
                           ? "bg-blue-100"
                           : "bg-green-100"
                       }`}
                     >
                       <p
                         className={`text-sm ${
-                          report.finalSettlementType === "COMMISSION"
+                          useCommissionSummaryStyle
                             ? "text-blue-700"
                             : "text-green-700"
                         }`}
@@ -1323,7 +1336,7 @@ export default function OwnerReportDetailsPage() {
                       </p>
                       <p
                         className={`text-2xl font-bold ${
-                          report.finalSettlementType === "COMMISSION"
+                          useCommissionSummaryStyle
                             ? "text-blue-900"
                             : "text-green-900"
                         }`}
@@ -1333,14 +1346,14 @@ export default function OwnerReportDetailsPage() {
                     </div>
                     <div
                       className={`rounded-md p-4 ${
-                        report.finalSettlementType === "COMMISSION"
+                        useCommissionSummaryStyle
                           ? "bg-blue-100"
                           : "bg-green-100"
                       }`}
                     >
                       <p
                         className={`text-sm ${
-                          report.finalSettlementType === "COMMISSION"
+                          useCommissionSummaryStyle
                             ? "text-blue-700"
                             : "text-green-700"
                         }`}
@@ -1349,7 +1362,7 @@ export default function OwnerReportDetailsPage() {
                       </p>
                       <p
                         className={`text-2xl font-bold ${
-                          report.finalSettlementType === "COMMISSION"
+                          useCommissionSummaryStyle
                             ? "text-blue-900"
                             : "text-green-900"
                         }`}
