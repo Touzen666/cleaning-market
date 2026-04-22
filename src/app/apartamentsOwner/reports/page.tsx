@@ -63,9 +63,12 @@ export default function OwnerReportsPage() {
     const m = listFilterMonth ? Number(listFilterMonth) : null;
     const aptId = listFilterApartmentId ? Number(listFilterApartmentId) : null;
     return reports.filter((r) => {
-      if (y !== null && !Number.isNaN(y) && r.year !== y) return false;
-      if (m !== null && !Number.isNaN(m) && r.month !== m) return false;
-      if (aptId !== null && !Number.isNaN(aptId) && r.apartment.id !== aptId)
+      const ry = Number(r.year);
+      const rm = Number(r.month);
+      const raid = Number(r.apartment.id);
+      if (y !== null && !Number.isNaN(y) && ry !== y) return false;
+      if (m !== null && !Number.isNaN(m) && rm !== m) return false;
+      if (aptId !== null && !Number.isNaN(aptId) && raid !== aptId)
         return false;
       return true;
     });
@@ -73,7 +76,9 @@ export default function OwnerReportsPage() {
 
   const listYearOptions = useMemo(() => {
     if (!reports?.length) return [];
-    const years = Array.from(new Set(reports.map((r) => r.year)));
+    const years = Array.from(
+      new Set(reports.map((r) => Number(r.year)).filter((n) => !Number.isNaN(n))),
+    );
     return years.sort((a, b) => b - a);
   }, [reports]);
 
@@ -847,10 +852,10 @@ Proszę o utworzenie raportu miesięcznego dla powyższego apartamentu i okresu.
                         clipRule="evenodd"
                       />
                     </svg>
-                    Raporty Zatwierdzone i Wysłane
+                    Raporty (wg filtrów listy)
                   </h4>
                   <ul className="max-h-48 space-y-2 overflow-y-auto scrollbar-thin scrollbar-track-amber-100 scrollbar-thumb-amber-600">
-                    {reports.map((report) => {
+                    {filteredReports.map((report) => {
                       const aptNameFull = report.apartment?.name ?? null;
                       const aptName = aptNameFull
                         ? aptNameFull.length > 20

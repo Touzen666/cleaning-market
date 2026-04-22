@@ -2474,13 +2474,6 @@ export const monthlyReportsRouter = createTRPCRouter({
                 });
             }
 
-            if (report.apartment.archived) {
-                throw new TRPCError({
-                    code: "NOT_FOUND",
-                    message: "Raport nie został znaleziony",
-                });
-            }
-
             if (report.status !== ReportStatus.APPROVED && report.status !== ReportStatus.SENT) {
                 throw new TRPCError({
                     code: "FORBIDDEN",
