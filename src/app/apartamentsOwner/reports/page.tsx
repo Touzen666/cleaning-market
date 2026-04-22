@@ -4,13 +4,33 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { api } from "@/trpc/react";
+import { api, type RouterOutputs } from "@/trpc/react";
 
 import Image from "next/image";
 import {
   translateReportStatus,
   getReportStatusColor,
 } from "@/lib/status-translations";
+
+type OwnerReportListItem =
+  RouterOutputs["monthlyReports"]["getOwnerReports"][number];
+
+function OwnerReportApartmentTitle({ report }: { report: OwnerReportListItem }) {
+  const roomsCount =
+    (report as unknown as { apartment?: { _count?: { rooms?: number } } })
+      ?.apartment?._count?.rooms ?? 0;
+  const roomCode =
+    (report as unknown as { room?: { code?: string } })?.room?.code ??
+    undefined;
+  return (
+    <>
+      {report.apartment.name}
+      {roomsCount > 1 && roomCode ? (
+        <span className="ml-1 text-xs text-gray-600">• Pokój {roomCode}</span>
+      ) : null}
+    </>
+  );
+}
 
 export default function OwnerReportsPage() {
   const router = useRouter();
@@ -501,7 +521,11 @@ Proszę o utworzenie raportu miesięcznego dla powyższego apartamentu i okresu.
 
       {/* Main Content */}
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-6 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+        {/*
+          Wysokość paska właściciela (HeaderOwner): ~58px logo + p-4 góra/dół ≈ 5.625rem.
+          Sticky filtrów = pod navbar, nad treścią przy przewijaniu.
+        */}
+        <div className="sticky top-[5.625rem] z-40 mb-6 rounded-lg border border-gray-200 bg-white p-4 shadow-md">
           <h3 className="mb-3 text-sm font-semibold text-gray-900">
             Filtry listy raportów
           </h3>
@@ -838,9 +862,9 @@ Proszę o utworzenie raportu miesięcznego dla powyższego apartamentu i okresu.
                   </div>
                 </div>
 
-                {/* Second Column - All Reports */}
-                <div className="h-fit rounded-lg border border-blue-100 bg-white/70 p-4 backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-md">
-                  <h4 className="mb-3 flex items-center font-semibold text-blue-700">
+                {/* Second Column — ta sama treść co tabela poniżej (kompaktowo) */}
+                <div className="h-fit rounded-lg border border-blue-100 bg-white/70 p-4 backdrop-blur-sm transition-all duration-300 hover:shadow-md">
+                  <h4 className="mb-1 flex items-center font-semibold text-blue-700">
                     <svg
                       className="mr-2 h-4 w-4"
                       fill="currentColor"
@@ -852,54 +876,104 @@ Proszę o utworzenie raportu miesięcznego dla powyższego apartamentu i okresu.
                         clipRule="evenodd"
                       />
                     </svg>
-                    Raporty (wg filtrów listy)
+                    Wykaz raportów
                   </h4>
-                  <ul className="max-h-48 space-y-2 overflow-y-auto scrollbar-thin scrollbar-track-amber-100 scrollbar-thumb-amber-600">
-                    {filteredReports.map((report) => {
-                      const aptNameFull = report.apartment?.name ?? null;
-                      const aptName = aptNameFull
-                        ? aptNameFull.length > 20
-                          ? `${aptNameFull.slice(0, 20)}…`
-                          : aptNameFull
-                        : null;
-                      return (
-                        <li
-                          key={report.id}
-                          className="rounded-md border border-blue-200 bg-gradient-to-r from-blue-50 to-purple-50 transition-all duration-200 hover:from-blue-100 hover:to-purple-100"
-                        >
-                          <Link
-                            href={`/apartamentsOwner/reports/${report.id}`}
-                            prefetch={false}
-                            className="flex items-center justify-between p-2"
-                            onClick={() => setLoadingReportId(report.id)}
+                  <p className="mb-3 text-xs text-gray-600">
+                    Te same pozycje i kolejność co w tabeli niżej (uwzględnia filtry
+                    roku, miesiąca i obiektu). Przewiń listę w pionie, by zobaczyć
+                    starsze okresy.
+                  </p>
+                  <div className="max-h-[min(70vh,28rem)] overflow-y-auto overflow-x-auto rounded-md border border-blue-200 bg-white">
+                    <table className="min-w-full divide-y divide-gray-200 text-left text-xs">
+                      <thead className="sticky top-0 z-10 bg-blue-50">
+                        <tr>
+                          <th className="px-2 py-2 font-medium text-gray-600">
+                            Apartament
+                          </th>
+                          <th className="whitespace-nowrap px-2 py-2 font-medium text-gray-600">
+                            Data
+                          </th>
+                          <th className="px-2 py-2 font-medium text-gray-600">
+                            Status
+                          </th>
+                          <th className="whitespace-nowrap px-2 py-2 font-medium text-gray-600">
+                            Wypłata
+                          </th>
+                          <th className="relative px-2 py-2">
+                            <span className="sr-only">Akcja</span>
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100 bg-white">
+                        {filteredReports.map((report) => (
+                          <tr
+                            key={report.id}
+                            className="hover:bg-blue-50/60"
                           >
-                            <span className="font-medium text-gray-700">
-                              Raport {String(report.month).padStart(2, "0")}/
+                            <td className="max-w-[11rem] px-2 py-2 align-top text-gray-900">
+                              <div className="flex gap-2">
+                                <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded bg-gray-100">
+                                  {report.apartment.images &&
+                                  report.apartment.images.length > 0 ? (
+                                    <Image
+                                      src={
+                                        report.apartment.images[0]?.url ?? ""
+                                      }
+                                      alt={
+                                        report.apartment.images[0]?.alt ??
+                                        ""
+                                      }
+                                      fill
+                                      className="object-cover"
+                                      sizes="40px"
+                                    />
+                                  ) : (
+                                    <div className="flex h-full w-full items-center justify-center text-[10px] text-gray-400">
+                                      —
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="min-w-0">
+                                  <div className="font-medium leading-snug">
+                                    <OwnerReportApartmentTitle report={report} />
+                                  </div>
+                                  <div className="line-clamp-2 text-[11px] leading-snug text-gray-500">
+                                    {report.apartment.address}
+                                  </div>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="whitespace-nowrap px-2 py-2 align-top font-medium text-gray-800">
+                              {String(report.month).padStart(2, "0")}/
                               {report.year}
-                              {aptName ? ` — ${aptName}` : ""}
-                            </span>
-                            <div className="flex items-center space-x-2">
+                            </td>
+                            <td className="px-2 py-2 align-top">
                               <span
-                                className={`rounded-full px-2 py-1 text-xs font-semibold ${
-                                  report.status === "APPROVED"
-                                    ? "bg-green-100 text-green-800"
-                                    : "bg-yellow-100 text-yellow-800"
-                                }`}
+                                className={`inline-flex rounded-full px-1.5 py-0.5 text-[10px] font-semibold leading-tight ${getStatusColor(report.status)}`}
                               >
-                                {translateReportStatus(report.status)}
+                                {getStatusText(report.status)}
                               </span>
-                              <span className="font-bold text-green-600">
-                                {report.finalOwnerPayout
-                                  ? report.finalOwnerPayout.toFixed(2)
-                                  : "null"}{" "}
-                                PLN
-                              </span>
-                            </div>
-                          </Link>
-                        </li>
-                      );
-                    })}
-                  </ul>
+                            </td>
+                            <td className="whitespace-nowrap px-2 py-2 align-top font-medium text-green-700">
+                              {report.finalOwnerPayout
+                                ? `+${Number(report.finalOwnerPayout).toFixed(2)} PLN`
+                                : "Brak danych"}
+                            </td>
+                            <td className="whitespace-nowrap px-2 py-2 align-top text-right">
+                              <Link
+                                href={`/apartamentsOwner/reports/${report.id}`}
+                                prefetch={false}
+                                className="font-medium text-brand-gold hover:text-yellow-600"
+                                onClick={() => setLoadingReportId(report.id)}
+                              >
+                                Szczegóły
+                              </Link>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
             </div>
@@ -989,8 +1063,9 @@ Proszę o utworzenie raportu miesięcznego dla powyższego apartamentu i okresu.
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+              <div className="max-h-[min(88vh,calc(20*5.25rem))] overflow-y-auto overscroll-y-contain">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="sticky top-0 z-10 bg-gray-50 shadow-sm">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                       Apartament
@@ -1057,22 +1132,7 @@ Proszę o utworzenie raportu miesięcznego dla powyższego apartamentu i okresu.
                           {/* Informacje o apartamencie */}
                           <div>
                             <div className="font-medium">
-                              {report.apartment.name}
-                              {(() => {
-                                const roomsCount =
-                                  (report as unknown as {
-                                    apartment?: { _count?: { rooms?: number } };
-                                  })?.apartment?._count?.rooms ?? 0;
-                                const roomCode =
-                                  (report as unknown as {
-                                    room?: { code?: string };
-                                  })?.room?.code ?? undefined;
-                                return roomsCount > 1 && roomCode ? (
-                                  <span className="ml-1 text-xs text-gray-600">
-                                    • Pokój {roomCode}
-                                  </span>
-                                ) : null;
-                              })()}
+                              <OwnerReportApartmentTitle report={report} />
                             </div>
                             <div className="text-gray-500">
                               {report.apartment.address}
@@ -1135,6 +1195,7 @@ Proszę o utworzenie raportu miesięcznego dla powyższego apartamentu i okresu.
                   ))}
                 </tbody>
               </table>
+              </div>
             </div>
           )}
         </div>

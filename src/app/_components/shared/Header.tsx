@@ -280,7 +280,7 @@ export function HeaderOwner() {
   );
 
   return (
-    <header className="bg-black p-4 text-white">
+    <header className="sticky top-0 z-50 w-full border-b border-neutral-800 bg-black p-4 text-white shadow-md">
       <nav className="container mx-auto flex items-center justify-between">
         <div className="flex-shrink-0">
           <Link href="/apartamentsOwner/dashboard">
