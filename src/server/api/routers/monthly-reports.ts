@@ -14,6 +14,7 @@ import {
 } from "@prisma/client";
 import { getVatAmount, getGrossAmount } from "@/lib/vat";
 import { type PrismaClient } from "@prisma/client";
+import { ownerMonthlyReportApprovedOrSentWhere } from "@/server/api/lib/owner-monthly-report-access";
 
 type RecalculateContext = {
     db: PrismaClient;
@@ -158,6 +159,8 @@ const createReportSchema = z.object({
     roomId: z.number().int().positive().optional(), // gdy apartament ma wiele pokojów, raport jest dla konkretnego pokoju
     year: z.number().int().min(2020).max(2030),
     month: z.number().int().min(1).max(12),
+    /** Gdy podane (panel admina), raport jest przypisany do tego właściciela zamiast do pierwszego z listy współwłasności. */
+    ownerId: z.string().uuid().optional(),
 });
 
 const addReportItemSchema = z.object({
@@ -840,15 +843,9 @@ export const monthlyReportsRouter = createTRPCRouter({
             // Check if apartment exists and get owner
             const apartment = await ctx.db.apartment.findUnique({
                 where: { id: apartmentId },
-                include: {
-                    ownerships: {
-                        where: { isActive: true },
-                        include: { owner: true },
-                    },
-                },
             });
 
-            if (!apartment || apartment.ownerships.length === 0) {
+            if (!apartment) {
                 throw new TRPCError({
                     code: "NOT_FOUND",
                     message: "Apartament nie został znaleziony lub nie ma przypisanego właściciela",
@@ -862,12 +859,36 @@ export const monthlyReportsRouter = createTRPCRouter({
                 });
             }
 
-            const owner = apartment.ownerships[0]?.owner;
-            if (!owner) {
-                throw new TRPCError({
-                    code: "NOT_FOUND",
-                    message: "Właściciel apartamentu nie został znaleziony",
+            let owner: { id: string; vatOption: VATOption } | null = null;
+            if (input.ownerId) {
+                const chosen = await ctx.db.apartmentOwnership.findFirst({
+                    where: {
+                        apartmentId,
+                        ownerId: input.ownerId,
+                        isActive: true,
+                    },
+                    include: { owner: { select: { id: true, vatOption: true } } },
                 });
+                if (!chosen?.owner) {
+                    throw new TRPCError({
+                        code: "BAD_REQUEST",
+                        message: "Wybrany właściciel nie ma aktywnej współwłasności tego apartamentu",
+                    });
+                }
+                owner = chosen.owner;
+            } else {
+                const first = await ctx.db.apartmentOwnership.findFirst({
+                    where: { apartmentId, isActive: true },
+                    orderBy: { assignedAt: "asc" },
+                    include: { owner: { select: { id: true, vatOption: true } } },
+                });
+                if (!first?.owner) {
+                    throw new TRPCError({
+                        code: "NOT_FOUND",
+                        message: "Właściciel apartamentu nie został znaleziony",
+                    });
+                }
+                owner = first.owner;
             }
 
             // Check if report already exists
@@ -1806,11 +1827,7 @@ export const monthlyReportsRouter = createTRPCRouter({
             }
 
             const reports = await ctx.db.monthlyReport.findMany({
-                where: {
-                    ownerId: owner.id,
-                    status: { in: [ReportStatus.APPROVED, ReportStatus.SENT] },
-                    apartment: { archived: false },
-                },
+                where: ownerMonthlyReportApprovedOrSentWhere(owner.id),
                 select: {
                     id: true,
                     month: true,
@@ -1924,10 +1941,7 @@ export const monthlyReportsRouter = createTRPCRouter({
             }
 
             const report = await ctx.db.monthlyReport.findFirst({
-                where: {
-                    ownerId: owner.id,
-                    status: { in: [ReportStatus.APPROVED, ReportStatus.SENT] },
-                },
+                where: ownerMonthlyReportApprovedOrSentWhere(owner.id),
                 include: {
                     items: {
                         where: { type: 'REVENUE' },
@@ -2398,9 +2412,23 @@ export const monthlyReportsRouter = createTRPCRouter({
 
     // Owner: Get single report by ID (if approved/sent and owner is active)
     getOwnerReportById: publicProcedure
-        .input(z.object({ reportId: z.string().uuid() }))
+        .input(z.object({
+            reportId: z.string().uuid(),
+            ownerEmail: z.string().email(),
+        }))
         .query(async ({ input, ctx }) => {
             /* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-argument */
+            const viewer = await ctx.db.apartmentOwner.findUnique({
+                where: { email: input.ownerEmail },
+            });
+
+            if (!viewer?.isActive) {
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: "Właściciel nie został znaleziony",
+                });
+            }
+
             const report = await ctx.db.monthlyReport.findUnique({
                 where: { id: input.reportId },
                 include: {
@@ -2411,6 +2439,7 @@ export const monthlyReportsRouter = createTRPCRouter({
                             address: true,
                             paymentType: true,
                             fixedPaymentAmount: true,
+                            archived: true,
                             _count: { select: { rooms: true } },
                         },
                     },
@@ -2442,6 +2471,35 @@ export const monthlyReportsRouter = createTRPCRouter({
                 throw new TRPCError({
                     code: "NOT_FOUND",
                     message: "Raport nie został znaleziony",
+                });
+            }
+
+            if (report.apartment.archived) {
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: "Raport nie został znaleziony",
+                });
+            }
+
+            if (report.status !== ReportStatus.APPROVED && report.status !== ReportStatus.SENT) {
+                throw new TRPCError({
+                    code: "FORBIDDEN",
+                    message: "Raport nie jest jeszcze dostępny dla właściciela",
+                });
+            }
+
+            const isPrimaryOwner = report.ownerId === viewer.id;
+            const isCoOwner = await ctx.db.apartmentOwnership.findFirst({
+                where: {
+                    apartmentId: report.apartmentId,
+                    ownerId: viewer.id,
+                    isActive: true,
+                },
+            });
+            if (!isPrimaryOwner && !isCoOwner) {
+                throw new TRPCError({
+                    code: "FORBIDDEN",
+                    message: "Brak dostępu do tego raportu",
                 });
             }
 
@@ -3094,10 +3152,7 @@ export const monthlyReportsRouter = createTRPCRouter({
 
             // Test 1: Get all APPROVED/SENT reports for this owner (filtered like getOwnerReports)
             const allReports = await ctx.db.monthlyReport.findMany({
-                where: {
-                    ownerId: owner.id,
-                    status: { in: [ReportStatus.APPROVED, ReportStatus.SENT] },
-                },
+                where: ownerMonthlyReportApprovedOrSentWhere(owner.id),
                 select: {
                     id: true,
                     month: true,
@@ -3119,10 +3174,7 @@ export const monthlyReportsRouter = createTRPCRouter({
 
             // Test 2: Get only APPROVED/SENT reports
             const approvedReports = await ctx.db.monthlyReport.findMany({
-                where: {
-                    ownerId: owner.id,
-                    status: { in: [ReportStatus.APPROVED, ReportStatus.SENT] },
-                },
+                where: ownerMonthlyReportApprovedOrSentWhere(owner.id),
                 select: {
                     id: true,
                     month: true,
@@ -3146,9 +3198,8 @@ export const monthlyReportsRouter = createTRPCRouter({
             const startOfYear = new Date(new Date().getFullYear(), 0, 1);
             const currentYearSum = await ctx.db.monthlyReport.aggregate({
                 where: {
-                    ownerId: owner.id,
+                    ...ownerMonthlyReportApprovedOrSentWhere(owner.id),
                     year: startOfYear.getFullYear(),
-                    status: { in: [ReportStatus.APPROVED, ReportStatus.SENT] },
                 },
                 _sum: {
                     finalOwnerPayout: true,
@@ -3157,10 +3208,7 @@ export const monthlyReportsRouter = createTRPCRouter({
 
             // Test 4: Exact same query as getOwnerReports but simplified
             const exactQueryReports = await ctx.db.monthlyReport.findMany({
-                where: {
-                    ownerId: owner.id,
-                    status: { in: [ReportStatus.APPROVED, ReportStatus.SENT] },
-                },
+                where: ownerMonthlyReportApprovedOrSentWhere(owner.id),
                 select: {
                     id: true,
                     month: true,
@@ -3279,9 +3327,7 @@ export const monthlyReportsRouter = createTRPCRouter({
             }
 
             const whereClause = {
-                ownerId: owner.id,
-                status: { in: [ReportStatus.APPROVED, ReportStatus.SENT] },
-                apartment: { archived: false },
+                ...ownerMonthlyReportApprovedOrSentWhere(owner.id),
                 ...(input.apartmentId && { apartmentId: input.apartmentId }),
                 ...(input.year && { year: input.year }),
                 ...(input.month && { month: input.month }),
@@ -3755,20 +3801,10 @@ export const monthlyReportsRouter = createTRPCRouter({
                 return [];
             }
 
-            const whereClause: {
-                ownerId: string;
-                status: { in: ReportStatus[] };
-                apartment: { archived: boolean };
-                apartmentId?: number;
-            } = {
-                ownerId: owner.id,
-                status: { in: [ReportStatus.APPROVED, ReportStatus.SENT] },
-                apartment: { archived: false },
+            const whereClause = {
+                ...ownerMonthlyReportApprovedOrSentWhere(owner.id),
+                ...(input.apartmentId ? { apartmentId: input.apartmentId } : {}),
             };
-
-            if (input.apartmentId) {
-                whereClause.apartmentId = input.apartmentId;
-            }
 
             const years = await ctx.db.monthlyReport.findMany({
                 where: whereClause,
@@ -3797,9 +3833,7 @@ export const monthlyReportsRouter = createTRPCRouter({
             }
 
             const whereClause = {
-                ownerId: owner.id,
-                status: { in: [ReportStatus.APPROVED, ReportStatus.SENT] },
-                apartment: { archived: false },
+                ...ownerMonthlyReportApprovedOrSentWhere(owner.id),
                 year: input.year,
                 ...(input.apartmentId && { apartmentId: input.apartmentId }),
             };
@@ -3832,9 +3866,7 @@ export const monthlyReportsRouter = createTRPCRouter({
             }
 
             const whereClause = {
-                ownerId: owner.id,
-                status: { in: [ReportStatus.APPROVED, ReportStatus.SENT] },
-                apartment: { archived: false },
+                ...ownerMonthlyReportApprovedOrSentWhere(owner.id),
                 ...(input.apartmentId && { apartmentId: input.apartmentId }),
                 ...(input.year && { year: input.year }),
                 ...(input.month && { month: input.month }),
@@ -4257,8 +4289,7 @@ export const monthlyReportsRouter = createTRPCRouter({
             }
 
             const whereClause = {
-                ownerId: owner.id,
-                status: { in: [ReportStatus.APPROVED, ReportStatus.SENT] },
+                ...ownerMonthlyReportApprovedOrSentWhere(owner.id),
                 ...(input.year && { year: input.year }),
                 ...(input.apartmentId && { apartmentId: input.apartmentId }),
             };

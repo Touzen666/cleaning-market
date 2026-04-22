@@ -1,7 +1,7 @@
 "use client";
 /* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-return */
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { api } from "@/trpc/react";
@@ -27,6 +27,10 @@ export default function OwnerReportsPage() {
     new Date().getMonth() + 1,
   );
   const [isSubmittingRequest, setIsSubmittingRequest] = useState(false);
+  /** Puste stringi = „wszystkie” w filtrach listy raportów */
+  const [listFilterYear, setListFilterYear] = useState<string>("");
+  const [listFilterMonth, setListFilterMonth] = useState<string>("");
+  const [listFilterApartmentId, setListFilterApartmentId] = useState<string>("");
 
   // TRPC queries
   const {
@@ -52,6 +56,37 @@ export default function OwnerReportsPage() {
       { enabled: !!ownerEmail },
     );
   const ownerApartments = ownerData?.apartments ?? [];
+
+  const filteredReports = useMemo(() => {
+    if (!reports) return [];
+    const y = listFilterYear ? Number(listFilterYear) : null;
+    const m = listFilterMonth ? Number(listFilterMonth) : null;
+    const aptId = listFilterApartmentId ? Number(listFilterApartmentId) : null;
+    return reports.filter((r) => {
+      if (y !== null && !Number.isNaN(y) && r.year !== y) return false;
+      if (m !== null && !Number.isNaN(m) && r.month !== m) return false;
+      if (aptId !== null && !Number.isNaN(aptId) && r.apartment.id !== aptId)
+        return false;
+      return true;
+    });
+  }, [reports, listFilterYear, listFilterMonth, listFilterApartmentId]);
+
+  const listYearOptions = useMemo(() => {
+    if (!reports?.length) return [];
+    const years = Array.from(new Set(reports.map((r) => r.year)));
+    return years.sort((a, b) => b - a);
+  }, [reports]);
+
+  const listApartmentOptions = useMemo(() => {
+    if (!reports?.length) return [];
+    const map = new Map<number, string>();
+    for (const r of reports) {
+      map.set(r.apartment.id, r.apartment.name);
+    }
+    return Array.from(map.entries()).sort((a, b) =>
+      a[1].localeCompare(b[1], "pl"),
+    );
+  }, [reports]);
 
   // Contact form mutation
   const sendContactMessage = api.contact.sendMessage.useMutation({
@@ -461,6 +496,65 @@ Proszę o utworzenie raportu miesięcznego dla powyższego apartamentu i okresu.
 
       {/* Main Content */}
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mb-6 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+          <h3 className="mb-3 text-sm font-semibold text-gray-900">
+            Filtry listy raportów
+          </h3>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div>
+              <label className="mb-1 block text-xs font-medium text-gray-600">
+                Rok
+              </label>
+              <select
+                value={listFilterYear}
+                onChange={(e) => setListFilterYear(e.target.value)}
+                className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-brand-gold focus:outline-none focus:ring-brand-gold"
+              >
+                <option value="">Wszystkie</option>
+                {listYearOptions.map((y) => (
+                  <option key={y} value={String(y)}>
+                    {y}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-gray-600">
+                Miesiąc
+              </label>
+              <select
+                value={listFilterMonth}
+                onChange={(e) => setListFilterMonth(e.target.value)}
+                className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-brand-gold focus:outline-none focus:ring-brand-gold"
+              >
+                <option value="">Wszystkie</option>
+                {monthNames.map((name, idx) => (
+                  <option key={idx + 1} value={String(idx + 1)}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-gray-600">
+                Obiekt
+              </label>
+              <select
+                value={listFilterApartmentId}
+                onChange={(e) => setListFilterApartmentId(e.target.value)}
+                className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-brand-gold focus:outline-none focus:ring-brand-gold"
+              >
+                <option value="">Wszystkie</option>
+                {listApartmentOptions.map(([id, name]) => (
+                  <option key={id} value={String(id)}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+
         {/* Spis treści raportów */}
         {debugLoading ? (
           <div className="mb-8 overflow-hidden rounded-xl border border-yellow-300 bg-gradient-to-br from-yellow-100 via-amber-200 to-orange-300 p-6 shadow-lg">
@@ -812,14 +906,18 @@ Proszę o utworzenie raportu miesięcznego dla powyższego apartamentu i okresu.
           <div className="border-b border-gray-200 px-6 py-4">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-medium text-gray-900">
-                Raporty Zatwierdzone i Wysłane ({reports.length})
+                Raporty Zatwierdzone i Wysłane ({filteredReports.length}
+                {filteredReports.length !== reports.length
+                  ? ` z ${reports.length}`
+                  : ""}
+                )
               </h3>
               <div className="text-right">
                 <p className="text-sm text-gray-500">
                   Suma wypłat właściciela:
                 </p>
                 <p className="text-lg font-semibold text-green-600">
-                  {reports
+                  {filteredReports
                     .reduce(
                       (sum, report) => sum + (report.finalOwnerPayout ?? 0),
                       0,
@@ -829,7 +927,7 @@ Proszę o utworzenie raportu miesięcznego dla powyższego apartamentu i okresu.
                 </p>
                 <p className="mt-1 text-sm text-gray-500">
                   W tym roku:{" "}
-                  {reports
+                  {filteredReports
                     .filter(
                       (report) => report.year === new Date().getFullYear(),
                     )
@@ -867,6 +965,23 @@ Proszę o utworzenie raportu miesięcznego dla powyższego apartamentu i okresu.
                 raportów miesięcznych.
               </p>
             </div>
+          ) : filteredReports.length === 0 ? (
+            <div className="py-12 text-center">
+              <p className="text-sm text-gray-600">
+                Brak raportów pasujących do wybranych filtrów.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setListFilterYear("");
+                  setListFilterMonth("");
+                  setListFilterApartmentId("");
+                }}
+                className="mt-4 rounded-md bg-brand-gold px-4 py-2 text-sm font-medium text-white hover:bg-yellow-500"
+              >
+                Wyczyść filtry
+              </button>
+            </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
@@ -890,7 +1005,7 @@ Proszę o utworzenie raportu miesięcznego dla powyższego apartamentu i okresu.
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 bg-white">
-                  {reports.map((report) => (
+                  {filteredReports.map((report) => (
                     <tr key={report.id} className="relative hover:bg-gray-50">
                       <td className="px-6 py-4 text-sm text-gray-900">
                         <div className="flex items-center space-x-4">

@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { api } from "@/trpc/react";
 import {
@@ -112,11 +112,25 @@ export default function OwnerReportDetailsPage() {
   let reportId = params?.reportId ?? "";
   if (Array.isArray(reportId)) reportId = reportId[0] ?? "";
 
-  const reportQuery = api.monthlyReports.getOwnerReportById.useQuery({
-    reportId,
-  });
+  const [ownerEmail, setOwnerEmail] = useState<string | null>(null);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const token = localStorage.getItem("ownerSessionToken");
+    const email = localStorage.getItem("ownerEmail");
+    if (!token || !email) {
+      router.push("/apartamentsOwner/login");
+      return;
+    }
+    setOwnerEmail(email);
+  }, [router]);
+
+  const reportQuery = api.monthlyReports.getOwnerReportById.useQuery(
+    { reportId, ownerEmail: ownerEmail ?? "" },
+    { enabled: Boolean(reportId && ownerEmail) },
+  );
   const reportRaw: unknown = reportQuery.data;
-  const isLoading: boolean = reportQuery.isLoading;
+  const isLoading: boolean =
+    !ownerEmail || reportQuery.isLoading || reportQuery.isFetching;
   const error = reportQuery.error;
 
   const report = reportRaw as OwnerReport & {
@@ -131,6 +145,14 @@ export default function OwnerReportDetailsPage() {
   /** Kolory „prowizyjne” w podsumowaniu tylko gdy to nie apartament własny */
   const useCommissionSummaryStyle =
     report?.finalSettlementType === "COMMISSION" && !isOwnApartment;
+
+  if (!ownerEmail) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="h-32 w-32 animate-spin rounded-full border-b-2 border-brand-gold"></div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

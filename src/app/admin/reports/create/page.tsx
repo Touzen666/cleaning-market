@@ -118,6 +118,7 @@ export default function CreateReportPage() {
           : {}),
         year: selectedYear,
         month: selectedMonth,
+        ...(selectedOwnerId ? { ownerId: selectedOwnerId } : {}),
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Nie udało się utworzyć raportu");

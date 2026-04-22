@@ -5,6 +5,7 @@ import { randomBytes, createHash } from "crypto";
 import { sendEmail, getZloteWynajmyLogoAttachments } from "@/lib/email/email-service";
 import { createResetPasswordEmail } from "@/lib/email/templates/reset-password";
 import { ReportStatus } from "@prisma/client";
+import { ownerHasReportFinancialAccess } from "@/server/api/lib/owner-monthly-report-access";
 
 // Simple password hashing using Node.js crypto
 function hashPassword(password: string): string {
@@ -195,9 +196,8 @@ export const ownerAuthRouter = createTRPCRouter({
             // - DRAFT z włączonym customSummaryEnabled: uwzględnij customOwnerPayout, aby licznik był zgodny z ręcznym ustawieniem
             const reportsForYear = await ctx.db.monthlyReport.findMany({
                 where: {
-                    ownerId: owner.id,
                     year: startOfYear.getFullYear(),
-                    apartment: { archived: false },
+                    ...ownerHasReportFinancialAccess(owner.id),
                     OR: [
                         { status: { in: [ReportStatus.APPROVED, ReportStatus.SENT] } },
                         { status: 'DRAFT', customSummaryEnabled: true },
@@ -225,10 +225,7 @@ export const ownerAuthRouter = createTRPCRouter({
             console.log(`[DEBUG DASHBOARD] Aggregate sum: ${currentYearProfitSum}`);
 
             const totalReports = await ctx.db.monthlyReport.count({
-                where: {
-                    ownerId: owner.id,
-                    apartment: { archived: false },
-                },
+                where: ownerHasReportFinancialAccess(owner.id),
             });
 
             return {
