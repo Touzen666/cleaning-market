@@ -217,7 +217,7 @@ describe("Monthly Reports - Rzeczywiste funkcje", () => {
             expect(result.totalAdditionalDeductions).toBe(369); // 300 * 1.23
             expect(result.finalOwnerPayout).toBeCloseTo(6150, 2); // Rzeczywista wartość z funkcji
             expect(result.finalHostPayout).toBe(2500); // max(0, 7500 - 5000)
-            expect(result.finalIncomeTax).toBeCloseTo(425, 2); // 5000 * 0.085 (od kwoty netto dla VAT)
+            expect(result.finalIncomeTax).toBeCloseTo(522.75, 2); // 6150 * 0.085 (od wypłaty właściciela)
             expect(result.finalVatAmount).toBe(1150); // 5000 * 0.23
         });
 
@@ -512,7 +512,7 @@ describe("Monthly Reports - Rzeczywiste funkcje", () => {
             expect(result.totalAdditionalDeductions).toBe(2070); // 1230 + 540 + 300
             expect(result.finalOwnerPayout).toBeCloseTo(8616.15, 2); // Rzeczywista wartość z funkcji
             expect(result.finalHostPayout).toBe(4125);
-            expect(result.finalIncomeTax).toBeCloseTo(595.425, 3); // Rzeczywista wartość z funkcji
+            expect(result.finalIncomeTax).toBeCloseTo(732.37, 2); // wypłata właściciela * 0.085
             expect(result.finalVatAmount).toBeCloseTo(1611.15, 2); // Rzeczywista wartość z funkcji
 
             console.log("✅ Symulacja kompletnego raportu zakończona pomyślnie");
@@ -615,7 +615,7 @@ describe("Monthly Reports - Rzeczywiste funkcje", () => {
             expect(result.adminCommissionAmount).toBe(106250); // 425000 * 0.25
             expect(result.finalOwnerPayout).toBe(123000); // 100000 * 1.23
             expect(result.finalHostPayout).toBe(325000); // max(0, 425000 - 100000)
-            expect(result.finalIncomeTax).toBe(8500); // 100000 * 0.085
+            expect(result.finalIncomeTax).toBe(10455); // 123000 * 0.085 (od wypłaty właściciela)
             expect(result.finalVatAmount).toBe(23000); // 100000 * 0.23
         });
     });

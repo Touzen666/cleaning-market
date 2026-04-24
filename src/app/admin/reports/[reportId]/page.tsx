@@ -4547,7 +4547,6 @@ function OwnerPayoutCalculation({
   const getSummaryValues = React.useCallback(() => {
     const isVatExemptLocal = report.owner.vatOption === "NO_VAT";
     if (isOwnApartment) {
-      const ownTaxBase = report.netIncome;
       const ownOwnerPayout = isVatExemptLocal
         ? netIncomeAfterAllDeductions
         : getGrossAmount(netIncomeAfterAllDeductions, report.owner.vatOption);
@@ -4555,15 +4554,13 @@ function OwnerPayoutCalculation({
       return {
         finalOwnerPayout: ownOwnerPayout,
         finalHostPayout: 0,
-        finalIncomeTax: ownTaxBase * 0.085,
-        taxBase: ownTaxBase,
+        finalIncomeTax: ownOwnerPayout * 0.085,
+        taxBase: ownOwnerPayout,
       };
     }
     switch (finalPayoutType) {
       case LocalPayoutType.FIXED_AMOUNT:
         // Kwota stała: właściciel dostaje ustaloną kwotę, administrator dopłaca różnicę jeśli potrzeba
-        // Podstawa opodatkowania = kwota stała (NETTO), dodatkowe odliczenia NIE wpływają na podstawę
-        const fixedTaxBase = fixedBaseAmount;
         const ownerPayoutFixed = Math.max(0, fixedBaseAmountAfterDeductions);
         // W trybach z kwotą stałą „Prowizja Złote Wynajmy” to różnica między zyskiem netto a kwotą stałą z umowy
         // (może być ujemna – wtedy oznacza dopłatę administratora)
@@ -4576,16 +4573,11 @@ function OwnerPayoutCalculation({
         return {
           finalOwnerPayout: fixedOwnerPayout,
           finalHostPayout: hostPayoutFixed, // Może być ujemne (administrator dopłaca)
-          finalIncomeTax: fixedTaxBase * 0.085,
-          taxBase: fixedTaxBase,
+          finalIncomeTax: fixedOwnerPayout * 0.085,
+          taxBase: fixedOwnerPayout,
         };
 
       case LocalPayoutType.FIXED_AMOUNT_MINUS_UTILITIES:
-        // Kwota stała po mediach: Podstawa opodatkowania = kwota stała - (czynsz + media), bez dodatkowych odliczeń
-        const fixedMinusUtilitiesTaxBase = Math.max(
-          0,
-          fixedBaseAmount - rentAndUtilities,
-        );
         const ownerPayoutFixedMinusUtilities = Math.max(0, kwotaBazowaNetto);
         // „Prowizja Złote Wynajmy” = zysk netto - kwota stała z umowy (niezależnie od potrąceń mediów)
         const hostPayoutFixedMinusUtilities =
@@ -4601,15 +4593,12 @@ function OwnerPayoutCalculation({
         return {
           finalOwnerPayout: fixedMinusUtilitiesOwnerPayout,
           finalHostPayout: hostPayoutFixedMinusUtilities, // Może być ujemne (administrator dopłaca)
-          finalIncomeTax: fixedMinusUtilitiesTaxBase * 0.085,
-          taxBase: fixedMinusUtilitiesTaxBase,
+          finalIncomeTax: fixedMinusUtilitiesOwnerPayout * 0.085,
+          taxBase: fixedMinusUtilitiesOwnerPayout,
         };
 
       case LocalPayoutType.COMMISSION:
       default:
-        // Podstawa opodatkowania = "Kwota po prowizji Złote Wynajmy" (netto po prowizji admina)
-        // Nie odejmujemy czynszu, mediów ani dodatkowych odliczeń
-        const commissionTaxBase = netIncomeAfterAdminCommission;
         const commissionOwnerPayout = isVatExemptLocal
           ? netIncomeAfterAllDeductions
           : getGrossAmount(netIncomeAfterAllDeductions, report.owner.vatOption);
@@ -4617,8 +4606,8 @@ function OwnerPayoutCalculation({
         return {
           finalOwnerPayout: commissionOwnerPayout, // DO WYPŁATY (brutto jeśli VAT)
           finalHostPayout: adminCommissionAmount, // Prowizja admina
-          finalIncomeTax: commissionTaxBase * 0.085, // 8.5% podatku
-          taxBase: commissionTaxBase,
+          finalIncomeTax: commissionOwnerPayout * 0.085,
+          taxBase: commissionOwnerPayout,
         };
     }
   }, [
@@ -5316,45 +5305,35 @@ function OwnerPayoutCalculation({
                 subtext={
                   !customEnabled
                     ? (() => {
-                        const isVat = report.owner.vatOption !== "NO_VAT";
                         if (isOwnApartment) {
                           return (
                             <span className="block text-xs text-gray-600">
-                              {isVat ? "(netto) " : ""}Zysk netto apartamentu:{" "}
-                              {report.netIncome.toFixed(2)} PLN ={" "}
-                              {taxBaseValue.toFixed(2)} PLN
+                              Równa kwocie wypłaty właściciela (podatek 8,5% od
+                              tej samej kwoty).
                             </span>
                           );
                         }
                         if (finalPayoutType === LocalPayoutType.COMMISSION) {
-                          // Podstawa = Kwota po prowizji Złote Wynajmy (netto)
                           return (
                             <span className="block text-xs text-gray-600">
-                              {isVat ? "(netto) " : ""}Kwota po prowizji:{" "}
-                              {netIncomeAfterAdminCommission.toFixed(2)} PLN ={" "}
-                              {taxBaseValue.toFixed(2)} PLN
+                              Równa kwocie wypłaty właściciela (kwota do wypłaty
+                              po odliczeniach); podatek 8,5% od tej kwoty.
                             </span>
                           );
                         }
                         if (finalPayoutType === LocalPayoutType.FIXED_AMOUNT) {
                           return (
                             <span className="block text-xs text-gray-600">
-                              {isVat ? "(netto) " : ""}Kwota stała:{" "}
-                              {fixedBaseAmount.toFixed(2)} PLN
+                              Równa kwocie wypłaty właściciela po odliczeniach z
+                              kwoty stałej.
                             </span>
                           );
                         }
                         // FIXED_MINUS_UTILITIES
                         return (
                           <span className="block text-xs text-gray-600">
-                            {isVat ? "(netto) " : ""}Kwota stała:{" "}
-                            {fixedBaseAmount.toFixed(2)} PLN
-                            {" - czynsz: "}
-                            {(report.rentAmount ?? 0).toFixed(2)} PLN
-                            {" - media: "}
-                            {(report.utilitiesAmount ?? 0).toFixed(2)} PLN
-                            {" = "}
-                            {taxBaseValue.toFixed(2)} PLN
+                            Równa kwocie wypłaty właściciela po odliczeniach
+                            (czynsz, media, dodatkowe odliczenia).
                           </span>
                         );
                       })()
@@ -5439,9 +5418,10 @@ function OwnerPayoutCalculation({
                 color="gray"
                 subtext={
                   <span className="text-xs text-gray-600">
-                    Zryczałtowany podatek dochodowy liczony od przychodów
-                    (8,5%). Właściciel może rozliczać się inną metodą – zgłoś
-                    nam to, aby dostosować sposób liczenia podatku w raportach.
+                    Zryczałtowany podatek dochodowy 8,5% od podstawy
+                    opodatkowania (kwota wypłaty właściciela). Właściciel może
+                    rozliczać się inną metodą – zgłoś nam to, aby dostosować
+                    sposób liczenia podatku w raportach.
                   </span>
                 }
               />

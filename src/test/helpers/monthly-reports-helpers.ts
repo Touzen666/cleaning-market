@@ -143,16 +143,8 @@ export async function recalculateReportSettlement(reportId: string, ctx: Recalcu
                 finalHostPayout = Math.max(0, netIncome - fixedAmount);
             }
 
-            // Podatek dochodowy 8.5% - jeśli właściciel jest podatnikiem VAT, liczymy od kwoty netto, w przeciwnym razie od kwoty brutto
-            if (actualOwner.vatOption === "VAT_8" || actualOwner.vatOption === "VAT_23") {
-                // Właściciel jest podatnikiem VAT - podatek od kwoty netto (baseAmount)
-                finalIncomeTax = Math.max(0, baseAmount) * 0.085;
-                console.log(`[TAX] Raport ${reportId}: właściciel podatnik VAT - podatek od kwoty netto: settlementType=${settlementType}, baseAmount=${baseAmount}, finalIncomeTax=${finalIncomeTax}`);
-            } else {
-                // Właściciel nie jest podatnikiem VAT - podatek od kwoty brutto (finalOwnerPayout)
-                finalIncomeTax = finalOwnerPayout * 0.085;
-                console.log(`[TAX] Raport ${reportId}: właściciel nie podatnik VAT - podatek od kwoty brutto: settlementType=${settlementType}, finalOwnerPayout=${finalOwnerPayout}, finalIncomeTax=${finalIncomeTax}`);
-            }
+            finalIncomeTax = Math.max(0, finalOwnerPayout) * 0.085;
+            console.log(`[TAX] Raport ${reportId}: podatek od wypłaty właściciela: settlementType=${settlementType}, finalOwnerPayout=${finalOwnerPayout}, finalIncomeTax=${finalIncomeTax}`);
         }
 
         const updateData = {
