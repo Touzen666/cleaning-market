@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
-import { UserType, VATOption } from '@prisma/client';
+import { UserType, VATOption, ReportStatus } from '@prisma/client';
+import { computeOwnerContractTerminationStats } from "@/lib/owner-contract-termination-stats";
 import { _sendWelcomeEmail } from "./email";
 import { randomBytes } from "crypto";
 
@@ -29,6 +30,11 @@ const apartmentOwnerSchema = z.object({
             slug: z.string(),
         }),
     })),
+    contractTermination: z.object({
+        inNoticeApartments: z.number(),
+        completedNoticeApartments: z.number(),
+        listHighlightAllCompleted: z.boolean(),
+    }),
 });
 
 export const apartmentOwnersRouter = createTRPCRouter({
@@ -81,18 +87,67 @@ export const apartmentOwnersRouter = createTRPCRouter({
                     },
                 });
 
+                const ownerIds = owners.map((o) => o.id);
+                const apartmentIds = [
+                    ...new Set(
+                        owners.flatMap((o) =>
+                            o.ownedApartments
+                                .filter((oa) => oa.isActive)
+                                .map((oa) => oa.apartmentId),
+                        ),
+                    ),
+                ];
+
+                const terminationReports =
+                    ownerIds.length === 0 || apartmentIds.length === 0
+                        ? []
+                        : await ctx.db.monthlyReport.findMany({
+                              where: {
+                                  ownerId: { in: ownerIds },
+                                  apartmentId: { in: apartmentIds },
+                                  status: {
+                                      in: [
+                                          ReportStatus.AGREEMENT_TERMINATION,
+                                          ReportStatus.AGREEMENT_SETTLED,
+                                      ],
+                                  },
+                              },
+                              select: {
+                                  ownerId: true,
+                                  apartmentId: true,
+                                  year: true,
+                                  month: true,
+                                  status: true,
+                              },
+                          });
+
                 // Map the result to match the schema (convert apartment ID to string)
-                return owners.map(owner => ({
-                    ...owner,
-                    profileImageUrl: owner.profileImages[0]?.url ?? null,
-                    ownedApartments: owner.ownedApartments.map(ownership => ({
-                        ...ownership,
-                        apartment: {
-                            ...ownership.apartment,
-                            id: ownership.apartment.id.toString(),
+                return owners.map((owner) => {
+                    const activeAptIds = owner.ownedApartments
+                        .filter((oa) => oa.isActive)
+                        .map((oa) => oa.apartmentId);
+                    const stats = computeOwnerContractTerminationStats(
+                        owner.id,
+                        activeAptIds,
+                        terminationReports,
+                    );
+                    return {
+                        ...owner,
+                        profileImageUrl: owner.profileImages[0]?.url ?? null,
+                        ownedApartments: owner.ownedApartments.map((ownership) => ({
+                            ...ownership,
+                            apartment: {
+                                ...ownership.apartment,
+                                id: ownership.apartment.id.toString(),
+                            },
+                        })),
+                        contractTermination: {
+                            inNoticeApartments: stats.inNoticeApartments,
+                            completedNoticeApartments: stats.completedNoticeApartments,
+                            listHighlightAllCompleted: stats.allNoticeContractsFinished,
                         },
-                    })),
-                }));
+                    };
+                });
 
             } catch (error) {
                 console.error("❌ Error fetching apartment owners:", error);
@@ -415,6 +470,39 @@ export const apartmentOwnersRouter = createTRPCRouter({
             // Extract the active profile image URL
             const profileImageUrl = owner.profileImages[0]?.url ?? null;
 
+            const activeAptIds = owner.ownedApartments
+                .filter((oa) => oa.isActive)
+                .map((oa) => oa.apartmentId);
+
+            const terminationReports =
+                activeAptIds.length === 0
+                    ? []
+                    : await ctx.db.monthlyReport.findMany({
+                          where: {
+                              ownerId: owner.id,
+                              apartmentId: { in: activeAptIds },
+                              status: {
+                                  in: [
+                                      ReportStatus.AGREEMENT_TERMINATION,
+                                      ReportStatus.AGREEMENT_SETTLED,
+                                  ],
+                              },
+                          },
+                          select: {
+                              ownerId: true,
+                              apartmentId: true,
+                              year: true,
+                              month: true,
+                              status: true,
+                          },
+                      });
+
+            const stats = computeOwnerContractTerminationStats(
+                owner.id,
+                activeAptIds,
+                terminationReports,
+            );
+
             return {
                 ...owner,
                 profileImageUrl,
@@ -425,6 +513,11 @@ export const apartmentOwnersRouter = createTRPCRouter({
                         id: ownership.apartment.id.toString(),
                     },
                 })),
+                contractTermination: {
+                    inNoticeApartments: stats.inNoticeApartments,
+                    completedNoticeApartments: stats.completedNoticeApartments,
+                    listHighlightAllCompleted: stats.allNoticeContractsFinished,
+                },
             };
         }),
 

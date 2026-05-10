@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/idobooking",
       "schedule": "*/20 * * * *"
+    },
+    {
+      "path": "/api/cron/archive-settled-apartments",
+      "schedule": "15 4 * * *"
     }
   ]
 }

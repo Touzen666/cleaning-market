@@ -3,6 +3,7 @@ import { createTRPCRouter, protectedProcedure, publicProcedure } from "@/server/
 import { TRPCError } from "@trpc/server";
 import { type Decimal } from "@prisma/client/runtime/library";
 import {
+    Prisma,
     ReportStatus,
     ReportItemType,
     PaymentType,
@@ -18,6 +19,7 @@ import { getVatAmount, getGrossAmount } from "@/lib/vat";
 import { getFixedPayoutProrateFactor, daysInCalendarMonth } from "@/lib/report-fixed-prorate";
 import { type PrismaClient } from "@prisma/client";
 import { ownerMonthlyReportApprovedOrSentWhere } from "@/server/api/lib/owner-monthly-report-access";
+import { isAgreementTerminationNoticeComplete } from "@/lib/agreement-termination-notice";
 import {
     canArchiveMonthlyReport,
     canSendReportFromStatus,
@@ -1690,19 +1692,40 @@ export const monthlyReportsRouter = createTRPCRouter({
 
             const previousStatus = report.status;
 
-            if (
+            const terminationWorkflowAdvanceStatuses: ReportStatus[] = [
+                ReportStatus.SENT,
+                ReportStatus.AGREEMENT_SETTLED,
+            ];
+            const isRevertingTerminationWorkflow =
                 previousStatus === ReportStatus.AGREEMENT_TERMINATION &&
-                status !== ReportStatus.AGREEMENT_TERMINATION
-            ) {
+                status !== ReportStatus.AGREEMENT_TERMINATION &&
+                !terminationWorkflowAdvanceStatuses.includes(status);
+
+            if (isRevertingTerminationWorkflow) {
                 await ctx.db.reportTerminationCost.deleteMany({ where: { reportId } });
             }
 
-            const updateData: {
-                status: ReportStatus;
-                approvedAt?: Date;
-                approvedByAdminId?: string;
-                sentAt?: Date;
-            } = { status };
+            if (
+                status === ReportStatus.SENT &&
+                previousStatus === ReportStatus.AGREEMENT_TERMINATION &&
+                !isAgreementTerminationNoticeComplete(report)
+            ) {
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    message:
+                        "Przed wysłaniem raportu rozwiązania umowy uzupełnij: datę wypowiedzenia, stronę wypowiedzenia, plik wypowiedzenia oraz sposób doręczenia.",
+                });
+            }
+
+            const updateData: Prisma.MonthlyReportUncheckedUpdateInput = { status };
+
+            if (status === ReportStatus.AGREEMENT_SETTLED) {
+                if (previousStatus !== ReportStatus.AGREEMENT_SETTLED || !report.agreementSettledAt) {
+                    updateData.agreementSettledAt = new Date();
+                }
+            } else if (previousStatus === ReportStatus.AGREEMENT_SETTLED) {
+                updateData.agreementSettledAt = null;
+            }
 
             if (statusRequiresSettlementLikeApproval(status)) {
                 if (!report.finalSettlementType) {
@@ -1732,6 +1755,14 @@ export const monthlyReportsRouter = createTRPCRouter({
                 updateData.approvedByAdminId = ctx.session.user.id;
             } else if (status === ReportStatus.SENT) {
                 updateData.sentAt = new Date();
+                updateData.sentByAdminId = ctx.session.user.id;
+            }
+
+            if (isRevertingTerminationWorkflow) {
+                updateData.agreementTerminationNoticeDate = null;
+                updateData.agreementTerminationNoticeParty = null;
+                updateData.agreementTerminationNoticeDocumentUrl = null;
+                updateData.agreementTerminationNoticeDeliveryNote = null;
             }
 
             await ctx.db.monthlyReport.update({
@@ -1790,6 +1821,17 @@ export const monthlyReportsRouter = createTRPCRouter({
                 throw new TRPCError({
                     code: "BAD_REQUEST",
                     message: "Można wysłać tylko raport zatwierdzony lub oznaczony jako rozwiązanie umowy",
+                });
+            }
+
+            if (
+                report.status === ReportStatus.AGREEMENT_TERMINATION &&
+                !isAgreementTerminationNoticeComplete(report)
+            ) {
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    message:
+                        "Przed wysłaniem raportu rozwiązania umowy uzupełnij: datę wypowiedzenia, stronę wypowiedzenia, plik wypowiedzenia oraz sposób doręczenia.",
                 });
             }
 
@@ -2844,6 +2886,83 @@ export const monthlyReportsRouter = createTRPCRouter({
                     notes: input.enabled ?
                         `Ustawiono niestandardowe podsumowanie: podstawa=${input.taxBase ?? "-"}, właściciel=${input.ownerPayout ?? "-"}, administrator=${input.hostPayout ?? "-"}, podatek=${input.incomeTax ?? "-"}`
                         : "Wyłączono niestandardowe podsumowanie",
+                },
+            });
+
+            return { success: true };
+        }),
+
+    updateAgreementTerminationNotice: protectedProcedure
+        .input(
+            z.object({
+                reportId: z.string().uuid(),
+                noticeDate: z
+                    .string()
+                    .regex(/^\d{4}-\d{2}-\d{2}$/)
+                    .nullable(),
+                noticeParty: z.nativeEnum(TerminationCostSide).nullable(),
+                documentUrl: z.union([z.string().url(), z.literal("")]).nullable(),
+                deliveryNote: z.string().max(4000).nullable(),
+            }),
+        )
+        .mutation(async ({ input, ctx }) => {
+            if (ctx.session.user.type !== UserType.ADMIN) {
+                throw new TRPCError({ code: "FORBIDDEN" });
+            }
+
+            const report = await ctx.db.monthlyReport.findUnique({
+                where: { id: input.reportId },
+            });
+            if (!report) {
+                throw new TRPCError({ code: "NOT_FOUND", message: "Raport nie został znaleziony" });
+            }
+            if (isReportLockedForEditing(report.status)) {
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    message: "Nie można edytować danych wypowiedzenia na zablokowanym raporcie.",
+                });
+            }
+            if (report.status !== ReportStatus.AGREEMENT_TERMINATION) {
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    message:
+                        "Dane wypowiedzenia można edytować tylko przy statusie „Rozwiązanie umowy (termin zakończenia)”.",
+                });
+            }
+
+            const noticeDate =
+                input.noticeDate == null
+                    ? null
+                    : (() => {
+                          const parts = input.noticeDate.split("-").map((x) => parseInt(x, 10));
+                          const y = parts[0] ?? 0;
+                          const mo = parts[1] ?? 1;
+                          const d = parts[2] ?? 1;
+                          return new Date(Date.UTC(y, mo - 1, d));
+                      })();
+
+            await ctx.db.monthlyReport.update({
+                where: { id: input.reportId },
+                data: {
+                    agreementTerminationNoticeDate: noticeDate,
+                    agreementTerminationNoticeParty: input.noticeParty,
+                    agreementTerminationNoticeDocumentUrl:
+                        input.documentUrl && input.documentUrl.length > 0
+                            ? input.documentUrl.trim()
+                            : null,
+                    agreementTerminationNoticeDeliveryNote:
+                        input.deliveryNote && input.deliveryNote.trim().length > 0
+                            ? input.deliveryNote.trim()
+                            : null,
+                },
+            });
+
+            await ctx.db.reportHistory.create({
+                data: {
+                    reportId: input.reportId,
+                    adminId: ctx.session.user.id,
+                    action: "agreement_termination_notice_updated",
+                    notes: "Zaktualizowano dokumentację wypowiedzenia umowy",
                 },
             });
 

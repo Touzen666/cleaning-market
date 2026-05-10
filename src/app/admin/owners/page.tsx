@@ -388,6 +388,14 @@ export default function AdminOwnersPage() {
                 Kliknij na właściciela z listy, aby zobaczyć szczegóły i
                 zarządzać jego apartamentami.
               </p>
+              <p className="mt-3 text-xs text-gray-500">
+                Licznik „w toku wypowiedzenia” dotyczy raportów w statusie rozwiązania umowy;
+                „zakończone po wypowiedzeniu” — status zamknięcia należności. Wiersz na{" "}
+                <span className="font-medium text-red-700">czerwono</span>, gdy nie ma już żadnej
+                umowy w toku, a wszystkie objęte procesem są zamknięte. Apartamenty z zamkniętą
+                umową przechodzą do archiwum automatycznie po 30 dniach od daty zamknięcia
+                (cron Vercel).
+              </p>
             </div>
           </div>
         </div>
@@ -445,8 +453,20 @@ function OwnerCard({
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const ct = owner.contractTermination;
+  const showTerminationLine =
+    ct.inNoticeApartments > 0 ||
+    ct.completedNoticeApartments > 0 ||
+    ct.listHighlightAllCompleted;
+
   return (
-    <li className="rounded-lg border border-gray-200 bg-white p-4">
+    <li
+      className={`rounded-lg border p-4 ${
+        ct.listHighlightAllCompleted
+          ? "border-red-400 bg-red-50"
+          : "border-gray-200 bg-white"
+      }`}
+    >
       <div
         className="flex cursor-pointer items-center justify-between"
         onClick={() => setShowDetails(!showDetails)}
@@ -463,6 +483,26 @@ function OwnerCard({
               {owner.firstName} {owner.lastName}
             </div>
             <div className="text-sm text-gray-500">{owner.email}</div>
+            {showTerminationLine && (
+              <div
+                className={`mt-1 text-xs ${
+                  ct.listHighlightAllCompleted
+                    ? "font-medium text-red-900"
+                    : "text-gray-700"
+                }`}
+              >
+                Umowy w toku wypowiedzenia:{" "}
+                <strong>{ct.inNoticeApartments}</strong>
+                {" · "}
+                Wypowiedziane i zamknięte:{" "}
+                <strong>{ct.completedNoticeApartments}</strong>
+                {ct.listHighlightAllCompleted && (
+                  <span className="ml-1 block sm:ml-2 sm:inline">
+                    (tylko zakończone procesy — brak aktywnego rozwiązania)
+                  </span>
+                )}
+              </div>
+            )}
           </div>
         </div>
         <div className="flex items-center space-x-2">

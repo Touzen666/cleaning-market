@@ -26,6 +26,12 @@ import {
   isReportLockedForEditing,
 } from "@/lib/report-status";
 import {
+  hasAnyAgreementTerminationNoticeData,
+  isAgreementTerminationNoticeComplete,
+  terminationNoticePartyLabel,
+  toDateInputValue,
+} from "@/lib/agreement-termination-notice";
+import {
   terminationOwnerPaymentKindLabel,
   terminationOwnerPaymentKindTaxNote,
 } from "@/lib/report-termination-costs";
@@ -263,6 +269,12 @@ export default function ReportDetailsPage({
     ownerPaymentKind: TerminationOwnerPaymentKind | null;
   } | null>(null);
 
+  const [noticeDate, setNoticeDate] = useState("");
+  const [noticeParty, setNoticeParty] = useState<TerminationCostSide | "">("");
+  const [noticeDocumentUrl, setNoticeDocumentUrl] = useState("");
+  const [noticeDeliveryNote, setNoticeDeliveryNote] = useState("");
+  const [noticeFileUploading, setNoticeFileUploading] = useState(false);
+
   const addTerminationCostMutation =
     api.monthlyReports.addReportTerminationCost.useMutation({
       onSuccess: () => {
@@ -419,6 +431,16 @@ export default function ReportDetailsPage({
     },
   });
 
+  const uploadNoticeDocumentMutation = api.upload.uploadFile.useMutation();
+  const updateAgreementTerminationNoticeMutation =
+    api.monthlyReports.updateAgreementTerminationNotice.useMutation({
+      onSuccess: async () => {
+        toast.success("Zapisano dane wypowiedzenia umowy");
+        await reportQuery.refetch();
+      },
+      onError: (e) => toast.error(e.message),
+    });
+
   const rebuildRevenueMutation =
     api.monthlyReports.rebuildRevenueItems.useMutation({
       onSuccess: async (res) => {
@@ -480,6 +502,32 @@ export default function ReportDetailsPage({
   const isOwnApartment =
     finalReport?.apartment?.paymentType === "OWN_APARTMENT";
   const isHistorical = Boolean(!report && historicalReport);
+
+  type ReportNoticeFields = {
+    agreementTerminationNoticeDate?: Date | string | null;
+    agreementTerminationNoticeParty?: TerminationCostSide | null;
+    agreementTerminationNoticeDocumentUrl?: string | null;
+    agreementTerminationNoticeDeliveryNote?: string | null;
+  };
+
+  React.useEffect(() => {
+    if (!report) return;
+    const r = report as ReportDetails & ReportNoticeFields;
+    setNoticeDate(toDateInputValue(r.agreementTerminationNoticeDate ?? null));
+    setNoticeParty(r.agreementTerminationNoticeParty ?? "");
+    setNoticeDocumentUrl(r.agreementTerminationNoticeDocumentUrl ?? "");
+    setNoticeDeliveryNote(r.agreementTerminationNoticeDeliveryNote ?? "");
+  }, [
+    report?.id,
+    (report as (typeof report & ReportNoticeFields) | undefined)
+      ?.agreementTerminationNoticeDate,
+    (report as (typeof report & ReportNoticeFields) | undefined)
+      ?.agreementTerminationNoticeParty,
+    (report as (typeof report & ReportNoticeFields) | undefined)
+      ?.agreementTerminationNoticeDocumentUrl,
+    (report as (typeof report & ReportNoticeFields) | undefined)
+      ?.agreementTerminationNoticeDeliveryNote,
+  ]);
 
   type AdminReportTerminationCost = {
     id: string;
@@ -980,6 +1028,22 @@ export default function ReportDetailsPage({
   const handleStatusChange = (status: ReportStatus, notes?: string) => {
     // Jeśli próbujemy wysłać raport, pokaż modal potwierdzenia
     if (status === ReportStatus.SENT) {
+      if (finalReport?.status === ReportStatus.AGREEMENT_TERMINATION) {
+        const draft = {
+          agreementTerminationNoticeDate:
+            noticeDate === "" ? null : noticeDate,
+          agreementTerminationNoticeParty:
+            noticeParty === "" ? null : (noticeParty as TerminationCostSide),
+          agreementTerminationNoticeDocumentUrl: noticeDocumentUrl,
+          agreementTerminationNoticeDeliveryNote: noticeDeliveryNote,
+        };
+        if (!isAgreementTerminationNoticeComplete(draft)) {
+          toast.error(
+            "Przed wysłaniem uzupełnij dane wypowiedzenia: datę, stronę wypowiedzenia, plik oraz sposób doręczenia (możesz je zapisać przyciskiem poniżej).",
+          );
+          return;
+        }
+      }
       setShowSendConfirmationModal(true);
       setPendingStatusChange({ status, notes });
       return;
@@ -996,7 +1060,37 @@ export default function ReportDetailsPage({
   } | null>(null);
 
   const handleConfirmSend = () => {
-    if (pendingStatusChange) {
+    void (async () => {
+      if (!pendingStatusChange) return;
+      if (report?.status === ReportStatus.AGREEMENT_TERMINATION) {
+        const draft = {
+          agreementTerminationNoticeDate:
+            noticeDate === "" ? null : noticeDate,
+          agreementTerminationNoticeParty:
+            noticeParty === "" ? null : (noticeParty as TerminationCostSide),
+          agreementTerminationNoticeDocumentUrl: noticeDocumentUrl,
+          agreementTerminationNoticeDeliveryNote: noticeDeliveryNote,
+        };
+        if (!isAgreementTerminationNoticeComplete(draft)) {
+          toast.error(
+            "Przed wysłaniem uzupełnij dane wypowiedzenia: datę, stronę wypowiedzenia, plik oraz sposób doręczenia.",
+          );
+          setShowSendConfirmationModal(false);
+          setPendingStatusChange(null);
+          return;
+        }
+        try {
+          await updateAgreementTerminationNoticeMutation.mutateAsync({
+            reportId,
+            noticeDate: draft.agreementTerminationNoticeDate as string,
+            noticeParty: draft.agreementTerminationNoticeParty,
+            documentUrl: draft.agreementTerminationNoticeDocumentUrl.trim(),
+            deliveryNote: draft.agreementTerminationNoticeDeliveryNote.trim(),
+          });
+        } catch {
+          return;
+        }
+      }
       updateStatusMutation.mutate({
         reportId,
         status: pendingStatusChange.status,
@@ -1004,7 +1098,7 @@ export default function ReportDetailsPage({
       });
       setShowSendConfirmationModal(false);
       setPendingStatusChange(null);
-    }
+    })();
   };
 
   const handleArchiveAndDelete = async () => {
@@ -1856,10 +1950,10 @@ export default function ReportDetailsPage({
                     <option value="DRAFT">Szkic</option>
                     <option value="REVIEW">Do przeglądu</option>
                     <option value="APPROVED">Zatwierdzony</option>
+                    <option value="SENT">Wysłany</option>
                     <option value="AGREEMENT_TERMINATION">
                       Rozwiązanie umowy (termin zakończenia)
                     </option>
-                    <option value="SENT">Wysłany</option>
                     <option value="AGREEMENT_SETTLED">
                       Umowa zamknięta — rozliczono należności
                     </option>
@@ -1874,6 +1968,226 @@ export default function ReportDetailsPage({
                   zakończenia współpracy). Możesz go wysłać do właściciela tak jak raport
                   zatwierdzony; dalsze zmiany statusu prowadzą do domknięcia rozliczenia.
                 </p>
+              )}
+            {!isHistorical &&
+              finalReport.status === ReportStatus.AGREEMENT_TERMINATION && (
+                <div className="mt-4 space-y-4 rounded-lg border border-amber-300 bg-white p-4 shadow-sm">
+                  <h4 className="text-sm font-semibold text-amber-950">
+                    Dokumentacja wypowiedzenia umowy
+                  </h4>
+                  <p className="text-xs text-amber-900">
+                    Uzupełnij dane przed wysłaniem raportu: datę wypowiedzenia, stronę
+                    składającą wypowiedzenie, załącz plik oraz opisz sposób doręczenia.
+                  </p>
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <label className="block text-sm">
+                      <span className="text-xs text-gray-600">Data wypowiedzenia</span>
+                      <input
+                        type="date"
+                        className="mt-1 block w-full rounded-md border-gray-300 text-sm"
+                        value={noticeDate}
+                        onChange={(e) => setNoticeDate(e.target.value)}
+                      />
+                    </label>
+                    <label className="block text-sm">
+                      <span className="text-xs text-gray-600">
+                        Wypowiedzenie złożone przez
+                      </span>
+                      <select
+                        className="mt-1 block w-full rounded-md border-gray-300 text-sm"
+                        value={noticeParty}
+                        onChange={(e) =>
+                          setNoticeParty(
+                            e.target.value === ""
+                              ? ""
+                              : (e.target.value as TerminationCostSide),
+                          )
+                        }
+                      >
+                        <option value="">— wybierz —</option>
+                        <option value={TerminationCostSide.OWNER_SIDE}>
+                          Właściciel
+                        </option>
+                        <option value={TerminationCostSide.HOST_COMPANY}>
+                          Złote Wynajmy
+                        </option>
+                      </select>
+                    </label>
+                    <label className="block text-sm md:col-span-2">
+                      <span className="text-xs text-gray-600">
+                        Plik z wypowiedzeniem (PDF, zdjęcie, dokument)
+                      </span>
+                      <input
+                        type="file"
+                        accept="application/pdf,image/*,.doc,.docx"
+                        className="mt-1 block w-full text-sm"
+                        disabled={noticeFileUploading}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          setNoticeFileUploading(true);
+                          const inputEl = e.currentTarget;
+                          const reader = new FileReader();
+                          reader.onload = () => {
+                            void (async () => {
+                              try {
+                                const dataUrl = reader.result as string;
+                                const base64 = dataUrl.split(",")[1] ?? "";
+                                const res =
+                                  await uploadNoticeDocumentMutation.mutateAsync({
+                                    filename: file.name,
+                                    content: base64,
+                                  });
+                                if (res.success) setNoticeDocumentUrl(res.url);
+                              } catch {
+                                toast.error("Nie udało się przesłać pliku");
+                              } finally {
+                                setNoticeFileUploading(false);
+                                inputEl.value = "";
+                              }
+                            })();
+                          };
+                          reader.readAsDataURL(file);
+                        }}
+                      />
+                      {noticeFileUploading ? (
+                        <span className="mt-1 block text-xs text-gray-500">
+                          Przesyłanie…
+                        </span>
+                      ) : null}
+                      {noticeDocumentUrl ? (
+                        <a
+                          href={noticeDocumentUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-2 inline-block text-sm text-indigo-600 hover:underline"
+                        >
+                          Otwórz załączony plik
+                        </a>
+                      ) : null}
+                    </label>
+                    <label className="block text-sm md:col-span-2">
+                      <span className="text-xs text-gray-600">
+                        Droga / sposób doręczenia wypowiedzenia
+                      </span>
+                      <textarea
+                        rows={3}
+                        className="mt-1 block w-full rounded-md border-gray-300 text-sm"
+                        value={noticeDeliveryNote}
+                        onChange={(e) => setNoticeDeliveryNote(e.target.value)}
+                        placeholder="np. list polecony na adres…, e-mail z potwierdzeniem, osobiście z podpisem na kopii"
+                      />
+                    </label>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!report) return;
+                        updateAgreementTerminationNoticeMutation.mutate({
+                          reportId: report.id,
+                          noticeDate: noticeDate === "" ? null : noticeDate,
+                          noticeParty:
+                            noticeParty === ""
+                              ? null
+                              : (noticeParty as TerminationCostSide),
+                          documentUrl:
+                            noticeDocumentUrl.trim() === ""
+                              ? null
+                              : noticeDocumentUrl.trim(),
+                          deliveryNote:
+                            noticeDeliveryNote.trim() === ""
+                              ? null
+                              : noticeDeliveryNote.trim(),
+                        });
+                      }}
+                      className="inline-flex rounded-md bg-amber-700 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-amber-800"
+                      disabled={updateAgreementTerminationNoticeMutation.isPending}
+                    >
+                      {updateAgreementTerminationNoticeMutation.isPending
+                        ? "Zapisywanie…"
+                        : "Zapisz dane wypowiedzenia"}
+                    </button>
+                    {!isAgreementTerminationNoticeComplete({
+                      agreementTerminationNoticeDate:
+                        noticeDate === "" ? null : noticeDate,
+                      agreementTerminationNoticeParty:
+                        noticeParty === ""
+                          ? null
+                          : (noticeParty as TerminationCostSide),
+                      agreementTerminationNoticeDocumentUrl: noticeDocumentUrl,
+                      agreementTerminationNoticeDeliveryNote: noticeDeliveryNote,
+                    }) ? (
+                      <span className="text-xs text-amber-900">
+                        Aby ustawić status „Wysłany”, wypełnij i zapisz wszystkie pola
+                        dokumentacji wypowiedzenia.
+                      </span>
+                    ) : null}
+                  </div>
+                </div>
+              )}
+            {!isHistorical &&
+              isReportLockedForEditing(finalReport.status) &&
+              hasAnyAgreementTerminationNoticeData(
+                finalReport as ReportDetails & ReportNoticeFields,
+              ) && (
+                <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-900">
+                  <h4 className="text-sm font-semibold text-slate-800">
+                    Dokumentacja wypowiedzenia (zapisana)
+                  </h4>
+                  <dl className="mt-3 space-y-2 text-sm">
+                    <div>
+                      <dt className="text-xs text-slate-500">Data wypowiedzenia</dt>
+                      <dd className="font-medium">
+                        {toDateInputValue(
+                          (
+                            finalReport as ReportDetails & ReportNoticeFields
+                          ).agreementTerminationNoticeDate ?? null,
+                        ) || "—"}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs text-slate-500">Strona wypowiedzenia</dt>
+                      <dd className="font-medium">
+                        {(finalReport as ReportDetails & ReportNoticeFields)
+                          .agreementTerminationNoticeParty
+                          ? terminationNoticePartyLabel(
+                              (finalReport as ReportDetails & ReportNoticeFields)
+                                .agreementTerminationNoticeParty!,
+                            )
+                          : "—"}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs text-slate-500">Załącznik</dt>
+                      <dd>
+                        {(finalReport as ReportDetails & ReportNoticeFields)
+                          .agreementTerminationNoticeDocumentUrl ? (
+                          <a
+                            href={
+                              (finalReport as ReportDetails & ReportNoticeFields)
+                                .agreementTerminationNoticeDocumentUrl!
+                            }
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-indigo-600 hover:underline"
+                          >
+                            Pobierz / otwórz plik
+                          </a>
+                        ) : (
+                          "—"
+                        )}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs text-slate-500">Sposób doręczenia</dt>
+                      <dd className="whitespace-pre-wrap font-medium">
+                        {(finalReport as ReportDetails & ReportNoticeFields)
+                          .agreementTerminationNoticeDeliveryNote ?? "—"}
+                      </dd>
+                    </div>
+                  </dl>
+                </div>
               )}
             {!isHistorical &&
               finalReport.status === ReportStatus.AGREEMENT_TERMINATION && (

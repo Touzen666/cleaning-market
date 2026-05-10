@@ -271,6 +271,42 @@ export default function OwnerDetailsPage({
               </button>
             </div>
           </div>
+          {owner.contractTermination &&
+            (owner.contractTermination.inNoticeApartments > 0 ||
+              owner.contractTermination.completedNoticeApartments > 0 ||
+              owner.contractTermination.listHighlightAllCompleted) && (
+              <div
+                className={`mt-6 rounded-lg border p-4 text-sm ${
+                  owner.contractTermination.listHighlightAllCompleted
+                    ? "border-red-400 bg-red-50 text-red-950"
+                    : "border-amber-200 bg-amber-50 text-amber-950"
+                }`}
+              >
+                <p>
+                  <strong>Rozwiązanie umów:</strong> apartamentów z umową w toku
+                  wypowiedzenia:{" "}
+                  <strong>
+                    {owner.contractTermination.inNoticeApartments}
+                  </strong>
+                  ; zamkniętych po wypowiedzeniu:{" "}
+                  <strong>
+                    {owner.contractTermination.completedNoticeApartments}
+                  </strong>
+                  .
+                </p>
+                {owner.contractTermination.listHighlightAllCompleted && (
+                  <p className="mt-2 font-medium">
+                    Brak aktywnego wypowiedzenia — wszystkie apartamenty w tym
+                    procesie mają już zamkniętą umowę.
+                  </p>
+                )}
+                <p className="mt-2 text-xs opacity-90">
+                  Niezarchiwizowane apartamenty z ostatnim raportem w statusie
+                  zamknięcia należności i datą zamknięcia starszą niż 30 dni są
+                  automatycznie przenoszone do archiwum (zadanie cron).
+                </p>
+              </div>
+            )}
         </div>
 
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">

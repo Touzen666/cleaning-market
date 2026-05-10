@@ -25,6 +25,10 @@ import {
   terminationOwnerPaymentKindLabel,
   terminationOwnerPaymentKindTaxNote,
 } from "@/lib/report-termination-costs";
+import {
+  hasAnyAgreementTerminationNoticeData,
+  terminationNoticePartyLabel,
+} from "@/lib/agreement-termination-notice";
 
 type ReportItemWithReservation = ReportItem & {
   reservation?: Reservation | null;
@@ -89,6 +93,10 @@ type OwnerReport = {
   taxBase?: number; // Podstawa opodatkowania
   fixedPayoutProrateEnabled?: boolean | null;
   fixedPayoutActiveDays?: number | null;
+  agreementTerminationNoticeDate?: Date | string | null;
+  agreementTerminationNoticeParty?: TerminationCostSide | null;
+  agreementTerminationNoticeDocumentUrl?: string | null;
+  agreementTerminationNoticeDeliveryNote?: string | null;
 };
 
 // Używamy nowych funkcji z lib/status-translations
@@ -322,11 +330,13 @@ export default function OwnerReportDetailsPage() {
         0);
 
   const terminationCosts = report.terminationCosts ?? [];
-  const terminationSummary =
-    report.status === ReportStatus.AGREEMENT_TERMINATION &&
-    terminationCosts.length > 0
-      ? summarizeTerminationCosts(terminationCosts)
-      : null;
+  const ownerSeesTerminationCosts =
+    (report.status === ReportStatus.AGREEMENT_TERMINATION ||
+      report.status === ReportStatus.SENT) &&
+    terminationCosts.length > 0;
+  const terminationSummary = ownerSeesTerminationCosts
+    ? summarizeTerminationCosts(terminationCosts)
+    : null;
   const ownerPayoutBeforeTerminationAdjust =
     terminationSummary != null
       ? summaryOwnerPayout - terminationSummary.payoutAdj
@@ -395,6 +405,67 @@ export default function OwnerReportDetailsPage() {
                   wskazuje termin zakończenia współpracy przy tym obiekcie.
                 </p>
               )}
+              {(report.status === ReportStatus.AGREEMENT_TERMINATION ||
+                report.status === ReportStatus.SENT ||
+                report.status === ReportStatus.AGREEMENT_SETTLED) &&
+                (hasAnyAgreementTerminationNoticeData(report) ||
+                  report.status === ReportStatus.AGREEMENT_TERMINATION) && (
+                  <div className="mt-3 max-w-3xl rounded-md border border-amber-300 bg-white px-4 py-3 text-sm text-gray-900 shadow-sm">
+                    <h2 className="text-sm font-semibold text-amber-950">
+                      Wypowiedzenie umowy — informacje
+                    </h2>
+                    <dl className="mt-2 grid gap-2 sm:grid-cols-2">
+                      <div>
+                        <dt className="text-xs text-gray-500">Data wypowiedzenia</dt>
+                        <dd className="font-medium">
+                          {report.agreementTerminationNoticeDate
+                            ? new Date(
+                                report.agreementTerminationNoticeDate as string,
+                              ).toLocaleDateString("pl-PL", { timeZone: "UTC" })
+                            : "—"}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-xs text-gray-500">
+                          Wypowiedzenie złożone przez
+                        </dt>
+                        <dd className="font-medium">
+                          {report.agreementTerminationNoticeParty
+                            ? terminationNoticePartyLabel(
+                                report.agreementTerminationNoticeParty,
+                              )
+                            : "—"}
+                        </dd>
+                      </div>
+                      <div className="sm:col-span-2">
+                        <dt className="text-xs text-gray-500">Załącznik</dt>
+                        <dd>
+                          {report.agreementTerminationNoticeDocumentUrl ? (
+                            <a
+                              href={report.agreementTerminationNoticeDocumentUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="font-medium text-indigo-600 hover:underline"
+                            >
+                              Otwórz dokument wypowiedzenia
+                            </a>
+                          ) : (
+                            <span className="text-gray-600">—</span>
+                          )}
+                        </dd>
+                      </div>
+                      <div className="sm:col-span-2">
+                        <dt className="text-xs text-gray-500">
+                          Sposób doręczenia wypowiedzenia
+                        </dt>
+                        <dd className="whitespace-pre-wrap font-medium text-gray-900">
+                          {report.agreementTerminationNoticeDeliveryNote?.trim() ||
+                            "—"}
+                        </dd>
+                      </div>
+                    </dl>
+                  </div>
+                )}
               {report.status === ReportStatus.AGREEMENT_SETTLED && (
                 <p className="mt-3 max-w-3xl rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900">
                   <strong>Umowa zamknięta</strong> — należności z tego okresu uznaje się za
@@ -428,7 +499,7 @@ export default function OwnerReportDetailsPage() {
           </div>
         </div>
 
-        {report.status === ReportStatus.AGREEMENT_TERMINATION && (
+        {ownerSeesTerminationCosts && (
           <div className="mb-6 overflow-hidden rounded-lg border border-amber-200 bg-amber-50/40 shadow">
             <div className="border-b border-amber-200 bg-amber-100/80 px-6 py-3">
               <h2 className="text-base font-semibold text-amber-950">

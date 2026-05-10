@@ -378,6 +378,16 @@ model MonthlyReport {
   approvedByAdminId         String?
   sentAt                    DateTime?
   sentByAdminId             String?
+  /// Ustawiane przy przejściu w status AGREEMENT_SETTLED (archiwum apartamentu po 30 dniach od tej daty).
+  agreementSettledAt        DateTime?
+  /// Data wypowiedzenia umowy (raport rozwiązania).
+  agreementTerminationNoticeDate        DateTime?           @db.Date
+  /// Strona składająca wypowiedzenie (właściciel vs Złote Wynajmy).
+  agreementTerminationNoticeParty     TerminationCostSide?
+  /// Publiczny URL przeskanowanego / przesłanego dokumentu wypowiedzenia.
+  agreementTerminationNoticeDocumentUrl String?
+  /// Opis drogi doręczenia wypowiedzenia (np. list polecony, e-mail, osobiście).
+  agreementTerminationNoticeDeliveryNote String?
   totalRevenue              Float           @default(0)
   totalExpenses             Float           @default(0)
   netIncome                 Float           @default(0)
