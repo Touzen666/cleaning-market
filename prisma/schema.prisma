@@ -360,6 +360,10 @@ model MonthlyReport {
   suggestedRent             Float?          @default(0)
   suggestedUtilities        Float?          @default(0)
   finalSettlementType       SettlementType?
+  /// Proporcjonalna wypłata przy kwocie stałej (np. część miesiąca — wypowiedzenie / start umowy)
+  fixedPayoutProrateEnabled Boolean         @default(false)
+  /// Liczba dni w miesiącu raportu, za które naliczana jest wypłata (≤ dni w miesiącu kalendarzowym)
+  fixedPayoutActiveDays     Int?
   finalOwnerPayout          Float?
   finalHostPayout           Float?
   finalIncomeTax            Float?

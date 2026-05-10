@@ -9,6 +9,7 @@ import type { RouterOutputs } from "@/trpc/react";
 import { VATOption, ReportStatus } from "@prisma/client";
 import { Modal } from "@/components/ui/Modal";
 import { getVatAmount, getGrossAmount } from "@/lib/vat";
+import { daysInCalendarMonth, getFixedPayoutProrateFactor } from "@/lib/report-fixed-prorate";
 import {
   translateReportStatus,
   getReportStatusColor,
@@ -4441,6 +4442,29 @@ function OwnerPayoutCalculation({
       },
     });
 
+  const updateFixedPayoutProrateMutation =
+    api.monthlyReports.updateFixedPayoutProrate.useMutation({
+      onSuccess: () => {
+        toast.success("Zapisano ustawienia proporcji wypłaty");
+        onRefetch();
+      },
+      onError: (err) => {
+        toast.error(err.message ?? "Nie udało się zapisać proporcji");
+      },
+    });
+
+  const saveFixedPayoutProrate = async () => {
+    try {
+      await updateFixedPayoutProrateMutation.mutateAsync({
+        reportId: report.id,
+        enabled: prorateEnabled,
+        activeDays: prorateEnabled ? prorateActiveDays : undefined,
+      });
+    } catch {
+      // błąd obsłużony w onError mutacji
+    }
+  };
+
   // Funkcja do zapisywania wybranego typu rozliczenia
   const handleFinalPayoutTypeChange = async (newType: LocalPayoutType) => {
     // Natychmiast aktualizuj lokalny stan dla lepszej responsywności
@@ -4518,10 +4542,46 @@ function OwnerPayoutCalculation({
     0,
   );
 
-  // Kwota stała z umowy (po odjęciu dodatkowych odliczeń)
+  const reportProrate = report as ReportDetails & {
+    fixedPayoutProrateEnabled?: boolean | null;
+    fixedPayoutActiveDays?: number | null;
+  };
+  const dimDaysMonth = daysInCalendarMonth(report.year, report.month);
+  const [prorateEnabled, setProrateEnabled] = React.useState(
+    Boolean(reportProrate.fixedPayoutProrateEnabled),
+  );
+  const [prorateActiveDays, setProrateActiveDays] = React.useState<number>(() => {
+    const v = reportProrate.fixedPayoutActiveDays;
+    if (v != null && v >= 1) return Math.round(v);
+    return dimDaysMonth;
+  });
+
+  React.useEffect(() => {
+    setProrateEnabled(Boolean(reportProrate.fixedPayoutProrateEnabled));
+    const v = reportProrate.fixedPayoutActiveDays;
+    setProrateActiveDays(
+      v != null && v >= 1 ? Math.round(v) : daysInCalendarMonth(report.year, report.month),
+    );
+  }, [
+    report.id,
+    report.year,
+    report.month,
+    reportProrate.fixedPayoutProrateEnabled,
+    reportProrate.fixedPayoutActiveDays,
+  ]);
+
+  const previewProrateF = getFixedPayoutProrateFactor(
+    report.year,
+    report.month,
+    prorateEnabled,
+    prorateActiveDays,
+  );
+
+  // Kwota stała z umowy (× proporcjonalnie za część miesiąca − dodatkowe odliczenia brutto)
   const fixedBaseAmount = Number(report.apartment.fixedPaymentAmount ?? 0);
+  const scaledContractFixed = fixedBaseAmount * previewProrateF;
   const fixedBaseAmountAfterDeductions =
-    fixedBaseAmount - totalAdditionalDeductionsGross;
+    scaledContractFixed - totalAdditionalDeductionsGross;
 
   // Zysk procentowy (po prowizji admina i odjęciu czynszu/mediów)
   const adminCommissionRate = isOwnApartment ? 0 : 0.25;
@@ -4541,7 +4601,7 @@ function OwnerPayoutCalculation({
     netIncomeAfterRentAndUtilities - totalAdditionalDeductionsGross;
 
   const kwotaBazowaNetto =
-    fixedBaseAmount - rentAndUtilities - totalAdditionalDeductionsGross;
+    scaledContractFixed - rentAndUtilities - totalAdditionalDeductionsGross;
 
   // NOWE: Obliczanie kwot w podsumowaniu na podstawie wybranego typu rozliczenia
   const getSummaryValues = React.useCallback(() => {
@@ -4564,7 +4624,7 @@ function OwnerPayoutCalculation({
         const ownerPayoutFixed = Math.max(0, fixedBaseAmountAfterDeductions);
         // W trybach z kwotą stałą „Prowizja Złote Wynajmy” to różnica między zyskiem netto a kwotą stałą z umowy
         // (może być ujemna – wtedy oznacza dopłatę administratora)
-        const hostPayoutFixed = report.netIncome - fixedBaseAmount;
+        const hostPayoutFixed = report.netIncome - fixedBaseAmount * previewProrateF;
 
         const fixedOwnerPayout = isVatExemptLocal
           ? ownerPayoutFixed
@@ -4581,7 +4641,7 @@ function OwnerPayoutCalculation({
         const ownerPayoutFixedMinusUtilities = Math.max(0, kwotaBazowaNetto);
         // „Prowizja Złote Wynajmy” = zysk netto - kwota stała z umowy (niezależnie od potrąceń mediów)
         const hostPayoutFixedMinusUtilities =
-          report.netIncome - fixedBaseAmount;
+          report.netIncome - fixedBaseAmount * previewProrateF;
 
         const fixedMinusUtilitiesOwnerPayout = isVatExemptLocal
           ? ownerPayoutFixedMinusUtilities
@@ -4620,6 +4680,7 @@ function OwnerPayoutCalculation({
     kwotaBazowaNetto,
     netIncomeAfterAllDeductions,
     adminCommissionAmount,
+    previewProrateF,
   ]);
 
   // Wartości podsumowania są obliczane w getSummaryValues() i używane bezpośrednio
@@ -4904,6 +4965,76 @@ function OwnerPayoutCalculation({
         </div>
       </PayoutOption>
 
+      {!isOwnApartment &&
+        fixedBaseAmount > 0 &&
+        (report.finalSettlementType === "FIXED" ||
+          report.finalSettlementType === "FIXED_MINUS_UTILITIES") && (
+        <div className="mb-4 rounded-lg border border-green-200 bg-green-50/90 p-4">
+          <h5 className="mb-1 text-base font-semibold text-green-900">
+            Proporcja wypłaty przy kwocie stałej (część miesiąca)
+          </h5>
+          <p className="mb-3 text-sm text-green-800">
+            Dla wypowiedzenia lub startu umowy w trakcie miesiąca: wypłata właściciela i zysk operatora liczone są od{" "}
+            <strong>kwoty stałej przeskalowanej</strong> wg liczby dni (miesiąc raportu:{" "}
+            <strong>{dimDaysMonth}</strong> dni kalendarzowych).
+          </p>
+          <label className="flex cursor-pointer items-center gap-2 text-sm text-green-900">
+            <input
+              type="checkbox"
+              className="h-4 w-4 rounded border-green-600 text-green-700 focus:ring-green-600"
+              checked={prorateEnabled}
+              disabled={isReportSent || customEnabled}
+              onChange={(e) => setProrateEnabled(e.target.checked)}
+            />
+            Podziel wypłatę proporcjonalnie do liczby dni w miesiącu raportu
+          </label>
+          {prorateEnabled && (
+            <div className="mt-3 flex flex-wrap items-end gap-3">
+              <div>
+                <label className="mb-1 block text-xs font-medium text-green-800">
+                  Liczba aktywnych dni (1–{dimDaysMonth})
+                </label>
+                <input
+                  type="number"
+                  min={1}
+                  max={dimDaysMonth}
+                  className="w-28 rounded border border-green-300 px-2 py-1 text-green-900 disabled:opacity-50"
+                  value={prorateActiveDays}
+                  disabled={isReportSent || customEnabled}
+                  onChange={(e) => {
+                    const n = parseInt(e.target.value, 10);
+                    if (!Number.isFinite(n)) return;
+                    setProrateActiveDays(Math.min(dimDaysMonth, Math.max(1, n)));
+                  }}
+                />
+              </div>
+              <button
+                type="button"
+                className="rounded-md bg-green-700 px-4 py-2 text-sm font-medium text-white hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={
+                  isReportSent ||
+                  customEnabled ||
+                  updateFixedPayoutProrateMutation.isPending
+                }
+                onClick={() => void saveFixedPayoutProrate()}
+              >
+                {updateFixedPayoutProrateMutation.isPending
+                  ? "Zapisywanie…"
+                  : "Zapisz proporcję"}
+              </button>
+            </div>
+          )}
+          {prorateEnabled && previewProrateF < 1 && (
+            <p className="mt-2 text-xs text-green-800">
+              Skala: {prorateActiveDays}/{dimDaysMonth} = {(previewProrateF * 100).toFixed(2)}%. Kwota stała w
+              rozliczeniu: <strong>{scaledContractFixed.toFixed(2)} PLN</strong> (zamiast{" "}
+              {fixedBaseAmount.toFixed(2)} PLN). Prowizja operatora: przychód netto rezerwacji minus ta skalowana kwota
+              stała.
+            </p>
+          )}
+        </div>
+      )}
+
       <PayoutOption
         id="final-fixed"
         label="Rozliczenie właściciela: kwota stała"
@@ -4927,6 +5058,12 @@ function OwnerPayoutCalculation({
             value={`${fixedBaseAmountAfterDeductions.toFixed(2)} PLN`}
             subtext={
               <span>
+                {previewProrateF < 1 && (
+                  <span className="mb-1 block text-xs text-green-700">
+                    (kwota stała × {prorateActiveDays}/{dimDaysMonth}:{" "}
+                    {(fixedBaseAmount * previewProrateF).toFixed(2)} PLN)
+                  </span>
+                )}
                 (kwota stała: {fixedBaseAmount.toFixed(2)} PLN
                 {totalAdditionalDeductionsGross > 0 && (
                   <>
@@ -4988,6 +5125,12 @@ function OwnerPayoutCalculation({
             value={`${kwotaBazowaNetto.toFixed(2)} PLN`}
             subtext={
               <span>
+                {previewProrateF < 1 && (
+                  <span className="mb-1 block text-xs text-green-700">
+                    (kwota stała × {prorateActiveDays}/{dimDaysMonth}:{" "}
+                    {(fixedBaseAmount * previewProrateF).toFixed(2)} PLN)
+                  </span>
+                )}
                 (kwota stała: {fixedBaseAmount.toFixed(2)} PLN
                 {" - czynsz: "}
                 {(report.rentAmount ?? 0).toFixed(2)} PLN

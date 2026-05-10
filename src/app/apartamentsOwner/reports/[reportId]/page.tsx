@@ -11,6 +11,7 @@ import {
   type Reservation,
 } from "@prisma/client";
 import { getVatAmount, getGrossAmount } from "@/lib/vat";
+import { daysInCalendarMonth, getFixedPayoutProrateFactor } from "@/lib/report-fixed-prorate";
 import {
   translateReportStatus,
   getReportStatusColor,
@@ -70,6 +71,8 @@ type OwnerReport = {
   finalHostPayout?: number;
   finalIncomeTax?: number;
   taxBase?: number; // Podstawa opodatkowania
+  fixedPayoutProrateEnabled?: boolean | null;
+  fixedPayoutActiveDays?: number | null;
 };
 
 // Używamy nowych funkcji z lib/status-translations
@@ -272,8 +275,16 @@ export default function OwnerReportDetailsPage() {
   const rentAndUtilities =
     (report.rentAmount ?? 0) + (report.utilitiesAmount ?? 0);
   const fixedBaseAmount = Number(report.apartment.fixedPaymentAmount ?? 0);
+  const dimDaysReport = daysInCalendarMonth(report.year, report.month);
+  const fixedProrateFactor = getFixedPayoutProrateFactor(
+    report.year,
+    report.month,
+    report.fixedPayoutProrateEnabled,
+    report.fixedPayoutActiveDays,
+  );
+  const scaledContractFixed = fixedBaseAmount * fixedProrateFactor;
   const kwotaBazowaNetto =
-    fixedBaseAmount - rentAndUtilities - totalAdditionalDeductionsGross;
+    scaledContractFixed - rentAndUtilities - totalAdditionalDeductionsGross;
 
   // Wartości wyświetlane w podsumowaniu – respektują niestandardowe wartości
   const summaryTaxBase: number =
@@ -1137,16 +1148,41 @@ export default function OwnerReportDetailsPage() {
                       Rozliczenie właściciela: kwota stała
                       <FinalBadge />
                     </div>
+                    {report.fixedPayoutProrateEnabled &&
+                      fixedProrateFactor < 1 &&
+                      report.fixedPayoutActiveDays != null && (
+                        <p className="text-sm text-green-800">
+                          Proporcja miesiąca:{" "}
+                          <strong>
+                            {report.fixedPayoutActiveDays} z {dimDaysReport}
+                          </strong>{" "}
+                          dni kalendarzowych (kwota stała w rozliczeniu:{" "}
+                          {scaledContractFixed.toFixed(2)} PLN zamiast{" "}
+                          {fixedBaseAmount.toFixed(2)} PLN).
+                        </p>
+                      )}
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                       <div className="rounded-md bg-green-100 p-3">
                         <p className="text-sm text-green-700">
                           Kwota bazowa{!isVatExempt && " (netto)"}:
                         </p>
                         <p className="text-lg font-bold text-green-900">
-                          {fixedBaseAmount.toFixed(2)} PLN
+                          {(report.fixedNetBase ?? 0).toFixed(2)} PLN
                           <span className="block text-xs text-green-600">
-                            (kwota stała bez odliczeń - media i czynsz są
-                            obojętne dla tego typu rozliczenia)
+                            (kwota stała z umowy: {fixedBaseAmount.toFixed(2)} PLN
+                            {fixedProrateFactor < 1 && report.fixedPayoutActiveDays != null
+                              ? ` × ${report.fixedPayoutActiveDays}/${dimDaysReport}`
+                              : ""}
+                            {totalAdditionalDeductionsGross > 0 && (
+                              <>
+                                {" "}
+                                − dodatkowe odliczenia:{" "}
+                                {totalAdditionalDeductionsGross.toFixed(2)} PLN
+                                brutto
+                              </>
+                            )}
+                            ; czynsz i media nie pomniejszają tej kwoty w tym
+                            wariancie)
                           </span>
                         </p>
                       </div>
@@ -1154,11 +1190,7 @@ export default function OwnerReportDetailsPage() {
                         <div className="rounded-md bg-green-100 p-3">
                           <p className="text-sm text-green-700">VAT:</p>
                           <p className="text-lg font-bold text-green-900">
-                            {getVatAmount(
-                              fixedBaseAmount,
-                              report.owner.vatOption,
-                            ).toFixed(2)}{" "}
-                            PLN
+                            {(report.fixedVat ?? 0).toFixed(2)} PLN
                           </p>
                         </div>
                       )}
@@ -1166,8 +1198,8 @@ export default function OwnerReportDetailsPage() {
                         <p className="text-sm text-green-700">DO WYPŁATY:</p>
                         <p className="text-2xl font-bold text-green-900">
                           {isVatExempt
-                            ? `${fixedBaseAmount.toFixed(2)} PLN`
-                            : `${getGrossAmount(fixedBaseAmount, report.owner.vatOption).toFixed(2)} PLN`}
+                            ? `${summaryOwnerPayout.toFixed(2)} PLN`
+                            : `${(report.fixedGross ?? summaryOwnerPayout).toFixed(2)} PLN`}
                         </p>
                       </div>
                     </div>
@@ -1183,15 +1215,31 @@ export default function OwnerReportDetailsPage() {
                       Rozliczenie właściciela: kwota stała po odliczeniu mediów
                       <FinalBadge />
                     </div>
+                    {report.fixedPayoutProrateEnabled &&
+                      fixedProrateFactor < 1 &&
+                      report.fixedPayoutActiveDays != null && (
+                        <p className="text-sm text-green-800">
+                          Proporcja miesiąca:{" "}
+                          <strong>
+                            {report.fixedPayoutActiveDays} z {dimDaysReport}
+                          </strong>{" "}
+                          dni — kwota stała w rozliczeniu:{" "}
+                          {scaledContractFixed.toFixed(2)} PLN (z umowy:{" "}
+                          {fixedBaseAmount.toFixed(2)} PLN).
+                        </p>
+                      )}
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                       <div className="rounded-md bg-green-100 p-3">
                         <p className="text-sm text-green-700">
                           Kwota bazowa{!isVatExempt && " (netto)"}:
                         </p>
                         <p className="text-lg font-bold text-green-900">
-                          {kwotaBazowaNetto.toFixed(2)} PLN
+                          {(report.fixedMinusUtilitiesNetBase ?? kwotaBazowaNetto).toFixed(2)} PLN
                           <span className="block text-xs text-green-600">
                             (kwota stała: {fixedBaseAmount.toFixed(2)} PLN
+                            {fixedProrateFactor < 1 && report.fixedPayoutActiveDays != null
+                              ? ` × ${report.fixedPayoutActiveDays}/${dimDaysReport} = ${scaledContractFixed.toFixed(2)} PLN`
+                              : ""}
                             {" - czynsz: "}
                             {(report.rentAmount ?? 0).toFixed(2)} PLN
                             {" - media: "}
@@ -1204,7 +1252,7 @@ export default function OwnerReportDetailsPage() {
                               </>
                             )}
                             {" = "}
-                            {kwotaBazowaNetto.toFixed(2)} PLN)
+                            {(report.fixedMinusUtilitiesNetBase ?? kwotaBazowaNetto).toFixed(2)} PLN)
                           </span>
                         </p>
                       </div>
@@ -1212,11 +1260,7 @@ export default function OwnerReportDetailsPage() {
                         <div className="rounded-md bg-green-100 p-3">
                           <p className="text-sm text-green-700">VAT:</p>
                           <p className="text-lg font-bold text-green-900">
-                            {getVatAmount(
-                              kwotaBazowaNetto,
-                              report.owner.vatOption,
-                            ).toFixed(2)}{" "}
-                            PLN
+                            {(report.fixedMinusUtilitiesVat ?? 0).toFixed(2)} PLN
                           </p>
                         </div>
                       )}
@@ -1224,8 +1268,8 @@ export default function OwnerReportDetailsPage() {
                         <p className="text-sm text-green-700">DO WYPŁATY:</p>
                         <p className="text-2xl font-bold text-green-900">
                           {isVatExempt
-                            ? `${kwotaBazowaNetto.toFixed(2)} PLN`
-                            : `${getGrossAmount(kwotaBazowaNetto, report.owner.vatOption).toFixed(2)} PLN`}
+                            ? `${summaryOwnerPayout.toFixed(2)} PLN`
+                            : `${(report.fixedMinusUtilitiesGross ?? summaryOwnerPayout).toFixed(2)} PLN`}
                         </p>
                       </div>
                     </div>

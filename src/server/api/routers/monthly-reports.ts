@@ -13,6 +13,7 @@ import {
     SettlementType
 } from "@prisma/client";
 import { getVatAmount, getGrossAmount } from "@/lib/vat";
+import { getFixedPayoutProrateFactor, daysInCalendarMonth } from "@/lib/report-fixed-prorate";
 import { type PrismaClient } from "@prisma/client";
 import { ownerMonthlyReportApprovedOrSentWhere } from "@/server/api/lib/owner-monthly-report-access";
 
@@ -407,11 +408,15 @@ async function recalculateReportSettlement(reportId: string, ctx: RecalculateCon
                 where: { id: reportId },
                 select: {
                     id: true,
+                    year: true,
+                    month: true,
                     finalSettlementType: true,
                     rentAmount: true,
                     utilitiesAmount: true,
                     ownerId: true,
                     apartmentId: true,
+                    fixedPayoutProrateEnabled: true,
+                    fixedPayoutActiveDays: true,
                     // Jeśli włączone niestandardowe podsumowanie, nie nadpisujemy finalnych wartości podczas rekalkulacji
                     customSummaryEnabled: true,
                 }
@@ -499,11 +504,18 @@ async function recalculateReportSettlement(reportId: string, ctx: RecalculateCon
                     console.warn(`[WARN] Raport ${reportId}: brak kwoty stałej dla typu ${settlementType}`);
                 } else {
                     const fixedBaseAmount = Number(actualApartment.fixedPaymentAmount);
+                    const prorateF = getFixedPayoutProrateFactor(
+                        report.year,
+                        report.month,
+                        report.fixedPayoutProrateEnabled,
+                        report.fixedPayoutActiveDays,
+                    );
+                    const contractFixedScaled = fixedBaseAmount * prorateF;
 
                     if (settlementType === 'FIXED') {
-                        baseAmount = fixedBaseAmount;
+                        baseAmount = contractFixedScaled - totalAdditionalDeductionsGross;
                     } else { // FIXED_MINUS_UTILITIES
-                        baseAmount = fixedBaseAmount - rentAndUtilities - totalAdditionalDeductionsGross;
+                        baseAmount = contractFixedScaled - rentAndUtilities - totalAdditionalDeductionsGross;
                     }
                 }
             } else if (settlementType === 'COMMISSION') {
@@ -521,7 +533,13 @@ async function recalculateReportSettlement(reportId: string, ctx: RecalculateCon
             if (settlementType === 'COMMISSION') {
                 finalHostPayout = adminCommissionAmount;
             } else if (settlementType === 'FIXED' || settlementType === 'FIXED_MINUS_UTILITIES') {
-                finalHostPayout = Math.max(0, netIncome - fixedAmount);
+                const prorateF = getFixedPayoutProrateFactor(
+                    report.year,
+                    report.month,
+                    report.fixedPayoutProrateEnabled,
+                    report.fixedPayoutActiveDays,
+                );
+                finalHostPayout = Math.max(0, netIncome - fixedAmount * prorateF);
             }
 
             // Zryczałtowany podatek 8,5% od podstawy opodatkowania; podstawa = kwota wypłaty właściciela (ta sama kwota w raporcie)
@@ -1236,6 +1254,12 @@ export const monthlyReportsRouter = createTRPCRouter({
             const afterRentAndUtilities = afterCommission - rentAndUtilitiesTotal;
 
             const isVatExempt = report.owner.vatOption === "NO_VAT";
+            const fixedProrateF = getFixedPayoutProrateFactor(
+                report.year,
+                report.month,
+                report.fixedPayoutProrateEnabled,
+                report.fixedPayoutActiveDays,
+            );
 
             // Calculate final payouts based on settlement type
             let finalOwnerPayout = 0;
@@ -1255,20 +1279,23 @@ export const monthlyReportsRouter = createTRPCRouter({
                     : commissionGrossAfterUtilities;
                 finalHostPayout = adminCommissionAmount;
             } else if (report.finalSettlementType === "FIXED") {
-                // Fixed amount settlement
+                // Kwota stała × prorata − dodatkowe odliczenia brutto (spójnie z podglądem w panelu admina)
                 const fixedBaseAmount = Number(report.apartment.fixedPaymentAmount ?? 0);
+                const scaled = fixedBaseAmount * fixedProrateF;
+                const netAfterDeductions = scaled - totalAdditionalDeductions;
                 finalOwnerPayout = isVatExempt
-                    ? fixedBaseAmount
-                    : getGrossAmount(fixedBaseAmount, report.owner.vatOption);
-                finalHostPayout = Math.max(0, netIncome - fixedBaseAmount);
+                    ? netAfterDeductions
+                    : getGrossAmount(netAfterDeductions, report.owner.vatOption);
+                finalHostPayout = Math.max(0, netIncome - fixedBaseAmount * fixedProrateF);
             } else if (report.finalSettlementType === "FIXED_MINUS_UTILITIES") {
                 // Fixed amount minus utilities settlement
                 const fixedBaseAmount = Number(report.apartment.fixedPaymentAmount ?? 0);
-                const netBaseAfterUtilities = fixedBaseAmount - rentAndUtilitiesTotal - totalAdditionalDeductions;
+                const scaled = fixedBaseAmount * fixedProrateF;
+                const netBaseAfterUtilities = scaled - rentAndUtilitiesTotal - totalAdditionalDeductions;
                 finalOwnerPayout = isVatExempt
                     ? netBaseAfterUtilities
                     : getGrossAmount(netBaseAfterUtilities, report.owner.vatOption);
-                finalHostPayout = Math.max(0, netIncome - fixedBaseAmount);
+                finalHostPayout = Math.max(0, netIncome - fixedBaseAmount * fixedProrateF);
             }
 
             if (
@@ -2609,12 +2636,19 @@ export const monthlyReportsRouter = createTRPCRouter({
 
             if (report.apartment.fixedPaymentAmount) {
                 const fixedAmount = Number(report.apartment.fixedPaymentAmount);
+                const pf = getFixedPayoutProrateFactor(
+                    report.year,
+                    report.month,
+                    report.fixedPayoutProrateEnabled,
+                    report.fixedPayoutActiveDays,
+                );
+                const scaledFixed = fixedAmount * pf;
 
-                fixedNetBase = fixedAmount - totalAdditionalDeductions;
+                fixedNetBase = scaledFixed - totalAdditionalDeductions;
                 fixedVat = getVatAmount(fixedNetBase, report.owner.vatOption);
                 fixedGross = fixedNetBase + fixedVat;
 
-                fixedMinusUtilitiesNetBase = fixedNetBase - rentAndUtilitiesTotal;
+                fixedMinusUtilitiesNetBase = scaledFixed - totalAdditionalDeductions - rentAndUtilitiesTotal;
                 fixedMinusUtilitiesVat = getVatAmount(fixedMinusUtilitiesNetBase, report.owner.vatOption);
                 fixedMinusUtilitiesGross = fixedMinusUtilitiesNetBase + fixedMinusUtilitiesVat;
             }
@@ -2939,10 +2973,15 @@ export const monthlyReportsRouter = createTRPCRouter({
                 });
             }
 
-            // Ustaw typ rozliczenia
+            // Ustaw typ rozliczenia (proporcja kwoty stałej ma sens tylko przy FIXED / FIXED_MINUS)
             await ctx.db.monthlyReport.update({
                 where: { id: input.reportId },
-                data: { finalSettlementType: input.finalSettlementType },
+                data: {
+                    finalSettlementType: input.finalSettlementType,
+                    ...(input.finalSettlementType === "COMMISSION"
+                        ? { fixedPayoutProrateEnabled: false, fixedPayoutActiveDays: null }
+                        : {}),
+                },
             });
 
             // Dodaj wpis do historii
@@ -2957,6 +2996,86 @@ export const monthlyReportsRouter = createTRPCRouter({
 
             // Automatycznie przelicz raport po ustawieniu typu rozliczenia
             await recalculateReportSettlement(input.reportId, ctx);
+
+            return { success: true };
+        }),
+
+    /** Proporcja wypłaty przy kwocie stałej (część miesiąca — wypowiedzenie / start umowy). */
+    updateFixedPayoutProrate: protectedProcedure
+        .input(
+            z.object({
+                reportId: z.string().uuid(),
+                enabled: z.boolean(),
+                activeDays: z.number().int().min(1).max(366).optional(),
+            }),
+        )
+        .mutation(async ({ input, ctx }) => {
+            if (ctx.session.user.type !== UserType.ADMIN) {
+                throw new TRPCError({ code: "FORBIDDEN" });
+            }
+
+            const report = await ctx.db.monthlyReport.findUnique({
+                where: { id: input.reportId },
+                select: {
+                    id: true,
+                    status: true,
+                    year: true,
+                    month: true,
+                    finalSettlementType: true,
+                },
+            });
+            if (!report) {
+                throw new TRPCError({ code: "NOT_FOUND", message: "Raport nie został znaleziony" });
+            }
+            if (report.status === ReportStatus.SENT) {
+                throw new TRPCError({ code: "BAD_REQUEST", message: "Nie można edytować wysłanego raportu" });
+            }
+            if (
+                report.finalSettlementType !== "FIXED" &&
+                report.finalSettlementType !== "FIXED_MINUS_UTILITIES"
+            ) {
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    message: "Proporcja dotyczy tylko rozliczenia z kwotą stałą",
+                });
+            }
+
+            const dim = daysInCalendarMonth(report.year, report.month);
+            if (input.enabled) {
+                if (input.activeDays === undefined) {
+                    throw new TRPCError({
+                        code: "BAD_REQUEST",
+                        message: "Podaj liczbę aktywnych dni w miesiącu raportu",
+                    });
+                }
+                if (input.activeDays > dim) {
+                    throw new TRPCError({
+                        code: "BAD_REQUEST",
+                        message: `Liczba dni nie może przekraczać ${dim} (dni w miesiącu raportu)`,
+                    });
+                }
+            }
+
+            await ctx.db.monthlyReport.update({
+                where: { id: input.reportId },
+                data: {
+                    fixedPayoutProrateEnabled: input.enabled,
+                    fixedPayoutActiveDays: input.enabled ? input.activeDays : null,
+                },
+            });
+
+            await recalculateReportSettlement(input.reportId, ctx);
+
+            await ctx.db.reportHistory.create({
+                data: {
+                    reportId: input.reportId,
+                    adminId: ctx.session.user.id,
+                    action: "updated",
+                    notes: input.enabled
+                        ? `Włączono proporcję wypłaty kwoty stałej: ${input.activeDays}/${dim} dni`
+                        : "Wyłączono proporcję wypłaty kwoty stałej (pełny miesiąc)",
+                },
+            });
 
             return { success: true };
         }),
@@ -3315,6 +3434,8 @@ export const monthlyReportsRouter = createTRPCRouter({
                     rentAmount: true,
                     utilitiesAmount: true,
                     finalSettlementType: true,
+                    fixedPayoutProrateEnabled: true,
+                    fixedPayoutActiveDays: true,
                     // Pola niestandardowego podsumowania – jeśli są włączone, użyjemy ich do wykresów
                     customSummaryEnabled: true as unknown as boolean,
                     customOwnerPayout: true as unknown as boolean,
@@ -3361,6 +3482,10 @@ export const monthlyReportsRouter = createTRPCRouter({
 
             // Funkcja pomocnicza do obliczania wartości rozliczenia
             function calculateSettlementValues(report: {
+                year: number;
+                month: number;
+                fixedPayoutProrateEnabled?: boolean | null;
+                fixedPayoutActiveDays?: number | null;
                 totalRevenue: number | null;
                 items: Array<{ type: string; amount: number; category: string }>;
                 additionalDeductions: Array<{ amount: number; vatOption: string }>;
@@ -3409,15 +3534,22 @@ export const monthlyReportsRouter = createTRPCRouter({
                 if (report.finalSettlementType) {
                     let baseAmount = 0;
                     const settlementType = report.finalSettlementType;
+                    const prorateF = getFixedPayoutProrateFactor(
+                        report.year,
+                        report.month,
+                        report.fixedPayoutProrateEnabled,
+                        report.fixedPayoutActiveDays,
+                    );
 
                     if (settlementType === 'FIXED' || settlementType === 'FIXED_MINUS_UTILITIES') {
                         if (report.apartment.fixedPaymentAmount !== null && report.apartment.fixedPaymentAmount !== undefined) {
                             const fixedBaseAmount = Number(report.apartment.fixedPaymentAmount);
+                            const contractFixedScaled = fixedBaseAmount * prorateF;
 
                             if (settlementType === 'FIXED') {
-                                baseAmount = fixedBaseAmount;
+                                baseAmount = contractFixedScaled - totalAdditionalDeductionsGross;
                             } else { // FIXED_MINUS_UTILITIES
-                                baseAmount = fixedBaseAmount - rentAndUtilities - totalAdditionalDeductionsGross;
+                                baseAmount = contractFixedScaled - rentAndUtilities - totalAdditionalDeductionsGross;
                             }
                         }
                     } else if (settlementType === 'COMMISSION') {
@@ -3435,7 +3567,7 @@ export const monthlyReportsRouter = createTRPCRouter({
                     if (settlementType === 'COMMISSION') {
                         finalHostPayout = adminCommissionAmount;
                     } else if (settlementType === 'FIXED' || settlementType === 'FIXED_MINUS_UTILITIES') {
-                        finalHostPayout = Math.max(0, netIncome - fixedAmount);
+                        finalHostPayout = Math.max(0, netIncome - fixedAmount * prorateF);
                     }
                 }
 
