@@ -2323,19 +2323,21 @@ export const monthlyReportsRouter = createTRPCRouter({
 
             const report = await ctx.db.monthlyReport.findUnique({
                 where: { id: input.reportId },
-                select: { id: true, apartmentId: true, month: true, year: true }
+                select: { id: true, apartmentId: true, month: true, year: true, roomId: true },
             });
             if (!report) throw new TRPCError({ code: "NOT_FOUND", message: "Raport nie istnieje" });
 
             const apartment = await ctx.db.apartment.findUnique({ where: { id: report.apartmentId }, select: { id: true } });
             if (!apartment) throw new TRPCError({ code: "NOT_FOUND", message: "Apartament nie istnieje" });
 
-            const startDate = new Date(report.year, report.month - 1, 1);
-            const nextMonthStartDate = new Date(report.year, report.month, 1);
+            // Ta sama logika zakresu miesiąca co przy `create` (UTC), inaczej część pobytych „wypada” z raportu.
+            const startDate = new Date(Date.UTC(report.year, report.month - 1, 1));
+            const nextMonthStartDate = new Date(Date.UTC(report.year, report.month, 1));
 
             const reservations = await ctx.db.reservation.findMany({
                 where: {
                     apartmentId: apartment.id,
+                    ...(report.roomId ? { roomId: report.roomId } : {}),
                     start: { lt: nextMonthStartDate },
                     end: { gt: startDate },
                 },
@@ -2356,14 +2358,8 @@ export const monthlyReportsRouter = createTRPCRouter({
             };
 
             const revenueItems = reservations
-                .filter(r => {
-                    const totalGuests = (r.adults ?? 0) + (r.children ?? 0);
-                    return (
-                        r.status !== "Anulowana" &&
-                        r.status !== "Odrzucona przez obsługę" &&
-                        totalGuests > 0
-                    );
-                })
+                // Identyczny filtr jak przy tworzeniu raportu (`create`): bez wymogu gości > 0 (importy/Ido bywają z 0).
+                .filter((r) => isReservationRealized(r.status))
                 .map(r => {
                     const totalAmount = r.rateCorrection ?? r.paymantValue ?? 0;
                     const totalNights = countNights(new Date(r.start), new Date(r.end));
