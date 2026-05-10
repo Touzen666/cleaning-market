@@ -5,7 +5,7 @@ import { randomBytes, createHash } from "crypto";
 import { sendEmail, getZloteWynajmyLogoAttachments } from "@/lib/email/email-service";
 import { createResetPasswordEmail } from "@/lib/email/templates/reset-password";
 import { ownerHasReportFinancialAccess } from "@/server/api/lib/owner-monthly-report-access";
-import { OWNER_VISIBLE_REPORT_STATUSES } from "@/lib/report-status";
+import { ReportStatus } from "@prisma/client";
 
 // Simple password hashing using Node.js crypto
 function hashPassword(password: string): string {
@@ -199,8 +199,22 @@ export const ownerAuthRouter = createTRPCRouter({
                     year: startOfYear.getFullYear(),
                     ...ownerHasReportFinancialAccess(owner.id),
                     OR: [
-                        { status: { in: [...OWNER_VISIBLE_REPORT_STATUSES] } },
-                        { status: 'DRAFT', customSummaryEnabled: true },
+                        {
+                            status: {
+                                in: [
+                                    ReportStatus.APPROVED,
+                                    ReportStatus.SENT,
+                                    ReportStatus.AGREEMENT_SETTLED,
+                                ],
+                            },
+                        },
+                        {
+                            AND: [
+                                { status: ReportStatus.AGREEMENT_TERMINATION },
+                                { agreementTerminationVisibleToOwner: true },
+                            ],
+                        },
+                        { status: ReportStatus.DRAFT, customSummaryEnabled: true },
                     ],
                 },
                 select: {

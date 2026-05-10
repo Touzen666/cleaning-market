@@ -441,6 +441,14 @@ export default function ReportDetailsPage({
       onError: (e) => toast.error(e.message),
     });
 
+  const setTerminationOwnerVisibleMutation =
+    api.monthlyReports.setAgreementTerminationVisibleToOwner.useMutation({
+      onSuccess: async () => {
+        await reportQuery.refetch();
+      },
+      onError: (e) => toast.error(e.message),
+    });
+
   const rebuildRevenueMutation =
     api.monthlyReports.rebuildRevenueItems.useMutation({
       onSuccess: async (res) => {
@@ -1819,111 +1827,11 @@ export default function ReportDetailsPage({
           </Modal>
         )}
 
-        {/* Report Info */}
-        <div className="mb-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+        {/* Report Info: status i rozwiązanie umowy na górze, potem trzy karty KPI */}
+        <div className="mb-6 space-y-6">
           <div className="rounded-lg bg-white p-6 shadow">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="rounded-lg bg-green-500 p-2">
-                  <svg
-                    className="h-6 w-6 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
-                    />
-                  </svg>
-                </div>
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="truncate text-sm font-medium text-gray-500">
-                    Przychody
-                  </dt>
-                  <dd className="text-lg font-medium text-gray-900">
-                    {localTotalRevenue.toFixed(2)} PLN
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-lg bg-white p-6 shadow">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="rounded-lg bg-red-500 p-2">
-                  <svg
-                    className="h-6 w-6 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
-                    />
-                  </svg>
-                </div>
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="truncate text-sm font-medium text-gray-500">
-                    Wydatki
-                  </dt>
-                  <dd className="text-lg font-medium text-gray-900">
-                    {finalReport.totalExpenses.toFixed(2)} PLN
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-lg bg-white p-6 shadow">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div
-                  className={`rounded-lg p-2 ${finalReport.netIncome >= 0 ? "bg-green-500" : "bg-red-500"}`}
-                >
-                  <svg
-                    className="h-6 w-6 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                    />
-                  </svg>
-                </div>
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="truncate text-sm font-medium text-gray-500">
-                    Zysk netto
-                  </dt>
-                  <dd
-                    className={`text-lg font-medium ${finalReport.netIncome >= 0 ? "text-green-600" : "text-red-600"}`}
-                  >
-                    {finalReport.netIncome.toFixed(2)} PLN
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-lg bg-white p-6 shadow">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="flex flex-shrink-0 items-center gap-3">
                 <span
                   className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${getStatusColor(
                     finalReport.status,
@@ -1932,7 +1840,7 @@ export default function ReportDetailsPage({
                   {getStatusText(finalReport.status)}
                 </span>
               </div>
-              <div className="ml-5 w-0 flex-1">
+              <div className="min-w-0 flex-1 sm:ml-2">
                 {!isHistorical &&
                   !isReportLockedForEditing(finalReport.status) && (
                   <select
@@ -1940,7 +1848,7 @@ export default function ReportDetailsPage({
                     onChange={(e) =>
                       handleStatusChange(e.target.value as ReportStatus)
                     }
-                    className="block w-full rounded-md border-gray-300 text-sm"
+                    className="block w-full max-w-xl rounded-md border-gray-300 text-sm"
                     disabled={updateStatusMutation.isPending}
                   >
                     <option value="DRAFT">Szkic</option>
@@ -1957,6 +1865,41 @@ export default function ReportDetailsPage({
                 )}
               </div>
             </div>
+            {!isHistorical &&
+              finalReport.status === ReportStatus.AGREEMENT_TERMINATION &&
+              !isReportLockedForEditing(finalReport.status) &&
+              report && (
+                <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-lg border border-amber-200 bg-amber-50/60 p-3 text-sm text-gray-900">
+                  <input
+                    type="checkbox"
+                    className="mt-1 h-4 w-4 rounded border-gray-300 text-amber-700 focus:ring-amber-600"
+                    checked={Boolean(
+                      (
+                        report as ReportDetails & {
+                          agreementTerminationVisibleToOwner?: boolean | null;
+                        }
+                      ).agreementTerminationVisibleToOwner,
+                    )}
+                    disabled={setTerminationOwnerVisibleMutation.isPending}
+                    onChange={(e) => {
+                      setTerminationOwnerVisibleMutation.mutate({
+                        reportId: report.id,
+                        visibleToOwner: e.target.checked,
+                      });
+                    }}
+                  />
+                  <span>
+                    <span className="font-medium text-amber-950">
+                      Pokaż ten raport właścicielowi w panelu
+                    </span>
+                    <span className="mt-1 block text-xs text-amber-900">
+                      Gdy wyłączone, właściciel nie widzi tego raportu na liście ani w
+                      szczegółach. Po ustawieniu statusu „Wysłany” raport jest zawsze
+                      widoczny dla właściciela.
+                    </span>
+                  </span>
+                </label>
+              )}
             {!isHistorical &&
               finalReport.status === ReportStatus.AGREEMENT_TERMINATION && (
                 <p className="mt-3 border-t border-amber-100 pt-3 text-sm text-amber-950">
@@ -2683,6 +2626,108 @@ export default function ReportDetailsPage({
                   jest zablokowany do edycji (jak po wysłaniu).
                 </p>
               )}
+          </div>
+
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div className="rounded-lg bg-white p-6 shadow">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <div className="rounded-lg bg-green-500 p-2">
+                    <svg
+                      className="h-6 w-6 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
+                      />
+                    </svg>
+                  </div>
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt className="truncate text-sm font-medium text-gray-500">
+                      Przychody
+                    </dt>
+                    <dd className="text-lg font-medium text-gray-900">
+                      {localTotalRevenue.toFixed(2)} PLN
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-lg bg-white p-6 shadow">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <div className="rounded-lg bg-red-500 p-2">
+                    <svg
+                      className="h-6 w-6 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
+                      />
+                    </svg>
+                  </div>
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt className="truncate text-sm font-medium text-gray-500">
+                      Wydatki
+                    </dt>
+                    <dd className="text-lg font-medium text-gray-900">
+                      {finalReport.totalExpenses.toFixed(2)} PLN
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-lg bg-white p-6 shadow">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <div
+                    className={`rounded-lg p-2 ${finalReport.netIncome >= 0 ? "bg-green-500" : "bg-red-500"}`}
+                  >
+                    <svg
+                      className="h-6 w-6 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                      />
+                    </svg>
+                  </div>
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt className="truncate text-sm font-medium text-gray-500">
+                      Zysk netto
+                    </dt>
+                    <dd
+                      className={`text-lg font-medium ${finalReport.netIncome >= 0 ? "text-green-600" : "text-red-600"}`}
+                    >
+                      {finalReport.netIncome.toFixed(2)} PLN
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 

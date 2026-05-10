@@ -1,5 +1,5 @@
 import type { Prisma } from "@prisma/client";
-import { OWNER_VISIBLE_REPORT_STATUSES } from "@/lib/report-status";
+import { ReportStatus } from "@prisma/client";
 
 /**
  * Właściciel widzi raport finansowy, gdy jest zapisany jako `ownerId` na raporcie
@@ -33,8 +33,34 @@ export function ownerHasReportFinancialAccess(
 export function ownerMonthlyReportApprovedOrSentWhere(
     ownerId: string,
 ): Prisma.MonthlyReportWhereInput {
+    const access = ownerHasReportFinancialAccess(ownerId);
+    const accessClauses: Prisma.MonthlyReportWhereInput[] = (() => {
+        const a = access.AND;
+        if (a == null) return [];
+        return Array.isArray(a) ? a : [a];
+    })();
     return {
-        status: { in: [...OWNER_VISIBLE_REPORT_STATUSES] },
-        ...ownerHasReportFinancialAccess(ownerId),
+        AND: [
+            ...accessClauses,
+            {
+                OR: [
+                    {
+                        status: {
+                            in: [
+                                ReportStatus.APPROVED,
+                                ReportStatus.SENT,
+                                ReportStatus.AGREEMENT_SETTLED,
+                            ],
+                        },
+                    },
+                    {
+                        AND: [
+                            { status: ReportStatus.AGREEMENT_TERMINATION },
+                            { agreementTerminationVisibleToOwner: true },
+                        ],
+                    },
+                ],
+            },
+        ],
     };
 }

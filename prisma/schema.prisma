@@ -388,6 +388,8 @@ model MonthlyReport {
   agreementTerminationNoticeDocumentUrl String?
   /// Opis drogi doręczenia wypowiedzenia (np. list polecony, e-mail, osobiście).
   agreementTerminationNoticeDeliveryNote String?
+  /// Przy statusie rozwiązania umowy: czy raport jest widoczny dla właściciela w panelu (przed wysłaniem).
+  agreementTerminationVisibleToOwner Boolean @default(false)
   totalRevenue              Float           @default(0)
   totalExpenses             Float           @default(0)
   netIncome                 Float           @default(0)

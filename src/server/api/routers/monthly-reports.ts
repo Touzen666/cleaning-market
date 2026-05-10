@@ -25,7 +25,7 @@ import {
     canSendReportFromStatus,
     isReportFrozenFinancialSnapshot,
     isReportLockedForEditing,
-    ownerCanViewMonthlyReport,
+    ownerCanViewMonthlyReportRow,
     statusRequiresSettlementLikeApproval,
 } from "@/lib/report-status";
 import { summarizeTerminationCosts } from "@/lib/report-termination-costs";
@@ -1756,6 +1756,7 @@ export const monthlyReportsRouter = createTRPCRouter({
             } else if (status === ReportStatus.SENT) {
                 updateData.sentAt = new Date();
                 updateData.sentByAdminId = ctx.session.user.id;
+                updateData.agreementTerminationVisibleToOwner = true;
             }
 
             if (isRevertingTerminationWorkflow) {
@@ -1763,6 +1764,7 @@ export const monthlyReportsRouter = createTRPCRouter({
                 updateData.agreementTerminationNoticeParty = null;
                 updateData.agreementTerminationNoticeDocumentUrl = null;
                 updateData.agreementTerminationNoticeDeliveryNote = null;
+                updateData.agreementTerminationVisibleToOwner = false;
             }
 
             await ctx.db.monthlyReport.update({
@@ -1841,7 +1843,8 @@ export const monthlyReportsRouter = createTRPCRouter({
                 data: {
                     status: ReportStatus.SENT,
                     sentAt: new Date(),
-                    sentByAdminId: ctx.session.user.id
+                    sentByAdminId: ctx.session.user.id,
+                    agreementTerminationVisibleToOwner: true,
                 }
             });
 
@@ -2631,7 +2634,7 @@ export const monthlyReportsRouter = createTRPCRouter({
                 });
             }
 
-            if (!ownerCanViewMonthlyReport(report.status)) {
+            if (!ownerCanViewMonthlyReportRow(report)) {
                 throw new TRPCError({
                     code: "FORBIDDEN",
                     message: "Raport nie jest jeszcze dostępny dla właściciela",
@@ -2963,6 +2966,57 @@ export const monthlyReportsRouter = createTRPCRouter({
                     adminId: ctx.session.user.id,
                     action: "agreement_termination_notice_updated",
                     notes: "Zaktualizowano dokumentację wypowiedzenia umowy",
+                },
+            });
+
+            return { success: true };
+        }),
+
+    setAgreementTerminationVisibleToOwner: protectedProcedure
+        .input(
+            z.object({
+                reportId: z.string().uuid(),
+                visibleToOwner: z.boolean(),
+            }),
+        )
+        .mutation(async ({ input, ctx }) => {
+            if (ctx.session.user.type !== UserType.ADMIN) {
+                throw new TRPCError({ code: "FORBIDDEN" });
+            }
+
+            const report = await ctx.db.monthlyReport.findUnique({
+                where: { id: input.reportId },
+            });
+            if (!report) {
+                throw new TRPCError({ code: "NOT_FOUND", message: "Raport nie został znaleziony" });
+            }
+            if (report.status !== ReportStatus.AGREEMENT_TERMINATION) {
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    message:
+                        "Udostępnianie właścicielowi dotyczy tylko raportu w statusie rozwiązania umowy.",
+                });
+            }
+            if (isReportLockedForEditing(report.status)) {
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    message: "Nie można zmienić widoczności na zablokowanym raporcie.",
+                });
+            }
+
+            await ctx.db.monthlyReport.update({
+                where: { id: input.reportId },
+                data: { agreementTerminationVisibleToOwner: input.visibleToOwner },
+            });
+
+            await ctx.db.reportHistory.create({
+                data: {
+                    reportId: input.reportId,
+                    adminId: ctx.session.user.id,
+                    action: "agreement_termination_owner_visibility",
+                    notes: input.visibleToOwner
+                        ? "Włączono widoczność raportu rozwiązania umowy dla właściciela"
+                        : "Wyłączono widoczność raportu rozwiązania umowy dla właściciela",
                 },
             });
 
