@@ -37,10 +37,7 @@ const safeNumberOptional = z.preprocess((val) => {
 }, z.number().optional());
 
 /** API zwraca często null zamiast "" — bez tego cała rezerwacja odpada w safeParse */
-const apiString = z.preprocess(
-    (val) => (val === null || val === undefined ? "" : val),
-    z.string(),
-);
+const apiString = z.preprocess((val) => val ?? "", z.string());
 
 const apiNumber = z.preprocess((val) => {
     if (val === null || val === undefined || val === "") return 0;
@@ -48,10 +45,7 @@ const apiNumber = z.preprocess((val) => {
     return Number.isNaN(num) ? 0 : num;
 }, z.number());
 
-const apiOptionalString = z.preprocess(
-    (val) => (val === null || val === undefined ? undefined : val),
-    z.string().optional(),
-);
+const apiOptionalString = z.preprocess((val) => val ?? undefined, z.string().optional());
 
 const reservationDetailsSchema = z.object({
     price: apiNumber,
