@@ -3461,18 +3461,11 @@ export const monthlyReportsRouter = createTRPCRouter({
                         .nullable(),
                 })
                 .superRefine((data, ctx) => {
-                    if (data.side === TerminationCostSide.OWNER_SIDE && data.ownerPaymentKind == null) {
+                    if (data.ownerPaymentKind == null) {
                         ctx.addIssue({
                             code: z.ZodIssueCode.custom,
                             message:
-                                "Dla należności właściciela wybierz, czy kwota to zwrot czy przychód na rzecz Złote Wynajmy.",
-                            path: ["ownerPaymentKind"],
-                        });
-                    }
-                    if (data.side === TerminationCostSide.HOST_COMPANY && data.ownerPaymentKind != null) {
-                        ctx.addIssue({
-                            code: z.ZodIssueCode.custom,
-                            message: "Typ zwrot/przychód dotyczy wyłącznie pozycji po stronie właściciela.",
+                                "Wybierz, czy kwota to zwrot czy przychód na rzecz Złote Wynajmy (dla obu stron rozliczenia).",
                             path: ["ownerPaymentKind"],
                         });
                     }
@@ -3513,10 +3506,7 @@ export const monthlyReportsRouter = createTRPCRouter({
                     label: input.label,
                     amount: input.amount,
                     countsTowardOwnerTaxBase: input.countsTowardOwnerTaxBase,
-                    ownerPaymentKind:
-                        input.side === TerminationCostSide.OWNER_SIDE
-                            ? input.ownerPaymentKind!
-                            : null,
+                    ownerPaymentKind: input.ownerPaymentKind!,
                     order: nextOrder,
                 },
             });
@@ -3540,18 +3530,11 @@ export const monthlyReportsRouter = createTRPCRouter({
                         .nullable(),
                 })
                 .superRefine((data, ctx) => {
-                    if (data.side === TerminationCostSide.OWNER_SIDE && data.ownerPaymentKind == null) {
+                    if (data.ownerPaymentKind == null) {
                         ctx.addIssue({
                             code: z.ZodIssueCode.custom,
                             message:
-                                "Dla należności właściciela wybierz, czy kwota to zwrot czy przychód na rzecz Złote Wynajmy.",
-                            path: ["ownerPaymentKind"],
-                        });
-                    }
-                    if (data.side === TerminationCostSide.HOST_COMPANY && data.ownerPaymentKind != null) {
-                        ctx.addIssue({
-                            code: z.ZodIssueCode.custom,
-                            message: "Typ zwrot/przychód dotyczy wyłącznie pozycji po stronie właściciela.",
+                                "Wybierz, czy kwota to zwrot czy przychód na rzecz Złote Wynajmy (dla obu stron rozliczenia).",
                             path: ["ownerPaymentKind"],
                         });
                     }
@@ -3583,10 +3566,7 @@ export const monthlyReportsRouter = createTRPCRouter({
                     label: input.label,
                     amount: input.amount,
                     countsTowardOwnerTaxBase: input.countsTowardOwnerTaxBase,
-                    ownerPaymentKind:
-                        input.side === TerminationCostSide.OWNER_SIDE
-                            ? input.ownerPaymentKind!
-                            : null,
+                    ownerPaymentKind: input.ownerPaymentKind!,
                 },
             });
 

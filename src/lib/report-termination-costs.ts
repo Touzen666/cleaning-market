@@ -11,6 +11,7 @@ export type TerminationCostLike = {
  * - HOST_COMPANY (ZW): zwiększa wypłatę właściciela, zmniejsza stronę hosta.
  * - OWNER_SIDE: zmniejsza wypłatę właściciela, zwiększa stronę hosta.
  * Checkbox „wchodzi w podstawę opodatkowania” modyfikuje wyłącznie taxBaseAdj (± jak przy wypłacie).
+ * Typ zwrot/przychód (ownerPaymentKind) jest zapisywany dla obu stron — ten sam słownik co przy należnościach właściciela.
  */
 export function summarizeTerminationCosts(costs: TerminationCostLike[]) {
     let zwTotal = 0;

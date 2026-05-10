@@ -257,7 +257,7 @@ export default function ReportDetailsPage({
     label: "",
     amount: 0,
     countsTowardOwnerTaxBase: true,
-    ownerPaymentKind: null,
+    ownerPaymentKind: TerminationOwnerPaymentKind.REVENUE,
   });
 
   const [editingTerminationCost, setEditingTerminationCost] = useState<{
@@ -284,7 +284,7 @@ export default function ReportDetailsPage({
           label: "",
           amount: 0,
           countsTowardOwnerTaxBase: true,
-          ownerPaymentKind: null,
+          ownerPaymentKind: TerminationOwnerPaymentKind.REVENUE,
         });
         toast.success("Dodano pozycję rozliczenia.");
       },
@@ -533,7 +533,7 @@ export default function ReportDetailsPage({
     label: string;
     amount: number;
     countsTowardOwnerTaxBase: boolean;
-    ownerPaymentKind: TerminationOwnerPaymentKind | null;
+    ownerPaymentKind: TerminationOwnerPaymentKind | null | undefined;
     order: number;
   };
 
@@ -2135,7 +2135,8 @@ export default function ReportDetailsPage({
                     zwiększają wypłatę właściciela (i zmniejszają rozliczenie po stronie
                     ZW).{" "}
                     <span className="font-medium">Należności właściciela na rzecz Złote Wynajmy</span>{" "}
-                    pomniejszają wypłatę właściciela. Dla każdej takiej kwoty wybierz, czy to{" "}
+                    pomniejszają wypłatę właściciela. Dla{" "}
+                    <strong>każdej pozycji po obu stronach</strong> wybierz, czy to{" "}
                     <strong>zwrot</strong>, czy <strong>przychód</strong> na rzecz ZW (czytelność
                     przy podatku), oraz czy kwota wchodzi w podstawę opodatkowania właściciela
                     (8,5%). Kwoty w każdej kolumnie są wypisane jedna pod drugą.
@@ -2156,15 +2157,15 @@ export default function ReportDetailsPage({
                                 ...editingTerminationCost,
                                 side,
                                 ownerPaymentKind:
-                                  side === TerminationCostSide.OWNER_SIDE
-                                    ? editingTerminationCost.ownerPaymentKind ??
-                                      TerminationOwnerPaymentKind.REVENUE
-                                    : null,
+                                  editingTerminationCost.ownerPaymentKind ??
+                                  TerminationOwnerPaymentKind.REVENUE,
                                 countsTowardOwnerTaxBase:
                                   side === TerminationCostSide.HOST_COMPANY
                                     ? true
-                                    : editingTerminationCost.ownerPaymentKind ===
-                                        TerminationOwnerPaymentKind.REFUND
+                                    : (
+                                          editingTerminationCost.ownerPaymentKind ??
+                                          TerminationOwnerPaymentKind.REVENUE
+                                        ) === TerminationOwnerPaymentKind.REFUND
                                       ? false
                                       : true,
                               });
@@ -2178,44 +2179,45 @@ export default function ReportDetailsPage({
                             </option>
                           </select>
                         </label>
-                        {editingTerminationCost.side === TerminationCostSide.OWNER_SIDE && (
-                          <label className="block md:col-span-2">
-                            <span className="text-xs text-gray-600">
-                              Zwrot czy przychód na rzecz Złote Wynajmy
-                            </span>
-                            <select
-                              className="mt-1 block w-full rounded-md border border-gray-300 text-sm"
-                              value={editingTerminationCost.ownerPaymentKind ?? ""}
-                              onChange={(e) => {
-                                const v = e.target
-                                  .value as TerminationOwnerPaymentKind;
-                                setEditingTerminationCost({
-                                  ...editingTerminationCost,
-                                  ownerPaymentKind: v,
-                                  countsTowardOwnerTaxBase:
-                                    v === TerminationOwnerPaymentKind.REFUND
+                        <label className="block md:col-span-2">
+                          <span className="text-xs text-gray-600">
+                            Zwrot czy przychód na rzecz Złote Wynajmy
+                          </span>
+                          <select
+                            className="mt-1 block w-full rounded-md border border-gray-300 text-sm"
+                            value={editingTerminationCost.ownerPaymentKind ?? ""}
+                            onChange={(e) => {
+                              const v = e.target
+                                .value as TerminationOwnerPaymentKind;
+                              setEditingTerminationCost({
+                                ...editingTerminationCost,
+                                ownerPaymentKind: v,
+                                countsTowardOwnerTaxBase:
+                                  editingTerminationCost.side ===
+                                  TerminationCostSide.HOST_COMPANY
+                                    ? editingTerminationCost.countsTowardOwnerTaxBase
+                                    : v === TerminationOwnerPaymentKind.REFUND
                                       ? false
                                       : true,
-                                });
-                              }}
-                            >
-                              <option value="" disabled>
-                                Wybierz…
-                              </option>
-                              <option value={TerminationOwnerPaymentKind.REFUND}>
-                                Zwrot
-                              </option>
-                              <option value={TerminationOwnerPaymentKind.REVENUE}>
-                                Przychód
-                              </option>
-                            </select>
-                            <p className="mt-1 text-xs text-gray-600">
-                              {terminationOwnerPaymentKindTaxNote(
-                                editingTerminationCost.ownerPaymentKind,
-                              )}
-                            </p>
-                          </label>
-                        )}
+                              });
+                            }}
+                          >
+                            <option value="" disabled>
+                              Wybierz…
+                            </option>
+                            <option value={TerminationOwnerPaymentKind.REFUND}>
+                              Zwrot
+                            </option>
+                            <option value={TerminationOwnerPaymentKind.REVENUE}>
+                              Przychód
+                            </option>
+                          </select>
+                          <p className="mt-1 text-xs text-gray-600">
+                            {terminationOwnerPaymentKindTaxNote(
+                              editingTerminationCost.ownerPaymentKind,
+                            )}
+                          </p>
+                        </label>
                         <label className="block">
                           <span className="text-xs text-gray-600">Opis</span>
                           <input
@@ -2273,11 +2275,7 @@ export default function ReportDetailsPage({
                               toast.error("Uzupełnij opis i dodatnią kwotę.");
                               return;
                             }
-                            if (
-                              editingTerminationCost.side ===
-                                TerminationCostSide.OWNER_SIDE &&
-                              !editingTerminationCost.ownerPaymentKind
-                            ) {
+                            if (!editingTerminationCost.ownerPaymentKind) {
                               toast.error("Wybierz zwrot lub przychód.");
                               return;
                             }
@@ -2289,10 +2287,7 @@ export default function ReportDetailsPage({
                               countsTowardOwnerTaxBase:
                                 editingTerminationCost.countsTowardOwnerTaxBase,
                               ownerPaymentKind:
-                                editingTerminationCost.side ===
-                                TerminationCostSide.OWNER_SIDE
-                                  ? editingTerminationCost.ownerPaymentKind
-                                  : null,
+                                editingTerminationCost.ownerPaymentKind,
                             });
                           }}
                         >
@@ -2311,8 +2306,12 @@ export default function ReportDetailsPage({
 
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div className="rounded-md border border-emerald-200 bg-white p-3">
-                      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-emerald-800">
+                      <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-emerald-800">
                         Koszty po stronie Złote Wynajmy
+                      </p>
+                      <p className="mb-2 text-xs text-emerald-900">
+                        Kwoty po stronie ZW — oznacz zwrot lub przychód oraz wpływ na podatek
+                        (jak przy należnościach właściciela).
                       </p>
                       <ul className="space-y-3 text-sm">
                         {reportTerminationCosts
@@ -2329,6 +2328,18 @@ export default function ReportDetailsPage({
                                 <span className="text-base font-semibold text-emerald-900">
                                   +{Number(c.amount).toFixed(2)} PLN
                                 </span>
+                                <span className="inline-flex w-fit rounded-full bg-emerald-200 px-2 py-0.5 text-xs font-medium text-emerald-900">
+                                  {terminationOwnerPaymentKindLabel(
+                                    c.ownerPaymentKind ??
+                                      TerminationOwnerPaymentKind.REVENUE,
+                                  )}
+                                </span>
+                                <p className="text-xs text-gray-600">
+                                  {terminationOwnerPaymentKindTaxNote(
+                                    c.ownerPaymentKind ??
+                                      TerminationOwnerPaymentKind.REVENUE,
+                                  )}
+                                </p>
                                 <div className="text-xs text-gray-600">
                                   Podstawa opodatkowania właściciela:{" "}
                                   {c.countsTowardOwnerTaxBase ? "tak" : "nie"}
@@ -2347,7 +2358,9 @@ export default function ReportDetailsPage({
                                         amount: c.amount,
                                         countsTowardOwnerTaxBase:
                                           c.countsTowardOwnerTaxBase,
-                                        ownerPaymentKind: null,
+                                        ownerPaymentKind:
+                                          c.ownerPaymentKind ??
+                                          TerminationOwnerPaymentKind.REVENUE,
                                       })
                                     }
                                   >
@@ -2473,17 +2486,18 @@ export default function ReportDetailsPage({
                             value={terminationCostForm.side}
                             onChange={(e) => {
                               const side = e.target.value as TerminationCostSide;
+                              const k =
+                                terminationCostForm.ownerPaymentKind ??
+                                TerminationOwnerPaymentKind.REVENUE;
                               setTerminationCostForm({
                                 ...terminationCostForm,
                                 side,
-                                ownerPaymentKind:
-                                  side === TerminationCostSide.OWNER_SIDE
-                                    ? TerminationOwnerPaymentKind.REVENUE
-                                    : null,
                                 countsTowardOwnerTaxBase:
                                   side === TerminationCostSide.HOST_COMPANY
                                     ? true
-                                    : true,
+                                    : k === TerminationOwnerPaymentKind.REFUND
+                                      ? false
+                                      : true,
                               });
                             }}
                           >
@@ -2495,44 +2509,45 @@ export default function ReportDetailsPage({
                             </option>
                           </select>
                         </label>
-                        {terminationCostForm.side === TerminationCostSide.OWNER_SIDE && (
-                          <label className="block md:col-span-2">
-                            <span className="text-xs text-gray-600">
-                              Zwrot czy przychód na rzecz Złote Wynajmy
-                            </span>
-                            <select
-                              className="mt-1 block w-full rounded-md border border-gray-300 text-sm"
-                              value={terminationCostForm.ownerPaymentKind ?? ""}
-                              onChange={(e) => {
-                                const v = e.target
-                                  .value as TerminationOwnerPaymentKind;
-                                setTerminationCostForm({
-                                  ...terminationCostForm,
-                                  ownerPaymentKind: v,
-                                  countsTowardOwnerTaxBase:
-                                    v === TerminationOwnerPaymentKind.REFUND
+                        <label className="block md:col-span-2">
+                          <span className="text-xs text-gray-600">
+                            Zwrot czy przychód na rzecz Złote Wynajmy
+                          </span>
+                          <select
+                            className="mt-1 block w-full rounded-md border border-gray-300 text-sm"
+                            value={terminationCostForm.ownerPaymentKind ?? ""}
+                            onChange={(e) => {
+                              const v = e.target
+                                .value as TerminationOwnerPaymentKind;
+                              setTerminationCostForm({
+                                ...terminationCostForm,
+                                ownerPaymentKind: v,
+                                countsTowardOwnerTaxBase:
+                                  terminationCostForm.side ===
+                                  TerminationCostSide.HOST_COMPANY
+                                    ? terminationCostForm.countsTowardOwnerTaxBase
+                                    : v === TerminationOwnerPaymentKind.REFUND
                                       ? false
                                       : true,
-                                });
-                              }}
-                            >
-                              <option value="" disabled>
-                                Wybierz…
-                              </option>
-                              <option value={TerminationOwnerPaymentKind.REFUND}>
-                                Zwrot
-                              </option>
-                              <option value={TerminationOwnerPaymentKind.REVENUE}>
-                                Przychód
-                              </option>
-                            </select>
-                            <p className="mt-1 text-xs text-gray-600">
-                              {terminationOwnerPaymentKindTaxNote(
-                                terminationCostForm.ownerPaymentKind,
-                              )}
-                            </p>
-                          </label>
-                        )}
+                              });
+                            }}
+                          >
+                            <option value="" disabled>
+                              Wybierz…
+                            </option>
+                            <option value={TerminationOwnerPaymentKind.REFUND}>
+                              Zwrot
+                            </option>
+                            <option value={TerminationOwnerPaymentKind.REVENUE}>
+                              Przychód
+                            </option>
+                          </select>
+                          <p className="mt-1 text-xs text-gray-600">
+                            {terminationOwnerPaymentKindTaxNote(
+                              terminationCostForm.ownerPaymentKind,
+                            )}
+                          </p>
+                        </label>
                         <label className="block md:col-span-2">
                           <span className="text-xs text-gray-600">Opis</span>
                           <input
@@ -2590,11 +2605,7 @@ export default function ReportDetailsPage({
                             toast.error("Podaj opis i dodatnią kwotę.");
                             return;
                           }
-                          if (
-                            terminationCostForm.side ===
-                              TerminationCostSide.OWNER_SIDE &&
-                            !terminationCostForm.ownerPaymentKind
-                          ) {
+                          if (!terminationCostForm.ownerPaymentKind) {
                             toast.error("Wybierz zwrot lub przychód.");
                             return;
                           }
@@ -2605,11 +2616,7 @@ export default function ReportDetailsPage({
                             amount: terminationCostForm.amount,
                             countsTowardOwnerTaxBase:
                               terminationCostForm.countsTowardOwnerTaxBase,
-                            ownerPaymentKind:
-                              terminationCostForm.side ===
-                              TerminationCostSide.OWNER_SIDE
-                                ? terminationCostForm.ownerPaymentKind
-                                : null,
+                            ownerPaymentKind: terminationCostForm.ownerPaymentKind,
                           });
                         }}
                       >

@@ -508,16 +508,19 @@ export default function OwnerReportDetailsPage() {
                 Dodatkowe rozliczenie przy rozwiązaniu umowy
               </h2>
               <p className="mt-1 text-xs text-amber-900">
-                Po stronie właściciela widać należności na rzecz Złote Wynajmy — każda kwota ma
-                oznaczenie <strong>zwrot</strong> lub <strong>przychód</strong> oraz informację o
-                wpływie na podstawę opodatkowania. Kwoty w każdej kolumnie są wypisane jedna pod
-                drugą. Suma korekt jest uwzględniona w podsumowaniu rozliczenia.
+                W obu kolumnach każda kwota ma oznaczenie <strong>zwrot</strong> lub{" "}
+                <strong>przychód</strong> na rzecz Złote Wynajmy oraz informację o wpływie na
+                podstawę opodatkowania. Kwoty w każdej kolumnie są wypisane jedna pod drugą. Suma
+                korekt jest uwzględniona w podsumowaniu rozliczenia.
               </p>
             </div>
             <div className="grid gap-4 p-4 md:grid-cols-2">
               <div className="rounded-md border border-emerald-200 bg-white p-3">
-                <p className="mb-2 text-xs font-semibold uppercase text-emerald-800">
+                <p className="mb-1 text-xs font-semibold uppercase text-emerald-800">
                   Koszty po stronie Złote Wynajmy
+                </p>
+                <p className="mb-2 text-xs text-emerald-900">
+                  Zwrot lub przychód na rzecz ZW — tak samo oznaczone jak w panelu administratora.
                 </p>
                 <ul className="space-y-3 text-sm text-gray-900">
                   {terminationCosts
@@ -531,6 +534,16 @@ export default function OwnerReportDetailsPage() {
                         <span className="text-base font-semibold text-emerald-900">
                           +{Number(c.amount).toFixed(2)} PLN
                         </span>
+                        <span className="inline-flex w-fit rounded-full bg-emerald-200 px-2 py-0.5 text-xs font-medium text-emerald-900">
+                          {terminationOwnerPaymentKindLabel(
+                            c.ownerPaymentKind ?? TerminationOwnerPaymentKind.REVENUE,
+                          )}
+                        </span>
+                        <p className="text-xs text-gray-600">
+                          {terminationOwnerPaymentKindTaxNote(
+                            c.ownerPaymentKind ?? TerminationOwnerPaymentKind.REVENUE,
+                          )}
+                        </p>
                         <span className="text-xs text-gray-600">
                           W podstawie opodatkowania:{" "}
                           {c.countsTowardOwnerTaxBase ? "tak" : "nie"}

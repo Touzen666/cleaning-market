@@ -356,7 +356,7 @@ model ReportTerminationCost {
   label                    String
   amount                   Float
   countsTowardOwnerTaxBase Boolean                       @default(true)
-  /// Tylko dla side = OWNER_SIDE; dla HOST_COMPANY zawsze null.
+  /// Zwrot vs przychód na rzecz Złote Wynajmy — zarówno dla kosztów ZW, jak i należności właściciela.
   ownerPaymentKind         TerminationOwnerPaymentKind?
   order                    Int                           @default(0)
   report                   MonthlyReport                 @relation(fields: [reportId], references: [id], onDelete: Cascade)
