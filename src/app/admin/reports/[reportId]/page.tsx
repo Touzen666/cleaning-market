@@ -4618,9 +4618,7 @@ function OwnerPayoutCalculation({
     fixedBaseAmount,
     fixedBaseAmountAfterDeductions,
     kwotaBazowaNetto,
-    netIncomeAfterAdminCommission,
     netIncomeAfterAllDeductions,
-    rentAndUtilities,
     adminCommissionAmount,
   ]);
 
