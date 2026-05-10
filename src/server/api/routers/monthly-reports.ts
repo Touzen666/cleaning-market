@@ -10,12 +10,23 @@ import {
     UserType,
     ExpenseCategory,
     ReservationPortal,
-    SettlementType
+    SettlementType,
+    TerminationCostSide,
+    TerminationOwnerPaymentKind,
 } from "@prisma/client";
 import { getVatAmount, getGrossAmount } from "@/lib/vat";
 import { getFixedPayoutProrateFactor, daysInCalendarMonth } from "@/lib/report-fixed-prorate";
 import { type PrismaClient } from "@prisma/client";
 import { ownerMonthlyReportApprovedOrSentWhere } from "@/server/api/lib/owner-monthly-report-access";
+import {
+    canArchiveMonthlyReport,
+    canSendReportFromStatus,
+    isReportFrozenFinancialSnapshot,
+    isReportLockedForEditing,
+    ownerCanViewMonthlyReport,
+    statusRequiresSettlementLikeApproval,
+} from "@/lib/report-status";
+import { summarizeTerminationCosts } from "@/lib/report-termination-costs";
 
 type RecalculateContext = {
     db: PrismaClient;
@@ -200,7 +211,7 @@ const sendReportSchema = z.object({
 
 const updateReportStatusSchema = z.object({
     reportId: z.string().uuid(),
-    status: z.enum([ReportStatus.DRAFT, ReportStatus.REVIEW, ReportStatus.APPROVED, ReportStatus.SENT, ReportStatus.DELETED]),
+    status: z.nativeEnum(ReportStatus),
     notes: z.string().optional(),
 });
 
@@ -384,6 +395,7 @@ type RecalculationResult = {
     finalHostPayout: number;
     finalIncomeTax: number;
     finalVatAmount: number;
+    taxBase: number;
 };
 
 const recalculationCache = new Map<string, { timestamp: number; data: RecalculationResult }>();
@@ -403,13 +415,14 @@ async function recalculateReportSettlement(reportId: string, ctx: RecalculateCon
 
     try {
         // Zoptymalizowane zapytanie - pobieramy tylko potrzebne dane
-        const [report, items, additionalDeductions] = await Promise.all([
+        const [report, items, additionalDeductions, terminationCosts] = await Promise.all([
             ctx.db.monthlyReport.findUnique({
                 where: { id: reportId },
                 select: {
                     id: true,
                     year: true,
                     month: true,
+                    status: true,
                     finalSettlementType: true,
                     rentAmount: true,
                     utilitiesAmount: true,
@@ -417,6 +430,9 @@ async function recalculateReportSettlement(reportId: string, ctx: RecalculateCon
                     apartmentId: true,
                     fixedPayoutProrateEnabled: true,
                     fixedPayoutActiveDays: true,
+                    parkingProfit: true,
+                    parkingRentalIncome: true,
+                    parkingAdminRent: true,
                     // Jeśli włączone niestandardowe podsumowanie, nie nadpisujemy finalnych wartości podczas rekalkulacji
                     customSummaryEnabled: true,
                 }
@@ -437,6 +453,10 @@ async function recalculateReportSettlement(reportId: string, ctx: RecalculateCon
                 WHERE "reportId" = ${reportId}
                 GROUP BY "vatOption"
             `,
+            ctx.db.reportTerminationCost.findMany({
+                where: { reportId },
+                orderBy: { order: "asc" },
+            }),
         ]);
 
         if (!report) {
@@ -494,6 +514,7 @@ async function recalculateReportSettlement(reportId: string, ctx: RecalculateCon
         let finalHostPayout = 0;
         let finalIncomeTax = 0;
         let finalVatAmount = 0;
+        let taxBase = 0;
 
         if (report.finalSettlementType) {
             let baseAmount = 0;
@@ -542,9 +563,32 @@ async function recalculateReportSettlement(reportId: string, ctx: RecalculateCon
                 finalHostPayout = Math.max(0, netIncome - fixedAmount * prorateF);
             }
 
-            // Zryczałtowany podatek 8,5% od podstawy opodatkowania; podstawa = kwota wypłaty właściciela (ta sama kwota w raporcie)
-            finalIncomeTax = Math.max(0, finalOwnerPayout) * 0.085;
-            console.log(`[TAX] Raport ${reportId}: podatek od wypłaty właściciela: settlementType=${settlementType}, finalOwnerPayout=${finalOwnerPayout}, finalIncomeTax=${finalIncomeTax}`);
+            let terminationAdj: ReturnType<typeof summarizeTerminationCosts> | null = null;
+            if (
+                report.status === ReportStatus.AGREEMENT_TERMINATION &&
+                terminationCosts.length > 0
+            ) {
+                terminationAdj = summarizeTerminationCosts(terminationCosts);
+                const preOwner = finalOwnerPayout;
+                const preHost = finalHostPayout;
+                finalOwnerPayout = Math.max(0, preOwner + terminationAdj.payoutAdj);
+                finalHostPayout = Math.max(
+                    0,
+                    preHost - terminationAdj.zwTotal + terminationAdj.ownerSideTotal,
+                );
+            }
+
+            // Zryczałtowany podatek 8,5%; przy rozwiązaniu umowy podstawa może różnić się od wypłaty (checkboxy przy kosztach)
+            taxBase = terminationAdj
+                ? Math.max(
+                      0,
+                      finalOwnerPayout - terminationAdj.payoutAdj + terminationAdj.taxBaseAdj,
+                  )
+                : Math.max(0, finalOwnerPayout);
+            finalIncomeTax = Math.max(0, taxBase) * 0.085;
+            console.log(
+                `[TAX] Raport ${reportId}: settlementType=${settlementType}, finalOwnerPayout=${finalOwnerPayout}, taxBase=${taxBase}, finalIncomeTax=${finalIncomeTax}`,
+            );
         }
 
         const updateData = {
@@ -559,6 +603,7 @@ async function recalculateReportSettlement(reportId: string, ctx: RecalculateCon
             finalHostPayout,
             finalIncomeTax,
             finalVatAmount,
+            taxBase,
         };
 
         // Zoptymalizowany update - aktualizuj tylko pola związane z rozliczeniem
@@ -574,6 +619,7 @@ async function recalculateReportSettlement(reportId: string, ctx: RecalculateCon
             finalHostPayout?: number;
             finalIncomeTax?: number;
             finalVatAmount?: number;
+            taxBase?: number;
         } = {
             totalRevenue,
             totalExpenses,
@@ -590,6 +636,7 @@ async function recalculateReportSettlement(reportId: string, ctx: RecalculateCon
             dataToUpdate.finalHostPayout = finalHostPayout;
             dataToUpdate.finalIncomeTax = finalIncomeTax;
             dataToUpdate.finalVatAmount = finalVatAmount;
+            dataToUpdate.taxBase = taxBase;
         }
 
         await ctx.db.monthlyReport.update({
@@ -639,7 +686,7 @@ export const monthlyReportsRouter = createTRPCRouter({
         .input(z.object({
             apartmentId: z.number().optional(),
             ownerId: z.string().optional(),
-            status: z.enum([ReportStatus.DRAFT, ReportStatus.REVIEW, ReportStatus.APPROVED, ReportStatus.SENT, ReportStatus.DELETED]).optional(),
+            status: z.nativeEnum(ReportStatus).optional(),
             year: z.number().optional(),
             month: z.number().optional(),
         }))
@@ -730,7 +777,7 @@ export const monthlyReportsRouter = createTRPCRouter({
             if (!existing) {
                 throw new TRPCError({ code: "NOT_FOUND", message: "Item not found" });
             }
-            if (existing.report.status === ReportStatus.SENT) {
+            if (isReportLockedForEditing(existing.report.status)) {
                 throw new TRPCError({ code: "BAD_REQUEST", message: "Nie można edytować pozycji w wysłanym raporcie." });
             }
             // Only allow updating manual income invoices (revenue without reservation)
@@ -794,7 +841,7 @@ export const monthlyReportsRouter = createTRPCRouter({
             if (!report) {
                 throw new TRPCError({ code: "NOT_FOUND", message: "Raport nie został znaleziony" });
             }
-            if (report.status === ReportStatus.SENT) {
+            if (isReportLockedForEditing(report.status)) {
                 throw new TRPCError({ code: "BAD_REQUEST", message: "Nie można edytować wysłanego raportu" });
             }
 
@@ -1156,6 +1203,9 @@ export const monthlyReportsRouter = createTRPCRouter({
                     additionalDeductions: {
                         orderBy: { createdAt: "asc" },
                     },
+                    terminationCosts: {
+                        orderBy: { order: "asc" },
+                    },
                 },
             });
 
@@ -1185,7 +1235,7 @@ export const monthlyReportsRouter = createTRPCRouter({
             const lastApprovedReport = await ctx.db.monthlyReport.findFirst({
                 where: {
                     apartmentId: report.apartmentId,
-                    status: ReportStatus.SENT,
+                    status: { in: [ReportStatus.SENT, ReportStatus.AGREEMENT_SETTLED] },
                     id: { not: report.id },
                 },
                 orderBy: { createdAt: "desc" },
@@ -1298,12 +1348,30 @@ export const monthlyReportsRouter = createTRPCRouter({
                 finalHostPayout = Math.max(0, netIncome - fixedBaseAmount * fixedProrateF);
             }
 
+            const termCosts = report.terminationCosts ?? [];
+            let terminationAdj: ReturnType<typeof summarizeTerminationCosts> | null = null;
+            if (report.status === ReportStatus.AGREEMENT_TERMINATION && termCosts.length > 0) {
+                terminationAdj = summarizeTerminationCosts(termCosts);
+                const preOwner = finalOwnerPayout;
+                const preHost = finalHostPayout;
+                finalOwnerPayout = Math.max(0, preOwner + terminationAdj.payoutAdj);
+                finalHostPayout = Math.max(
+                    0,
+                    preHost - terminationAdj.zwTotal + terminationAdj.ownerSideTotal,
+                );
+            }
+
             if (
                 report.finalSettlementType === "COMMISSION" ||
                 report.finalSettlementType === "FIXED" ||
                 report.finalSettlementType === "FIXED_MINUS_UTILITIES"
             ) {
-                taxBase = finalOwnerPayout;
+                taxBase = terminationAdj
+                    ? Math.max(
+                          0,
+                          finalOwnerPayout - terminationAdj.payoutAdj + terminationAdj.taxBaseAdj,
+                      )
+                    : Math.max(0, finalOwnerPayout);
                 finalIncomeTax = Math.max(0, taxBase) * 0.085;
             }
 
@@ -1429,7 +1497,7 @@ export const monthlyReportsRouter = createTRPCRouter({
             if (!report) {
                 throw new TRPCError({ code: "NOT_FOUND" });
             }
-            if (report.status === ReportStatus.SENT) {
+            if (isReportLockedForEditing(report.status)) {
                 throw new TRPCError({ code: "BAD_REQUEST", message: "Nie można edytować wysłanego raportu." });
             }
 
@@ -1482,7 +1550,7 @@ export const monthlyReportsRouter = createTRPCRouter({
                 });
             }
 
-            if (report.status === ReportStatus.SENT) {
+            if (isReportLockedForEditing(report.status)) {
                 throw new TRPCError({
                     code: "BAD_REQUEST",
                     message: "Nie można edytować wysłanego raportu",
@@ -1540,7 +1608,7 @@ export const monthlyReportsRouter = createTRPCRouter({
                 });
             }
 
-            if (report.status === ReportStatus.SENT) {
+            if (isReportLockedForEditing(report.status)) {
                 throw new TRPCError({
                     code: "BAD_REQUEST",
                     message: "Nie można edytować wysłanego raportu",
@@ -1621,6 +1689,14 @@ export const monthlyReportsRouter = createTRPCRouter({
             }
 
             const previousStatus = report.status;
+
+            if (
+                previousStatus === ReportStatus.AGREEMENT_TERMINATION &&
+                status !== ReportStatus.AGREEMENT_TERMINATION
+            ) {
+                await ctx.db.reportTerminationCost.deleteMany({ where: { reportId } });
+            }
+
             const updateData: {
                 status: ReportStatus;
                 approvedAt?: Date;
@@ -1628,16 +1704,14 @@ export const monthlyReportsRouter = createTRPCRouter({
                 sentAt?: Date;
             } = { status };
 
-            if (status === ReportStatus.APPROVED) {
-                // Sprawdź czy raport ma ustawiony typ rozliczenia przed zatwierdzeniem
+            if (statusRequiresSettlementLikeApproval(status)) {
                 if (!report.finalSettlementType) {
                     throw new TRPCError({
                         code: "BAD_REQUEST",
-                        message: "Nie można zatwierdzić raportu bez ustawionego typu rozliczenia. Ustaw typ rozliczenia przed zatwierdzeniem.",
+                        message: "Nie można ustawić tego statusu bez typu rozliczenia. Ustaw typ rozliczenia w raporcie.",
                     });
                 }
 
-                // Sprawdź czy apartament ma ustawioną kwotę stałą dla typów FIXED
                 if ((report.finalSettlementType === 'FIXED' || report.finalSettlementType === 'FIXED_MINUS_UTILITIES')) {
                     const apartment = await ctx.db.apartment.findUnique({
                         where: { id: report.apartmentId },
@@ -1647,11 +1721,13 @@ export const monthlyReportsRouter = createTRPCRouter({
                     if (!apartment?.fixedPaymentAmount) {
                         throw new TRPCError({
                             code: "BAD_REQUEST",
-                            message: `Nie można zatwierdzić raportu z typem rozliczenia ${report.finalSettlementType}. Apartament ${apartment?.name ?? 'nieznany'} nie ma ustawionej kwoty stałej (fixedPaymentAmount).`,
+                            message: `Nie można ustawić tego statusu z typem rozliczenia ${report.finalSettlementType}. Apartament ${apartment?.name ?? 'nieznany'} nie ma ustawionej kwoty stałej (fixedPaymentAmount).`,
                         });
                     }
                 }
+            }
 
+            if (status === ReportStatus.APPROVED || status === ReportStatus.AGREEMENT_TERMINATION) {
                 updateData.approvedAt = new Date();
                 updateData.approvedByAdminId = ctx.session.user.id;
             } else if (status === ReportStatus.SENT) {
@@ -1663,19 +1739,33 @@ export const monthlyReportsRouter = createTRPCRouter({
                 data: updateData,
             });
 
-            // Add history entry
+            const historyAction =
+                status === ReportStatus.APPROVED
+                    ? "approved"
+                    : status === ReportStatus.SENT
+                        ? "sent"
+                        : status === ReportStatus.AGREEMENT_TERMINATION
+                            ? "agreement_termination"
+                            : status === ReportStatus.AGREEMENT_SETTLED
+                                ? "agreement_settled"
+                                : "updated";
+
             await ctx.db.reportHistory.create({
                 data: {
                     reportId,
                     adminId: ctx.session.user.id,
-                    action: status === ReportStatus.APPROVED ? "approved" : status === ReportStatus.SENT ? "sent" : "updated",
+                    action: historyAction,
                     previousStatus,
                     newStatus: status,
                     notes,
                 },
             });
 
-            if (status === ReportStatus.APPROVED) {
+            if (
+                status === ReportStatus.APPROVED ||
+                status === ReportStatus.AGREEMENT_TERMINATION ||
+                status === ReportStatus.AGREEMENT_SETTLED
+            ) {
                 await recalculateReportSettlement(reportId, ctx);
             }
 
@@ -1696,8 +1786,11 @@ export const monthlyReportsRouter = createTRPCRouter({
                 throw new TRPCError({ code: "NOT_FOUND", message: "Raport nie został znaleziony" });
             }
 
-            if (report.status !== ReportStatus.APPROVED) {
-                throw new TRPCError({ code: "BAD_REQUEST", message: "Można wysłać tylko zatwierdzony raport" });
+            if (!canSendReportFromStatus(report.status)) {
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    message: "Można wysłać tylko raport zatwierdzony lub oznaczony jako rozwiązanie umowy",
+                });
             }
 
             // Aktualizuj raport - oznacz jako wysłany i zapisz informacje o użytkowniku
@@ -1758,8 +1851,8 @@ export const monthlyReportsRouter = createTRPCRouter({
                 });
             }
 
-            // Prevent deletion if the report is sent (only SENT reports are immutable)
-            if (itemToDelete.report.status === ReportStatus.SENT) {
+            // Prevent deletion if the report is locked (wysłany / umowa zamknięta)
+            if (isReportLockedForEditing(itemToDelete.report.status)) {
                 throw new TRPCError({
                     code: "BAD_REQUEST",
                     message: "Cannot delete items from a sent report.",
@@ -1899,8 +1992,8 @@ export const monthlyReportsRouter = createTRPCRouter({
                 let totalExpenses: number;
                 let netIncome: number;
 
-                if (report.status === "SENT") {
-                    // For SENT reports - use frozen values from database (immutable)
+                if (isReportFrozenFinancialSnapshot(report.status)) {
+                    // Zamrożone wartości z bazy
                     finalOwnerPayout = report.finalOwnerPayout ? Number(report.finalOwnerPayout) : null;
                     totalRevenue = report.totalRevenue ?? 0;
                     totalExpenses = report.totalExpenses ?? 0;
@@ -2102,7 +2195,14 @@ export const monthlyReportsRouter = createTRPCRouter({
 
             const reportsToRecalculate = await ctx.db.monthlyReport.findMany({
                 where: {
-                    status: { in: [ReportStatus.APPROVED, ReportStatus.SENT] }
+                    status: {
+                        in: [
+                            ReportStatus.APPROVED,
+                            ReportStatus.SENT,
+                            ReportStatus.AGREEMENT_TERMINATION,
+                            ReportStatus.AGREEMENT_SETTLED,
+                        ],
+                    }
                 },
                 select: { id: true }
             });
@@ -2476,6 +2576,9 @@ export const monthlyReportsRouter = createTRPCRouter({
                             order: 'asc',
                         },
                     },
+                    terminationCosts: {
+                        orderBy: { order: "asc" },
+                    },
                 },
             });
 
@@ -2486,7 +2589,7 @@ export const monthlyReportsRouter = createTRPCRouter({
                 });
             }
 
-            if (report.status !== ReportStatus.APPROVED && report.status !== ReportStatus.SENT) {
+            if (!ownerCanViewMonthlyReport(report.status)) {
                 throw new TRPCError({
                     code: "FORBIDDEN",
                     message: "Raport nie jest jeszcze dostępny dla właściciela",
@@ -2526,8 +2629,8 @@ export const monthlyReportsRouter = createTRPCRouter({
             let customEnabledForOwner = false;
             let customNoteForOwner: string | null = null;
 
-            if (report.status === "SENT") {
-                // For SENT reports - use frozen values from database (immutable)
+            if (isReportFrozenFinancialSnapshot(report.status)) {
+                // Wartości utrwalone w bazie
                 totalRevenue = report.totalRevenue ?? 0;
                 totalExpenses = report.totalExpenses ?? 0;
                 netIncome = report.netIncome ?? 0;
@@ -2604,7 +2707,7 @@ export const monthlyReportsRouter = createTRPCRouter({
                     report.finalSettlementType === "FIXED" ||
                     report.finalSettlementType === "FIXED_MINUS_UTILITIES"
                 ) {
-                    taxBase = finalOwnerPayout;
+                    taxBase = settlementResult.taxBase;
                 } else {
                     taxBase = 0;
                 }
@@ -2706,7 +2809,7 @@ export const monthlyReportsRouter = createTRPCRouter({
             if (!report) {
                 throw new TRPCError({ code: "NOT_FOUND", message: "Raport nie został znaleziony" });
             }
-            if (report.status === ReportStatus.SENT) {
+            if (isReportLockedForEditing(report.status)) {
                 throw new TRPCError({ code: "BAD_REQUEST", message: "Nie można edytować wysłanego raportu." });
             }
 
@@ -2810,10 +2913,10 @@ export const monthlyReportsRouter = createTRPCRouter({
                 });
             }
 
-            if (report.status !== ReportStatus.SENT) {
+            if (!canArchiveMonthlyReport(report.status)) {
                 throw new TRPCError({
                     code: "BAD_REQUEST",
-                    message: "Tylko wysłane raporty mogą być archiwizowane i usuwane",
+                    message: "Tylko wysłane raporty lub raporty z statusem „Umowa zamknięta” mogą być archiwizowane i usuwane",
                 });
             }
 
@@ -2966,7 +3069,7 @@ export const monthlyReportsRouter = createTRPCRouter({
                 });
             }
 
-            if (report.status === ReportStatus.SENT) {
+            if (isReportLockedForEditing(report.status)) {
                 throw new TRPCError({
                     code: "BAD_REQUEST",
                     message: "Nie można edytować wysłanego raportu",
@@ -3027,7 +3130,7 @@ export const monthlyReportsRouter = createTRPCRouter({
             if (!report) {
                 throw new TRPCError({ code: "NOT_FOUND", message: "Raport nie został znaleziony" });
             }
-            if (report.status === ReportStatus.SENT) {
+            if (isReportLockedForEditing(report.status)) {
                 throw new TRPCError({ code: "BAD_REQUEST", message: "Nie można edytować wysłanego raportu" });
             }
             if (
@@ -3167,6 +3270,180 @@ export const monthlyReportsRouter = createTRPCRouter({
                 await recalculateReportSettlement(deduction.reportId, ctx);
             }
 
+            return { success: true };
+        }),
+
+    addReportTerminationCost: protectedProcedure
+        .input(
+            z
+                .object({
+                    reportId: z.string().uuid(),
+                    side: z.nativeEnum(TerminationCostSide),
+                    label: z.string().min(1),
+                    amount: z.number().positive(),
+                    countsTowardOwnerTaxBase: z.boolean(),
+                    ownerPaymentKind: z
+                        .nativeEnum(TerminationOwnerPaymentKind)
+                        .optional()
+                        .nullable(),
+                })
+                .superRefine((data, ctx) => {
+                    if (data.side === TerminationCostSide.OWNER_SIDE && data.ownerPaymentKind == null) {
+                        ctx.addIssue({
+                            code: z.ZodIssueCode.custom,
+                            message:
+                                "Dla należności właściciela wybierz, czy kwota to zwrot czy przychód na rzecz Złote Wynajmy.",
+                            path: ["ownerPaymentKind"],
+                        });
+                    }
+                    if (data.side === TerminationCostSide.HOST_COMPANY && data.ownerPaymentKind != null) {
+                        ctx.addIssue({
+                            code: z.ZodIssueCode.custom,
+                            message: "Typ zwrot/przychód dotyczy wyłącznie pozycji po stronie właściciela.",
+                            path: ["ownerPaymentKind"],
+                        });
+                    }
+                }),
+        )
+        .mutation(async ({ input, ctx }) => {
+            if (ctx.session.user.type !== UserType.ADMIN) {
+                throw new TRPCError({ code: "FORBIDDEN", message: "Tylko administrator." });
+            }
+
+            const report = await ctx.db.monthlyReport.findUnique({
+                where: { id: input.reportId },
+                select: { status: true },
+            });
+            if (!report) {
+                throw new TRPCError({ code: "NOT_FOUND", message: "Raport nie istnieje." });
+            }
+            if (report.status !== ReportStatus.AGREEMENT_TERMINATION) {
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    message: "Koszty rozwiązania umowy są dostępne tylko w statusie „Rozwiązanie umowy”.",
+                });
+            }
+            if (isReportLockedForEditing(report.status)) {
+                throw new TRPCError({ code: "FORBIDDEN", message: "Raport jest zablokowany do edycji." });
+            }
+
+            const maxRow = await ctx.db.reportTerminationCost.aggregate({
+                where: { reportId: input.reportId },
+                _max: { order: true },
+            });
+            const nextOrder = (maxRow._max.order ?? -1) + 1;
+
+            await ctx.db.reportTerminationCost.create({
+                data: {
+                    reportId: input.reportId,
+                    side: input.side,
+                    label: input.label,
+                    amount: input.amount,
+                    countsTowardOwnerTaxBase: input.countsTowardOwnerTaxBase,
+                    ownerPaymentKind:
+                        input.side === TerminationCostSide.OWNER_SIDE
+                            ? input.ownerPaymentKind!
+                            : null,
+                    order: nextOrder,
+                },
+            });
+
+            await recalculateReportSettlement(input.reportId, ctx);
+            return { success: true };
+        }),
+
+    updateReportTerminationCost: protectedProcedure
+        .input(
+            z
+                .object({
+                    id: z.string().uuid(),
+                    side: z.nativeEnum(TerminationCostSide),
+                    label: z.string().min(1),
+                    amount: z.number().positive(),
+                    countsTowardOwnerTaxBase: z.boolean(),
+                    ownerPaymentKind: z
+                        .nativeEnum(TerminationOwnerPaymentKind)
+                        .optional()
+                        .nullable(),
+                })
+                .superRefine((data, ctx) => {
+                    if (data.side === TerminationCostSide.OWNER_SIDE && data.ownerPaymentKind == null) {
+                        ctx.addIssue({
+                            code: z.ZodIssueCode.custom,
+                            message:
+                                "Dla należności właściciela wybierz, czy kwota to zwrot czy przychód na rzecz Złote Wynajmy.",
+                            path: ["ownerPaymentKind"],
+                        });
+                    }
+                    if (data.side === TerminationCostSide.HOST_COMPANY && data.ownerPaymentKind != null) {
+                        ctx.addIssue({
+                            code: z.ZodIssueCode.custom,
+                            message: "Typ zwrot/przychód dotyczy wyłącznie pozycji po stronie właściciela.",
+                            path: ["ownerPaymentKind"],
+                        });
+                    }
+                }),
+        )
+        .mutation(async ({ input, ctx }) => {
+            if (ctx.session.user.type !== UserType.ADMIN) {
+                throw new TRPCError({ code: "FORBIDDEN", message: "Tylko administrator." });
+            }
+
+            const row = await ctx.db.reportTerminationCost.findUnique({
+                where: { id: input.id },
+                include: { report: { select: { status: true } } },
+            });
+            if (!row) {
+                throw new TRPCError({ code: "NOT_FOUND", message: "Pozycja nie istnieje." });
+            }
+            if (row.report.status !== ReportStatus.AGREEMENT_TERMINATION) {
+                throw new TRPCError({ code: "BAD_REQUEST", message: "Nieprawidłowy status raportu." });
+            }
+            if (isReportLockedForEditing(row.report.status)) {
+                throw new TRPCError({ code: "FORBIDDEN", message: "Raport jest zablokowany do edycji." });
+            }
+
+            await ctx.db.reportTerminationCost.update({
+                where: { id: input.id },
+                data: {
+                    side: input.side,
+                    label: input.label,
+                    amount: input.amount,
+                    countsTowardOwnerTaxBase: input.countsTowardOwnerTaxBase,
+                    ownerPaymentKind:
+                        input.side === TerminationCostSide.OWNER_SIDE
+                            ? input.ownerPaymentKind!
+                            : null,
+                },
+            });
+
+            await recalculateReportSettlement(row.reportId, ctx);
+            return { success: true };
+        }),
+
+    deleteReportTerminationCost: protectedProcedure
+        .input(z.object({ id: z.string().uuid() }))
+        .mutation(async ({ input, ctx }) => {
+            if (ctx.session.user.type !== UserType.ADMIN) {
+                throw new TRPCError({ code: "FORBIDDEN", message: "Tylko administrator." });
+            }
+
+            const row = await ctx.db.reportTerminationCost.findUnique({
+                where: { id: input.id },
+                include: { report: { select: { status: true } } },
+            });
+            if (!row) {
+                throw new TRPCError({ code: "NOT_FOUND", message: "Pozycja nie istnieje." });
+            }
+            if (row.report.status !== ReportStatus.AGREEMENT_TERMINATION) {
+                throw new TRPCError({ code: "BAD_REQUEST", message: "Nieprawidłowy status raportu." });
+            }
+            if (isReportLockedForEditing(row.report.status)) {
+                throw new TRPCError({ code: "FORBIDDEN", message: "Raport jest zablokowany do edycji." });
+            }
+
+            await ctx.db.reportTerminationCost.delete({ where: { id: input.id } });
+            await recalculateReportSettlement(row.reportId, ctx);
             return { success: true };
         }),
 

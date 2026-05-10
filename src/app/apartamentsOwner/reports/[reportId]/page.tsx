@@ -4,7 +4,9 @@ import React, { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { api } from "@/trpc/react";
 import {
-  type ReportStatus,
+  ReportStatus,
+  TerminationCostSide,
+  TerminationOwnerPaymentKind,
   type PaymentType,
   type VATOption,
   type ReportItem,
@@ -18,6 +20,11 @@ import {
   translateReportItemType,
   getReportItemTypeColor,
 } from "@/lib/status-translations";
+import {
+  summarizeTerminationCosts,
+  terminationOwnerPaymentKindLabel,
+  terminationOwnerPaymentKindTaxNote,
+} from "@/lib/report-termination-costs";
 
 type ReportItemWithReservation = ReportItem & {
   reservation?: Reservation | null;
@@ -67,6 +74,15 @@ type OwnerReport = {
     order: number;
   }[];
   totalAdditionalDeductions?: number;
+  terminationCosts?: {
+    id: string;
+    side: TerminationCostSide;
+    label: string;
+    amount: number;
+    countsTowardOwnerTaxBase: boolean;
+    ownerPaymentKind: TerminationOwnerPaymentKind | null;
+    order: number;
+  }[];
   finalOwnerPayout?: number;
   finalHostPayout?: number;
   finalIncomeTax?: number;
@@ -305,6 +321,17 @@ export default function OwnerReportDetailsPage() {
       : ((report as OwnerReport & { finalIncomeTax?: number }).finalIncomeTax ??
         0);
 
+  const terminationCosts = report.terminationCosts ?? [];
+  const terminationSummary =
+    report.status === ReportStatus.AGREEMENT_TERMINATION &&
+    terminationCosts.length > 0
+      ? summarizeTerminationCosts(terminationCosts)
+      : null;
+  const ownerPayoutBeforeTerminationAdjust =
+    terminationSummary != null
+      ? summaryOwnerPayout - terminationSummary.payoutAdj
+      : null;
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -354,10 +381,26 @@ export default function OwnerReportDetailsPage() {
                   </svg>
                   Raport właściciela
                 </div>
-                <div className="inline-flex items-center rounded-md bg-gray-100 px-3 py-1 text-sm font-medium text-gray-800">
-                  Status: {getStatusText(report.status)}
-                </div>
+                <span
+                  className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-semibold ${getStatusColor(
+                    report.status,
+                  )}`}
+                >
+                  {getStatusText(report.status)}
+                </span>
               </div>
+              {report.status === ReportStatus.AGREEMENT_TERMINATION && (
+                <p className="mt-3 max-w-3xl rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-950">
+                  Ten miesiąc został oznaczony jako <strong>rozwiązanie umowy</strong> — raport
+                  wskazuje termin zakończenia współpracy przy tym obiekcie.
+                </p>
+              )}
+              {report.status === ReportStatus.AGREEMENT_SETTLED && (
+                <p className="mt-3 max-w-3xl rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900">
+                  <strong>Umowa zamknięta</strong> — należności z tego okresu uznaje się za
+                  rozliczone.
+                </p>
+              )}
             </div>
             <div className="mt-4 sm:mt-0">
               <div className="flex gap-3">
@@ -384,6 +427,124 @@ export default function OwnerReportDetailsPage() {
             </div>
           </div>
         </div>
+
+        {report.status === ReportStatus.AGREEMENT_TERMINATION && (
+          <div className="mb-6 overflow-hidden rounded-lg border border-amber-200 bg-amber-50/40 shadow">
+            <div className="border-b border-amber-200 bg-amber-100/80 px-6 py-3">
+              <h2 className="text-base font-semibold text-amber-950">
+                Dodatkowe rozliczenie przy rozwiązaniu umowy
+              </h2>
+              <p className="mt-1 text-xs text-amber-900">
+                Po stronie właściciela widać należności na rzecz Złote Wynajmy — każda kwota ma
+                oznaczenie <strong>zwrot</strong> lub <strong>przychód</strong> oraz informację o
+                wpływie na podstawę opodatkowania. Kwoty w każdej kolumnie są wypisane jedna pod
+                drugą. Suma korekt jest uwzględniona w podsumowaniu rozliczenia.
+              </p>
+            </div>
+            <div className="grid gap-4 p-4 md:grid-cols-2">
+              <div className="rounded-md border border-emerald-200 bg-white p-3">
+                <p className="mb-2 text-xs font-semibold uppercase text-emerald-800">
+                  Koszty po stronie Złote Wynajmy
+                </p>
+                <ul className="space-y-3 text-sm text-gray-900">
+                  {terminationCosts
+                    .filter((c) => c.side === TerminationCostSide.HOST_COMPANY)
+                    .map((c) => (
+                      <li
+                        key={c.id}
+                        className="flex flex-col gap-1 rounded border border-emerald-100 bg-emerald-50/50 p-2"
+                      >
+                        <span className="font-medium">{c.label}</span>
+                        <span className="text-base font-semibold text-emerald-900">
+                          +{Number(c.amount).toFixed(2)} PLN
+                        </span>
+                        <span className="text-xs text-gray-600">
+                          W podstawie opodatkowania:{" "}
+                          {c.countsTowardOwnerTaxBase ? "tak" : "nie"}
+                        </span>
+                      </li>
+                    ))}
+                  {terminationCosts.filter(
+                    (c) => c.side === TerminationCostSide.HOST_COMPANY,
+                  ).length === 0 && (
+                    <li className="text-xs text-gray-500">Brak pozycji</li>
+                  )}
+                </ul>
+              </div>
+              <div className="rounded-md border border-slate-200 bg-white p-3">
+                <p className="mb-1 text-xs font-semibold uppercase text-slate-800">
+                  Należności na rzecz Złote Wynajmy
+                </p>
+                <p className="mb-2 text-xs text-slate-600">
+                  Kwoty, które właściciel uznaje / reguluje na rzecz ZW — oznaczenie zwrot / przychód
+                  ułatwia rozróżnienie przy podatku 8,5%.
+                </p>
+                <ul className="space-y-3 text-sm text-gray-900">
+                  {terminationCosts
+                    .filter((c) => c.side === TerminationCostSide.OWNER_SIDE)
+                    .map((c) => (
+                      <li
+                        key={c.id}
+                        className="flex flex-col gap-1 rounded border border-slate-100 bg-slate-50 p-2"
+                      >
+                        <span className="font-medium">{c.label}</span>
+                        <span className="text-base font-semibold text-slate-900">
+                          −{Number(c.amount).toFixed(2)} PLN
+                        </span>
+                        <span className="inline-flex w-fit rounded-full bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-800">
+                          {terminationOwnerPaymentKindLabel(
+                            c.ownerPaymentKind ?? TerminationOwnerPaymentKind.REVENUE,
+                          )}
+                        </span>
+                        <p className="text-xs text-gray-600">
+                          {terminationOwnerPaymentKindTaxNote(
+                            c.ownerPaymentKind ?? TerminationOwnerPaymentKind.REVENUE,
+                          )}
+                        </p>
+                        <span className="text-xs text-gray-600">
+                          W podstawie opodatkowania:{" "}
+                          {c.countsTowardOwnerTaxBase ? "tak" : "nie"}
+                        </span>
+                      </li>
+                    ))}
+                  {terminationCosts.filter(
+                    (c) => c.side === TerminationCostSide.OWNER_SIDE,
+                  ).length === 0 && (
+                    <li className="text-xs text-gray-500">Brak pozycji</li>
+                  )}
+                </ul>
+              </div>
+            </div>
+            {ownerPayoutBeforeTerminationAdjust != null && (
+              <div className="border-t border-amber-200 px-4 pb-4 pt-2 text-sm text-gray-800">
+                <p>
+                  <span className="text-gray-600">Kwota z raportu (przed korektami):</span>{" "}
+                  <span className="font-semibold">
+                    {ownerPayoutBeforeTerminationAdjust.toFixed(2)} PLN
+                  </span>
+                </p>
+                <p className="mt-1">
+                  <span className="text-gray-600">Ostateczna wypłata (z korektami):</span>{" "}
+                  <span className="font-semibold">
+                    {summaryOwnerPayout.toFixed(2)} PLN
+                  </span>
+                </p>
+                <p className="mt-1">
+                  <span className="text-gray-600">Podstawa opodatkowania (8,5%):</span>{" "}
+                  <span className="font-semibold">
+                    {summaryTaxBase.toFixed(2)} PLN
+                  </span>
+                  {terminationSummary &&
+                    Math.abs(summaryTaxBase - summaryOwnerPayout) > 0.009 && (
+                      <span className="ml-1 text-xs text-gray-600">
+                        (różni się od wypłaty — część pozycji nie wchodzi w podatek)
+                      </span>
+                    )}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Report Info - Karty podsumowań */}
         <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 xl:grid-cols-4">

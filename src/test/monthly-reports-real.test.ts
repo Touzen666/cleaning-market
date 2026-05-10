@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { type PrismaClient } from "@prisma/client";
-import { VATOption, UserType, SettlementType } from "@prisma/client";
+import { VATOption, UserType, SettlementType, ReportStatus } from "@prisma/client";
 
 // Mock kontekstu i bazy danych
 const mockDb = {
@@ -42,6 +42,9 @@ const mockDb = {
         update: vi.fn(),
         delete: vi.fn(),
     },
+    reportTerminationCost: {
+        findMany: vi.fn(),
+    },
     $queryRaw: vi.fn(),
     $transaction: vi.fn(),
 };
@@ -66,6 +69,7 @@ const mockCtx = {
 
 beforeEach(() => {
     vi.clearAllMocks();
+    mockDb.reportTerminationCost.findMany.mockResolvedValue([]);
 });
 
 // Helper do formatowania danych w konsoli
@@ -86,6 +90,8 @@ describe("Monthly Reports - Rzeczywiste funkcje", () => {
             // Mock danych raportu
             const mockReport = {
                 id: "report-1",
+                apartmentId: 1,
+                status: ReportStatus.APPROVED,
                 finalSettlementType: SettlementType.COMMISSION,
                 rentAmount: 2000,
                 utilitiesAmount: 500,
@@ -108,6 +114,7 @@ describe("Monthly Reports - Rzeczywiste funkcje", () => {
             ];
 
             mockDb.monthlyReport.findUnique.mockResolvedValue(mockReport);
+            mockDb.apartment.findUnique.mockResolvedValue({ fixedPaymentAmount: null });
             mockDb.apartmentOwner.findUnique.mockResolvedValue(mockOwner);
             mockDb.$queryRaw
                 .mockResolvedValueOnce(mockItems)
@@ -149,12 +156,15 @@ describe("Monthly Reports - Rzeczywiste funkcje", () => {
             expect(result.finalOwnerPayout).toBe(5550); // 5750 - 200
             expect(result.finalHostPayout).toBe(2750);
             expect(result.finalIncomeTax).toBeCloseTo(471.75, 2); // 5550 * 0.085
+            expect(result.taxBase).toBe(5550);
             expect(result.finalVatAmount).toBe(0); // NO_VAT
         });
 
         it("przelicza raport z typem rozliczenia FIXED", async () => {
             const mockReport = {
                 id: "report-2",
+                apartmentId: 1,
+                status: ReportStatus.APPROVED,
                 finalSettlementType: SettlementType.FIXED,
                 rentAmount: 0,
                 utilitiesAmount: 0,
@@ -177,6 +187,7 @@ describe("Monthly Reports - Rzeczywiste funkcje", () => {
             ];
 
             mockDb.monthlyReport.findUnique.mockResolvedValue(mockReport);
+            mockDb.apartment.findUnique.mockResolvedValue({ fixedPaymentAmount: 5000 });
             mockDb.apartmentOwner.findUnique.mockResolvedValue(mockOwner);
             mockDb.$queryRaw
                 .mockResolvedValueOnce(mockItems)
@@ -218,12 +229,15 @@ describe("Monthly Reports - Rzeczywiste funkcje", () => {
             expect(result.finalOwnerPayout).toBeCloseTo(6150, 2); // Rzeczywista wartość z funkcji
             expect(result.finalHostPayout).toBe(2500); // max(0, 7500 - 5000)
             expect(result.finalIncomeTax).toBeCloseTo(522.75, 2); // 6150 * 0.085 (od wypłaty właściciela)
+            expect(result.taxBase).toBeCloseTo(6150, 2);
             expect(result.finalVatAmount).toBe(1150); // 5000 * 0.23
         });
 
         it("przelicza raport z typem rozliczenia FIXED_MINUS_UTILITIES", async () => {
             const mockReport = {
                 id: "report-3",
+                apartmentId: 1,
+                status: ReportStatus.APPROVED,
                 finalSettlementType: SettlementType.FIXED_MINUS_UTILITIES,
                 rentAmount: 2000,
                 utilitiesAmount: 500,
@@ -246,6 +260,7 @@ describe("Monthly Reports - Rzeczywiste funkcje", () => {
             ];
 
             mockDb.monthlyReport.findUnique.mockResolvedValue(mockReport);
+            mockDb.apartment.findUnique.mockResolvedValue({ fixedPaymentAmount: 8000 });
             mockDb.apartmentOwner.findUnique.mockResolvedValue(mockOwner);
             mockDb.$queryRaw
                 .mockResolvedValueOnce(mockItems)
@@ -286,13 +301,16 @@ describe("Monthly Reports - Rzeczywiste funkcje", () => {
             expect(result.totalAdditionalDeductions).toBe(432); // 400 * 1.08
             expect(result.finalOwnerPayout).toBeCloseTo(5473.44, 2); // Rzeczywista wartość z funkcji
             expect(result.finalHostPayout).toBe(700); // max(0, 8700 - 8000)
-            expect(result.finalIncomeTax).toBeCloseTo(430.78, 2); // Rzeczywista wartość z funkcji
+            expect(result.taxBase).toBeCloseTo(5473.44, 2);
+            expect(result.finalIncomeTax).toBeCloseTo(465.24, 2); // 8,5% od podstawy (= wypłata przy braku korekt rozwiązania)
             expect(result.finalVatAmount).toBeCloseTo(405.44, 2); // Rzeczywista wartość z funkcji
         });
 
         it("obsługuje przypadek bez typu rozliczenia", async () => {
             const mockReport = {
                 id: "report-4",
+                apartmentId: 1,
+                status: ReportStatus.DRAFT,
                 finalSettlementType: null,
                 rentAmount: 0,
                 utilitiesAmount: 0,
@@ -312,6 +330,7 @@ describe("Monthly Reports - Rzeczywiste funkcje", () => {
             const mockDeductions: Array<{ vatOption: string; total: number }> = [];
 
             mockDb.monthlyReport.findUnique.mockResolvedValue(mockReport);
+            mockDb.apartment.findUnique.mockResolvedValue({ fixedPaymentAmount: null });
             mockDb.apartmentOwner.findUnique.mockResolvedValue(mockOwner);
             mockDb.$queryRaw
                 .mockResolvedValueOnce(mockItems)
@@ -349,12 +368,15 @@ describe("Monthly Reports - Rzeczywiste funkcje", () => {
             expect(result.finalOwnerPayout).toBe(0); // Brak typu rozliczenia
             expect(result.finalHostPayout).toBe(0);
             expect(result.finalIncomeTax).toBe(0);
+            expect(result.taxBase).toBe(0);
             expect(result.finalVatAmount).toBe(0);
         });
 
         it("obsługuje przypadek z ujemną wypłatą właściciela", async () => {
             const mockReport = {
                 id: "report-5",
+                apartmentId: 1,
+                status: ReportStatus.APPROVED,
                 finalSettlementType: SettlementType.FIXED,
                 rentAmount: 0,
                 utilitiesAmount: 0,
@@ -375,6 +397,7 @@ describe("Monthly Reports - Rzeczywiste funkcje", () => {
             const mockDeductions: Array<{ vatOption: string; total: number }> = [];
 
             mockDb.monthlyReport.findUnique.mockResolvedValue(mockReport);
+            mockDb.apartment.findUnique.mockResolvedValue({ fixedPaymentAmount: 10000 });
             mockDb.apartmentOwner.findUnique.mockResolvedValue(mockOwner);
             mockDb.$queryRaw
                 .mockResolvedValueOnce(mockItems)
@@ -416,6 +439,7 @@ describe("Monthly Reports - Rzeczywiste funkcje", () => {
             expect(result.finalOwnerPayout).toBe(10000); // max(0, 10000)
             expect(result.finalHostPayout).toBe(0); // max(0, 3500 - 10000)
             expect(result.finalIncomeTax).toBeCloseTo(850, 2); // 10000 * 0.085
+            expect(result.taxBase).toBe(10000);
             expect(result.finalVatAmount).toBe(0); // NO_VAT
         });
     });
@@ -427,6 +451,8 @@ describe("Monthly Reports - Rzeczywiste funkcje", () => {
             // 1. Raport z różnymi typami pozycji
             const mockReport = {
                 id: "complete-report-1",
+                apartmentId: 1,
+                status: ReportStatus.APPROVED,
                 finalSettlementType: SettlementType.COMMISSION,
                 rentAmount: 2500,
                 utilitiesAmount: 800,
@@ -454,6 +480,7 @@ describe("Monthly Reports - Rzeczywiste funkcje", () => {
             ];
 
             mockDb.monthlyReport.findUnique.mockResolvedValue(mockReport);
+            mockDb.apartment.findUnique.mockResolvedValue({ fixedPaymentAmount: null });
             mockDb.apartmentOwner.findUnique.mockResolvedValue(mockOwner);
             mockDb.$queryRaw
                 .mockResolvedValueOnce(mockItems)
@@ -523,6 +550,8 @@ describe("Monthly Reports - Rzeczywiste funkcje", () => {
         it("obsługuje raport z zerowymi wartościami", async () => {
             const mockReport = {
                 id: "zero-report",
+                apartmentId: 1,
+                status: ReportStatus.APPROVED,
                 finalSettlementType: SettlementType.COMMISSION,
                 rentAmount: 0,
                 utilitiesAmount: 0,
@@ -542,6 +571,7 @@ describe("Monthly Reports - Rzeczywiste funkcje", () => {
             const mockDeductions: Array<{ vatOption: string; total: number }> = [];
 
             mockDb.monthlyReport.findUnique.mockResolvedValue(mockReport);
+            mockDb.apartment.findUnique.mockResolvedValue({ fixedPaymentAmount: null });
             mockDb.apartmentOwner.findUnique.mockResolvedValue(mockOwner);
             mockDb.$queryRaw
                 .mockResolvedValueOnce(mockItems)
@@ -565,6 +595,8 @@ describe("Monthly Reports - Rzeczywiste funkcje", () => {
         it("obsługuje raport z bardzo dużymi wartościami", async () => {
             const mockReport = {
                 id: "large-report",
+                apartmentId: 1,
+                status: ReportStatus.APPROVED,
                 finalSettlementType: SettlementType.FIXED,
                 rentAmount: 0,
                 utilitiesAmount: 0,
@@ -587,6 +619,7 @@ describe("Monthly Reports - Rzeczywiste funkcje", () => {
             ];
 
             mockDb.monthlyReport.findUnique.mockResolvedValue(mockReport);
+            mockDb.apartment.findUnique.mockResolvedValue({ fixedPaymentAmount: 100000 });
             mockDb.apartmentOwner.findUnique.mockResolvedValue(mockOwner);
             mockDb.$queryRaw
                 .mockResolvedValueOnce(mockItems)

@@ -22,6 +22,12 @@ export const getReportStatusText = (status: ReportStatus): string => {
             return "Zatwierdzony";
         case ReportStatus.SENT:
             return "Wysłany";
+        case ReportStatus.DELETED:
+            return "Usunięty";
+        case ReportStatus.AGREEMENT_TERMINATION:
+            return "Rozwiązanie umowy (termin zakończenia)";
+        case ReportStatus.AGREEMENT_SETTLED:
+            return "Umowa zamknięta — rozliczono należności";
         default:
             return status;
     }
@@ -37,6 +43,12 @@ export const getReportStatusColor = (status: ReportStatus): string => {
             return "bg-green-100 text-green-800";
         case ReportStatus.SENT:
             return "bg-blue-100 text-blue-800";
+        case ReportStatus.DELETED:
+            return "bg-red-100 text-red-800";
+        case ReportStatus.AGREEMENT_TERMINATION:
+            return "bg-amber-100 text-amber-900";
+        case ReportStatus.AGREEMENT_SETTLED:
+            return "bg-slate-200 text-slate-900";
         default:
             return "bg-gray-100 text-gray-800";
     }

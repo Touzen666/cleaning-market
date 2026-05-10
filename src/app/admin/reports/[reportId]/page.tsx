@@ -6,7 +6,12 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { api } from "@/trpc/react";
 import type { RouterOutputs } from "@/trpc/react";
-import { VATOption, ReportStatus } from "@prisma/client";
+import {
+  VATOption,
+  ReportStatus,
+  TerminationCostSide,
+  TerminationOwnerPaymentKind,
+} from "@prisma/client";
 import { Modal } from "@/components/ui/Modal";
 import { getVatAmount, getGrossAmount } from "@/lib/vat";
 import { daysInCalendarMonth, getFixedPayoutProrateFactor } from "@/lib/report-fixed-prorate";
@@ -16,6 +21,14 @@ import {
   translateReportItemType,
   getReportItemTypeColor,
 } from "@/lib/status-translations";
+import {
+  canArchiveMonthlyReport,
+  isReportLockedForEditing,
+} from "@/lib/report-status";
+import {
+  terminationOwnerPaymentKindLabel,
+  terminationOwnerPaymentKindTaxNote,
+} from "@/lib/report-termination-costs";
 import Spinner from "@/app/_components/shared/Spinner";
 import {
   DndContext,
@@ -227,6 +240,64 @@ export default function ReportDetailsPage({
       },
     });
 
+  const [terminationCostForm, setTerminationCostForm] = useState<{
+    side: TerminationCostSide;
+    label: string;
+    amount: number;
+    countsTowardOwnerTaxBase: boolean;
+    ownerPaymentKind: TerminationOwnerPaymentKind | null;
+  }>({
+    side: TerminationCostSide.HOST_COMPANY,
+    label: "",
+    amount: 0,
+    countsTowardOwnerTaxBase: true,
+    ownerPaymentKind: null,
+  });
+
+  const [editingTerminationCost, setEditingTerminationCost] = useState<{
+    id: string;
+    side: TerminationCostSide;
+    label: string;
+    amount: number;
+    countsTowardOwnerTaxBase: boolean;
+    ownerPaymentKind: TerminationOwnerPaymentKind | null;
+  } | null>(null);
+
+  const addTerminationCostMutation =
+    api.monthlyReports.addReportTerminationCost.useMutation({
+      onSuccess: () => {
+        void reportQuery.refetch();
+        setTerminationCostForm({
+          side: TerminationCostSide.HOST_COMPANY,
+          label: "",
+          amount: 0,
+          countsTowardOwnerTaxBase: true,
+          ownerPaymentKind: null,
+        });
+        toast.success("Dodano pozycję rozliczenia.");
+      },
+      onError: (e) => toast.error(e.message),
+    });
+
+  const updateTerminationCostMutation =
+    api.monthlyReports.updateReportTerminationCost.useMutation({
+      onSuccess: () => {
+        void reportQuery.refetch();
+        setEditingTerminationCost(null);
+        toast.success("Zapisano pozycję.");
+      },
+      onError: (e) => toast.error(e.message),
+    });
+
+  const deleteTerminationCostMutation =
+    api.monthlyReports.deleteReportTerminationCost.useMutation({
+      onSuccess: () => {
+        void reportQuery.refetch();
+        toast.success("Usunięto pozycję.");
+      },
+      onError: (e) => toast.error(e.message),
+    });
+
   const deleteReportItemMutation = api.monthlyReports.deleteItem.useMutation({
     onSuccess: () => {
       toast.success("Pozycja została usunięta.");
@@ -409,6 +480,24 @@ export default function ReportDetailsPage({
   const isOwnApartment =
     finalReport?.apartment?.paymentType === "OWN_APARTMENT";
   const isHistorical = Boolean(!report && historicalReport);
+
+  type AdminReportTerminationCost = {
+    id: string;
+    side: TerminationCostSide;
+    label: string;
+    amount: number;
+    countsTowardOwnerTaxBase: boolean;
+    ownerPaymentKind: TerminationOwnerPaymentKind | null;
+    order: number;
+  };
+
+  const reportTerminationCosts: AdminReportTerminationCost[] = (() => {
+    if (!finalReport || isHistoricalReport(finalReport)) return [];
+    const r = finalReport as ReportDetails & {
+      terminationCosts?: AdminReportTerminationCost[];
+    };
+    return r.terminationCosts ?? [];
+  })();
 
   // Zaktualizuj useEffect gdy report się załaduje
   useEffect(() => {
@@ -1396,7 +1485,7 @@ export default function ReportDetailsPage({
                       "Delete button clicked, report status:",
                       finalReport.status,
                     );
-                    if (finalReport.status === ReportStatus.SENT) {
+                    if (canArchiveMonthlyReport(finalReport.status)) {
                       console.log("Opening archive delete modal");
                       setShowArchiveDeleteModal(true);
                     } else {
@@ -1754,7 +1843,8 @@ export default function ReportDetailsPage({
                 </span>
               </div>
               <div className="ml-5 w-0 flex-1">
-                {!isHistorical && finalReport.status !== ReportStatus.SENT && (
+                {!isHistorical &&
+                  !isReportLockedForEditing(finalReport.status) && (
                   <select
                     value={finalReport.status}
                     onChange={(e) =>
@@ -1766,11 +1856,527 @@ export default function ReportDetailsPage({
                     <option value="DRAFT">Szkic</option>
                     <option value="REVIEW">Do przeglądu</option>
                     <option value="APPROVED">Zatwierdzony</option>
+                    <option value="AGREEMENT_TERMINATION">
+                      Rozwiązanie umowy (termin zakończenia)
+                    </option>
                     <option value="SENT">Wysłany</option>
+                    <option value="AGREEMENT_SETTLED">
+                      Umowa zamknięta — rozliczono należności
+                    </option>
                   </select>
                 )}
               </div>
             </div>
+            {!isHistorical &&
+              finalReport.status === ReportStatus.AGREEMENT_TERMINATION && (
+                <p className="mt-3 border-t border-amber-100 pt-3 text-sm text-amber-950">
+                  Ten raport oznacza <strong>miesiąc rozwiązania umowy</strong> (termin
+                  zakończenia współpracy). Możesz go wysłać do właściciela tak jak raport
+                  zatwierdzony; dalsze zmiany statusu prowadzą do domknięcia rozliczenia.
+                </p>
+              )}
+            {!isHistorical &&
+              finalReport.status === ReportStatus.AGREEMENT_TERMINATION && (
+                <div className="mt-4 space-y-4 rounded-lg border border-amber-200 bg-amber-50/60 p-4">
+                  <h4 className="text-sm font-semibold text-amber-950">
+                    Dodatkowe pozycje rozliczenia należności (rozwiązanie umowy)
+                  </h4>
+                  <p className="text-xs leading-relaxed text-amber-900">
+                    <span className="font-medium">Koszty po stronie Złote Wynajmy</span>{" "}
+                    zwiększają wypłatę właściciela (i zmniejszają rozliczenie po stronie
+                    ZW).{" "}
+                    <span className="font-medium">Należności właściciela na rzecz Złote Wynajmy</span>{" "}
+                    pomniejszają wypłatę właściciela. Dla każdej takiej kwoty wybierz, czy to{" "}
+                    <strong>zwrot</strong>, czy <strong>przychód</strong> na rzecz ZW (czytelność
+                    przy podatku), oraz czy kwota wchodzi w podstawę opodatkowania właściciela
+                    (8,5%). Kwoty w każdej kolumnie są wypisane jedna pod drugą.
+                  </p>
+
+                  {editingTerminationCost && (
+                    <div className="rounded-md border border-amber-300 bg-white p-3 text-sm">
+                      <p className="mb-2 font-medium text-gray-900">Edycja pozycji</p>
+                      <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                        <label className="block">
+                          <span className="text-xs text-gray-600">Strona</span>
+                          <select
+                            className="mt-1 block w-full rounded-md border border-gray-300 text-sm"
+                            value={editingTerminationCost.side}
+                            onChange={(e) => {
+                              const side = e.target.value as TerminationCostSide;
+                              setEditingTerminationCost({
+                                ...editingTerminationCost,
+                                side,
+                                ownerPaymentKind:
+                                  side === TerminationCostSide.OWNER_SIDE
+                                    ? editingTerminationCost.ownerPaymentKind ??
+                                      TerminationOwnerPaymentKind.REVENUE
+                                    : null,
+                                countsTowardOwnerTaxBase:
+                                  side === TerminationCostSide.HOST_COMPANY
+                                    ? true
+                                    : editingTerminationCost.ownerPaymentKind ===
+                                        TerminationOwnerPaymentKind.REFUND
+                                      ? false
+                                      : true,
+                              });
+                            }}
+                          >
+                            <option value={TerminationCostSide.HOST_COMPANY}>
+                              Złote Wynajmy
+                            </option>
+                            <option value={TerminationCostSide.OWNER_SIDE}>
+                              Właściciel (należność na rzecz ZW)
+                            </option>
+                          </select>
+                        </label>
+                        {editingTerminationCost.side === TerminationCostSide.OWNER_SIDE && (
+                          <label className="block md:col-span-2">
+                            <span className="text-xs text-gray-600">
+                              Zwrot czy przychód na rzecz Złote Wynajmy
+                            </span>
+                            <select
+                              className="mt-1 block w-full rounded-md border border-gray-300 text-sm"
+                              value={editingTerminationCost.ownerPaymentKind ?? ""}
+                              onChange={(e) => {
+                                const v = e.target
+                                  .value as TerminationOwnerPaymentKind;
+                                setEditingTerminationCost({
+                                  ...editingTerminationCost,
+                                  ownerPaymentKind: v,
+                                  countsTowardOwnerTaxBase:
+                                    v === TerminationOwnerPaymentKind.REFUND
+                                      ? false
+                                      : true,
+                                });
+                              }}
+                            >
+                              <option value="" disabled>
+                                Wybierz…
+                              </option>
+                              <option value={TerminationOwnerPaymentKind.REFUND}>
+                                Zwrot
+                              </option>
+                              <option value={TerminationOwnerPaymentKind.REVENUE}>
+                                Przychód
+                              </option>
+                            </select>
+                            <p className="mt-1 text-xs text-gray-600">
+                              {terminationOwnerPaymentKindTaxNote(
+                                editingTerminationCost.ownerPaymentKind,
+                              )}
+                            </p>
+                          </label>
+                        )}
+                        <label className="block">
+                          <span className="text-xs text-gray-600">Opis</span>
+                          <input
+                            type="text"
+                            className="mt-1 block w-full rounded-md border border-gray-300 text-sm"
+                            value={editingTerminationCost.label}
+                            onChange={(e) =>
+                              setEditingTerminationCost({
+                                ...editingTerminationCost,
+                                label: e.target.value,
+                              })
+                            }
+                          />
+                        </label>
+                        <label className="block">
+                          <span className="text-xs text-gray-600">Kwota (PLN)</span>
+                          <input
+                            type="number"
+                            min={0.01}
+                            step={0.01}
+                            className="mt-1 block w-full rounded-md border border-gray-300 text-sm"
+                            value={editingTerminationCost.amount || ""}
+                            onChange={(e) =>
+                              setEditingTerminationCost({
+                                ...editingTerminationCost,
+                                amount: Number(e.target.value),
+                              })
+                            }
+                          />
+                        </label>
+                        <label className="mt-6 flex items-center gap-2 text-sm text-gray-800">
+                          <input
+                            type="checkbox"
+                            checked={editingTerminationCost.countsTowardOwnerTaxBase}
+                            onChange={(e) =>
+                              setEditingTerminationCost({
+                                ...editingTerminationCost,
+                                countsTowardOwnerTaxBase: e.target.checked,
+                              })
+                            }
+                          />
+                          Wchodzi w podstawę opodatkowania właściciela
+                        </label>
+                      </div>
+                      <div className="mt-3 flex gap-2">
+                        <button
+                          type="button"
+                          className="rounded-md bg-amber-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-amber-800 disabled:opacity-50"
+                          disabled={updateTerminationCostMutation.isPending}
+                          onClick={() => {
+                            if (
+                              !editingTerminationCost.label.trim() ||
+                              editingTerminationCost.amount <= 0
+                            ) {
+                              toast.error("Uzupełnij opis i dodatnią kwotę.");
+                              return;
+                            }
+                            if (
+                              editingTerminationCost.side ===
+                                TerminationCostSide.OWNER_SIDE &&
+                              !editingTerminationCost.ownerPaymentKind
+                            ) {
+                              toast.error("Wybierz zwrot lub przychód.");
+                              return;
+                            }
+                            updateTerminationCostMutation.mutate({
+                              id: editingTerminationCost.id,
+                              side: editingTerminationCost.side,
+                              label: editingTerminationCost.label.trim(),
+                              amount: editingTerminationCost.amount,
+                              countsTowardOwnerTaxBase:
+                                editingTerminationCost.countsTowardOwnerTaxBase,
+                              ownerPaymentKind:
+                                editingTerminationCost.side ===
+                                TerminationCostSide.OWNER_SIDE
+                                  ? editingTerminationCost.ownerPaymentKind
+                                  : null,
+                            });
+                          }}
+                        >
+                          Zapisz
+                        </button>
+                        <button
+                          type="button"
+                          className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
+                          onClick={() => setEditingTerminationCost(null)}
+                        >
+                          Anuluj
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div className="rounded-md border border-emerald-200 bg-white p-3">
+                      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-emerald-800">
+                        Koszty po stronie Złote Wynajmy
+                      </p>
+                      <ul className="space-y-3 text-sm">
+                        {reportTerminationCosts
+                          .filter((c) => c.side === TerminationCostSide.HOST_COMPANY)
+                          .map((c) => (
+                            <li
+                              key={c.id}
+                              className="flex flex-col gap-2 rounded border border-emerald-100 bg-emerald-50/40 p-3"
+                            >
+                              <div className="flex flex-col gap-1">
+                                <span className="font-medium text-gray-900">
+                                  {c.label}
+                                </span>
+                                <span className="text-base font-semibold text-emerald-900">
+                                  +{Number(c.amount).toFixed(2)} PLN
+                                </span>
+                                <div className="text-xs text-gray-600">
+                                  Podstawa opodatkowania właściciela:{" "}
+                                  {c.countsTowardOwnerTaxBase ? "tak" : "nie"}
+                                </div>
+                              </div>
+                              {!isReportLockedForEditing(finalReport.status) && (
+                                <div className="flex gap-2 border-t border-emerald-200/60 pt-2">
+                                  <button
+                                    type="button"
+                                    className="text-xs font-medium text-amber-800 hover:underline"
+                                    onClick={() =>
+                                      setEditingTerminationCost({
+                                        id: c.id,
+                                        side: c.side,
+                                        label: c.label,
+                                        amount: c.amount,
+                                        countsTowardOwnerTaxBase:
+                                          c.countsTowardOwnerTaxBase,
+                                        ownerPaymentKind: null,
+                                      })
+                                    }
+                                  >
+                                    Edytuj
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="text-xs font-medium text-red-700 hover:underline"
+                                    disabled={deleteTerminationCostMutation.isPending}
+                                    onClick={() =>
+                                      deleteTerminationCostMutation.mutate({
+                                        id: c.id,
+                                      })
+                                    }
+                                  >
+                                    Usuń
+                                  </button>
+                                </div>
+                              )}
+                            </li>
+                          ))}
+                        {reportTerminationCosts.filter(
+                          (c) => c.side === TerminationCostSide.HOST_COMPANY,
+                        ).length === 0 && (
+                          <li className="text-xs text-gray-500">Brak pozycji</li>
+                        )}
+                      </ul>
+                    </div>
+                    <div className="rounded-md border border-slate-200 bg-white p-3">
+                      <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-800">
+                        Należności właściciela na rzecz Złote Wynajmy
+                      </p>
+                      <p className="mb-2 text-xs text-slate-600">
+                        Kwoty należne ZW — oznacz zwrot lub przychód oraz wpływ na podatek.
+                      </p>
+                      <ul className="space-y-3 text-sm">
+                        {reportTerminationCosts
+                          .filter((c) => c.side === TerminationCostSide.OWNER_SIDE)
+                          .map((c) => (
+                            <li
+                              key={c.id}
+                              className="flex flex-col gap-2 rounded border border-slate-100 bg-slate-50 p-3"
+                            >
+                              <div className="flex flex-col gap-1">
+                                <span className="font-medium text-gray-900">
+                                  {c.label}
+                                </span>
+                                <span className="text-base font-semibold text-slate-900">
+                                  −{Number(c.amount).toFixed(2)} PLN
+                                </span>
+                                <span className="text-xs text-slate-600">
+                                  (pomniejsza wypłatę właściciela)
+                                </span>
+                                <span className="inline-flex w-fit rounded-full bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-800">
+                                  {terminationOwnerPaymentKindLabel(
+                                    c.ownerPaymentKind,
+                                  )}
+                                </span>
+                                <p className="text-xs text-gray-600">
+                                  {terminationOwnerPaymentKindTaxNote(
+                                    c.ownerPaymentKind,
+                                  )}
+                                </p>
+                                <div className="text-xs text-gray-600">
+                                  W podstawie opodatkowania właściciela:{" "}
+                                  {c.countsTowardOwnerTaxBase ? "tak" : "nie"}
+                                </div>
+                              </div>
+                              {!isReportLockedForEditing(finalReport.status) && (
+                                <div className="flex gap-2 border-t border-slate-200 pt-2">
+                                  <button
+                                    type="button"
+                                    className="text-xs font-medium text-amber-800 hover:underline"
+                                    onClick={() =>
+                                      setEditingTerminationCost({
+                                        id: c.id,
+                                        side: c.side,
+                                        label: c.label,
+                                        amount: c.amount,
+                                        countsTowardOwnerTaxBase:
+                                          c.countsTowardOwnerTaxBase,
+                                        ownerPaymentKind:
+                                          c.ownerPaymentKind ??
+                                          TerminationOwnerPaymentKind.REVENUE,
+                                      })
+                                    }
+                                  >
+                                    Edytuj
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="text-xs font-medium text-red-700 hover:underline"
+                                    disabled={deleteTerminationCostMutation.isPending}
+                                    onClick={() =>
+                                      deleteTerminationCostMutation.mutate({
+                                        id: c.id,
+                                      })
+                                    }
+                                  >
+                                    Usuń
+                                  </button>
+                                </div>
+                              )}
+                            </li>
+                          ))}
+                        {reportTerminationCosts.filter(
+                          (c) => c.side === TerminationCostSide.OWNER_SIDE,
+                        ).length === 0 && (
+                          <li className="text-xs text-gray-500">Brak pozycji</li>
+                        )}
+                      </ul>
+                    </div>
+                  </div>
+
+                  {!isReportLockedForEditing(finalReport.status) && (
+                    <div className="rounded-md border border-dashed border-amber-300 bg-white p-3 text-sm">
+                      <p className="mb-2 font-medium text-gray-900">Dodaj pozycję</p>
+                      <div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-4">
+                        <label className="block">
+                          <span className="text-xs text-gray-600">Strona</span>
+                          <select
+                            className="mt-1 block w-full rounded-md border border-gray-300 text-sm"
+                            value={terminationCostForm.side}
+                            onChange={(e) => {
+                              const side = e.target.value as TerminationCostSide;
+                              setTerminationCostForm({
+                                ...terminationCostForm,
+                                side,
+                                ownerPaymentKind:
+                                  side === TerminationCostSide.OWNER_SIDE
+                                    ? TerminationOwnerPaymentKind.REVENUE
+                                    : null,
+                                countsTowardOwnerTaxBase:
+                                  side === TerminationCostSide.HOST_COMPANY
+                                    ? true
+                                    : true,
+                              });
+                            }}
+                          >
+                            <option value={TerminationCostSide.HOST_COMPANY}>
+                              Złote Wynajmy
+                            </option>
+                            <option value={TerminationCostSide.OWNER_SIDE}>
+                              Właściciel (należność na rzecz ZW)
+                            </option>
+                          </select>
+                        </label>
+                        {terminationCostForm.side === TerminationCostSide.OWNER_SIDE && (
+                          <label className="block md:col-span-2">
+                            <span className="text-xs text-gray-600">
+                              Zwrot czy przychód na rzecz Złote Wynajmy
+                            </span>
+                            <select
+                              className="mt-1 block w-full rounded-md border border-gray-300 text-sm"
+                              value={terminationCostForm.ownerPaymentKind ?? ""}
+                              onChange={(e) => {
+                                const v = e.target
+                                  .value as TerminationOwnerPaymentKind;
+                                setTerminationCostForm({
+                                  ...terminationCostForm,
+                                  ownerPaymentKind: v,
+                                  countsTowardOwnerTaxBase:
+                                    v === TerminationOwnerPaymentKind.REFUND
+                                      ? false
+                                      : true,
+                                });
+                              }}
+                            >
+                              <option value="" disabled>
+                                Wybierz…
+                              </option>
+                              <option value={TerminationOwnerPaymentKind.REFUND}>
+                                Zwrot
+                              </option>
+                              <option value={TerminationOwnerPaymentKind.REVENUE}>
+                                Przychód
+                              </option>
+                            </select>
+                            <p className="mt-1 text-xs text-gray-600">
+                              {terminationOwnerPaymentKindTaxNote(
+                                terminationCostForm.ownerPaymentKind,
+                              )}
+                            </p>
+                          </label>
+                        )}
+                        <label className="block md:col-span-2">
+                          <span className="text-xs text-gray-600">Opis</span>
+                          <input
+                            type="text"
+                            className="mt-1 block w-full rounded-md border border-gray-300 text-sm"
+                            value={terminationCostForm.label}
+                            onChange={(e) =>
+                              setTerminationCostForm({
+                                ...terminationCostForm,
+                                label: e.target.value,
+                              })
+                            }
+                            placeholder="np. Zwrot mediów, opłata..."
+                          />
+                        </label>
+                        <label className="block">
+                          <span className="text-xs text-gray-600">Kwota (PLN)</span>
+                          <input
+                            type="number"
+                            min={0.01}
+                            step={0.01}
+                            className="mt-1 block w-full rounded-md border border-gray-300 text-sm"
+                            value={terminationCostForm.amount || ""}
+                            onChange={(e) =>
+                              setTerminationCostForm({
+                                ...terminationCostForm,
+                                amount: Number(e.target.value),
+                              })
+                            }
+                          />
+                        </label>
+                        <label className="flex items-center gap-2 text-sm text-gray-800 lg:col-span-2">
+                          <input
+                            type="checkbox"
+                            checked={terminationCostForm.countsTowardOwnerTaxBase}
+                            onChange={(e) =>
+                              setTerminationCostForm({
+                                ...terminationCostForm,
+                                countsTowardOwnerTaxBase: e.target.checked,
+                              })
+                            }
+                          />
+                          Wchodzi w podstawę opodatkowania właściciela
+                        </label>
+                      </div>
+                      <button
+                        type="button"
+                        className="mt-3 rounded-md bg-amber-700 px-4 py-2 text-sm font-medium text-white hover:bg-amber-800 disabled:opacity-50"
+                        disabled={addTerminationCostMutation.isPending}
+                        onClick={() => {
+                          if (
+                            !terminationCostForm.label.trim() ||
+                            terminationCostForm.amount <= 0
+                          ) {
+                            toast.error("Podaj opis i dodatnią kwotę.");
+                            return;
+                          }
+                          if (
+                            terminationCostForm.side ===
+                              TerminationCostSide.OWNER_SIDE &&
+                            !terminationCostForm.ownerPaymentKind
+                          ) {
+                            toast.error("Wybierz zwrot lub przychód.");
+                            return;
+                          }
+                          addTerminationCostMutation.mutate({
+                            reportId: finalReport.id,
+                            side: terminationCostForm.side,
+                            label: terminationCostForm.label.trim(),
+                            amount: terminationCostForm.amount,
+                            countsTowardOwnerTaxBase:
+                              terminationCostForm.countsTowardOwnerTaxBase,
+                            ownerPaymentKind:
+                              terminationCostForm.side ===
+                              TerminationCostSide.OWNER_SIDE
+                                ? terminationCostForm.ownerPaymentKind
+                                : null,
+                          });
+                        }}
+                      >
+                        Dodaj pozycję
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            {!isHistorical &&
+              finalReport.status === ReportStatus.AGREEMENT_SETTLED && (
+                <p className="mt-3 border-t border-slate-200 pt-3 text-sm text-slate-800">
+                  <strong>Umowa zamknięta</strong> — należności uznane za rozliczone. Raport
+                  jest zablokowany do edycji (jak po wysłaniu).
+                </p>
+              )}
           </div>
         </div>
 
@@ -2002,7 +2608,7 @@ export default function ReportDetailsPage({
         </div>
 
         {/* Quick Expense Entry */}
-        {!isHistorical && finalReport.status !== ReportStatus.SENT && (
+        {!isHistorical && !isReportLockedForEditing(finalReport.status) && (
           <div className="mb-8 overflow-hidden rounded-lg bg-green-50 shadow">
             <div className="px-6 py-4">
               <h3 className="flex items-center text-lg font-medium text-green-900">
@@ -2164,7 +2770,12 @@ export default function ReportDetailsPage({
                               .net <= 0 ||
                             isHistorical ||
                             (!isHistoricalReport(finalReport) &&
-                              finalReport?.status === ReportStatus.SENT)
+                              Boolean(
+                                finalReport &&
+                                  isReportLockedForEditing(
+                                    finalReport.status,
+                                  ),
+                              ))
                           }
                           className="inline-flex w-full items-center justify-center rounded-md bg-green-600 px-3 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50 hover:bg-green-700"
                         >
@@ -2526,7 +3137,7 @@ export default function ReportDetailsPage({
                           </td>
                           <td className="whitespace-nowrap px-6 py-4 text-right text-sm">
                             {!isHistorical &&
-                              finalReport.status !== ReportStatus.SENT && (
+                              !isReportLockedForEditing(finalReport.status) && (
                                 <div className="flex justify-end gap-2">
                                   <button
                                     onClick={async () => {
@@ -2597,7 +3208,7 @@ export default function ReportDetailsPage({
         {suggestedCommissionsQuery.data?.suggestions &&
           suggestedCommissionsQuery.data.suggestions.length > 0 &&
           !isHistorical &&
-          finalReport.status !== ReportStatus.SENT && (
+          !isReportLockedForEditing(finalReport.status) && (
             <SuggestedCommissionsSection
               suggestions={suggestedCommissionsQuery.data.suggestions}
               onAddCommission={handleAddSuggestedCommission}
@@ -2611,7 +3222,7 @@ export default function ReportDetailsPage({
             <h3 className="text-lg font-medium text-gray-900">
               Wydatki i Prowizje ({expenseItems.length})
             </h3>
-            {!isHistorical && finalReport.status !== ReportStatus.SENT && (
+            {!isHistorical && !isReportLockedForEditing(finalReport.status) && (
               <div className="flex gap-2">
                 {/* Przycisk dodawania/aktualizacji kosztów sprzątania */}
                 {
@@ -2789,7 +3400,10 @@ export default function ReportDetailsPage({
                   onClick={() => setShowAddItemForm(true)}
                   disabled={
                     isHistorical ||
-                    (finalReport?.status as ReportStatus) === ReportStatus.SENT
+                    Boolean(
+                      finalReport &&
+                        isReportLockedForEditing(finalReport.status),
+                    )
                   }
                   className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 hover:bg-indigo-700"
                 >
@@ -2915,7 +3529,10 @@ export default function ReportDetailsPage({
                                 onClick={() => handleDeleteItem(item.id)}
                                 disabled={Boolean(
                                   isHistorical ||
-                                    finalReport?.status === "SENT" ||
+                                    (finalReport &&
+                                      isReportLockedForEditing(
+                                        finalReport.status,
+                                      )) ||
                                     deleteReportItemMutation.isPending,
                                 )}
                                 className="text-red-600 disabled:cursor-not-allowed disabled:text-gray-400 hover:text-red-900"
@@ -2947,7 +3564,9 @@ export default function ReportDetailsPage({
         </div>
 
         {/* Rent and Utilities Section */}
-        {!isHistorical && finalReport?.status !== ReportStatus.SENT && (
+        {!isHistorical &&
+          finalReport &&
+          !isReportLockedForEditing(finalReport.status) && (
           <div className="mb-8 overflow-hidden rounded-lg bg-yellow-50 shadow">
             <div className="border-b border-yellow-200 px-6 py-4">
               <h3 className="flex items-center text-lg font-medium text-yellow-900">
@@ -3082,7 +3701,7 @@ export default function ReportDetailsPage({
         )}
 
         {/* Additional Deductions Section */}
-        {!isHistorical && finalReport.status !== ReportStatus.SENT && (
+        {!isHistorical && !isReportLockedForEditing(finalReport.status) && (
           <div className="mb-8 overflow-hidden rounded-lg bg-purple-50 shadow">
             <div className="border-b border-purple-200 px-6 py-4">
               <h3 className="flex items-center text-lg font-medium text-purple-900">
@@ -4342,7 +4961,7 @@ function OwnerPayoutCalculation({
   // Sprawdź czy właściciel jest zwolniony z VAT
   const isVatExempt = report.owner.vatOption === VATOption.NO_VAT;
   const isOwnApartment = report.apartment.paymentType === "OWN_APARTMENT";
-  const isReportSent = report.status === ReportStatus.SENT;
+  const isReportReadOnly = isReportLockedForEditing(report.status);
   const [deductRentAndUtilities] = React.useState(true);
   const [isRefreshing, setIsRefreshing] = React.useState(false);
   const [finalPayoutType, setFinalPayoutType] = React.useState<LocalPayoutType>(
@@ -4840,7 +5459,7 @@ function OwnerPayoutCalculation({
       <div className="mb-4">
         <button
           onClick={handleRefresh}
-          disabled={isRefreshing || isReportSent}
+          disabled={isRefreshing || isReportReadOnly}
           className="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 hover:bg-blue-700"
         >
           {isRefreshing ? (
@@ -4911,10 +5530,10 @@ function OwnerPayoutCalculation({
         handleFinalPayoutTypeChange={handleFinalPayoutTypeChange}
         isSelected={finalPayoutType === LocalPayoutType.COMMISSION}
         color="blue"
-        isDisabled={isReportSent || customEnabled}
+        isDisabled={isReportReadOnly || customEnabled}
         disabledTitle={
-          isReportSent
-            ? "Raport został wysłany i nie można go edytować. Jedynym rozwiązaniem jest usunięcie raportu."
+          isReportReadOnly
+            ? "Raport jest tylko do odczytu (wysłany lub umowa zamknięta). Aby zmienić rozliczenie, zmień status raportu."
             : customEnabled
               ? 'Opcje rozliczenia są zablokowane, ponieważ używasz niestandardowych wartości. Aby wrócić do standardowego sposobu liczenia, odznacz "Użyj niestandardowych wartości w podsumowaniu" i zapisz.'
               : undefined
@@ -4983,7 +5602,7 @@ function OwnerPayoutCalculation({
               type="checkbox"
               className="h-4 w-4 rounded border-green-600 text-green-700 focus:ring-green-600"
               checked={prorateEnabled}
-              disabled={isReportSent || customEnabled}
+              disabled={isReportReadOnly || customEnabled}
               onChange={(e) => setProrateEnabled(e.target.checked)}
             />
             Podziel wypłatę proporcjonalnie do liczby dni w miesiącu raportu
@@ -5000,7 +5619,7 @@ function OwnerPayoutCalculation({
                   max={dimDaysMonth}
                   className="w-28 rounded border border-green-300 px-2 py-1 text-green-900 disabled:opacity-50"
                   value={prorateActiveDays}
-                  disabled={isReportSent || customEnabled}
+                  disabled={isReportReadOnly || customEnabled}
                   onChange={(e) => {
                     const n = parseInt(e.target.value, 10);
                     if (!Number.isFinite(n)) return;
@@ -5012,7 +5631,7 @@ function OwnerPayoutCalculation({
                 type="button"
                 className="rounded-md bg-green-700 px-4 py-2 text-sm font-medium text-white hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-50"
                 disabled={
-                  isReportSent ||
+                  isReportReadOnly ||
                   customEnabled ||
                   updateFixedPayoutProrateMutation.isPending
                 }
@@ -5043,10 +5662,10 @@ function OwnerPayoutCalculation({
         handleFinalPayoutTypeChange={handleFinalPayoutTypeChange}
         isSelected={finalPayoutType === LocalPayoutType.FIXED_AMOUNT}
         color="green"
-        isDisabled={isReportSent || customEnabled}
+        isDisabled={isReportReadOnly || customEnabled}
         disabledTitle={
-          isReportSent
-            ? "Raport został wysłany i nie można go edytować. Jedynym rozwiązaniem jest usunięcie raportu."
+          isReportReadOnly
+            ? "Raport jest tylko do odczytu (wysłany lub umowa zamknięta). Aby zmienić rozliczenie, zmień status raportu."
             : customEnabled
               ? 'Opcje rozliczenia są zablokowane, ponieważ używasz niestandardowych wartości. Aby wrócić do standardowego sposobu liczenia, odznacz "Użyj niestandardowych wartości w podsumowaniu" i zapisz.'
               : undefined
@@ -5110,10 +5729,10 @@ function OwnerPayoutCalculation({
           finalPayoutType === LocalPayoutType.FIXED_AMOUNT_MINUS_UTILITIES
         }
         color="green"
-        isDisabled={isReportSent || customEnabled}
+        isDisabled={isReportReadOnly || customEnabled}
         disabledTitle={
-          isReportSent
-            ? "Raport został wysłany i nie można go edytować. Jedynym rozwiązaniem jest usunięcie raportu."
+          isReportReadOnly
+            ? "Raport jest tylko do odczytu (wysłany lub umowa zamknięta). Aby zmienić rozliczenie, zmień status raportu."
             : customEnabled
               ? 'Opcje rozliczenia są zablokowane, ponieważ używasz niestandardowych wartości. Aby wrócić do standardowego sposobu liczenia, odznacz "Użyj niestandardowych wartości w podsumowaniu" i zapisz.'
               : undefined

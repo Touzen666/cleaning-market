@@ -17,6 +17,7 @@ import {
   translateReportStatus,
   getReportStatusColor,
 } from "@/lib/status-translations";
+import { isReportLockedForEditing } from "@/lib/report-status";
 import type { RouterOutputs } from "@/trpc/react";
 
 const REPORT_FILTERS_STORAGE_KEY = "admin-reports-filters";
@@ -48,6 +49,9 @@ export default function AdminReportsPage() {
         ReportStatusEnum.REVIEW,
         ReportStatusEnum.APPROVED,
         ReportStatusEnum.SENT,
+        ReportStatusEnum.DELETED,
+        ReportStatusEnum.AGREEMENT_TERMINATION,
+        ReportStatusEnum.AGREEMENT_SETTLED,
       ]);
 
       const nextStatus = parsedFilters.selectedStatus ?? "";
@@ -332,6 +336,13 @@ export default function AdminReportsPage() {
                 <option value="REVIEW">Do przeglądu</option>
                 <option value="APPROVED">Zatwierdzony</option>
                 <option value="SENT">Wysłany</option>
+                <option value="AGREEMENT_TERMINATION">
+                  Rozwiązanie umowy (termin zakończenia)
+                </option>
+                <option value="AGREEMENT_SETTLED">
+                  Umowa zamknięta — rozliczono należności
+                </option>
+                <option value="DELETED">Usunięty</option>
               </select>
             </div>
             <div>
@@ -369,7 +380,7 @@ export default function AdminReportsPage() {
         </div>
 
         {/* Stats */}
-        <div className="mb-8 grid grid-cols-1 gap-5 sm:grid-cols-4">
+        <div className="mb-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
           <div className="overflow-hidden rounded-lg bg-white shadow">
             <div className="p-5">
               <div className="flex items-center">
@@ -519,6 +530,84 @@ export default function AdminReportsPage() {
                       {
                         reports.filter(
                           (r) => r.status === ReportStatusEnum.SENT,
+                        ).length
+                      }
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="overflow-hidden rounded-lg bg-white shadow">
+            <div className="p-5">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <div className="rounded-lg bg-amber-500 p-2">
+                    <svg
+                      className="h-6 w-6 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                      />
+                    </svg>
+                  </div>
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt className="truncate text-sm font-medium text-gray-500">
+                      Rozwiązanie umowy
+                    </dt>
+                    <dd className="text-lg font-medium text-gray-900">
+                      {
+                        reports.filter(
+                          (r) =>
+                            r.status === ReportStatusEnum.AGREEMENT_TERMINATION,
+                        ).length
+                      }
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="overflow-hidden rounded-lg bg-white shadow">
+            <div className="p-5">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <div className="rounded-lg bg-slate-500 p-2">
+                    <svg
+                      className="h-6 w-6 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                      />
+                    </svg>
+                  </div>
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt className="truncate text-sm font-medium text-gray-500">
+                      Umowa zamknięta
+                    </dt>
+                    <dd className="text-lg font-medium text-gray-900">
+                      {
+                        reports.filter(
+                          (r) =>
+                            r.status === ReportStatusEnum.AGREEMENT_SETTLED,
                         ).length
                       }
                     </dd>
@@ -726,7 +815,9 @@ export default function AdminReportsPage() {
                                 </button>
                               )}
                             {!report.isHistorical &&
-                              report.status === "APPROVED" && (
+                              (report.status === "APPROVED" ||
+                                report.status ===
+                                  "AGREEMENT_TERMINATION") && (
                                 <button
                                   onClick={() =>
                                     sendReportMutation.mutate({
@@ -744,7 +835,9 @@ export default function AdminReportsPage() {
                               )}
                             {!report.isHistorical &&
                               !report.finalSettlementType &&
-                              report.status !== "SENT" && (
+                              !isReportLockedForEditing(
+                                report.status as ReportStatus,
+                              ) && (
                                 <div
                                   className="group relative"
                                   title="Przejdź do szczegółów raportu, aby wybrać ostateczny sposób rozliczenia. Jest to wymagane, aby zatwierdzić lub wysłać raport."

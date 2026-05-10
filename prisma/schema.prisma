@@ -336,6 +336,34 @@ model AdditionalDeduction {
   @@index([reportId, order])
 }
 
+enum TerminationCostSide {
+  HOST_COMPANY
+  OWNER_SIDE
+}
+
+/// Należność właściciela na rzecz ZW: zwrot vs przychód (czytelność przy podatku).
+enum TerminationOwnerPaymentKind {
+  REFUND
+  REVENUE
+}
+
+model ReportTerminationCost {
+  id                       String                        @id @default(uuid())
+  createdAt                DateTime                      @default(now())
+  updatedAt                DateTime                      @updatedAt
+  reportId                 String
+  side                     TerminationCostSide
+  label                    String
+  amount                   Float
+  countsTowardOwnerTaxBase Boolean                       @default(true)
+  /// Tylko dla side = OWNER_SIDE; dla HOST_COMPANY zawsze null.
+  ownerPaymentKind         TerminationOwnerPaymentKind?
+  order                    Int                           @default(0)
+  report                   MonthlyReport                 @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  @@index([reportId, order])
+}
+
 model MonthlyReport {
   id                        String          @id @default(uuid())
   createdAt                 DateTime        @default(now())
@@ -388,6 +416,7 @@ model MonthlyReport {
   apartmentId          Int
   roomId               Int?
   additionalDeductions AdditionalDeduction[]
+  terminationCosts     ReportTerminationCost[]
   apartment            Apartment             @relation(fields: [apartmentId], references: [id])
   room                 Room?                 @relation(fields: [roomId], references: [id])
   approvedByAdmin      User?                 @relation("AdminApprovedReports", fields: [approvedByAdminId], references: [id])
@@ -581,6 +610,10 @@ enum ReportStatus {
   APPROVED
   SENT
   DELETED
+  /// Miesiąc rozwiązania umowy — raport oznacza termin zakończenia współpracy
+  AGREEMENT_TERMINATION
+  /// Umowa zamknięta; należności rozliczone (raport tylko do odczytu)
+  AGREEMENT_SETTLED
 }
 
 enum SettlementType {

@@ -1,5 +1,6 @@
-import { type PrismaClient } from "@prisma/client";
+import { type PrismaClient, ReportStatus } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
+import { summarizeTerminationCosts } from "@/lib/report-termination-costs";
 
 type RecalculateContext = {
     db: PrismaClient;
@@ -17,6 +18,7 @@ type RecalculationResult = {
     finalHostPayout: number;
     finalIncomeTax: number;
     finalVatAmount: number;
+    taxBase: number;
 };
 
 export async function recalculateReportSettlement(reportId: string, ctx: RecalculateContext): Promise<RecalculationResult> {
@@ -25,11 +27,12 @@ export async function recalculateReportSettlement(reportId: string, ctx: Recalcu
 
     try {
         // Zoptymalizowane zapytanie - pobieramy tylko potrzebne dane
-        const [report, items, additionalDeductions] = await Promise.all([
+        const [report, items, additionalDeductions, terminationCosts] = await Promise.all([
             ctx.db.monthlyReport.findUnique({
                 where: { id: reportId },
                 select: {
                     id: true,
+                    status: true,
                     finalSettlementType: true,
                     rentAmount: true,
                     utilitiesAmount: true,
@@ -54,6 +57,10 @@ export async function recalculateReportSettlement(reportId: string, ctx: Recalcu
                 WHERE "reportId" = ${reportId}
                 GROUP BY "vatOption"
             `,
+            ctx.db.reportTerminationCost.findMany({
+                where: { reportId },
+                orderBy: { order: "asc" },
+            }),
         ]);
 
         if (!report) {
@@ -108,6 +115,7 @@ export async function recalculateReportSettlement(reportId: string, ctx: Recalcu
         let finalHostPayout = 0;
         let finalIncomeTax = 0;
         let finalVatAmount = 0;
+        let taxBase = 0;
 
         if (report.finalSettlementType) {
             let baseAmount = 0;
@@ -143,8 +151,29 @@ export async function recalculateReportSettlement(reportId: string, ctx: Recalcu
                 finalHostPayout = Math.max(0, netIncome - fixedAmount);
             }
 
-            finalIncomeTax = Math.max(0, finalOwnerPayout) * 0.085;
-            console.log(`[TAX] Raport ${reportId}: podatek od wypłaty właściciela: settlementType=${settlementType}, finalOwnerPayout=${finalOwnerPayout}, finalIncomeTax=${finalIncomeTax}`);
+            let terminationAdj: ReturnType<typeof summarizeTerminationCosts> | null = null;
+            if (
+                report.status === ReportStatus.AGREEMENT_TERMINATION &&
+                terminationCosts.length > 0
+            ) {
+                terminationAdj = summarizeTerminationCosts(terminationCosts);
+                const preOwner = finalOwnerPayout;
+                const preHost = finalHostPayout;
+                finalOwnerPayout = Math.max(0, preOwner + terminationAdj.payoutAdj);
+                finalHostPayout = Math.max(
+                    0,
+                    preHost - terminationAdj.zwTotal + terminationAdj.ownerSideTotal,
+                );
+            }
+
+            taxBase = terminationAdj
+                ? Math.max(
+                      0,
+                      finalOwnerPayout - terminationAdj.payoutAdj + terminationAdj.taxBaseAdj,
+                  )
+                : Math.max(0, finalOwnerPayout);
+            finalIncomeTax = Math.max(0, taxBase) * 0.085;
+            console.log(`[TAX] Raport ${reportId}: settlementType=${settlementType}, finalOwnerPayout=${finalOwnerPayout}, taxBase=${taxBase}, finalIncomeTax=${finalIncomeTax}`);
         }
 
         const updateData = {
@@ -159,6 +188,7 @@ export async function recalculateReportSettlement(reportId: string, ctx: Recalcu
             finalHostPayout,
             finalIncomeTax,
             finalVatAmount,
+            taxBase,
         };
 
         const duration = Date.now() - startTime;

@@ -9,6 +9,8 @@ export const REPORT_STATUS_TRANSLATIONS: Record<ReportStatus, string> = {
     APPROVED: "Zatwierdzony",
     SENT: "Wysłany",
     DELETED: "Usunięty",
+    AGREEMENT_TERMINATION: "Rozwiązanie umowy (termin zakończenia)",
+    AGREEMENT_SETTLED: "Umowa zamknięta — rozliczono należności",
 };
 
 /**
@@ -57,6 +59,10 @@ export function getReportStatusColor(status: ReportStatus): string {
             return "bg-blue-100 text-blue-800";
         case "DELETED":
             return "bg-red-100 text-red-800";
+        case "AGREEMENT_TERMINATION":
+            return "bg-amber-100 text-amber-900";
+        case "AGREEMENT_SETTLED":
+            return "bg-slate-200 text-slate-900";
         default:
             return "bg-gray-100 text-gray-800";
     }

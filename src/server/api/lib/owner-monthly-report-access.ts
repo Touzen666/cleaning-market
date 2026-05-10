@@ -1,5 +1,5 @@
 import type { Prisma } from "@prisma/client";
-import { ReportStatus } from "@prisma/client";
+import { OWNER_VISIBLE_REPORT_STATUSES } from "@/lib/report-status";
 
 /**
  * Właściciel widzi raport finansowy, gdy jest zapisany jako `ownerId` na raporcie
@@ -34,7 +34,7 @@ export function ownerMonthlyReportApprovedOrSentWhere(
     ownerId: string,
 ): Prisma.MonthlyReportWhereInput {
     return {
-        status: { in: [ReportStatus.APPROVED, ReportStatus.SENT] },
+        status: { in: [...OWNER_VISIBLE_REPORT_STATUSES] },
         ...ownerHasReportFinancialAccess(ownerId),
     };
 }
