@@ -5,8 +5,8 @@ import { env } from "@/env";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-// Increase Vercel function time limit to avoid 15s timeout during full sync
-export const maxDuration = 60;
+// Pełny sync IdoBooking może przekraczać 60 s (API + zapis do bazy).
+export const maxDuration = 300;
 
 export async function GET(req: Request) {
     try {

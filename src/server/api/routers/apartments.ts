@@ -786,77 +786,85 @@ export const apartmentsRouter = createTRPCRouter({
 
             console.log("▶️ Rozpoczęto mapowanie rezerwacji na apartamenty...");
 
-            const allReservations = await ctx.db.reservation.findMany();
+            const allReservations = await ctx.db.reservation.findMany({
+                select: {
+                    id: true,
+                    apartmentName: true,
+                    apartmentId: true,
+                    address: true,
+                },
+            });
             const allApartments = await ctx.db.apartment.findMany();
 
-            console.log(`🔍 Znaleziono ${allReservations.length} rezerwacji i ${allApartments.length} istniejących apartamentów.`);
+            console.log(
+                `🔍 Znaleziono ${allReservations.length} rezerwacji i ${allApartments.length} istniejących apartamentów.`,
+            );
 
-            const apartmentMap = new Map(allApartments.map(apt => [apt.name, apt]));
+            const apartmentMap = new Map(allApartments.map((apt) => [apt.name, apt]));
 
-            console.log("🗺️ Stworzono mapę istniejących apartamentów.");
+            const byName = new Map<string, typeof allReservations>();
+            for (const r of allReservations) {
+                if (!r.apartmentName) continue;
+                const list = byName.get(r.apartmentName) ?? [];
+                list.push(r);
+                byName.set(r.apartmentName, list);
+            }
 
             let createdApartmentsCount = 0;
             let updatedReservationsCount = 0;
 
-            for (const reservation of allReservations) {
-                if (!reservation.apartmentName) {
-                    console.log(`⏭️ Pomijam rezerwację o ID: ${reservation.id}, ponieważ nie ma nazwy apartamentu.`);
-                    continue;
-                }
-
-                console.log(`🔄 Przetwarzam rezerwację ID: ${reservation.id} dla apartamentu: "${reservation.apartmentName}"`);
-
-                let apartment = apartmentMap.get(reservation.apartmentName);
+            for (const [apartmentName, reservations] of byName) {
+                let apartment = apartmentMap.get(apartmentName);
 
                 if (!apartment) {
-                    console.log(`🆕 Apartament "${reservation.apartmentName}" nie istnieje. Próba utworzenia...`);
-                    const slug = slugify(reservation.apartmentName);
+                    const slug = slugify(apartmentName);
+                    const firstAddr = reservations.find((x) => x.address)?.address;
                     try {
-                        const newApartmentData = {
-                            name: reservation.apartmentName,
-                            slug: slug,
-                            address: reservation.address ?? 'Brak adresu',
-                        };
-                        console.log(`➕ Tworzenie apartamentu z danymi:`, newApartmentData);
-
                         apartment = await ctx.db.apartment.create({
-                            data: newApartmentData,
+                            data: {
+                                name: apartmentName,
+                                slug,
+                                address: firstAddr ?? "Brak adresu",
+                            },
                         });
-
                         apartmentMap.set(apartment.name, apartment);
                         createdApartmentsCount++;
-                        console.log(`✅ Utworzono i zmapowano nowy apartament: ID ${apartment.id}, Nazwa: ${apartment.name}`);
                     } catch (error) {
-                        console.error(`❌ Błąd podczas tworzenia apartamentu "${reservation.apartmentName}".`, error);
-                        const existing = await ctx.db.apartment.findFirst({ where: { name: reservation.apartmentName } });
+                        console.error(`❌ Błąd podczas tworzenia apartamentu "${apartmentName}".`, error);
+                        const existing = await ctx.db.apartment.findFirst({
+                            where: { name: apartmentName },
+                        });
                         if (existing) {
                             apartment = existing;
                             apartmentMap.set(existing.name, existing);
-                            console.log(`🔄 Apartament "${reservation.apartmentName}" już istniał (błąd wyścigu?). Używam istniejącego ID: ${apartment.id}.`);
                         } else {
-                            console.error(`🚨 Krytyczny błąd: Nie można utworzyć ani znaleźć apartamentu: "${reservation.apartmentName}". Pomijam rezerwację.`);
+                            console.error(
+                                `🚨 Nie można utworzyć ani znaleźć apartamentu: "${apartmentName}". Pomijam ${reservations.length} rezerwacji.`,
+                            );
                             continue;
                         }
                     }
-                } else {
-                    console.log(`👍 Apartament "${reservation.apartmentName}" już istnieje. Adres nie zostanie zaktualizowany.`);
                 }
 
-                if (apartment && reservation.apartmentId !== apartment.id) {
-                    const oldApartmentId = reservation.apartmentId;
-                    console.log(`✍️ Aktualizuję rezerwację ID: ${reservation.id}. Zmiana apartmentId z ${oldApartmentId ?? 'null'} na ${apartment.id}`);
-                    await ctx.db.reservation.update({
-                        where: { id: reservation.id },
+                const idsToUpdate = reservations
+                    .filter((r) => r.apartmentId !== apartment.id)
+                    .map((r) => r.id);
+                if (idsToUpdate.length === 0) continue;
+
+                const CHUNK = 500;
+                for (let i = 0; i < idsToUpdate.length; i += CHUNK) {
+                    const chunk = idsToUpdate.slice(i, i + CHUNK);
+                    const { count } = await ctx.db.reservation.updateMany({
+                        where: { id: { in: chunk } },
                         data: { apartmentId: apartment.id },
                     });
-                    updatedReservationsCount++;
-                    console.log(`✔️ Rezerwacja ID: ${reservation.id} zaktualizowana.`);
-                } else if (apartment) {
-                    console.log(`👌 Rezerwacja ID: ${reservation.id} jest już poprawnie połączona z apartamentem ID: ${apartment.id}.`);
+                    updatedReservationsCount += count;
                 }
             }
 
-            console.log(`🏁 Zakończono mapowanie. Utworzono ${createdApartmentsCount} nowych apartamentów, zaktualizowano ${updatedReservationsCount} rezerwacji.`);
+            console.log(
+                `🏁 Zakończono mapowanie. Utworzono ${createdApartmentsCount} nowych apartamentów, zaktualizowano ${updatedReservationsCount} rezerwacji.`,
+            );
 
             return {
                 success: true,

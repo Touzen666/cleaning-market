@@ -25,6 +25,18 @@ function mapIdobookingStatus(idobookingStatus: string): string {
     return IDOBOOKING_STATUS_MAP[idobookingStatus] ?? idobookingStatus;
 }
 
+/** Równoległość ograniczona do `chunkSize` — bez tego tysiące `update` w jednym `Promise.all` wyczerpuje pool (P2024). */
+async function promiseAllInChunks<T>(
+    items: T[],
+    chunkSize: number,
+    fn: (item: T) => Promise<unknown>,
+): Promise<void> {
+    for (let i = 0; i < items.length; i += chunkSize) {
+        const chunk = items.slice(i, i + chunkSize);
+        await Promise.all(chunk.map((item) => fn(item)));
+    }
+}
+
 // Zod schemas dla API responses
 // Bezpieczne parsowanie pól liczbowych, które mogą przyjść jako string/boolean/null
 const safeNumberOptional = z.preprocess((val) => {
@@ -766,6 +778,7 @@ export async function mapToDBReservations(
             create: (args: unknown) => Promise<{ id: number }>;
         };
         const roomClient = (ctx.db as unknown as { room: RoomClient }).room;
+        const roomIdByApartmentAndCode = new Map<string, number>();
         for (const meta of reservationsCreateMeta) {
             const rec = reservationsToCreate[meta.index];
             if (!rec?.apartmentId) continue;
@@ -784,6 +797,12 @@ export async function mapToDBReservations(
                 tried.add(code);
                 try {
                     const keyApartmentId = rec.apartmentId;
+                    const cacheKey = `${keyApartmentId}:${code}`;
+                    const cached = roomIdByApartmentAndCode.get(cacheKey);
+                    if (cached !== undefined) {
+                        roomId = cached;
+                        break;
+                    }
                     let found = await roomClient.findFirst({
                         where: { apartmentId: keyApartmentId, code },
                         select: { id: true },
@@ -806,6 +825,7 @@ export async function mapToDBReservations(
                         });
                     }
                     roomId = found.id;
+                    roomIdByApartmentAndCode.set(cacheKey, found.id);
                     break;
                 } catch {
                     // spróbuj następny kod kandydata
@@ -817,39 +837,30 @@ export async function mapToDBReservations(
             }
         }
         logWithTag(`Tworzenie ${reservationsToCreate.length} nowych rezerwacji...`);
-        try {
-            const result = await ctx.db.reservation.createMany({
-                data: reservationsToCreate,
-                skipDuplicates: true,
-            });
-            logWithTag(`✅ Utworzono ${result.count} nowych rezerwacji.`);
-        } catch (error) {
-            logWithTag(`❌ Błąd podczas tworzenia rezerwacji (createMany):`, error);
-        }
+        const result = await ctx.db.reservation.createMany({
+            data: reservationsToCreate,
+            skipDuplicates: true,
+        });
+        logWithTag(`✅ Utworzono ${result.count} nowych rezerwacji.`);
     } else {
         logWithTag("Brak nowych rezerwacji do utworzenia.");
     }
 
     if (reservationsToUpdate.length > 0) {
         logWithTag(`Aktualizowanie danych dla ${reservationsToUpdate.length} rezerwacji...`);
-        try {
-            await Promise.all(
-                reservationsToUpdate.map((u) =>
-                    ctx.db.reservation.update({
-                        where: {
-                            idobookingId_idobookingObjectItemId: {
-                                idobookingId: u.idobookingId,
-                                idobookingObjectItemId: u.idobookingObjectItemId,
-                            },
-                        },
-                        data: u.data,
-                    }),
-                ),
-            );
-            logWithTag(`✅ Zaktualizowano ${reservationsToUpdate.length} rezerwacji.`);
-        } catch (error) {
-            logWithTag(`❌ Błąd podczas aktualizacji rezerwacji:`, error);
-        }
+        const UPDATE_CHUNK = 6;
+        await promiseAllInChunks(reservationsToUpdate, UPDATE_CHUNK, (u) =>
+            ctx.db.reservation.update({
+                where: {
+                    idobookingId_idobookingObjectItemId: {
+                        idobookingId: u.idobookingId,
+                        idobookingObjectItemId: u.idobookingObjectItemId,
+                    },
+                },
+                data: u.data,
+            }),
+        );
+        logWithTag(`✅ Zaktualizowano ${reservationsToUpdate.length} rezerwacji.`);
     } else {
         logWithTag("Brak rezerwacji do zaktualizowania.");
     }

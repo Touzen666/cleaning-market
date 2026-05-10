@@ -10,6 +10,11 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
 
+// Pełna synchronizacja IdoBooking z panelu (tRPC `syncReservations`) trwa często 45–90+ s.
+// Bez tego Vercel kończy funkcję po domyślnym limicie (~10–15 s) i klient dostaje TRPCClientError „Stream closed”.
+// Limit 300 s — plan Vercel Pro (Hobby ma twardy max 10 s; wtedy sync tylko cron / `npm run sync:idobooking`).
+export const maxDuration = 300;
+
 /**
  * This wraps the `createTRPCContext` helper and provides the required context for the tRPC API when
  * handling a HTTP request (e.g. when you make requests from Client Components).

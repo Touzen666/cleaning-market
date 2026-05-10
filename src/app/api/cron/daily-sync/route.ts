@@ -2,7 +2,10 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createTRPCContext } from "@/server/api/trpc";
 import { appRouter } from "@/server/api/root";
 
+export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+/** Ten cron wywołuje pełny `syncReservationsCron` — ten sam rząd wielkości co sync z panelu. */
+export const maxDuration = 300;
 
 export async function GET(request: NextRequest) {
     const startTime = Date.now();
