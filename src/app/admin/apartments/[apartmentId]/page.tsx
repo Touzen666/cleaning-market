@@ -69,6 +69,10 @@ export default function EditApartmentPage({
       | "OWN_APARTMENT",
     fixedPaymentAmount: 0,
   });
+  /** Liczba pól „koszt za N gości” (może być > maxGuests, np. większe grupy). */
+  const [cleaningTierSlots, setCleaningTierSlots] = useState(4);
+  const MAX_CLEANING_TIER_SLOTS = 30;
+
   const [status, setStatus] = useState<string | null>(null);
   const [ratingStatus, setRatingStatus] = useState<string | null>(null);
   const [returnUrl, setReturnUrl] = useState<string>("/admin/apartments");
@@ -175,6 +179,17 @@ export default function EditApartmentPage({
     },
   });
 
+  const syncCleaningTierSlots = (
+    maxGuests: number,
+    cleaningCosts: Record<string, number> | null | undefined,
+  ) => {
+    const keys = Object.keys(cleaningCosts ?? {})
+      .map((k) => parseInt(k, 10))
+      .filter((n) => Number.isFinite(n) && n > 0);
+    const maxFromCosts = keys.length > 0 ? Math.max(...keys) : 0;
+    setCleaningTierSlots(Math.min(MAX_CLEANING_TIER_SLOTS, Math.max(1, maxGuests, maxFromCosts)));
+  };
+
   // Wypełnij formularz danymi apartamentu
   useEffect(() => {
     if (roomId && roomQuery.data) {
@@ -195,6 +210,7 @@ export default function EditApartmentPage({
         paymentType: "COMMISSION",
         fixedPaymentAmount: 0,
       });
+      setCleaningTierSlots(Math.min(MAX_CLEANING_TIER_SLOTS, Math.max(1, r.maxGuests ?? 4)));
     } else if (
       apartmentQuery.data &&
       (apartmentId !== "new" || createdApartmentId)
@@ -221,6 +237,7 @@ export default function EditApartmentPage({
         paymentType: apartment.paymentType ?? "COMMISSION",
         fixedPaymentAmount: apartment.fixedPaymentAmount ?? 0,
       });
+      syncCleaningTierSlots(apartment.maxGuests ?? 4, apartment.cleaningCosts ?? {});
     }
   }, [
     apartmentQuery.data,
@@ -492,12 +509,16 @@ export default function EditApartmentPage({
                 <input
                   type="number"
                   value={form.maxGuests}
-                  onChange={(e) =>
+                  onChange={(e) => {
+                    const next = Number(e.target.value);
                     setForm((f) => ({
                       ...f,
-                      maxGuests: Number(e.target.value),
-                    }))
-                  }
+                      maxGuests: next,
+                    }));
+                    setCleaningTierSlots((s) =>
+                      Math.min(MAX_CLEANING_TIER_SLOTS, Math.max(s, Number.isFinite(next) ? next : 1)),
+                    );
+                  }}
                   min={1}
                   max={20}
                   className="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
@@ -507,20 +528,56 @@ export default function EditApartmentPage({
 
             {/* Koszty sprzątania */}
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                Koszty sprzątania (za liczbę gości)
-              </label>
+              <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <label className="block text-sm font-medium text-gray-700">
+                  Koszty sprzątania (za liczbę gości)
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setCleaningTierSlots((s) =>
+                        Math.min(MAX_CLEANING_TIER_SLOTS, s + 1),
+                      )
+                    }
+                    disabled={cleaningTierSlots >= MAX_CLEANING_TIER_SLOTS}
+                    className="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    + Dodaj stawkę
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const floor = Math.max(1, form.maxGuests);
+                      setCleaningTierSlots((s) => {
+                        if (s <= floor) return s;
+                        const removedKey = String(s);
+                        setForm((f) => {
+                          const nextCosts = { ...f.cleaningCosts };
+                          delete nextCosts[removedKey];
+                          return { ...f, cleaningCosts: nextCosts };
+                        });
+                        return s - 1;
+                      });
+                    }}
+                    disabled={cleaningTierSlots <= Math.max(1, form.maxGuests)}
+                    className="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    − Usuń ostatnią
+                  </button>
+                </div>
+              </div>
+              <p className="mb-3 text-sm text-gray-500">
+                Domyślnie widać tyle poziomów co „Maksymalna liczba gości”. Przyciskiem „+” dodasz
+                osobną stawkę dla 5, 6 itd. gości (np. większa grupa niż limit łóżek).
+              </p>
               <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-6">
-                {Array.from({ length: form.maxGuests }, (_, i) => i + 1).map(
+                {Array.from({ length: cleaningTierSlots }, (_, i) => i + 1).map(
                   (guestCount) => (
                     <div key={guestCount}>
                       <label className="mb-1 block text-xs text-gray-600">
                         {guestCount}{" "}
-                        {guestCount === 1
-                          ? "gość"
-                          : guestCount < 5
-                            ? "gości"
-                            : "gości"}
+                        {guestCount === 1 ? "gość" : "gości"}
                       </label>
                       <input
                         type="number"
