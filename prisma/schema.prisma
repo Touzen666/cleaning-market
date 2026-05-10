@@ -107,7 +107,11 @@ model Reservation {
   apartmentId           Int?
   roomId                Int?
   cleanerUserId         Int?
-  idobookingId          Int?                   @unique
+  idobookingId          Int?
+  /// Linia pozycji z IdoBooking (objectItemId); 0 = pojedyncza pozycja / legacy
+  idobookingObjectItemId Int                  @default(0)
+
+  @@unique([idobookingId, idobookingObjectItemId])
   rateCorrection        Float?
   checkInCards          CheckInCard?
   reportItems           ReportItem[]

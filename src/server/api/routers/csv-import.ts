@@ -331,7 +331,14 @@ export const csvImportRouter = createTRPCRouter({
                             where: {
                                 OR: [
                                     // Sprawdź po ID z CSV (jeśli istnieje)
-                                    ...(rowData.id ? [{ idobookingId: parseInt(rowData.id) }] : []),
+                                    ...(rowData.id
+                                        ? [
+                                              {
+                                                  idobookingId: parseInt(rowData.id),
+                                                  idobookingObjectItemId: 0,
+                                              },
+                                          ]
+                                        : []),
                                     // Sprawdź po kombinacji pól
                                     {
                                         apartmentName: rowData.apartmentName,
@@ -384,7 +391,10 @@ export const csvImportRouter = createTRPCRouter({
                                 paymantValue: paymentValue,
                                 currency: rowData.currency!,
                                 apartmentId: apartment.id,
-                                ...(rowData.id && { idobookingId: parseInt(rowData.id) }),
+                                ...(rowData.id && {
+                                    idobookingId: parseInt(rowData.id),
+                                    idobookingObjectItemId: 0,
+                                }),
                                 importSource: 'csv',
                                 importBatchId: importBatchId,
                             }

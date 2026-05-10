@@ -1,10 +1,9 @@
 import { z } from "zod";
-import { createTRPCRouter, protectedProcedure, publicProcedure } from "@/server/api/trpc";
-import { TRPCError } from "@trpc/server";
 import { createHash } from "crypto";
-import { UserType, type Prisma } from "@prisma/client";
-import { type createTRPCContext } from "@/server/api/trpc";
-import { env } from "@/env";
+import { type Prisma, type PrismaClient } from "@prisma/client";
+
+/** Kontekst wystarczający do mapowania rezerwacji (bez importu trpc → auth → react). */
+export type IdobookingSyncCtx = { db: PrismaClient };
 
 // Mapping statusów IdoBooking na polskie statusy
 const IDOBOOKING_STATUS_MAP: Record<string, string> = {
@@ -37,61 +36,71 @@ const safeNumberOptional = z.preprocess((val) => {
     return Number.isNaN(num) ? undefined : num;
 }, z.number().optional());
 
+/** API zwraca często null zamiast "" — bez tego cała rezerwacja odpada w safeParse */
+const apiString = z.preprocess(
+    (val) => (val === null || val === undefined ? "" : val),
+    z.string(),
+);
+
+const apiNumber = z.preprocess((val) => {
+    if (val === null || val === undefined || val === "") return 0;
+    const num = Number(val as unknown);
+    return Number.isNaN(num) ? 0 : num;
+}, z.number());
+
+const apiOptionalString = z.preprocess(
+    (val) => (val === null || val === undefined ? undefined : val),
+    z.string().optional(),
+);
+
 const reservationDetailsSchema = z.object({
-    price: z.number(),
-    advance: z.number(),
-    currency: z.string(),
+    price: apiNumber,
+    advance: apiNumber,
+    currency: apiString,
     dateAdd: z.string(),
     dateFrom: z.string(),
     dateTo: z.string(),
     reservationSourceTypeId: z.coerce.number().optional(),
     reservationSourceId: z.coerce.number().optional(),
-    externalReservationId: z.string().optional(),
+    externalReservationId: apiOptionalString,
     reservationManager: z.enum(["external", "own"]).optional(),
     internalSource: z
         .enum(["other", "email", "phone", "faceToFaceConversation", "socialMedia"])
         .optional(),
     clientId: z.coerce.number().optional(),
-    status: z.enum([
-        "unconfirmed",
-        "confirmed",
-        "paymentInProgress",
-        "accepted",
-        "inProgress",
-        "completed",
-        "canceled",
-        "withdrawn",
-        "waitingForPayment",
-        "invalidCardNumber",
-        "toClarify",
-    ]),
-    internalNote: z.string(),
-    apiNote: z.string(),
-    externalNote: z.string(),
-    clientNote: z.string(),
+    // API może dodać nowe statusy — nie blokuj całej synchronizacji sztywnym enumem
+    status: z.string(),
+    internalNote: apiString,
+    apiNote: apiString,
+    externalNote: apiString,
+    clientNote: apiString,
     discount: z.coerce.number().optional(),
-    balance: z.number().optional(),
+    balance: z.preprocess((val) => {
+        if (val === null || val === undefined || val === "") return undefined;
+        const num = Number(val as unknown);
+        return Number.isNaN(num) ? undefined : num;
+    }, z.number().optional()),
     modificationStatus: z.enum(["new", "modified"]).optional(),
-    modificationDate: z.string().optional(),
-    note: z.string().optional(),
-    languageCode: z.string().optional(),
+    modificationDate: apiOptionalString,
+    note: apiOptionalString,
+    languageCode: apiOptionalString,
     // API potrafi zwrócić 0/1, 'y'/'n', boolean, pusty string – normalizujemy do liczby lub undefined
     isSurplus: safeNumberOptional,
 });
 
 const reservationItemSchema = z.object({
-    objectItemId: z.number(),
-    itemId: z.number().optional(),
-    objectName: z.string().optional(),
-    itemCode: z.string().optional(),
-    objectId: z.number().optional(),
+    objectItemId: z.coerce.number().optional(),
+    itemId: z.coerce.number().optional(),
+    objectName: apiOptionalString,
+    itemCode: apiOptionalString,
+    objectId: z.coerce.number().optional(),
     // Pola często przychodzą jako stringi – koercja/normalizacja do liczby
     numberOfAdults: z.coerce.number().optional(),
     numberOfBigChildren: z.coerce.number().optional(),
     numberOfSmallChildren: z.coerce.number().optional(),
-    priceCorrection: z.number(),
-    price: z.number(),
-    vat: z.number(),
+    priceCorrection: apiNumber,
+    price: apiNumber,
+    vat: apiNumber,
     numberOfGuests: z.coerce.number().optional(),
     // API returns number zwykle, ale może być też 'y'/'n'/boolean/pusty – normalizujemy
     isSurplus: safeNumberOptional, // API returns number, not enum
@@ -100,58 +109,58 @@ const reservationItemSchema = z.object({
 });
 
 const reservationGuestSchema = z.object({
-    firstName: z.string().optional(),
-    lastName: z.string().optional(),
-    street: z.string().optional(),
-    zipcode: z.string().optional(),
-    city: z.string().optional(),
-    countryCode: z.string().optional(),
-    phone: z.string().optional(),
-    email: z.string().optional(),
-    language: z.string().optional(),
-    age: z.number().optional(),
+    firstName: apiOptionalString,
+    lastName: apiOptionalString,
+    street: apiOptionalString,
+    zipcode: apiOptionalString,
+    city: apiOptionalString,
+    countryCode: apiOptionalString,
+    phone: apiOptionalString,
+    email: apiOptionalString,
+    language: apiOptionalString,
+    age: z.coerce.number().optional(),
 });
 
 const reservationClientSchema = z.object({
-    id: z.number(),
-    login: z.string(),
+    id: z.coerce.number(),
+    login: apiString,
     clientType: z.enum(["person", "company"]),
     status: z.enum(["active", "blocked"]).optional(),
-    companyName: z.string().optional(),
-    taxNumber: z.string().optional(),
-    firstName: z.string(),
-    lastName: z.string(),
-    street: z.string(),
-    zipcode: z.string(),
-    city: z.string(),
-    countryCode: z.string(),
-    phone: z.string(),
-    email: z.string(),
-    language: z.string(),
-    langDescription: z.string().optional(),
-    currency: z.string(),
+    companyName: apiOptionalString,
+    taxNumber: apiOptionalString,
+    firstName: apiString,
+    lastName: apiString,
+    street: apiString,
+    zipcode: apiString,
+    city: apiString,
+    countryCode: apiString,
+    phone: apiString,
+    email: apiString,
+    language: apiString,
+    langDescription: apiOptionalString,
+    currency: apiString,
     guests: z.array(reservationGuestSchema),
     invoiceData: z
         .object({
-            firstName: z.string().optional(),
-            lastName: z.string().optional(),
-            companyName: z.string().optional(),
-            taxNumber: z.string().optional(),
-            street: z.string().optional(),
-            zipcode: z.string().optional(),
-            city: z.string().optional(),
-            countryCode: z.string().optional(),
+            firstName: apiOptionalString,
+            lastName: apiOptionalString,
+            companyName: apiOptionalString,
+            taxNumber: apiOptionalString,
+            street: apiOptionalString,
+            zipcode: apiOptionalString,
+            city: apiOptionalString,
+            countryCode: apiOptionalString,
         })
         .optional(),
     notification: z.enum(["y", "n"]).optional(),
     sendNewsletter: z.enum(["y", "n"]).optional(),
-    note: z.string().optional(),
-    discountForItemsInPromotion: z.number().optional(),
-    discountForItemsNotInPromotion: z.number().optional(),
+    note: apiOptionalString,
+    discountForItemsInPromotion: z.coerce.number().optional(),
+    discountForItemsNotInPromotion: z.coerce.number().optional(),
 });
 
 const reservationSchema = z.object({
-    id: z.number(),
+    id: z.coerce.number(),
     reservationDetails: reservationDetailsSchema,
     items: z.array(reservationItemSchema),
     client: reservationClientSchema.optional(), // Uczynione opcjonalnym
@@ -179,7 +188,7 @@ const sourcesApiResponseSchemaV2 = z.object({
 });
 
 // Schema dla odpowiedzi synchronizacji
-const syncResponseSchema = z.object({
+export const syncResponseSchema = z.object({
     success: z.boolean(),
     message: z.string(),
     syncId: z.string(),
@@ -259,12 +268,12 @@ export async function getReservations(options: ReservationFetchOptions = {}): Pr
     let currentPage = 1;
     let totalPages = 1;
 
-    // Domyślne okno synchronizacji:
-    // - start: zawsze 2 miesiące wstecz od "teraz"
+    // Domyślne okno synchronizacji (ręczna synchronizacja z panelu):
+    // - start: 18 miesięcy wstecz — starsze pobyty nadal wpływają na rozliczenia i raporty
     // - end: bardzo szerokie w przyszłość (można zawęzić przez przekazanie endDateISO)
     const now = new Date();
     const defaultStart = new Date(now);
-    defaultStart.setMonth(defaultStart.getMonth() - 2);
+    defaultStart.setMonth(defaultStart.getMonth() - 18);
     const defaultEnd = new Date("2100-01-01T00:00:00.000Z");
 
     const startDateISO = options.startDateISO ?? defaultStart.toISOString();
@@ -358,7 +367,19 @@ export async function getReservations(options: ReservationFetchOptions = {}): Pr
             throw new Error(errorMessage);
         }
 
-        const pageReservations = parsedResponse.result.reservations ?? [];
+        const rawPage = parsedResponse.result.reservations ?? [];
+        const pageReservations: z.infer<typeof reservationSchema>[] = [];
+        for (const raw of rawPage) {
+            const parsed = reservationSchema.safeParse(raw);
+            if (!parsed.success) {
+                logWithTag("Pominięto rezerwację z powodu błędu walidacji (Zod):", {
+                    issues: parsed.error.flatten(),
+                    rawId: (raw as { id?: unknown })?.id,
+                });
+                continue;
+            }
+            pageReservations.push(parsed.data);
+        }
         const pagination = parsedResponse.result.result;
 
         allReservations.push(...pageReservations);
@@ -387,7 +408,7 @@ export async function getReservations(options: ReservationFetchOptions = {}): Pr
 
 export async function mapToDBReservations(
     reservations: z.infer<typeof reservationSchema>[],
-    ctx: Awaited<ReturnType<typeof createTRPCContext>>,
+    ctx: IdobookingSyncCtx,
 ) {
     logWithTag("===== ROZPOCZĘCIE MAPOWANIA DO BAZY DANYCH =====");
     logWithTag(`Rozpoczęto mapowanie ${reservations.length} rezerwacji do bazy danych.`);
@@ -400,17 +421,54 @@ export async function mapToDBReservations(
         return;
     }
 
-    // 1. Zbierz wszystkie ID z przychodzących rezerwacji
-    const idobookingIds = reservations.map((r) => r.id);
-
-    // 2. Pobierz wszystkie istniejące rezerwacje jednym zapytaniem
-    logWithTag(`Pobieranie istniejących rezerwacji dla ${idobookingIds.length} ID...`);
     type ExistingReservationLookup = {
         idobookingId: number;
+        idobookingObjectItemId: number;
         status: string;
         itemCode: string | null;
         apartmentName: string;
     };
+
+    const lineKey = (id: number, objectLineId: number) => `${id}_${objectLineId}`;
+
+    const objectLineDiscriminant = (
+        item: z.infer<typeof reservationItemSchema>,
+        lineIdx: number,
+    ): number => (typeof item.objectItemId === "number" ? item.objectItemId : 1_000_000 + lineIdx);
+
+    const pickExistingLine = (
+        map: Map<string, ExistingReservationLookup>,
+        idobookingId: number,
+        discrim: number,
+        totalItems: number,
+    ): ExistingReservationLookup | undefined => {
+        let row = map.get(lineKey(idobookingId, discrim));
+        if (row) return row;
+        // Migracja z pojedynczej linii (0) na prawdziwy objectItemId z API
+        if (totalItems === 1 && discrim !== 0) {
+            row = map.get(lineKey(idobookingId, 0));
+        }
+        return row;
+    };
+
+    // 1. Zbierz unikalne ID rezerwacji IdoBooking (jedna rezerwacja może mieć wiele pozycji / pokoi)
+    const idobookingIds = [...new Set(reservations.map((r) => r.id))];
+
+    // Warianty nazw — pełny obraz zanim przypiszemy nazwy wyświetlane (wszystkie pozycje ze wszystkich rezerwacji)
+    const variantsByBaseName = new Map<string, Set<string>>();
+    for (const reservation of reservations) {
+        for (const item of reservation.items) {
+            if (item.objectName && item.itemCode) {
+                const baseKey = canonicalizeName(item.objectName);
+                const set = variantsByBaseName.get(baseKey) ?? new Set<string>();
+                set.add(item.itemCode);
+                variantsByBaseName.set(baseKey, set);
+            }
+        }
+    }
+
+    // 2. Pobierz istniejące wiersze dla tych ID (wszystkie linie: idobookingObjectItemId)
+    logWithTag(`Pobieranie istniejących rezerwacji dla ${idobookingIds.length} ID rezerwacji IdoBooking...`);
 
     const existingReservations = await ctx.db.reservation.findMany({
         where: {
@@ -420,29 +478,30 @@ export async function mapToDBReservations(
         },
         select: {
             idobookingId: true,
+            idobookingObjectItemId: true,
             status: true,
             itemCode: true,
             apartmentName: true,
         },
     });
 
-    const existingReservationsMap = new Map<number, ExistingReservationLookup>(
-        existingReservations.map((r) => {
-            const mapped: ExistingReservationLookup = {
-                idobookingId: r.idobookingId!,
-                status: r.status,
-                itemCode: r.itemCode ?? null,
-                apartmentName: r.apartmentName,
-            };
-            return [mapped.idobookingId, mapped] as const;
-        }),
-    );
-    logWithTag(`Znaleziono ${existingReservationsMap.size} pasujących istniejących rezerwacji.`);
+    const existingReservationsMap = new Map<string, ExistingReservationLookup>();
+    for (const r of existingReservations) {
+        if (r.idobookingId == null) continue;
+        const mapped: ExistingReservationLookup = {
+            idobookingId: r.idobookingId,
+            idobookingObjectItemId: r.idobookingObjectItemId,
+            status: r.status,
+            itemCode: r.itemCode ?? null,
+            apartmentName: r.apartmentName,
+        };
+        existingReservationsMap.set(lineKey(r.idobookingId, r.idobookingObjectItemId), mapped);
+    }
+    logWithTag(`Znaleziono ${existingReservationsMap.size} istniejących linii rezerwacji (łącznie z wariantami).`);
 
-    // 3. Podziel rezerwacje na do utworzenia i do aktualizacji
+    // 3. Podziel na do utworzenia i do aktualizacji
     type ReservationCreateManyInputExtended = Prisma.ReservationCreateManyInput & { itemCode?: string | null };
     const reservationsToCreate: ReservationCreateManyInputExtended[] = [];
-    // Przechowuj metadane potrzebne do późniejszego dopasowania apartamentu (wielokrotne pokoje)
     const reservationsCreateMeta: {
         index: number;
         objectItemId?: number;
@@ -452,149 +511,152 @@ export async function mapToDBReservations(
         objectName?: string | null;
         apartmentId?: number;
     }[] = [];
-    const reservationsToUpdate: { idobookingId: number; data: Prisma.ReservationUpdateInput }[] = [];
-
-    // Zbierz warianty (itemCode) dla bazowych nazw apartamentów, aby rozpoznać wielowariantowe obiekty
-    const variantsByBaseName = new Map<string, Set<string>>();
+    const reservationsToUpdate: {
+        idobookingId: number;
+        idobookingObjectItemId: number;
+        data: Prisma.ReservationUpdateInput;
+    }[] = [];
 
     for (const reservation of reservations) {
         const { id: idobookingId, reservationDetails, items, client } = reservation;
-        const existing = existingReservationsMap.get(idobookingId);
-        const firstItem = items[0];
-        const itemCode = firstItem?.itemCode ?? null;
-        const objectName = firstItem?.objectName ?? null;
-
-        // Zarejestruj wariant (itemCode) dla danej bazowej nazwy obiektu
-        if (objectName && itemCode) {
-            const baseKey = canonicalizeName(objectName);
-            const set = variantsByBaseName.get(baseKey) ?? new Set<string>();
-            set.add(itemCode);
-            variantsByBaseName.set(baseKey, set);
+        if (!items.length) {
+            logWithTag(`Pominięto rezerwację ${idobookingId} — brak tablicy items w odpowiedzi API.`);
+            continue;
         }
 
-        if (existing) {
-            // Rezerwacja istnieje – przygotuj ewentualną aktualizację statusu / itemCode / nazwy
-            const mappedStatus = mapIdobookingStatus(reservationDetails.status);
+        const totalItems = items.length;
 
-            // DEBUG: loguj identyfikatory pozycji dla wskazanego apartamentu
-            if (DEBUG_APARTMENT_NAME_CANON) {
-                const itemNameCanon = canonicalizeName(firstItem?.objectName ?? "");
-                if (itemNameCanon && itemNameCanon === DEBUG_APARTMENT_NAME_CANON) {
-                    logWithTag("DBG(existing) Identyfikatory pozycji:", {
-                        idobookingReservationId: idobookingId,
-                        objectItemId: firstItem?.objectItemId,
-                        itemId: firstItem?.itemId,
-                        objectId: firstItem?.objectId,
-                        itemCode: firstItem?.itemCode,
-                        objectName: firstItem?.objectName,
+        for (let itemIdx = 0; itemIdx < items.length; itemIdx++) {
+            const item = items[itemIdx]!;
+            const objectLineId = objectLineDiscriminant(item, itemIdx);
+            const existing = pickExistingLine(existingReservationsMap, idobookingId, objectLineId, totalItems);
+
+            const itemCode = item.itemCode ?? null;
+            const objectName = item.objectName ?? null;
+
+            if (existing) {
+                const mappedStatus = mapIdobookingStatus(reservationDetails.status);
+
+                if (DEBUG_APARTMENT_NAME_CANON) {
+                    const itemNameCanon = canonicalizeName(item.objectName ?? "");
+                    if (itemNameCanon && itemNameCanon === DEBUG_APARTMENT_NAME_CANON) {
+                        logWithTag("DBG(existing) Identyfikatory pozycji:", {
+                            idobookingReservationId: idobookingId,
+                            idobookingObjectItemId: objectLineId,
+                            objectItemId: item.objectItemId,
+                            itemId: item.itemId,
+                            objectId: item.objectId,
+                            itemCode: item.itemCode,
+                            objectName: item.objectName,
+                        });
+                    }
+                }
+
+                const baseNameCanon = canonicalizeName(objectName ?? "");
+                const codes = variantsByBaseName.get(baseNameCanon);
+                const isMultiVariant = !!codes && codes.size > 1;
+                const normalizedItemCode = (itemCode ?? "").trim();
+                const desiredApartmentName =
+                    isMultiVariant && normalizedItemCode
+                        ? `${objectName ?? ""} ${normalizedItemCode}`.trim()
+                        : objectName ?? existing.apartmentName ?? "N/A";
+
+                const data: Prisma.ReservationUpdateInput = {};
+                if (existing.status !== mappedStatus) data.status = mappedStatus;
+                if (existing.itemCode !== itemCode) data.itemCode = itemCode;
+                if (existing.apartmentName !== desiredApartmentName) data.apartmentName = desiredApartmentName;
+                if (existing.idobookingObjectItemId !== objectLineId && objectLineId !== 0) {
+                    data.idobookingObjectItemId = objectLineId;
+                }
+
+                if (Object.keys(data).length > 0) {
+                    reservationsToUpdate.push({
+                        idobookingId,
+                        idobookingObjectItemId: existing.idobookingObjectItemId,
+                        data,
                     });
                 }
-            }
-
-            // Ustal docelową nazwę apartamentu (wariantowa gdy wiele itemCode)
-            const baseNameCanon = canonicalizeName(objectName ?? "");
-            const codes = variantsByBaseName.get(baseNameCanon);
-            const isMultiVariant = !!codes && codes.size > 1;
-            const normalizedItemCode = (itemCode ?? "").trim();
-            const desiredApartmentName =
-                isMultiVariant && normalizedItemCode
-                    ? `${objectName ?? ""} ${normalizedItemCode}`.trim()
-                    : objectName ?? existing.apartmentName ?? "N/A";
-
-            const data: Prisma.ReservationUpdateInput = {};
-            if (existing.status !== mappedStatus) data.status = mappedStatus;
-            if (existing.itemCode !== itemCode) data.itemCode = itemCode;
-            if (existing.apartmentName !== desiredApartmentName) data.apartmentName = desiredApartmentName;
-
-            if (Object.keys(data).length > 0) {
-                reservationsToUpdate.push({ idobookingId, data });
-            }
-        } else {
-            // Rezerwacja nie istnieje, przygotuj dane do utworzenia
-            const details = reservationDetails;
-            let sourceName: string;
-            if (details.internalSource && details.internalSource !== 'other') {
-                const internalSourceMapping: Record<string, string> = {
-                    email: "Email", phone: "Telefon", faceToFaceConversation: "Osobiście", socialMedia: "Social Media"
-                };
-                sourceName = internalSourceMapping[details.internalSource] ?? details.internalSource;
-            } else if (details.reservationSourceId) {
-                sourceName = `Idobooking (ID: ${details.reservationSourceId})`;
-            } else if (details.reservationSourceTypeId) {
-                sourceName = `Idobooking (Typ ID: ${details.reservationSourceTypeId})`;
             } else {
-                sourceName = "Brak";
-            }
-
-            // DEBUG: loguj identyfikatory pozycji dla wskazanego apartamentu
-            if (DEBUG_APARTMENT_NAME_CANON) {
-                const itemNameCanon = canonicalizeName(firstItem?.objectName ?? "");
-                if (itemNameCanon && itemNameCanon === DEBUG_APARTMENT_NAME_CANON) {
-                    logWithTag("DBG(new) Identyfikatory pozycji:", {
-                        idobookingReservationId: idobookingId,
-                        objectItemId: firstItem?.objectItemId,
-                        itemId: firstItem?.itemId,
-                        objectId: firstItem?.objectId,
-                        itemCode: firstItem?.itemCode,
-                        objectName: firstItem?.objectName,
-                    });
+                const details = reservationDetails;
+                let sourceName: string;
+                if (details.internalSource && details.internalSource !== "other") {
+                    const internalSourceMapping: Record<string, string> = {
+                        email: "Email",
+                        phone: "Telefon",
+                        faceToFaceConversation: "Osobiście",
+                        socialMedia: "Social Media",
+                    };
+                    sourceName = internalSourceMapping[details.internalSource] ?? details.internalSource;
+                } else if (details.reservationSourceId) {
+                    sourceName = `Idobooking (ID: ${details.reservationSourceId})`;
+                } else if (details.reservationSourceTypeId) {
+                    sourceName = `Idobooking (Typ ID: ${details.reservationSourceTypeId})`;
+                } else {
+                    sourceName = "Brak";
                 }
+
+                if (DEBUG_APARTMENT_NAME_CANON) {
+                    const itemNameCanon = canonicalizeName(item.objectName ?? "");
+                    if (itemNameCanon && itemNameCanon === DEBUG_APARTMENT_NAME_CANON) {
+                        logWithTag("DBG(new) Identyfikatory pozycji:", {
+                            idobookingReservationId: idobookingId,
+                            idobookingObjectItemId: objectLineId,
+                            objectItemId: item.objectItemId,
+                            itemId: item.itemId,
+                            objectId: item.objectId,
+                            itemCode: item.itemCode,
+                            objectName: item.objectName,
+                        });
+                    }
+                }
+
+                const adultsCount = item.numberOfAdults ?? item.numberOfGuests ?? 1;
+                const bigChildrenCount = item.numberOfBigChildren ?? 0;
+                const smallChildrenCount = item.numberOfSmallChildren ?? 0;
+                const totalChildrenCount = bigChildrenCount + smallChildrenCount;
+
+                let guestName = "Nieznany gość";
+                if (client) {
+                    guestName = `${client.firstName} ${client.lastName}`.trim();
+                    if (!guestName) guestName = "Nieznany gość";
+                }
+
+                const objectItemId = item.objectItemId;
+                const objectId = item.objectId;
+                const itemId = item.itemId;
+
+                const linePayment =
+                    totalItems > 1 ? item.price + item.priceCorrection : details.price;
+
+                reservationsToCreate.push({
+                    idobookingId,
+                    idobookingObjectItemId: objectLineId,
+                    status: mapIdobookingStatus(details.status),
+                    apartmentName: objectName ?? "N/A",
+                    itemCode: itemCode ?? undefined,
+                    currency: details.currency,
+                    source: sourceName,
+                    createDate: new Date(details.dateAdd),
+                    guest: guestName,
+                    start: new Date(details.dateFrom),
+                    end: new Date(details.dateTo),
+                    payment: linePayment.toString(),
+                    adults: adultsCount,
+                    children: totalChildrenCount,
+                    address: item.objectName ?? "Brak adresu",
+                    paymantValue: linePayment,
+                });
+
+                reservationsCreateMeta.push({
+                    index: reservationsToCreate.length - 1,
+                    objectItemId,
+                    itemId,
+                    objectId,
+                    itemCode,
+                    objectName,
+                    apartmentId: undefined as unknown as number,
+                });
             }
-
-            const adultsCount = firstItem?.numberOfAdults ?? firstItem?.numberOfGuests ?? 1;
-            const bigChildrenCount = firstItem?.numberOfBigChildren ?? 0;
-            const smallChildrenCount = firstItem?.numberOfSmallChildren ?? 0;
-            const totalChildrenCount = bigChildrenCount + smallChildrenCount;
-
-            // Bezpieczne pobieranie nazwy gościa
-            let guestName = "Nieznany gość";
-            if (client) {
-                guestName = `${client.firstName} ${client.lastName}`.trim();
-                if (!guestName) guestName = "Nieznany gość";
-            }
-
-            // Zachowaj identyfikatory pozycji z IdoBooking (pozwoli dopasować 5 identycznych pokoi po ID)
-            const objectItemId = firstItem?.objectItemId;
-            const objectId = firstItem?.objectId;
-            const itemId = firstItem?.itemId;
-            const itemCode = firstItem?.itemCode ?? null;
-            const objectName = firstItem?.objectName ?? null;
-
-            // Zarejestruj wariant (itemCode) dla danej bazowej nazwy obiektu
-            if (objectName && itemCode) {
-                const baseKey = canonicalizeName(objectName);
-                const set = variantsByBaseName.get(baseKey) ?? new Set<string>();
-                set.add(itemCode);
-                variantsByBaseName.set(baseKey, set);
-            }
-
-            reservationsToCreate.push({
-                idobookingId,
-                status: mapIdobookingStatus(details.status),
-                apartmentName: objectName ?? "N/A",
-                itemCode: itemCode ?? undefined,
-                currency: details.currency,
-                source: sourceName,
-                createDate: new Date(details.dateAdd),
-                guest: guestName,
-                start: new Date(details.dateFrom),
-                end: new Date(details.dateTo),
-                payment: details.price.toString(),
-                adults: adultsCount,
-                children: totalChildrenCount,
-                address: firstItem?.objectName ?? "Brak adresu",
-                paymantValue: details.price,
-            });
-
-            reservationsCreateMeta.push({
-                index: reservationsToCreate.length - 1,
-                objectItemId,
-                itemId,
-                objectId,
-                itemCode,
-                objectName,
-                apartmentId: undefined as unknown as number,
-            });
         }
     }
 
@@ -712,37 +774,52 @@ export async function mapToDBReservations(
         const roomClient = (ctx.db as unknown as { room: RoomClient }).room;
         for (const meta of reservationsCreateMeta) {
             const rec = reservationsToCreate[meta.index];
-            if (!rec?.apartmentId || !meta.itemCode) continue;
-            try {
-                const keyApartmentId = rec.apartmentId;
-                const code = meta.itemCode;
-                // Znajdź lub utwórz pokój
-                const existingRoom = await roomClient.findFirst({
-                    where: { apartmentId: keyApartmentId, code },
-                    select: { id: true },
-                });
-                let roomId = existingRoom?.id;
-                if (!roomId) {
-                    const name = `${rec.apartmentName ?? "Pokój"} ${code}`.trim();
-                    const slug = name
-                        .toLowerCase()
-                        .replace(/[^a-z0-9]+/g, "-")
-                        .replace(/(^-|-$)/g, "");
-                    const created = await roomClient.create({
-                        data: {
-                            apartmentId: keyApartmentId,
-                            code,
-                            name,
-                            slug,
-                            address: rec.address ?? "",
-                        },
+            if (!rec?.apartmentId) continue;
+
+            const codeCandidates = [
+                meta.itemCode,
+                meta.objectItemId != null ? String(meta.objectItemId) : undefined,
+                meta.itemId != null ? String(meta.itemId) : undefined,
+            ].filter((c): c is string => typeof c === "string" && c.trim().length > 0);
+
+            const tried = new Set<string>();
+            let roomId: number | undefined;
+
+            for (const code of codeCandidates) {
+                if (tried.has(code)) continue;
+                tried.add(code);
+                try {
+                    const keyApartmentId = rec.apartmentId;
+                    let found = await roomClient.findFirst({
+                        where: { apartmentId: keyApartmentId, code },
                         select: { id: true },
                     });
-                    roomId = created.id;
+                    if (!found) {
+                        const name = `${rec.apartmentName ?? "Pokój"} ${code}`.trim();
+                        const slug = name
+                            .toLowerCase()
+                            .replace(/[^a-z0-9]+/g, "-")
+                            .replace(/(^-|-$)/g, "");
+                        found = await roomClient.create({
+                            data: {
+                                apartmentId: keyApartmentId,
+                                code,
+                                name,
+                                slug,
+                                address: rec.address ?? "",
+                            },
+                            select: { id: true },
+                        });
+                    }
+                    roomId = found.id;
+                    break;
+                } catch {
+                    // spróbuj następny kod kandydata
                 }
+            }
+
+            if (typeof roomId === "number") {
                 (rec as unknown as { roomId?: number }).roomId = roomId;
-            } catch {
-                // pomiń błędy przypisania roomId – rezerwacja i tak zostanie zapisana
             }
         }
         logWithTag(`Tworzenie ${reservationsToCreate.length} nowych rezerwacji...`);
@@ -765,7 +842,12 @@ export async function mapToDBReservations(
             await Promise.all(
                 reservationsToUpdate.map((u) =>
                     ctx.db.reservation.update({
-                        where: { idobookingId: u.idobookingId },
+                        where: {
+                            idobookingId_idobookingObjectItemId: {
+                                idobookingId: u.idobookingId,
+                                idobookingObjectItemId: u.idobookingObjectItemId,
+                            },
+                        },
                         data: u.data,
                     }),
                 ),
@@ -782,7 +864,7 @@ export async function mapToDBReservations(
     logWithTag("Zakończono mapowanie wszystkich rezerwacji.");
 }
 
-async function getSources(): Promise<z.infer<typeof reservationSourceDescriptionSchema>[]> {
+export async function getSources(): Promise<z.infer<typeof reservationSourceDescriptionSchema>[]> {
     logWithTag("Pobieranie źródeł rezerwacji z IdoBooking API...");
 
     const response = await fetch(
@@ -835,11 +917,10 @@ async function getSources(): Promise<z.infer<typeof reservationSourceDescription
 }
 
 
-// (tymczasowy placeholder — właściwy router eksportowany niżej)
+// Router: `idobooking-router.ts` (osobny plik, żeby CLI / skrypty mogły importować sync bez łańcucha trpc → auth → react).
 
-// Internal shared sync implementation (outside router)
-async function internalSync(
-    ctx: Awaited<ReturnType<typeof createTRPCContext>>,
+export async function internalSync(
+    ctx: IdobookingSyncCtx,
     options: ReservationFetchOptions = {},
 ) {
     const startTime = Date.now();
@@ -857,92 +938,3 @@ async function internalSync(
         duration: `${duration}ms`,
     };
 }
-
-export const idobookingRouter = createTRPCRouter({
-    syncReservations: protectedProcedure
-        .output(syncResponseSchema)
-        .mutation(async ({ ctx }) => {
-            if (ctx.session.user.type !== UserType.ADMIN) {
-                throw new TRPCError({
-                    code: "FORBIDDEN",
-                    message: "Tylko administratorzy mogą synchronizować rezerwacje.",
-                });
-            }
-
-            const startTime = Date.now();
-            const syncId = Math.random().toString(36).substring(7);
-
-            console.log("🔧 [SYNC-TRPC] ===== ROZPOCZĘCIE SYNCHRONIZACJI tRPC =====");
-            console.log("🔧 [SYNC-TRPC] Użytkownik:", ctx.session.user.email);
-            console.log("🔧 [SYNC-TRPC] Typ użytkownika:", ctx.session.user.type);
-            console.log("🔧 [SYNC-TRPC] Sync ID:", syncId);
-            console.log("🔧 [SYNC-TRPC] NODE_ENV:", process.env.NODE_ENV);
-            console.log("🔧 [SYNC-TRPC] Timestamp:", new Date().toISOString());
-
-            try {
-                const result = await internalSync(ctx);
-                console.log("🔧 [SYNC-TRPC] ✅ Synchronizacja zakończona pomyślnie.");
-                console.log("🔧 [SYNC-TRPC] Czas wykonania:", result.duration);
-                console.log("🔧 [SYNC-TRPC] ===== ZAKOŃCZENIE SYNCHRONIZACJI tRPC (SUCCESS) =====");
-                return result;
-            } catch (error) {
-                const duration = Date.now() - startTime;
-                const errorMessage = error instanceof Error ? error.message : "Nieznany błąd";
-
-                console.error("🔧 [SYNC-TRPC] ❌ Wystąpił błąd podczas synchronizacji:", {
-                    error: errorMessage,
-                    stack: error instanceof Error ? error.stack : undefined,
-                    syncId,
-                    duration: `${duration}ms`
-                });
-                console.log("🔧 [SYNC-TRPC] ===== ZAKOŃCZENIE SYNCHRONIZACJI tRPC (ERROR) =====");
-
-                throw new TRPCError({
-                    code: "INTERNAL_SERVER_ERROR",
-                    message: `Błąd synchronizacji: ${errorMessage}`,
-                });
-            }
-        }),
-    syncReservationsCron: publicProcedure
-        .input(z.object({ startDateISO: z.string().optional(), endDateISO: z.string().optional() }).optional())
-        .output(syncResponseSchema)
-        .mutation(async ({ ctx, input }) => {
-            // Guard with CRON_SECRET if set
-            if (env.CRON_SECRET) {
-                const auth = ctx.headers.get?.("authorization");
-                const ok = auth === `Bearer ${env.CRON_SECRET}`;
-                if (!ok) {
-                    throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid CRON secret" });
-                }
-            }
-
-            return internalSync(ctx, {
-                startDateISO: input?.startDateISO,
-                endDateISO: input?.endDateISO,
-            });
-        }),
-    getReservationSources: protectedProcedure.mutation(async ({ ctx }) => {
-        if (ctx.session.user.type !== UserType.ADMIN) {
-            throw new TRPCError({
-                code: "FORBIDDEN",
-                message: "Tylko administratorzy mogą wykonywać tę akcję.",
-            });
-        }
-
-        try {
-            const sources = await getSources();
-            return {
-                success: true,
-                sources: sources,
-            };
-
-        } catch (error) {
-            logWithTag("🚨 Wystąpił błąd podczas pobierania źródeł rezerwacji:", error);
-            const errorMessage = error instanceof Error ? error.message : "Unknown error";
-            throw new TRPCError({
-                code: "INTERNAL_SERVER_ERROR",
-                message: errorMessage,
-            });
-        }
-    }),
-});

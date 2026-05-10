@@ -290,6 +290,9 @@ export const reservationsRouter = createTRPCRouter({
         start: Date;
         end: Date;
         status: string;
+        roomId: number | null;
+        itemCode: string | null;
+        apartmentName: string;
       };
       type RoomShape = {
         id: number;
@@ -344,6 +347,9 @@ export const reservationsRouter = createTRPCRouter({
                           start: true,
                           end: true,
                           status: true,
+                          roomId: true,
+                          itemCode: true,
+                          apartmentName: true,
                         },
                       },
                     },
@@ -365,6 +371,9 @@ export const reservationsRouter = createTRPCRouter({
                       start: true,
                       end: true,
                       status: true,
+                      roomId: true,
+                      itemCode: true,
+                      apartmentName: true,
                     },
                   },
                 },
@@ -395,20 +404,78 @@ export const reservationsRouter = createTRPCRouter({
 
       const apartmentsData: Array<z.infer<typeof apartmentWithReservationsSchema>> = [];
 
+      const toCalendarSlice = (res: RoomReservationShape) => ({
+        id: res.id,
+        start: res.start,
+        end: res.end,
+        status: res.status,
+        guest: res.guest,
+      });
+
+      /**
+       * Rezerwacje na poziomie apartamentu (roomId = null) muszą trafić do któregoś wiersza kalendarza.
+       * Najpierw dopasowanie po itemCode / sufiksie nazwy z kodem pokoju; reszta — na pierwszy pokój
+       * (inaczej znikają z widoku właściciela mimo że są w bazie).
+       */
+      const buildRoomReservationBuckets = (
+        apartment: ApartmentShape,
+      ): Map<number, RoomReservationShape[]> => {
+        const buckets = new Map<number, RoomReservationShape[]>();
+        for (const room of apartment.rooms) {
+          buckets.set(room.id, [...room.reservations]);
+        }
+        const orphans = apartment.reservations.filter((r) => r.roomId === null);
+        const stillUnassigned: RoomReservationShape[] = [];
+
+        for (const res of orphans) {
+            let placed = false;
+            for (const room of apartment.rooms) {
+                const roomCode = room.code.trim();
+                const ic = (res.itemCode ?? "").trim();
+                if (roomCode && ic === roomCode) {
+                    buckets.get(room.id)!.push(res);
+                    placed = true;
+                    break;
+                }
+                const suffix = roomCode ? ` ${roomCode}` : "";
+                if (roomCode && (res.apartmentName ?? "").trim().endsWith(suffix)) {
+                    buckets.get(room.id)!.push(res);
+                    placed = true;
+                    break;
+                }
+            }
+            if (!placed) stillUnassigned.push(res);
+        }
+
+        const firstRoom = apartment.rooms[0];
+        if (firstRoom && stillUnassigned.length > 0) {
+            const list = buckets.get(firstRoom.id)!;
+            for (const res of stillUnassigned) {
+                if (!list.some((x) => x.id === res.id)) {
+                    list.push(res);
+                }
+            }
+        }
+
+        return buckets;
+      };
+
       for (const ownership of ownedApts) {
         const apartment: ApartmentShape = ownership.apartment;
         const primaryImageUrl: string | null = apartment.images[0]?.url ?? null;
         const hasMultipleRooms: boolean = Array.isArray(apartment.rooms) && apartment.rooms.length > 1;
 
         if (hasMultipleRooms) {
+          const buckets = buildRoomReservationBuckets(apartment);
           for (const room of apartment.rooms) {
-            const reservations = room.reservations.map((res: RoomReservationShape) => ({
-              id: res.id,
-              start: res.start,
-              end: res.end,
-              status: res.status,
-              guest: res.guest,
-            }));
+            const merged = buckets.get(room.id) ?? [];
+            const byId = new Map<number, ReturnType<typeof toCalendarSlice>>();
+            for (const res of merged) {
+              byId.set(res.id, toCalendarSlice(res));
+            }
+            const reservations = Array.from(byId.values()).sort(
+              (a, b) => a.start.getTime() - b.start.getTime(),
+            );
 
             apartmentsData.push({
               id: room.id,
@@ -424,13 +491,7 @@ export const reservationsRouter = createTRPCRouter({
         }
 
         // Single-room or no-room apartments -> show as apartment
-        const reservations = apartment.reservations.map((res: RoomReservationShape) => ({
-          id: res.id,
-          start: res.start,
-          end: res.end,
-          status: res.status,
-          guest: res.guest,
-        }));
+        const reservations = apartment.reservations.map(toCalendarSlice);
 
         apartmentsData.push({
           id: apartment.id,

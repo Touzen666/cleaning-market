@@ -20,12 +20,12 @@ export async function GET(request: NextRequest) {
 
         console.log(`🕗 [CRON] Daily sync start | id=${requestId}`);
 
-        // Zakres: ostatnie 90 dni → następne 365 dni
+        // Zakres: ostatnie 24 miesiące → następne 18 miesięcy (cron musi obejmować starsze pobyty jak ręczna synchronizacja)
         const now = new Date();
         const start = new Date(now);
-        start.setDate(start.getDate() - 90);
+        start.setMonth(start.getMonth() - 24);
         const end = new Date(now);
-        end.setDate(end.getDate() + 365);
+        end.setMonth(end.getMonth() + 18);
         console.log("🗓️ [CRON] Range:", { start: start.toISOString(), end: end.toISOString() });
 
         // Utwórz kontekst z nagłówkiem autoryzacji do weryfikacji CRON_SECRET w tRPC
