@@ -835,9 +835,7 @@ export default function AdminReportsPage() {
                               )}
                             {!report.isHistorical &&
                               !report.finalSettlementType &&
-                              !isReportLockedForEditing(
-                                report.status as ReportStatus,
-                              ) && (
+                              !isReportLockedForEditing(report.status) && (
                                 <div
                                   className="group relative"
                                   title="Przejdź do szczegółów raportu, aby wybrać ostateczny sposób rozliczenia. Jest to wymagane, aby zatwierdzić lub wysłać raport."
