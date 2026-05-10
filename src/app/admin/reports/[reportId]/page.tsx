@@ -517,17 +517,7 @@ export default function ReportDetailsPage({
     setNoticeParty(r.agreementTerminationNoticeParty ?? "");
     setNoticeDocumentUrl(r.agreementTerminationNoticeDocumentUrl ?? "");
     setNoticeDeliveryNote(r.agreementTerminationNoticeDeliveryNote ?? "");
-  }, [
-    report?.id,
-    (report as (typeof report & ReportNoticeFields) | undefined)
-      ?.agreementTerminationNoticeDate,
-    (report as (typeof report & ReportNoticeFields) | undefined)
-      ?.agreementTerminationNoticeParty,
-    (report as (typeof report & ReportNoticeFields) | undefined)
-      ?.agreementTerminationNoticeDocumentUrl,
-    (report as (typeof report & ReportNoticeFields) | undefined)
-      ?.agreementTerminationNoticeDeliveryNote,
-  ]);
+  }, [report]);
 
   type AdminReportTerminationCost = {
     id: string;
@@ -1033,7 +1023,7 @@ export default function ReportDetailsPage({
           agreementTerminationNoticeDate:
             noticeDate === "" ? null : noticeDate,
           agreementTerminationNoticeParty:
-            noticeParty === "" ? null : (noticeParty as TerminationCostSide),
+            noticeParty === "" ? null : noticeParty,
           agreementTerminationNoticeDocumentUrl: noticeDocumentUrl,
           agreementTerminationNoticeDeliveryNote: noticeDeliveryNote,
         };
@@ -1067,7 +1057,7 @@ export default function ReportDetailsPage({
           agreementTerminationNoticeDate:
             noticeDate === "" ? null : noticeDate,
           agreementTerminationNoticeParty:
-            noticeParty === "" ? null : (noticeParty as TerminationCostSide),
+            noticeParty === "" ? null : noticeParty,
           agreementTerminationNoticeDocumentUrl: noticeDocumentUrl,
           agreementTerminationNoticeDeliveryNote: noticeDeliveryNote,
         };
@@ -1079,10 +1069,16 @@ export default function ReportDetailsPage({
           setPendingStatusChange(null);
           return;
         }
+        const noticeDateToSave = noticeDate === "" ? null : noticeDate;
+        if (noticeDateToSave === null) {
+          setShowSendConfirmationModal(false);
+          setPendingStatusChange(null);
+          return;
+        }
         try {
           await updateAgreementTerminationNoticeMutation.mutateAsync({
             reportId,
-            noticeDate: draft.agreementTerminationNoticeDate as string,
+            noticeDate: noticeDateToSave,
             noticeParty: draft.agreementTerminationNoticeParty,
             documentUrl: draft.agreementTerminationNoticeDocumentUrl.trim(),
             deliveryNote: draft.agreementTerminationNoticeDeliveryNote.trim(),
@@ -2088,9 +2084,7 @@ export default function ReportDetailsPage({
                           reportId: report.id,
                           noticeDate: noticeDate === "" ? null : noticeDate,
                           noticeParty:
-                            noticeParty === ""
-                              ? null
-                              : (noticeParty as TerminationCostSide),
+                            noticeParty === "" ? null : noticeParty,
                           documentUrl:
                             noticeDocumentUrl.trim() === ""
                               ? null
@@ -2112,9 +2106,7 @@ export default function ReportDetailsPage({
                       agreementTerminationNoticeDate:
                         noticeDate === "" ? null : noticeDate,
                       agreementTerminationNoticeParty:
-                        noticeParty === ""
-                          ? null
-                          : (noticeParty as TerminationCostSide),
+                        noticeParty === "" ? null : noticeParty,
                       agreementTerminationNoticeDocumentUrl: noticeDocumentUrl,
                       agreementTerminationNoticeDeliveryNote: noticeDeliveryNote,
                     }) ? (
@@ -2135,39 +2127,36 @@ export default function ReportDetailsPage({
                   <h4 className="text-sm font-semibold text-slate-800">
                     Dokumentacja wypowiedzenia (zapisana)
                   </h4>
+                  {(() => {
+                    const fr = finalReport as ReportDetails & ReportNoticeFields;
+                    const docUrl = fr.agreementTerminationNoticeDocumentUrl;
+                    const party = fr.agreementTerminationNoticeParty;
+                    const dateStr = toDateInputValue(
+                      fr.agreementTerminationNoticeDate ?? null,
+                    );
+                    const delivery = fr.agreementTerminationNoticeDeliveryNote;
+                    return (
                   <dl className="mt-3 space-y-2 text-sm">
                     <div>
                       <dt className="text-xs text-slate-500">Data wypowiedzenia</dt>
                       <dd className="font-medium">
-                        {toDateInputValue(
-                          (
-                            finalReport as ReportDetails & ReportNoticeFields
-                          ).agreementTerminationNoticeDate ?? null,
-                        ) || "—"}
+                        {dateStr !== "" ? dateStr : "—"}
                       </dd>
                     </div>
                     <div>
                       <dt className="text-xs text-slate-500">Strona wypowiedzenia</dt>
                       <dd className="font-medium">
-                        {(finalReport as ReportDetails & ReportNoticeFields)
-                          .agreementTerminationNoticeParty
-                          ? terminationNoticePartyLabel(
-                              (finalReport as ReportDetails & ReportNoticeFields)
-                                .agreementTerminationNoticeParty!,
-                            )
+                        {party
+                          ? terminationNoticePartyLabel(party)
                           : "—"}
                       </dd>
                     </div>
                     <div>
                       <dt className="text-xs text-slate-500">Załącznik</dt>
                       <dd>
-                        {(finalReport as ReportDetails & ReportNoticeFields)
-                          .agreementTerminationNoticeDocumentUrl ? (
+                        {docUrl ? (
                           <a
-                            href={
-                              (finalReport as ReportDetails & ReportNoticeFields)
-                                .agreementTerminationNoticeDocumentUrl!
-                            }
+                            href={docUrl}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-indigo-600 hover:underline"
@@ -2182,11 +2171,14 @@ export default function ReportDetailsPage({
                     <div>
                       <dt className="text-xs text-slate-500">Sposób doręczenia</dt>
                       <dd className="whitespace-pre-wrap font-medium">
-                        {(finalReport as ReportDetails & ReportNoticeFields)
-                          .agreementTerminationNoticeDeliveryNote ?? "—"}
+                        {delivery != null && delivery.trim() !== ""
+                          ? delivery
+                          : "—"}
                       </dd>
                     </div>
                   </dl>
+                    );
+                  })()}
                 </div>
               )}
             {!isHistorical &&

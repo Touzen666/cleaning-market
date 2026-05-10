@@ -2,8 +2,8 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { type Decimal } from "@prisma/client/runtime/library";
+import type { Prisma } from "@prisma/client";
 import {
-    Prisma,
     ReportStatus,
     ReportItemType,
     PaymentType,

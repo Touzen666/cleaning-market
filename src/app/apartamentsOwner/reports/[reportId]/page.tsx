@@ -459,8 +459,10 @@ export default function OwnerReportDetailsPage() {
                           Sposób doręczenia wypowiedzenia
                         </dt>
                         <dd className="whitespace-pre-wrap font-medium text-gray-900">
-                          {report.agreementTerminationNoticeDeliveryNote?.trim() ||
-                            "—"}
+                          {report.agreementTerminationNoticeDeliveryNote != null &&
+                          report.agreementTerminationNoticeDeliveryNote.trim() !== ""
+                            ? report.agreementTerminationNoticeDeliveryNote.trim()
+                            : "—"}
                         </dd>
                       </div>
                     </dl>
