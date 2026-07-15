@@ -245,6 +245,18 @@ export default function CompanyStatisticsPage() {
         },
     );
 
+    const companyBalanceQuery = api.companyStatistics.getCompanyCommissionBalance.useQuery(
+        {
+            startYear,
+            startMonth,
+            endYear,
+            endMonth,
+        },
+        {
+            enabled: filtersLoaded && selectedApartmentId === null,
+        },
+    );
+
     const settlementDetailsQuery =
         api.companyStatistics.getApartmentSettlementDetails.useQuery(
             {
@@ -314,7 +326,22 @@ export default function CompanyStatisticsPage() {
                         className="mt-3 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                     />
 
-                    <div className="mt-4 min-h-0 flex-1 space-y-2 overflow-y-auto">
+                    <div className="mt-4 max-h-[calc(100vh-14rem)] space-y-2 overflow-y-auto">
+                        <button
+                            type="button"
+                            onClick={() => setSelectedApartmentId(null)}
+                            className={`w-full rounded-md border px-3 py-3 text-left transition ${
+                                selectedApartmentId === null
+                                    ? "border-blue-500 bg-blue-50"
+                                    : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                            }`}
+                        >
+                            <div className="font-medium text-gray-900">Cała firma</div>
+                            <div className="mt-1 text-xs text-gray-500">
+                                Bilans wszystkich apartamentów
+                            </div>
+                        </button>
+
                         {apartmentsQuery.isLoading && (
                             <p className="text-sm text-gray-500">Ładowanie...</p>
                         )}
@@ -354,116 +381,297 @@ export default function CompanyStatisticsPage() {
                 </div>
 
                 <div className="space-y-6">
-                    {!selectedApartmentId && (
-                        <div className="rounded-lg border border-dashed border-gray-300 bg-white p-10 text-center">
-                            <p className="text-gray-600">
-                                Wybierz apartament z listy, aby zobaczyć bilans prowizji.
-                            </p>
+                    <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                            <div>
+                                <h2 className="text-lg font-semibold text-gray-900">
+                                    {selectedApartmentId === null
+                                        ? "Bilans całej firmy"
+                                        : selectedApartment?.name}
+                                </h2>
+                                <p className="text-sm text-gray-500">
+                                    Okres: pełne miesiące kalendarzowe
+                                </p>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                                {yearOptions.slice(0, 3).map((year) => (
+                                    <button
+                                        key={year}
+                                        type="button"
+                                        onClick={() => applyYearPreset(year)}
+                                        className="rounded-md border border-gray-300 px-3 py-1.5 text-sm hover:bg-gray-50"
+                                    >
+                                        Rok {year}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
+
+                        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                            <label className="block text-sm">
+                                <span className="mb-1 block text-gray-600">
+                                    Od — miesiąc
+                                </span>
+                                <select
+                                    value={startMonth}
+                                    onChange={(event) =>
+                                        setStartMonth(Number(event.target.value))
+                                    }
+                                    className="w-full rounded-md border border-gray-300 px-3 py-2"
+                                >
+                                    {MONTHS.map((month) => (
+                                        <option key={month.value} value={month.value}>
+                                            {month.label}
+                                        </option>
+                                    ))}
+                                </select>
+                            </label>
+                            <label className="block text-sm">
+                                <span className="mb-1 block text-gray-600">Od — rok</span>
+                                <select
+                                    value={startYear}
+                                    onChange={(event) =>
+                                        setStartYear(Number(event.target.value))
+                                    }
+                                    className="w-full rounded-md border border-gray-300 px-3 py-2"
+                                >
+                                    {yearOptions.map((year) => (
+                                        <option key={year} value={year}>
+                                            {year}
+                                        </option>
+                                    ))}
+                                </select>
+                            </label>
+                            <label className="block text-sm">
+                                <span className="mb-1 block text-gray-600">
+                                    Do — miesiąc
+                                </span>
+                                <select
+                                    value={endMonth}
+                                    onChange={(event) =>
+                                        setEndMonth(Number(event.target.value))
+                                    }
+                                    className="w-full rounded-md border border-gray-300 px-3 py-2"
+                                >
+                                    {MONTHS.map((month) => (
+                                        <option key={month.value} value={month.value}>
+                                            {month.label}
+                                        </option>
+                                    ))}
+                                </select>
+                            </label>
+                            <label className="block text-sm">
+                                <span className="mb-1 block text-gray-600">Do — rok</span>
+                                <select
+                                    value={endYear}
+                                    onChange={(event) =>
+                                        setEndYear(Number(event.target.value))
+                                    }
+                                    className="w-full rounded-md border border-gray-300 px-3 py-2"
+                                >
+                                    {yearOptions.map((year) => (
+                                        <option key={year} value={year}>
+                                            {year}
+                                        </option>
+                                    ))}
+                                </select>
+                            </label>
+                        </div>
+                    </div>
+
+                    {selectedApartmentId === null && (
+                        <>
+                            {companyBalanceQuery.isLoading && (
+                                <div className="rounded-lg border border-gray-200 bg-white p-8 text-center text-gray-500">
+                                    Obliczanie bilansu firmy...
+                                </div>
+                            )}
+                            {companyBalanceQuery.error && (
+                                <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">
+                                    {companyBalanceQuery.error.message}
+                                </div>
+                            )}
+                            {companyBalanceQuery.data && (
+                                <div className="space-y-6">
+                                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                                        <div className="rounded-lg border border-gray-200 bg-white p-4">
+                                            <div className="text-xs uppercase tracking-wide text-gray-500">
+                                                Apartamenty z raportami
+                                            </div>
+                                            <div className="mt-1 text-2xl font-bold text-gray-900">
+                                                {
+                                                    companyBalanceQuery.data.summary
+                                                        .apartmentsWithReports
+                                                }
+                                            </div>
+                                        </div>
+                                        <div className="rounded-lg border border-gray-200 bg-white p-4">
+                                            <div className="text-xs uppercase tracking-wide text-gray-500">
+                                                Raporty w okresie
+                                            </div>
+                                            <div className="mt-1 text-2xl font-bold text-gray-900">
+                                                {companyBalanceQuery.data.summary.totalReports}
+                                            </div>
+                                        </div>
+                                        <div className="rounded-lg border border-gray-200 bg-white p-4">
+                                            <div className="text-xs uppercase tracking-wide text-gray-500">
+                                                Na plusie
+                                            </div>
+                                            <div className="mt-1 text-2xl font-bold text-green-700">
+                                                {
+                                                    companyBalanceQuery.data.summary
+                                                        .apartmentsWithProfit
+                                                }
+                                            </div>
+                                        </div>
+                                        <div className="rounded-lg border border-gray-200 bg-white p-4">
+                                            <div className="text-xs uppercase tracking-wide text-gray-500">
+                                                Na minusie
+                                            </div>
+                                            <div className="mt-1 text-2xl font-bold text-red-700">
+                                                {
+                                                    companyBalanceQuery.data.summary
+                                                        .apartmentsWithLoss
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <CommissionTable
+                                        title="Miesięczna prowizja — firma"
+                                        entries={companyBalanceQuery.data.monthlyEntries}
+                                        emptyMessage="Brak raportów w wybranym okresie."
+                                    />
+
+                                    <div className="grid gap-6 lg:grid-cols-2">
+                                        <CommissionTable
+                                            title="Dodatnie"
+                                            entries={companyBalanceQuery.data.positiveEntries}
+                                            total={companyBalanceQuery.data.positiveTotal}
+                                            totalLabel="Suma dodatnich"
+                                            emptyMessage="Brak dodatnich miesięcy."
+                                            showMonthCount
+                                        />
+                                        <CommissionTable
+                                            title="Ujemne"
+                                            entries={companyBalanceQuery.data.negativeEntries}
+                                            total={companyBalanceQuery.data.negativeTotal}
+                                            totalLabel="Suma ujemnych"
+                                            emptyMessage="Brak ujemnych miesięcy."
+                                            showMonthCount
+                                        />
+                                    </div>
+
+                                    <div className="rounded-lg border-2 border-gray-900 bg-gray-50 p-6">
+                                        <div className="flex flex-wrap items-center justify-between gap-4">
+                                            <div>
+                                                <h3 className="text-lg font-semibold text-gray-900">
+                                                    Bilans całej firmy
+                                                </h3>
+                                                <p className="text-sm text-gray-600">
+                                                    {companyBalanceQuery.data.period.startLabel} —{" "}
+                                                    {companyBalanceQuery.data.period.endLabel}
+                                                </p>
+                                            </div>
+                                            <div
+                                                className={`text-2xl font-bold ${
+                                                    companyBalanceQuery.data.balance >= 0
+                                                        ? "text-green-700"
+                                                        : "text-red-700"
+                                                }`}
+                                            >
+                                                {companyBalanceQuery.data.balance >= 0
+                                                    ? "+"
+                                                    : ""}
+                                                {formatPlnAmount(
+                                                    companyBalanceQuery.data.balance,
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="rounded-lg border border-gray-200 bg-white">
+                                        <div className="border-b border-gray-200 px-4 py-3">
+                                            <h3 className="text-base font-semibold text-gray-900">
+                                                Bilans per apartament
+                                            </h3>
+                                            <p className="text-sm text-gray-500">
+                                                Posortowane od największej straty
+                                            </p>
+                                        </div>
+                                        <div className="overflow-x-auto">
+                                            <table className="min-w-full divide-y divide-gray-200 text-sm">
+                                                <thead className="bg-gray-50">
+                                                    <tr>
+                                                        <th className="px-4 py-3 text-left font-medium text-gray-500">
+                                                            Apartament
+                                                        </th>
+                                                        <th className="px-4 py-3 text-right font-medium text-gray-500">
+                                                            Miesiące
+                                                        </th>
+                                                        <th className="px-4 py-3 text-right font-medium text-gray-500">
+                                                            Dodatnie
+                                                        </th>
+                                                        <th className="px-4 py-3 text-right font-medium text-gray-500">
+                                                            Ujemne
+                                                        </th>
+                                                        <th className="px-4 py-3 text-right font-medium text-gray-500">
+                                                            Bilans
+                                                        </th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-gray-100">
+                                                    {companyBalanceQuery.data.apartmentBalances.map(
+                                                        (apt) => (
+                                                            <tr
+                                                                key={apt.apartmentId}
+                                                                className="cursor-pointer hover:bg-gray-50"
+                                                                onClick={() =>
+                                                                    setSelectedApartmentId(
+                                                                        String(apt.apartmentId),
+                                                                    )
+                                                                }
+                                                            >
+                                                                <td className="px-4 py-3 font-medium text-gray-900">
+                                                                    {apt.name}
+                                                                </td>
+                                                                <td className="px-4 py-3 text-right text-gray-600">
+                                                                    {apt.monthCount}
+                                                                </td>
+                                                                <td className="px-4 py-3 text-right text-green-700">
+                                                                    {formatPlnAmount(
+                                                                        apt.positiveTotal,
+                                                                    )}
+                                                                </td>
+                                                                <td className="px-4 py-3 text-right text-red-700">
+                                                                    {formatPlnAmount(
+                                                                        apt.negativeTotal,
+                                                                    )}
+                                                                </td>
+                                                                <td
+                                                                    className={`px-4 py-3 text-right font-semibold ${
+                                                                        apt.balance >= 0
+                                                                            ? "text-green-700"
+                                                                            : "text-red-700"
+                                                                    }`}
+                                                                >
+                                                                    {apt.balance >= 0 ? "+" : ""}
+                                                                    {formatPlnAmount(apt.balance)}
+                                                                </td>
+                                                            </tr>
+                                                        ),
+                                                    )}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </>
                     )}
 
                     {selectedApartmentId && (
                         <>
-                            <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-                                <div className="flex flex-wrap items-start justify-between gap-3">
-                                    <div>
-                                        <h2 className="text-lg font-semibold text-gray-900">
-                                            {selectedApartment?.name}
-                                        </h2>
-                                        <p className="text-sm text-gray-500">
-                                            Okres: pełne miesiące kalendarzowe
-                                        </p>
-                                    </div>
-                                    <div className="flex flex-wrap gap-2">
-                                        {yearOptions.slice(0, 3).map((year) => (
-                                            <button
-                                                key={year}
-                                                type="button"
-                                                onClick={() => applyYearPreset(year)}
-                                                className="rounded-md border border-gray-300 px-3 py-1.5 text-sm hover:bg-gray-50"
-                                            >
-                                                Rok {year}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                                    <label className="block text-sm">
-                                        <span className="mb-1 block text-gray-600">
-                                            Od — miesiąc
-                                        </span>
-                                        <select
-                                            value={startMonth}
-                                            onChange={(event) =>
-                                                setStartMonth(Number(event.target.value))
-                                            }
-                                            className="w-full rounded-md border border-gray-300 px-3 py-2"
-                                        >
-                                            {MONTHS.map((month) => (
-                                                <option key={month.value} value={month.value}>
-                                                    {month.label}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </label>
-                                    <label className="block text-sm">
-                                        <span className="mb-1 block text-gray-600">
-                                            Od — rok
-                                        </span>
-                                        <select
-                                            value={startYear}
-                                            onChange={(event) =>
-                                                setStartYear(Number(event.target.value))
-                                            }
-                                            className="w-full rounded-md border border-gray-300 px-3 py-2"
-                                        >
-                                            {yearOptions.map((year) => (
-                                                <option key={year} value={year}>
-                                                    {year}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </label>
-                                    <label className="block text-sm">
-                                        <span className="mb-1 block text-gray-600">
-                                            Do — miesiąc
-                                        </span>
-                                        <select
-                                            value={endMonth}
-                                            onChange={(event) =>
-                                                setEndMonth(Number(event.target.value))
-                                            }
-                                            className="w-full rounded-md border border-gray-300 px-3 py-2"
-                                        >
-                                            {MONTHS.map((month) => (
-                                                <option key={month.value} value={month.value}>
-                                                    {month.label}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </label>
-                                    <label className="block text-sm">
-                                        <span className="mb-1 block text-gray-600">
-                                            Do — rok
-                                        </span>
-                                        <select
-                                            value={endYear}
-                                            onChange={(event) =>
-                                                setEndYear(Number(event.target.value))
-                                            }
-                                            className="w-full rounded-md border border-gray-300 px-3 py-2"
-                                        >
-                                            {yearOptions.map((year) => (
-                                                <option key={year} value={year}>
-                                                    {year}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </label>
-                                </div>
-                            </div>
-
                             {balanceQuery.isLoading && (
                                 <div className="rounded-lg border border-gray-200 bg-white p-8 text-center text-gray-500">
                                     Obliczanie bilansu...

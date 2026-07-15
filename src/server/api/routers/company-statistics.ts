@@ -22,15 +22,17 @@ import {
 const monthSchema = z.number().int().min(1).max(12);
 const yearSchema = z.number().int().min(2000).max(2100);
 
-const periodInputSchema = z
-    .object({
-        apartmentId: z.number().int().positive(),
-        startYear: yearSchema,
-        startMonth: monthSchema,
-        endYear: yearSchema,
-        endMonth: monthSchema,
-    })
-    .refine(
+const dateRangeObjectSchema = z.object({
+    startYear: yearSchema,
+    startMonth: monthSchema,
+    endYear: yearSchema,
+    endMonth: monthSchema,
+});
+
+function refineDateRange<T extends { startYear: number; startMonth: number; endYear: number; endMonth: number }>(
+    schema: z.ZodType<T>,
+) {
+    return schema.refine(
         (input) => {
             const start = input.startYear * 12 + input.startMonth;
             const end = input.endYear * 12 + input.endMonth;
@@ -40,8 +42,222 @@ const periodInputSchema = z
             message: "Data początkowa nie może być późniejsza niż końcowa",
         },
     );
+}
+
+const dateRangeSchema = refineDateRange(dateRangeObjectSchema);
+const periodInputSchema = refineDateRange(
+    dateRangeObjectSchema.extend({
+        apartmentId: z.number().int().positive(),
+    }),
+);
+
+const reportCommissionSelect = {
+    id: true,
+    year: true,
+    month: true,
+    apartmentId: true,
+    netIncome: true,
+    adminCommissionAmount: true,
+    finalHostPayout: true,
+    finalSettlementType: true,
+    fixedPayoutProrateEnabled: true,
+    fixedPayoutActiveDays: true,
+    customSummaryEnabled: true,
+    customHostPayout: true,
+    apartment: {
+        select: {
+            id: true,
+            name: true,
+            paymentType: true,
+            fixedPaymentAmount: true,
+        },
+    },
+} as const;
+
+const historicalCommissionSelect = {
+    id: true,
+    year: true,
+    month: true,
+    apartmentId: true,
+    netIncome: true,
+    adminCommissionAmount: true,
+    finalHostPayout: true,
+    finalSettlementType: true,
+    apartment: {
+        select: {
+            id: true,
+            name: true,
+            paymentType: true,
+            fixedPaymentAmount: true,
+        },
+    },
+} as const;
 
 export const companyStatisticsRouter = createTRPCRouter({
+    getCompanyCommissionBalance: protectedProcedure
+        .input(dateRangeSchema)
+        .query(async ({ input, ctx }) => {
+            if (ctx.session.user.type !== UserType.ADMIN) {
+                throw new TRPCError({
+                    code: "FORBIDDEN",
+                    message: "Dostęp tylko dla administratora",
+                });
+            }
+
+            const [activeReports, historicalReports] = await Promise.all([
+                ctx.db.monthlyReport.findMany({
+                    where: {
+                        status: { not: ReportStatus.DELETED },
+                    },
+                    select: reportCommissionSelect,
+                }),
+                ctx.db.historicalReport.findMany({
+                    select: historicalCommissionSelect,
+                }),
+            ]);
+
+            const monthlyMap = new Map<string, MonthlyCommissionEntry>();
+            const apartmentMonthly = new Map<
+                number,
+                Map<string, MonthlyCommissionEntry>
+            >();
+            const apartmentNames = new Map<number, string>();
+            const activeKeys = new Set<string>();
+
+            const addToMaps = (
+                apartmentId: number,
+                apartmentName: string,
+                year: number,
+                month: number,
+                commission: number,
+            ) => {
+                if (
+                    !isMonthInRange(
+                        year,
+                        month,
+                        input.startYear,
+                        input.startMonth,
+                        input.endYear,
+                        input.endMonth,
+                    )
+                ) {
+                    return;
+                }
+
+                apartmentNames.set(apartmentId, apartmentName);
+
+                const key = monthKey(year, month);
+                const companyExisting = monthlyMap.get(key);
+                if (companyExisting) {
+                    companyExisting.commission += commission;
+                    companyExisting.reportCount += 1;
+                } else {
+                    monthlyMap.set(key, {
+                        year,
+                        month,
+                        label: formatMonthLabel(year, month),
+                        commission,
+                        reportCount: 1,
+                    });
+                }
+
+                let aptMap = apartmentMonthly.get(apartmentId);
+                if (!aptMap) {
+                    aptMap = new Map();
+                    apartmentMonthly.set(apartmentId, aptMap);
+                }
+                const aptExisting = aptMap.get(key);
+                if (aptExisting) {
+                    aptExisting.commission += commission;
+                    aptExisting.reportCount += 1;
+                } else {
+                    aptMap.set(key, {
+                        year,
+                        month,
+                        label: formatMonthLabel(year, month),
+                        commission,
+                        reportCount: 1,
+                    });
+                }
+            };
+
+            for (const report of activeReports) {
+                activeKeys.add(
+                    `${report.apartmentId}:${monthKey(report.year, report.month)}`,
+                );
+                addToMaps(
+                    report.apartmentId,
+                    report.apartment.name,
+                    report.year,
+                    report.month,
+                    getHostPayoutFromSummary(report),
+                );
+            }
+
+            for (const report of historicalReports) {
+                const dupKey = `${report.apartmentId}:${monthKey(report.year, report.month)}`;
+                if (activeKeys.has(dupKey)) continue;
+
+                addToMaps(
+                    report.apartmentId,
+                    report.apartment.name,
+                    report.year,
+                    report.month,
+                    getHostPayoutFromSummary({
+                        ...report,
+                        fixedPayoutProrateEnabled: null,
+                        fixedPayoutActiveDays: null,
+                        customSummaryEnabled: false,
+                        customHostPayout: null,
+                    }),
+                );
+            }
+
+            const companyBalance = buildCommissionBalance([...monthlyMap.values()]);
+
+            const apartmentBalances = [...apartmentMonthly.entries()]
+                .map(([apartmentId, months]) => {
+                    const aptBalance = buildCommissionBalance([...months.values()]);
+                    return {
+                        apartmentId,
+                        name: apartmentNames.get(apartmentId) ?? `Apartament #${apartmentId}`,
+                        monthCount: aptBalance.monthlyEntries.length,
+                        reportCount: aptBalance.monthlyEntries.reduce(
+                            (sum, entry) => sum + entry.reportCount,
+                            0,
+                        ),
+                        positiveTotal: aptBalance.positiveTotal,
+                        negativeTotal: aptBalance.negativeTotal,
+                        balance: aptBalance.balance,
+                    };
+                })
+                .sort((a, b) => a.balance - b.balance);
+
+            return {
+                period: {
+                    startYear: input.startYear,
+                    startMonth: input.startMonth,
+                    endYear: input.endYear,
+                    endMonth: input.endMonth,
+                    startLabel: formatMonthLabel(input.startYear, input.startMonth),
+                    endLabel: formatMonthLabel(input.endYear, input.endMonth),
+                },
+                ...companyBalance,
+                apartmentBalances,
+                summary: {
+                    apartmentsWithReports: apartmentBalances.length,
+                    apartmentsWithProfit: apartmentBalances.filter((a) => a.balance > 0)
+                        .length,
+                    apartmentsWithLoss: apartmentBalances.filter((a) => a.balance < 0)
+                        .length,
+                    totalReports: apartmentBalances.reduce(
+                        (sum, a) => sum + a.reportCount,
+                        0,
+                    ),
+                },
+            };
+        }),
+
     getApartmentCommissionBalance: protectedProcedure
         .input(
             periodInputSchema.and(
