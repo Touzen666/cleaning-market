@@ -211,6 +211,8 @@ export function isFixedSettlementType(settlementType: string | null | undefined)
  * apartament uznajemy za nieodpowiedni pod krótkoterminowy wynajem ze stałą kwotą.
  */
 export const DEFAULT_OWNER_NET_AFTER_UTILITIES_THRESHOLD = 1900;
+/** Propozycja czynszu długoterminowego = 60% ustalonej kwoty stałej. */
+export const LONG_TERM_RENT_RATIO = 0.6;
 
 export function calculateFixedAmountAdjustment(params: {
     balance: number;
@@ -253,6 +255,9 @@ export function calculateFixedAmountAdjustment(params: {
     const avgUtilities = roundPln(averageRentAndUtilities);
     const ownerNetAtBreakEven = roundPln(suggestedFixedToBreakEven - avgUtilities);
     const ownerNetAtTarget = roundPln(suggestedFixedToTarget - avgUtilities);
+    const suggestedLongTermRent = roundPln(
+        currentFixedAmount * LONG_TERM_RENT_RATIO,
+    );
 
     const buildViability = (ownerNet: number, suggestedFixed: number) => {
         const belowThreshold = ownerNet < ownerNetThreshold;
@@ -272,6 +277,8 @@ export function calculateFixedAmountAdjustment(params: {
         targetMonthlyProfit: roundPln(targetMonthlyProfit),
         averageRentAndUtilities: avgUtilities,
         ownerNetThreshold: roundPln(ownerNetThreshold),
+        suggestedLongTermRent,
+        longTermRentRatio: LONG_TERM_RENT_RATIO,
         reductionToBreakEven,
         reductionToTarget,
         suggestedFixedToBreakEven,

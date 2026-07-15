@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import { InformationCircleIcon } from "@heroicons/react/24/outline";
 import { api } from "@/trpc/react";
 import { formatPlnAmount } from "@/lib/company-statistics";
 
@@ -945,13 +946,41 @@ export default function CompanyStatisticsPage() {
                                                     <p className="mt-3 text-sm font-medium text-red-800">
                                                         Rekomendacja: wynajem długoterminowy zamiast
                                                         krótkoterminowego na kwocie stałej. Próg
-                                                        netto właściciela:{" "}
+                                                        opłacalności najmu krótkoterminowego (netto
+                                                        właściciela):{" "}
                                                         {formatPlnAmount(
                                                             balanceQuery.data.fixedAdjustment
                                                                 .ownerNetThreshold,
                                                         )}{" "}
                                                         / miesiąc.
                                                     </p>
+                                                    <div className="mt-3 rounded-md border border-red-300 bg-white px-3 py-3">
+                                                        <div className="flex items-center gap-1.5">
+                                                            <p className="text-xs font-semibold uppercase tracking-wide text-red-700">
+                                                                Propozycja najmu długoterminowego
+                                                            </p>
+                                                            <span
+                                                                className="inline-flex text-red-500"
+                                                                title={`60% ustalonej kwoty stałej (${formatPlnAmount(
+                                                                    balanceQuery.data
+                                                                        .fixedAdjustment
+                                                                        .currentFixedAmount,
+                                                                )})`}
+                                                            >
+                                                                <InformationCircleIcon className="h-4 w-4" />
+                                                            </span>
+                                                        </div>
+                                                        <p className="mt-1 text-xl font-bold text-red-900">
+                                                            {formatPlnAmount(
+                                                                balanceQuery.data.fixedAdjustment
+                                                                    .suggestedLongTermRent,
+                                                            )}
+                                                            <span className="text-sm font-normal text-gray-600">
+                                                                {" "}
+                                                                / miesiąc
+                                                            </span>
+                                                        </p>
+                                                    </div>
                                                 </div>
                                             )}
                                         </div>
