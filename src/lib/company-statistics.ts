@@ -80,11 +80,16 @@ export function isMonthInRange(
     return value >= start && value <= end;
 }
 
+/** Zaokrąglenie do groszy — unika błędów float (np. -127.979999 → -127.98). */
+export function roundPln(amount: number): number {
+    return Math.round((amount + Number.EPSILON) * 100) / 100;
+}
+
 export function formatPlnAmount(amount: number): string {
     const formatted = new Intl.NumberFormat("pl-PL", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
-    }).format(amount);
+    }).format(roundPln(amount));
     return `${formatted} PLN`;
 }
 
@@ -108,22 +113,25 @@ export type CommissionBalanceResult = {
 export function buildCommissionBalance(
     entries: MonthlyCommissionEntry[],
 ): CommissionBalanceResult {
-    const sorted = [...entries].sort((a, b) => {
-        const av = a.year * 12 + a.month;
-        const bv = b.year * 12 + b.month;
-        return av - bv;
-    });
+    const sorted = [...entries]
+        .map((entry) => ({
+            ...entry,
+            commission: roundPln(entry.commission),
+        }))
+        .sort((a, b) => {
+            const av = a.year * 12 + a.month;
+            const bv = b.year * 12 + b.month;
+            return av - bv;
+        });
 
     const positiveEntries = sorted.filter((entry) => entry.commission > 0);
     const negativeEntries = sorted.filter((entry) => entry.commission < 0);
 
-    const positiveTotal = positiveEntries.reduce(
-        (sum, entry) => sum + entry.commission,
-        0,
+    const positiveTotal = roundPln(
+        positiveEntries.reduce((sum, entry) => sum + entry.commission, 0),
     );
-    const negativeTotal = negativeEntries.reduce(
-        (sum, entry) => sum + entry.commission,
-        0,
+    const negativeTotal = roundPln(
+        negativeEntries.reduce((sum, entry) => sum + entry.commission, 0),
     );
 
     return {
@@ -132,6 +140,6 @@ export function buildCommissionBalance(
         negativeEntries,
         positiveTotal,
         negativeTotal,
-        balance: positiveTotal + negativeTotal,
+        balance: roundPln(positiveTotal + negativeTotal),
     };
 }

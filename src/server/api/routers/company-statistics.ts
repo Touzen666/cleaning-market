@@ -14,13 +14,6 @@ import {
 const monthSchema = z.number().int().min(1).max(12);
 const yearSchema = z.number().int().min(2000).max(2100);
 
-const finalizedReportStatuses = [
-    ReportStatus.APPROVED,
-    ReportStatus.SENT,
-    ReportStatus.AGREEMENT_SETTLED,
-    ReportStatus.AGREEMENT_TERMINATION,
-] as const;
-
 export const companyStatisticsRouter = createTRPCRouter({
     getApartmentCommissionBalance: protectedProcedure
         .input(
@@ -63,11 +56,13 @@ export const companyStatisticsRouter = createTRPCRouter({
                 });
             }
 
+            // Wszystkie raporty oprócz DELETED — szkice też mają „Prowizję Złote Wynajmy”
+            // w podsumowaniu (np. 12/2025, 04–06/2026 przy liczeniu ręcznym).
             const [activeReports, historicalReports] = await Promise.all([
                 ctx.db.monthlyReport.findMany({
                     where: {
                         apartmentId: input.apartmentId,
-                        status: { in: [...finalizedReportStatuses] },
+                        status: { not: ReportStatus.DELETED },
                     },
                     select: {
                         id: true,
@@ -97,12 +92,22 @@ export const companyStatisticsRouter = createTRPCRouter({
                         id: true,
                         year: true,
                         month: true,
+                        netIncome: true,
+                        adminCommissionAmount: true,
                         finalHostPayout: true,
+                        finalSettlementType: true,
+                        apartment: {
+                            select: {
+                                paymentType: true,
+                                fixedPaymentAmount: true,
+                            },
+                        },
                     },
                 }),
             ]);
 
             const monthlyMap = new Map<string, MonthlyCommissionEntry>();
+            const monthsWithActiveReports = new Set<string>();
 
             const addCommission = (
                 year: number,
@@ -141,13 +146,34 @@ export const companyStatisticsRouter = createTRPCRouter({
             };
 
             for (const report of activeReports) {
-                const commission = getHostPayoutFromSummary(report);
-                addCommission(report.year, report.month, commission);
+                const key = monthKey(report.year, report.month);
+                monthsWithActiveReports.add(key);
+                addCommission(
+                    report.year,
+                    report.month,
+                    getHostPayoutFromSummary(report),
+                );
             }
 
+            // Historyczne tylko gdy nie ma już aktywnego raportu za ten miesiąc
+            // (unikamy podwójnego zliczenia po re-archiwizacji / nowym raporcie).
             for (const report of historicalReports) {
-                const commission = Number(report.finalHostPayout ?? 0);
-                addCommission(report.year, report.month, commission);
+                const key = monthKey(report.year, report.month);
+                if (monthsWithActiveReports.has(key)) {
+                    continue;
+                }
+
+                addCommission(
+                    report.year,
+                    report.month,
+                    getHostPayoutFromSummary({
+                        ...report,
+                        fixedPayoutProrateEnabled: null,
+                        fixedPayoutActiveDays: null,
+                        customSummaryEnabled: false,
+                        customHostPayout: null,
+                    }),
+                );
             }
 
             const balance = buildCommissionBalance([...monthlyMap.values()]);

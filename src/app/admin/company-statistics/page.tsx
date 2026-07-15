@@ -28,23 +28,42 @@ function buildYearOptions(): number[] {
     return years;
 }
 
+function formatMonthCount(count: number): string {
+    if (count === 1) return "1 miesiąc";
+    const mod10 = count % 10;
+    const mod100 = count % 100;
+    if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) {
+        return `${count} miesiące`;
+    }
+    return `${count} miesięcy`;
+}
+
 function CommissionTable({
     title,
     entries,
     total,
     totalLabel,
     emptyMessage,
+    showMonthCount = false,
 }: {
     title: string;
     entries: Array<{ label: string; commission: number }>;
     total?: number;
     totalLabel?: string;
     emptyMessage?: string;
+    showMonthCount?: boolean;
 }) {
     return (
         <div className="rounded-lg border border-gray-200 bg-white">
             <div className="border-b border-gray-200 px-4 py-3">
-                <h3 className="text-base font-semibold text-gray-900">{title}</h3>
+                <h3 className="text-base font-semibold text-gray-900">
+                    {title}
+                    {showMonthCount && (
+                        <span className="ml-2 font-normal text-gray-500">
+                            ({formatMonthCount(entries.length)})
+                        </span>
+                    )}
+                </h3>
             </div>
             {entries.length === 0 ? (
                 <p className="px-4 py-6 text-sm text-gray-500">{emptyMessage}</p>
@@ -354,6 +373,7 @@ export default function CompanyStatisticsPage() {
                                             total={balanceQuery.data.positiveTotal}
                                             totalLabel="Suma dodatnich"
                                             emptyMessage="Brak dodatnich miesięcy."
+                                            showMonthCount
                                         />
                                         <CommissionTable
                                             title="Ujemne"
@@ -361,6 +381,7 @@ export default function CompanyStatisticsPage() {
                                             total={balanceQuery.data.negativeTotal}
                                             totalLabel="Suma ujemnych"
                                             emptyMessage="Brak ujemnych miesięcy."
+                                            showMonthCount
                                         />
                                     </div>
 
