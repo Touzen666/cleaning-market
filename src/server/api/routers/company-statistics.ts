@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ReportStatus, UserType } from "@prisma/client";
+import { ReportStatus, UserType, type VATOption } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { getFixedPayoutProrateFactor } from "@/lib/report-fixed-prorate";
@@ -675,7 +675,7 @@ export const companyStatisticsRouter = createTRPCRouter({
                     customHostPayout?: number | null;
                     rentAmount: number | null;
                     utilitiesAmount: number | null;
-                    additionalDeductions: Array<{ amount: number; vatOption: string }>;
+                    additionalDeductions: Array<{ amount: number; vatOption: VATOption }>;
                     apartment: {
                         paymentType: string;
                         fixedPaymentAmount: unknown;

@@ -24,7 +24,7 @@ export const ADDITIONAL_DEDUCTION_PROFIT_RATE = 0.05;
 
 export type AdditionalDeductionInput = {
     amount: number;
-    vatOption: VATOption | string;
+    vatOption: VATOption;
 };
 
 export function sumAdditionalDeductionsGross(
@@ -32,7 +32,7 @@ export function sumAdditionalDeductionsGross(
 ): number {
     if (!deductions?.length) return 0;
     return deductions.reduce(
-        (sum, d) => sum + getGrossAmount(d.amount, d.vatOption as VATOption),
+        (sum, d) => sum + getGrossAmount(d.amount, d.vatOption),
         0,
     );
 }
