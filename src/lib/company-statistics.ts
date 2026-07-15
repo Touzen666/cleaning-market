@@ -1,4 +1,6 @@
 import { getFixedPayoutProrateFactor } from "@/lib/report-fixed-prorate";
+import { getGrossAmount } from "@/lib/vat";
+import type { VATOption } from "@prisma/client";
 
 export type HostPayoutReportInput = {
     customSummaryEnabled?: boolean | null;
@@ -16,6 +18,55 @@ export type HostPayoutReportInput = {
         fixedPaymentAmount?: unknown;
     };
 };
+
+/** 5% dodatkowych odliczeń uznajemy jako zysk ZW. */
+export const ADDITIONAL_DEDUCTION_PROFIT_RATE = 0.05;
+
+export type AdditionalDeductionInput = {
+    amount: number;
+    vatOption: VATOption | string;
+};
+
+export function sumAdditionalDeductionsGross(
+    deductions: AdditionalDeductionInput[] | null | undefined,
+): number {
+    if (!deductions?.length) return 0;
+    return deductions.reduce(
+        (sum, d) => sum + getGrossAmount(d.amount, d.vatOption as VATOption),
+        0,
+    );
+}
+
+export function getAdditionalDeductionsProfit(
+    deductionsGross: number,
+): number {
+    return roundPln(deductionsGross * ADDITIONAL_DEDUCTION_PROFIT_RATE);
+}
+
+/** Wkład do bilansu firmy z raportu: prowizja ZW + 5% dodatkowych odliczeń. */
+export function getReportBalanceContribution(
+    report: HostPayoutReportInput,
+    deductions: AdditionalDeductionInput[] | null | undefined,
+): {
+    hostPayout: number;
+    additionalDeductionsTotal: number;
+    additionalDeductionsProfit: number;
+    commission: number;
+} {
+    const hostPayout = roundPln(getHostPayoutFromSummary(report));
+    const additionalDeductionsTotal = roundPln(
+        sumAdditionalDeductionsGross(deductions),
+    );
+    const additionalDeductionsProfit = getAdditionalDeductionsProfit(
+        additionalDeductionsTotal,
+    );
+    return {
+        hostPayout,
+        additionalDeductionsTotal,
+        additionalDeductionsProfit,
+        commission: roundPln(hostPayout + additionalDeductionsProfit),
+    };
+}
 
 function getAdminCommissionRate(paymentType: string): number {
     return paymentType === "OWN_APARTMENT" ? 0 : 0.25;
@@ -97,15 +148,54 @@ export type MonthlyCommissionEntry = {
     year: number;
     month: number;
     label: string;
+    /** Wkład do bilansu = prowizja ZW + 5% dodatkowych odliczeń. */
     commission: number;
+    hostPayout: number;
+    additionalDeductionsTotal: number;
+    additionalDeductionsProfit: number;
     reportCount: number;
 };
+
+export function createEmptyMonthlyEntry(
+    year: number,
+    month: number,
+): MonthlyCommissionEntry {
+    return {
+        year,
+        month,
+        label: formatMonthLabel(year, month),
+        commission: 0,
+        hostPayout: 0,
+        additionalDeductionsTotal: 0,
+        additionalDeductionsProfit: 0,
+        reportCount: 0,
+    };
+}
+
+export function addContributionToMonthlyEntry(
+    entry: MonthlyCommissionEntry,
+    contribution: {
+        hostPayout: number;
+        additionalDeductionsTotal: number;
+        additionalDeductionsProfit: number;
+        commission: number;
+    },
+): void {
+    entry.hostPayout += contribution.hostPayout;
+    entry.additionalDeductionsTotal += contribution.additionalDeductionsTotal;
+    entry.additionalDeductionsProfit += contribution.additionalDeductionsProfit;
+    entry.commission += contribution.commission;
+    entry.reportCount += 1;
+}
 
 export type MonthSettlementDetail = {
     year: number;
     month: number;
     label: string;
     commission: number;
+    hostPayout: number;
+    additionalDeductionsTotal: number;
+    additionalDeductionsProfit: number;
     reports: Array<{
         id: string;
         isHistorical: boolean;
@@ -115,6 +205,8 @@ export type MonthSettlementDetail = {
         rentAmount: number;
         utilitiesAmount: number;
         rentAndUtilitiesTotal: number;
+        additionalDeductionsTotal: number;
+        additionalDeductionsProfit: number;
         netIncome: number;
         hostPayout: number;
         fixedPaymentAmount: number | null;
@@ -151,6 +243,9 @@ export type CommissionBalanceResult = {
     positiveTotal: number;
     negativeTotal: number;
     balance: number;
+    hostPayoutTotal: number;
+    additionalDeductionsTotal: number;
+    additionalDeductionsProfitTotal: number;
 };
 
 export function buildCommissionBalance(
@@ -160,6 +255,9 @@ export function buildCommissionBalance(
         .map((entry) => ({
             ...entry,
             commission: roundPln(entry.commission),
+            hostPayout: roundPln(entry.hostPayout),
+            additionalDeductionsTotal: roundPln(entry.additionalDeductionsTotal),
+            additionalDeductionsProfit: roundPln(entry.additionalDeductionsProfit),
         }))
         .sort((a, b) => {
             const av = a.year * 12 + a.month;
@@ -176,6 +274,15 @@ export function buildCommissionBalance(
     const negativeTotal = roundPln(
         negativeEntries.reduce((sum, entry) => sum + entry.commission, 0),
     );
+    const hostPayoutTotal = roundPln(
+        sorted.reduce((sum, entry) => sum + entry.hostPayout, 0),
+    );
+    const additionalDeductionsTotal = roundPln(
+        sorted.reduce((sum, entry) => sum + entry.additionalDeductionsTotal, 0),
+    );
+    const additionalDeductionsProfitTotal = roundPln(
+        sorted.reduce((sum, entry) => sum + entry.additionalDeductionsProfit, 0),
+    );
 
     return {
         monthlyEntries: sorted,
@@ -184,6 +291,9 @@ export function buildCommissionBalance(
         positiveTotal,
         negativeTotal,
         balance: roundPln(positiveTotal + negativeTotal),
+        hostPayoutTotal,
+        additionalDeductionsTotal,
+        additionalDeductionsProfitTotal,
     };
 }
 

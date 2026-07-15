@@ -72,13 +72,20 @@ function CommissionTable({
     totalLabel,
     emptyMessage,
     showMonthCount = false,
+    showBreakdown = false,
 }: {
     title: string;
-    entries: Array<{ label: string; commission: number }>;
+    entries: Array<{
+        label: string;
+        commission: number;
+        hostPayout?: number;
+        additionalDeductionsProfit?: number;
+    }>;
     total?: number;
     totalLabel?: string;
     emptyMessage?: string;
     showMonthCount?: boolean;
+    showBreakdown?: boolean;
 }) {
     return (
         <div className="rounded-lg border border-gray-200 bg-white">
@@ -102,8 +109,18 @@ function CommissionTable({
                                 <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">
                                     Miesiąc
                                 </th>
+                                {showBreakdown && (
+                                    <>
+                                        <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wide text-gray-500">
+                                            Prowizja ZW
+                                        </th>
+                                        <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wide text-gray-500">
+                                            5% odliczeń
+                                        </th>
+                                    </>
+                                )}
                                 <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wide text-gray-500">
-                                    Prowizja Złote Wynajmy
+                                    {showBreakdown ? "Razem" : "Prowizja ZW + 5% odliczeń"}
                                 </th>
                             </tr>
                         </thead>
@@ -113,6 +130,24 @@ function CommissionTable({
                                     <td className="px-4 py-3 text-sm text-gray-900">
                                         {entry.label}
                                     </td>
+                                    {showBreakdown && (
+                                        <>
+                                            <td
+                                                className={`px-4 py-3 text-right text-sm ${
+                                                    (entry.hostPayout ?? 0) >= 0
+                                                        ? "text-green-700"
+                                                        : "text-red-700"
+                                                }`}
+                                            >
+                                                {formatPlnAmount(entry.hostPayout ?? 0)}
+                                            </td>
+                                            <td className="px-4 py-3 text-right text-sm text-blue-700">
+                                                {formatPlnAmount(
+                                                    entry.additionalDeductionsProfit ?? 0,
+                                                )}
+                                            </td>
+                                        </>
+                                    )}
                                     <td
                                         className={`px-4 py-3 text-right text-sm font-medium ${
                                             entry.commission >= 0
@@ -126,7 +161,10 @@ function CommissionTable({
                             ))}
                             {total !== undefined && totalLabel && (
                                 <tr className="bg-gray-50 font-semibold">
-                                    <td className="px-4 py-3 text-sm text-gray-900">
+                                    <td
+                                        className="px-4 py-3 text-sm text-gray-900"
+                                        colSpan={showBreakdown ? 3 : 1}
+                                    >
                                         {totalLabel}
                                     </td>
                                     <td
@@ -142,6 +180,55 @@ function CommissionTable({
                     </table>
                 </div>
             )}
+        </div>
+    );
+}
+
+function BalanceBreakdownCards({
+    hostPayoutTotal,
+    additionalDeductionsTotal,
+    additionalDeductionsProfitTotal,
+}: {
+    hostPayoutTotal: number;
+    additionalDeductionsTotal: number;
+    additionalDeductionsProfitTotal: number;
+}) {
+    return (
+        <div className="grid gap-4 sm:grid-cols-3">
+            <div className="rounded-lg border border-gray-200 bg-white p-4">
+                <div className="text-xs uppercase tracking-wide text-gray-500">
+                    Prowizja ZW
+                </div>
+                <div
+                    className={`mt-1 text-xl font-bold ${
+                        hostPayoutTotal >= 0 ? "text-green-700" : "text-red-700"
+                    }`}
+                >
+                    {formatPlnAmount(hostPayoutTotal)}
+                </div>
+            </div>
+            <div className="rounded-lg border border-gray-200 bg-white p-4">
+                <div className="text-xs uppercase tracking-wide text-gray-500">
+                    Dodatkowe odliczenia
+                </div>
+                <div className="mt-1 text-xl font-bold text-gray-900">
+                    {formatPlnAmount(additionalDeductionsTotal)}
+                </div>
+            </div>
+            <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+                <div className="flex items-center gap-1 text-xs uppercase tracking-wide text-blue-700">
+                    Zysk z odliczeń (5%)
+                    <span
+                        className="inline-flex text-blue-500"
+                        title="5% kwoty dodatkowych odliczeń (brutto) uznajemy jako zysk Złote Wynajmy"
+                    >
+                        <InformationCircleIcon className="h-3.5 w-3.5" />
+                    </span>
+                </div>
+                <div className="mt-1 text-xl font-bold text-blue-800">
+                    {formatPlnAmount(additionalDeductionsProfitTotal)}
+                </div>
+            </div>
         </div>
     );
 }
@@ -308,14 +395,14 @@ export default function CompanyStatisticsPage() {
             <div>
                 <h1 className="text-2xl font-bold text-gray-900">Statystyki firmy</h1>
                 <p className="mt-1 text-sm text-gray-600">
-                    Bilans dochodu i strat na podstawie prowizji Złote Wynajmy z
-                    podsumowania raportów miesięcznych.
+                    Bilans dochodu i strat na podstawie prowizji Złote Wynajmy oraz
+                    5% dodatkowych odliczeń (jako zysk ZW).
                 </p>
             </div>
 
-            <div className="grid items-stretch gap-6 lg:grid-cols-[320px_1fr]">
-                <div className="flex h-full min-h-0 flex-col rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-                    <h2 className="text-lg font-semibold text-gray-900">
+            <div className="grid items-start gap-6 lg:grid-cols-[320px_1fr]">
+                <aside className="flex max-h-none flex-col rounded-lg border border-gray-200 bg-white p-4 shadow-sm lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)]">
+                    <h2 className="shrink-0 text-lg font-semibold text-gray-900">
                         Apartamenty
                     </h2>
                     <input
@@ -323,10 +410,10 @@ export default function CompanyStatisticsPage() {
                         value={search}
                         onChange={(event) => setSearch(event.target.value)}
                         placeholder="Szukaj apartamentu..."
-                        className="mt-3 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        className="mt-3 w-full shrink-0 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                     />
 
-                    <div className="mt-4 max-h-[calc(100vh-14rem)] space-y-2 overflow-y-auto">
+                    <div className="mt-4 min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain">
                         <button
                             type="button"
                             onClick={() => setSelectedApartmentId(null)}
@@ -378,7 +465,7 @@ export default function CompanyStatisticsPage() {
                             );
                         })}
                     </div>
-                </div>
+                </aside>
 
                 <div className="space-y-6">
                     <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
@@ -537,10 +624,24 @@ export default function CompanyStatisticsPage() {
                                         </div>
                                     </div>
 
+                                    <BalanceBreakdownCards
+                                        hostPayoutTotal={
+                                            companyBalanceQuery.data.hostPayoutTotal
+                                        }
+                                        additionalDeductionsTotal={
+                                            companyBalanceQuery.data.additionalDeductionsTotal
+                                        }
+                                        additionalDeductionsProfitTotal={
+                                            companyBalanceQuery.data
+                                                .additionalDeductionsProfitTotal
+                                        }
+                                    />
+
                                     <CommissionTable
-                                        title="Miesięczna prowizja — firma"
+                                        title="Miesięczny bilans — firma"
                                         entries={companyBalanceQuery.data.monthlyEntries}
                                         emptyMessage="Brak raportów w wybranym okresie."
+                                        showBreakdown
                                     />
 
                                     <div className="grid gap-6 lg:grid-cols-2">
@@ -686,22 +787,33 @@ export default function CompanyStatisticsPage() {
 
                             {balanceQuery.data && (
                                 <div className="space-y-6">
+                                    <BalanceBreakdownCards
+                                        hostPayoutTotal={balanceQuery.data.hostPayoutTotal}
+                                        additionalDeductionsTotal={
+                                            balanceQuery.data.additionalDeductionsTotal
+                                        }
+                                        additionalDeductionsProfitTotal={
+                                            balanceQuery.data.additionalDeductionsProfitTotal
+                                        }
+                                    />
+
                                     <CommissionTable
-                                        title="Miesięczna prowizja"
+                                        title="Miesięczny bilans"
                                         entries={balanceQuery.data.monthlyEntries}
                                         emptyMessage="Brak raportów w wybranym okresie."
+                                        showBreakdown
                                     />
 
                                     <div className="rounded-lg border border-gray-200 bg-white p-4">
                                         <div className="flex flex-wrap items-center justify-between gap-3">
                                             <div>
                                                 <h3 className="text-base font-semibold text-gray-900">
-                                                    Czynsz i media w raportach
+                                                    Czynsz, media i dodatkowe odliczenia
                                                 </h3>
                                                 <p className="mt-1 text-sm text-gray-600">
-                                                    Sprawdź, czy w danym miesiącu rozliczano kwotę
-                                                    stałą z odjęciem czynszu i mediów — to wyjaśnia
-                                                    kontekst ujemnej prowizji względem umowy.
+                                                    Sprawdź tryb rozliczenia (czynsz i media) oraz
+                                                    dodatkowe odliczenia — 5% ich kwoty wchodzi do
+                                                    bilansu jako zysk ZW.
                                                 </p>
                                             </div>
                                             <button
@@ -786,7 +898,16 @@ export default function CompanyStatisticsPage() {
                                                                     Media
                                                                 </th>
                                                                 <th className="px-3 py-2 text-right font-medium text-gray-500">
+                                                                    Odliczenia
+                                                                </th>
+                                                                <th className="px-3 py-2 text-right font-medium text-gray-500">
+                                                                    5% odliczeń
+                                                                </th>
+                                                                <th className="px-3 py-2 text-right font-medium text-gray-500">
                                                                     Prowizja ZW
+                                                                </th>
+                                                                <th className="px-3 py-2 text-right font-medium text-gray-500">
+                                                                    Razem
                                                                 </th>
                                                             </tr>
                                                         </thead>
@@ -875,6 +996,28 @@ export default function CompanyStatisticsPage() {
                                                                                             r.utilitiesAmount,
                                                                                         0,
                                                                                     ),
+                                                                                )}
+                                                                            </td>
+                                                                            <td className="px-3 py-2 text-right text-gray-700">
+                                                                                {formatPlnAmount(
+                                                                                    month.additionalDeductionsTotal,
+                                                                                )}
+                                                                            </td>
+                                                                            <td className="px-3 py-2 text-right text-blue-700">
+                                                                                {formatPlnAmount(
+                                                                                    month.additionalDeductionsProfit,
+                                                                                )}
+                                                                            </td>
+                                                                            <td
+                                                                                className={`px-3 py-2 text-right font-medium ${
+                                                                                    month.hostPayout >=
+                                                                                    0
+                                                                                        ? "text-green-700"
+                                                                                        : "text-red-700"
+                                                                                }`}
+                                                                            >
+                                                                                {formatPlnAmount(
+                                                                                    month.hostPayout,
                                                                                 )}
                                                                             </td>
                                                                             <td

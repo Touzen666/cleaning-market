@@ -4,11 +4,13 @@ import { TRPCError } from "@trpc/server";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { getFixedPayoutProrateFactor } from "@/lib/report-fixed-prorate";
 import {
+    addContributionToMonthlyEntry,
     buildCommissionBalance,
     calculateFixedAmountAdjustment,
+    createEmptyMonthlyEntry,
     doesSettlementDeductRentAndUtilities,
     formatMonthLabel,
-    getHostPayoutFromSummary,
+    getReportBalanceContribution,
     getSettlementTypeLabel,
     isFixedPaymentApartment,
     isFixedSettlementType,
@@ -72,6 +74,12 @@ const reportCommissionSelect = {
             fixedPaymentAmount: true,
         },
     },
+    additionalDeductions: {
+        select: {
+            amount: true,
+            vatOption: true,
+        },
+    },
 } as const;
 
 const historicalCommissionSelect = {
@@ -89,6 +97,12 @@ const historicalCommissionSelect = {
             name: true,
             paymentType: true,
             fixedPaymentAmount: true,
+        },
+    },
+    additionalDeductions: {
+        select: {
+            amount: true,
+            vatOption: true,
         },
     },
 } as const;
@@ -129,7 +143,7 @@ export const companyStatisticsRouter = createTRPCRouter({
                 apartmentName: string,
                 year: number,
                 month: number,
-                commission: number,
+                contribution: ReturnType<typeof getReportBalanceContribution>,
             ) => {
                 if (
                     !isMonthInRange(
@@ -149,16 +163,11 @@ export const companyStatisticsRouter = createTRPCRouter({
                 const key = monthKey(year, month);
                 const companyExisting = monthlyMap.get(key);
                 if (companyExisting) {
-                    companyExisting.commission += commission;
-                    companyExisting.reportCount += 1;
+                    addContributionToMonthlyEntry(companyExisting, contribution);
                 } else {
-                    monthlyMap.set(key, {
-                        year,
-                        month,
-                        label: formatMonthLabel(year, month),
-                        commission,
-                        reportCount: 1,
-                    });
+                    const entry = createEmptyMonthlyEntry(year, month);
+                    addContributionToMonthlyEntry(entry, contribution);
+                    monthlyMap.set(key, entry);
                 }
 
                 let aptMap = apartmentMonthly.get(apartmentId);
@@ -168,16 +177,11 @@ export const companyStatisticsRouter = createTRPCRouter({
                 }
                 const aptExisting = aptMap.get(key);
                 if (aptExisting) {
-                    aptExisting.commission += commission;
-                    aptExisting.reportCount += 1;
+                    addContributionToMonthlyEntry(aptExisting, contribution);
                 } else {
-                    aptMap.set(key, {
-                        year,
-                        month,
-                        label: formatMonthLabel(year, month),
-                        commission,
-                        reportCount: 1,
-                    });
+                    const entry = createEmptyMonthlyEntry(year, month);
+                    addContributionToMonthlyEntry(entry, contribution);
+                    aptMap.set(key, entry);
                 }
             };
 
@@ -190,7 +194,7 @@ export const companyStatisticsRouter = createTRPCRouter({
                     report.apartment.name,
                     report.year,
                     report.month,
-                    getHostPayoutFromSummary(report),
+                    getReportBalanceContribution(report, report.additionalDeductions),
                 );
             }
 
@@ -203,13 +207,16 @@ export const companyStatisticsRouter = createTRPCRouter({
                     report.apartment.name,
                     report.year,
                     report.month,
-                    getHostPayoutFromSummary({
-                        ...report,
-                        fixedPayoutProrateEnabled: null,
-                        fixedPayoutActiveDays: null,
-                        customSummaryEnabled: false,
-                        customHostPayout: null,
-                    }),
+                    getReportBalanceContribution(
+                        {
+                            ...report,
+                            fixedPayoutProrateEnabled: null,
+                            fixedPayoutActiveDays: null,
+                            customSummaryEnabled: false,
+                            customHostPayout: null,
+                        },
+                        report.additionalDeductions,
+                    ),
                 );
             }
 
@@ -321,6 +328,12 @@ export const companyStatisticsRouter = createTRPCRouter({
                                 fixedPaymentAmount: true,
                             },
                         },
+                        additionalDeductions: {
+                            select: {
+                                amount: true,
+                                vatOption: true,
+                            },
+                        },
                     },
                 }),
                 ctx.db.historicalReport.findMany({
@@ -343,6 +356,12 @@ export const companyStatisticsRouter = createTRPCRouter({
                                 fixedPaymentAmount: true,
                             },
                         },
+                        additionalDeductions: {
+                            select: {
+                                amount: true,
+                                vatOption: true,
+                            },
+                        },
                     },
                 }),
             ]);
@@ -357,7 +376,7 @@ export const companyStatisticsRouter = createTRPCRouter({
             const addCommission = (
                 year: number,
                 month: number,
-                commission: number,
+                contribution: ReturnType<typeof getReportBalanceContribution>,
             ) => {
                 if (
                     !isMonthInRange(
@@ -376,18 +395,13 @@ export const companyStatisticsRouter = createTRPCRouter({
                 const existing = monthlyMap.get(key);
 
                 if (existing) {
-                    existing.commission += commission;
-                    existing.reportCount += 1;
+                    addContributionToMonthlyEntry(existing, contribution);
                     return;
                 }
 
-                monthlyMap.set(key, {
-                    year,
-                    month,
-                    label: formatMonthLabel(year, month),
-                    commission,
-                    reportCount: 1,
-                });
+                const entry = createEmptyMonthlyEntry(year, month);
+                addContributionToMonthlyEntry(entry, contribution);
+                monthlyMap.set(key, entry);
             };
 
             const trackFixedWeight = (
@@ -444,7 +458,7 @@ export const companyStatisticsRouter = createTRPCRouter({
                 addCommission(
                     report.year,
                     report.month,
-                    getHostPayoutFromSummary(report),
+                    getReportBalanceContribution(report, report.additionalDeductions),
                 );
                 trackFixedWeight(
                     report.year,
@@ -469,13 +483,16 @@ export const companyStatisticsRouter = createTRPCRouter({
                 addCommission(
                     report.year,
                     report.month,
-                    getHostPayoutFromSummary({
-                        ...report,
-                        fixedPayoutProrateEnabled: null,
-                        fixedPayoutActiveDays: null,
-                        customSummaryEnabled: false,
-                        customHostPayout: null,
-                    }),
+                    getReportBalanceContribution(
+                        {
+                            ...report,
+                            fixedPayoutProrateEnabled: null,
+                            fixedPayoutActiveDays: null,
+                            customSummaryEnabled: false,
+                            customHostPayout: null,
+                        },
+                        report.additionalDeductions,
+                    ),
                 );
                 trackFixedWeight(
                     report.year,
@@ -500,7 +517,9 @@ export const companyStatisticsRouter = createTRPCRouter({
                 isFixedPaymentApartment(apartment.paymentType) &&
                 currentFixedAmount > 0
                     ? calculateFixedAmountAdjustment({
-                          balance: balance.balance,
+                          // Korekta kwoty stałej zależy tylko od prowizji ZW
+                          // (5% odliczeń nie zmienia się przy obniżce kwoty stałej).
+                          balance: balance.hostPayoutTotal,
                           currentFixedAmount,
                           fixedWeight,
                           monthCount: fixedMonthCount,
@@ -585,6 +604,12 @@ export const companyStatisticsRouter = createTRPCRouter({
                                 fixedPaymentAmount: true,
                             },
                         },
+                        additionalDeductions: {
+                            select: {
+                                amount: true,
+                                vatOption: true,
+                            },
+                        },
                     },
                     orderBy: [{ year: "asc" }, { month: "asc" }],
                 }),
@@ -608,6 +633,12 @@ export const companyStatisticsRouter = createTRPCRouter({
                                 fixedPaymentAmount: true,
                             },
                         },
+                        additionalDeductions: {
+                            select: {
+                                amount: true,
+                                vatOption: true,
+                            },
+                        },
                     },
                     orderBy: [{ year: "asc" }, { month: "asc" }],
                 }),
@@ -622,6 +653,9 @@ export const companyStatisticsRouter = createTRPCRouter({
                     month: number;
                     label: string;
                     commission: number;
+                    hostPayout: number;
+                    additionalDeductionsTotal: number;
+                    additionalDeductionsProfit: number;
                     reports: DetailReport[];
                 }
             >();
@@ -641,6 +675,7 @@ export const companyStatisticsRouter = createTRPCRouter({
                     customHostPayout?: number | null;
                     rentAmount: number | null;
                     utilitiesAmount: number | null;
+                    additionalDeductions: Array<{ amount: number; vatOption: string }>;
                     apartment: {
                         paymentType: string;
                         fixedPaymentAmount: unknown;
@@ -661,19 +696,22 @@ export const companyStatisticsRouter = createTRPCRouter({
                     return;
                 }
 
-                const hostPayout = getHostPayoutFromSummary({
-                    year,
-                    month,
-                    netIncome: report.netIncome,
-                    adminCommissionAmount: report.adminCommissionAmount,
-                    finalHostPayout: report.finalHostPayout,
-                    finalSettlementType: report.finalSettlementType,
-                    fixedPayoutProrateEnabled: report.fixedPayoutProrateEnabled ?? null,
-                    fixedPayoutActiveDays: report.fixedPayoutActiveDays ?? null,
-                    customSummaryEnabled: report.customSummaryEnabled ?? false,
-                    customHostPayout: report.customHostPayout ?? null,
-                    apartment: report.apartment,
-                });
+                const contribution = getReportBalanceContribution(
+                    {
+                        year,
+                        month,
+                        netIncome: report.netIncome,
+                        adminCommissionAmount: report.adminCommissionAmount,
+                        finalHostPayout: report.finalHostPayout,
+                        finalSettlementType: report.finalSettlementType,
+                        fixedPayoutProrateEnabled: report.fixedPayoutProrateEnabled ?? null,
+                        fixedPayoutActiveDays: report.fixedPayoutActiveDays ?? null,
+                        customSummaryEnabled: report.customSummaryEnabled ?? false,
+                        customHostPayout: report.customHostPayout ?? null,
+                        apartment: report.apartment,
+                    },
+                    report.additionalDeductions,
+                );
                 const rentAmount = Number(report.rentAmount ?? 0);
                 const utilitiesAmount = Number(report.utilitiesAmount ?? 0);
                 const settlementType = report.finalSettlementType;
@@ -693,8 +731,10 @@ export const companyStatisticsRouter = createTRPCRouter({
                     rentAmount: roundPln(rentAmount),
                     utilitiesAmount: roundPln(utilitiesAmount),
                     rentAndUtilitiesTotal: roundPln(rentAmount + utilitiesAmount),
+                    additionalDeductionsTotal: contribution.additionalDeductionsTotal,
+                    additionalDeductionsProfit: contribution.additionalDeductionsProfit,
                     netIncome: roundPln(Number(report.netIncome ?? 0)),
-                    hostPayout: roundPln(hostPayout),
+                    hostPayout: contribution.hostPayout,
                     fixedPaymentAmount:
                         fixedPaymentAmount != null ? roundPln(fixedPaymentAmount) : null,
                 };
@@ -702,7 +742,20 @@ export const companyStatisticsRouter = createTRPCRouter({
                 const key = monthKey(year, month);
                 const existing = byMonth.get(key);
                 if (existing) {
-                    existing.commission = roundPln(existing.commission + hostPayout);
+                    existing.commission = roundPln(
+                        existing.commission + contribution.commission,
+                    );
+                    existing.hostPayout = roundPln(
+                        existing.hostPayout + contribution.hostPayout,
+                    );
+                    existing.additionalDeductionsTotal = roundPln(
+                        existing.additionalDeductionsTotal +
+                            contribution.additionalDeductionsTotal,
+                    );
+                    existing.additionalDeductionsProfit = roundPln(
+                        existing.additionalDeductionsProfit +
+                            contribution.additionalDeductionsProfit,
+                    );
                     existing.reports.push(detail);
                     return;
                 }
@@ -711,7 +764,10 @@ export const companyStatisticsRouter = createTRPCRouter({
                     year,
                     month,
                     label: formatMonthLabel(year, month),
-                    commission: roundPln(hostPayout),
+                    commission: contribution.commission,
+                    hostPayout: contribution.hostPayout,
+                    additionalDeductionsTotal: contribution.additionalDeductionsTotal,
+                    additionalDeductionsProfit: contribution.additionalDeductionsProfit,
                     reports: [detail],
                 });
             };
@@ -767,7 +823,7 @@ export const companyStatisticsRouter = createTRPCRouter({
                     mixed,
                     totalMonths: months.length,
                 },
-                note: "Prowizja Złote Wynajmy przy kwocie stałej = zysk netto − kwota stała. Odjęcie czynszu i mediów dotyczy wypłaty właściciela (tryb „kwota stała minus media”), a nie wzoru samej prowizji ZW — warto jednak wiedzieć, który tryb był użyty w raporcie.",
+                note: "Bilans obejmuje prowizję Złote Wynajmy oraz 5% dodatkowych odliczeń (brutto) traktowanych jako zysk ZW. Przy kwocie stałej prowizja ZW = zysk netto − kwota stała. Odjęcie czynszu i mediów dotyczy wypłaty właściciela (tryb „kwota stała minus media”).",
             };
         }),
 });
