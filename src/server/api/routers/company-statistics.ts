@@ -28,8 +28,8 @@ export const companyStatisticsRouter = createTRPCRouter({
                     startMonth: monthSchema,
                     endYear: yearSchema,
                     endMonth: monthSchema,
-                    /** Docelowy zysk ZW przy korekcie kwoty stałej (domyślnie 550 PLN). */
-                    targetProfit: z.number().default(550),
+                    /** Docelowy miesięczny zysk ZW przy korekcie kwoty stałej (domyślnie 550 PLN). */
+                    targetMonthlyProfit: z.number().default(550),
                 })
                 .refine(
                     (input) => {
@@ -250,7 +250,7 @@ export const companyStatisticsRouter = createTRPCRouter({
                           currentFixedAmount,
                           fixedWeight,
                           monthCount: fixedMonthCount,
-                          targetProfit: input.targetProfit,
+                          targetMonthlyProfit: input.targetMonthlyProfit,
                       })
                     : null;
 

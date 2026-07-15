@@ -133,7 +133,9 @@ export default function CompanyStatisticsPage() {
     const [startMonth, setStartMonth] = useState(1);
     const [endYear, setEndYear] = useState(currentYear);
     const [endMonth, setEndMonth] = useState(12);
-    const [targetProfit, setTargetProfit] = useState(DEFAULT_TARGET_PROFIT);
+    const [targetMonthlyProfit, setTargetMonthlyProfit] = useState(
+        DEFAULT_TARGET_PROFIT,
+    );
 
     const apartmentsQuery = api.apartments.getAll.useQuery({
         includeArchived: true,
@@ -146,7 +148,7 @@ export default function CompanyStatisticsPage() {
             startMonth,
             endYear,
             endMonth,
-            targetProfit,
+            targetMonthlyProfit,
         },
         {
             enabled: selectedApartmentId !== null,
@@ -446,14 +448,14 @@ export default function CompanyStatisticsPage() {
                                             </div>
 
                                             <label className="mt-4 inline-flex items-center gap-2 text-sm text-gray-700">
-                                                <span>Cel zysku ZW:</span>
+                                                <span>Cel zysku ZW / miesiąc:</span>
                                                 <input
                                                     type="number"
                                                     min={0}
                                                     step={50}
-                                                    value={targetProfit}
+                                                    value={targetMonthlyProfit}
                                                     onChange={(event) =>
-                                                        setTargetProfit(
+                                                        setTargetMonthlyProfit(
                                                             Number(event.target.value) || 0,
                                                         )
                                                     }
@@ -496,8 +498,9 @@ export default function CompanyStatisticsPage() {
                                                         Zysk co najmniej{" "}
                                                         {formatPlnAmount(
                                                             balanceQuery.data.fixedAdjustment
-                                                                .targetProfit,
-                                                        )}
+                                                                .targetMonthlyProfit,
+                                                        )}{" "}
+                                                        / miesiąc
                                                     </div>
                                                     <p className="mt-2 text-sm text-gray-600">
                                                         Obniżyć kwotę stałą o

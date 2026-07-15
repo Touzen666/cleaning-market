@@ -160,7 +160,9 @@ export function isFixedSettlementType(settlementType: string | null | undefined)
 
 /**
  * Obniżka kwoty stałej o Δ w miesiącu z proratą F zwiększa prowizję ZW o Δ×F.
- * Żeby osiągnąć bilans `target`, potrzeba: Δ = (target − bilans) / suma(F).
+ * Wyjście na 0: Δ = −bilans / suma(F).
+ * Cel zysku miesięcznego: Δ = targetMonthly − bilans/suma(F)
+ *   (= obniżka do zera + docelowy zysk / miesiąc).
  */
 export function calculateFixedAmountAdjustment(params: {
     balance: number;
@@ -168,30 +170,39 @@ export function calculateFixedAmountAdjustment(params: {
     /** Suma współczynników proraty dla miesięcy z rozliczeniem stałym. */
     fixedWeight: number;
     monthCount: number;
-    targetProfit: number;
+    /** Docelowy zysk ZW na miesiąc (nie na cały okres). */
+    targetMonthlyProfit: number;
 }) {
-    const { balance, currentFixedAmount, fixedWeight, monthCount, targetProfit } =
-        params;
+    const {
+        balance,
+        currentFixedAmount,
+        fixedWeight,
+        monthCount,
+        targetMonthlyProfit,
+    } = params;
 
     if (fixedWeight <= 0 || monthCount <= 0) {
         return null;
     }
 
-    const reductionToBreakEven = roundPln(-balance / fixedWeight);
-    const reductionToTarget = roundPln((targetProfit - balance) / fixedWeight);
+    const averageMonthlyBalance = balance / fixedWeight;
+    const reductionToBreakEven = roundPln(-averageMonthlyBalance);
+    const reductionToTarget = roundPln(
+        targetMonthlyProfit - averageMonthlyBalance,
+    );
 
     return {
         monthCount,
         fixedWeight: roundPln(fixedWeight),
         currentFixedAmount: roundPln(currentFixedAmount),
-        targetProfit: roundPln(targetProfit),
+        targetMonthlyProfit: roundPln(targetMonthlyProfit),
         reductionToBreakEven,
         reductionToTarget,
         suggestedFixedToBreakEven: roundPln(
             currentFixedAmount - reductionToBreakEven,
         ),
         suggestedFixedToTarget: roundPln(currentFixedAmount - reductionToTarget),
-        projectedBalanceAtBreakEven: 0,
-        projectedBalanceAtTarget: roundPln(targetProfit),
+        projectedMonthlyBalanceAtBreakEven: 0,
+        projectedMonthlyBalanceAtTarget: roundPln(targetMonthlyProfit),
     };
 }
