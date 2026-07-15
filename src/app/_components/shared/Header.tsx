@@ -170,6 +170,14 @@ export function HeaderAdmin() {
         Rezerwacje
       </Link>
       <Link
+        href="/admin/company-statistics"
+        prefetch={false}
+        className="block px-4 py-2 hover:text-gray-300 md:px-0 md:py-0"
+        onClick={() => setIsMenuOpen(false)}
+      >
+        Statystyki firmy
+      </Link>
+      <Link
         href="/"
         prefetch={false}
         className="block px-4 py-2 hover:text-gray-300 md:px-0 md:py-0"

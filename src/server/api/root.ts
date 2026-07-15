@@ -19,6 +19,7 @@ import { uploadRouter } from "@/server/api/routers/upload";
 import { roomsRouter } from "@/server/api/routers/rooms";
 import { cleaningAuthRouter } from "@/server/api/routers/cleaning-auth";
 import { cleaningRouter } from "@/server/api/routers/cleaning";
+import { companyStatisticsRouter } from "@/server/api/routers/company-statistics";
 
 /**
  * This is the primary router for your server.
@@ -46,6 +47,7 @@ export const appRouter = createTRPCRouter({
     adminDashboard: adminDashboardRouter,
     upload: uploadRouter,
     rooms: roomsRouter,
+    companyStatistics: companyStatisticsRouter,
 });
 
 // export type definition of API
