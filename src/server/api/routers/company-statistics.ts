@@ -97,6 +97,8 @@ export const companyStatisticsRouter = createTRPCRouter({
                         fixedPayoutActiveDays: true,
                         customSummaryEnabled: true,
                         customHostPayout: true,
+                        rentAmount: true,
+                        utilitiesAmount: true,
                         apartment: {
                             select: {
                                 paymentType: true,
@@ -117,6 +119,8 @@ export const companyStatisticsRouter = createTRPCRouter({
                         adminCommissionAmount: true,
                         finalHostPayout: true,
                         finalSettlementType: true,
+                        rentAmount: true,
+                        utilitiesAmount: true,
                         apartment: {
                             select: {
                                 paymentType: true,
@@ -131,6 +135,8 @@ export const companyStatisticsRouter = createTRPCRouter({
             const monthsWithActiveReports = new Set<string>();
             let fixedWeight = 0;
             let fixedMonthCount = 0;
+            let rentUtilitiesSum = 0;
+            let rentUtilitiesMonthCount = 0;
 
             const addCommission = (
                 year: number,
@@ -175,6 +181,8 @@ export const companyStatisticsRouter = createTRPCRouter({
                 customSummaryEnabled: boolean | null | undefined,
                 prorateEnabled: boolean | null | undefined,
                 activeDays: number | null | undefined,
+                rentAmount: number | null | undefined,
+                utilitiesAmount: number | null | undefined,
             ) => {
                 if (
                     !isMonthInRange(
@@ -199,6 +207,19 @@ export const companyStatisticsRouter = createTRPCRouter({
                 );
                 fixedWeight += weight;
                 fixedMonthCount += 1;
+
+                // Średni czynsz+media: liczymy gdy w raporcie odejmowano je od kwoty stałej
+                // (albo gdy jest jakakolwiek kwota — do oceny netto właściciela).
+                const rent = Number(rentAmount ?? 0);
+                const utilities = Number(utilitiesAmount ?? 0);
+                if (
+                    settlementType === "FIXED_MINUS_UTILITIES" ||
+                    rent > 0 ||
+                    utilities > 0
+                ) {
+                    rentUtilitiesSum += rent + utilities;
+                    rentUtilitiesMonthCount += 1;
+                }
             };
 
             for (const report of activeReports) {
@@ -216,6 +237,8 @@ export const companyStatisticsRouter = createTRPCRouter({
                     report.customSummaryEnabled,
                     report.fixedPayoutProrateEnabled,
                     report.fixedPayoutActiveDays,
+                    report.rentAmount,
+                    report.utilitiesAmount,
                 );
             }
 
@@ -245,11 +268,17 @@ export const companyStatisticsRouter = createTRPCRouter({
                     false,
                     null,
                     null,
+                    report.rentAmount,
+                    report.utilitiesAmount,
                 );
             }
 
             const balance = buildCommissionBalance([...monthlyMap.values()]);
             const currentFixedAmount = Number(apartment.fixedPaymentAmount ?? 0);
+            const averageRentAndUtilities =
+                rentUtilitiesMonthCount > 0
+                    ? rentUtilitiesSum / rentUtilitiesMonthCount
+                    : 0;
 
             const fixedAdjustment =
                 isFixedPaymentApartment(apartment.paymentType) &&
@@ -260,6 +289,7 @@ export const companyStatisticsRouter = createTRPCRouter({
                           fixedWeight,
                           monthCount: fixedMonthCount,
                           targetMonthlyProfit: input.targetMonthlyProfit,
+                          averageRentAndUtilities,
                       })
                     : null;
 

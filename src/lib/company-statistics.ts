@@ -206,7 +206,12 @@ export function isFixedSettlementType(settlementType: string | null | undefined)
  * Wyjście na 0: Δ = −bilans / suma(F).
  * Cel zysku miesięcznego: Δ = targetMonthly − bilans/suma(F)
  *   (= obniżka do zera + docelowy zysk / miesiąc).
+ *
+ * Gdy po odjęciu średniego czynszu+mediów netto właściciela < próg (1900),
+ * apartament uznajemy za nieodpowiedni pod krótkoterminowy wynajem ze stałą kwotą.
  */
+export const DEFAULT_OWNER_NET_AFTER_UTILITIES_THRESHOLD = 1900;
+
 export function calculateFixedAmountAdjustment(params: {
     balance: number;
     currentFixedAmount: number;
@@ -215,6 +220,10 @@ export function calculateFixedAmountAdjustment(params: {
     monthCount: number;
     /** Docelowy zysk ZW na miesiąc (nie na cały okres). */
     targetMonthlyProfit: number;
+    /** Średnia (czynsz + media) z miesięcy w okresie — odejmowana od kwoty stałej właściciela. */
+    averageRentAndUtilities?: number;
+    /** Minimalna sensowna wypłata netto właściciela po mediach (domyślnie 1900). */
+    ownerNetThreshold?: number;
 }) {
     const {
         balance,
@@ -222,6 +231,8 @@ export function calculateFixedAmountAdjustment(params: {
         fixedWeight,
         monthCount,
         targetMonthlyProfit,
+        averageRentAndUtilities = 0,
+        ownerNetThreshold = DEFAULT_OWNER_NET_AFTER_UTILITIES_THRESHOLD,
     } = params;
 
     if (fixedWeight <= 0 || monthCount <= 0) {
@@ -233,19 +244,44 @@ export function calculateFixedAmountAdjustment(params: {
     const reductionToTarget = roundPln(
         targetMonthlyProfit - averageMonthlyBalance,
     );
+    const suggestedFixedToBreakEven = roundPln(
+        currentFixedAmount - reductionToBreakEven,
+    );
+    const suggestedFixedToTarget = roundPln(
+        currentFixedAmount - reductionToTarget,
+    );
+    const avgUtilities = roundPln(averageRentAndUtilities);
+    const ownerNetAtBreakEven = roundPln(suggestedFixedToBreakEven - avgUtilities);
+    const ownerNetAtTarget = roundPln(suggestedFixedToTarget - avgUtilities);
+
+    const buildViability = (ownerNet: number, suggestedFixed: number) => {
+        const belowThreshold = ownerNet < ownerNetThreshold;
+        return {
+            ownerNetAfterUtilities: ownerNet,
+            belowOwnerNetThreshold: belowThreshold,
+            warning: belowThreshold
+                ? `Po korekcie kwota stała (${formatPlnAmount(suggestedFixed)}) minus średni czynsz i media (${formatPlnAmount(avgUtilities)}) daje właścicielowi ok. ${formatPlnAmount(ownerNet)} — poniżej progu ${formatPlnAmount(ownerNetThreshold)}. To mieszkanie nie nadaje się na krótkoterminowy wynajem ze stałą kwotą; rozważ wynajem długoterminowy.`
+                : null,
+        };
+    };
 
     return {
         monthCount,
         fixedWeight: roundPln(fixedWeight),
         currentFixedAmount: roundPln(currentFixedAmount),
         targetMonthlyProfit: roundPln(targetMonthlyProfit),
+        averageRentAndUtilities: avgUtilities,
+        ownerNetThreshold: roundPln(ownerNetThreshold),
         reductionToBreakEven,
         reductionToTarget,
-        suggestedFixedToBreakEven: roundPln(
-            currentFixedAmount - reductionToBreakEven,
-        ),
-        suggestedFixedToTarget: roundPln(currentFixedAmount - reductionToTarget),
+        suggestedFixedToBreakEven,
+        suggestedFixedToTarget,
         projectedMonthlyBalanceAtBreakEven: 0,
         projectedMonthlyBalanceAtTarget: roundPln(targetMonthlyProfit),
+        viabilityAtBreakEven: buildViability(
+            ownerNetAtBreakEven,
+            suggestedFixedToBreakEven,
+        ),
+        viabilityAtTarget: buildViability(ownerNetAtTarget, suggestedFixedToTarget),
     };
 }

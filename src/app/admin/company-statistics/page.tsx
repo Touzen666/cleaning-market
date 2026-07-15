@@ -810,9 +810,47 @@ export default function CompanyStatisticsPage() {
                                                             )}
                                                         </span>
                                                     </p>
+                                                    {balanceQuery.data.fixedAdjustment
+                                                        .averageRentAndUtilities > 0 && (
+                                                        <p className="mt-2 text-sm text-gray-600">
+                                                            Netto właściciela po mediach:{" "}
+                                                            <span className="font-semibold text-gray-900">
+                                                                {formatPlnAmount(
+                                                                    balanceQuery.data
+                                                                        .fixedAdjustment
+                                                                        .viabilityAtBreakEven
+                                                                        .ownerNetAfterUtilities,
+                                                                )}
+                                                            </span>
+                                                            <span className="text-gray-500">
+                                                                {" "}
+                                                                (
+                                                                {formatPlnAmount(
+                                                                    balanceQuery.data
+                                                                        .fixedAdjustment
+                                                                        .suggestedFixedToBreakEven,
+                                                                )}{" "}
+                                                                −{" "}
+                                                                {formatPlnAmount(
+                                                                    balanceQuery.data
+                                                                        .fixedAdjustment
+                                                                        .averageRentAndUtilities,
+                                                                )}
+                                                                )
+                                                            </span>
+                                                        </p>
+                                                    )}
                                                 </div>
 
-                                                <div className="rounded-md border border-amber-200 bg-white p-4">
+                                                <div
+                                                    className={`rounded-md border bg-white p-4 ${
+                                                        balanceQuery.data.fixedAdjustment
+                                                            .viabilityAtTarget
+                                                            .belowOwnerNetThreshold
+                                                            ? "border-red-400"
+                                                            : "border-amber-200"
+                                                    }`}
+                                                >
                                                     <div className="text-sm font-medium text-gray-900">
                                                         Zysk co najmniej{" "}
                                                         {formatPlnAmount(
@@ -843,8 +881,79 @@ export default function CompanyStatisticsPage() {
                                                             )}
                                                         </span>
                                                     </p>
+                                                    {balanceQuery.data.fixedAdjustment
+                                                        .averageRentAndUtilities > 0 && (
+                                                        <p className="mt-2 text-sm text-gray-600">
+                                                            Netto właściciela po mediach:{" "}
+                                                            <span
+                                                                className={`font-semibold ${
+                                                                    balanceQuery.data
+                                                                        .fixedAdjustment
+                                                                        .viabilityAtTarget
+                                                                        .belowOwnerNetThreshold
+                                                                        ? "text-red-700"
+                                                                        : "text-gray-900"
+                                                                }`}
+                                                            >
+                                                                {formatPlnAmount(
+                                                                    balanceQuery.data
+                                                                        .fixedAdjustment
+                                                                        .viabilityAtTarget
+                                                                        .ownerNetAfterUtilities,
+                                                                )}
+                                                            </span>
+                                                            <span className="text-gray-500">
+                                                                {" "}
+                                                                (
+                                                                {formatPlnAmount(
+                                                                    balanceQuery.data
+                                                                        .fixedAdjustment
+                                                                        .suggestedFixedToTarget,
+                                                                )}{" "}
+                                                                −{" "}
+                                                                {formatPlnAmount(
+                                                                    balanceQuery.data
+                                                                        .fixedAdjustment
+                                                                        .averageRentAndUtilities,
+                                                                )}
+                                                                )
+                                                            </span>
+                                                        </p>
+                                                    )}
                                                 </div>
                                             </div>
+
+                                            {(balanceQuery.data.fixedAdjustment.viabilityAtTarget
+                                                .belowOwnerNetThreshold ||
+                                                balanceQuery.data.fixedAdjustment
+                                                    .viabilityAtBreakEven
+                                                    .belowOwnerNetThreshold) && (
+                                                <div className="mt-4 rounded-md border-2 border-red-500 bg-red-50 p-4">
+                                                    <p className="text-base font-bold uppercase tracking-wide text-red-800">
+                                                        Ostrzeżenie: mieszkanie nie nadaje się na
+                                                        kwotę stałą (krótkoterminowo)
+                                                    </p>
+                                                    <p className="mt-2 text-sm text-red-900">
+                                                        {balanceQuery.data.fixedAdjustment
+                                                            .viabilityAtTarget
+                                                            .belowOwnerNetThreshold
+                                                            ? balanceQuery.data.fixedAdjustment
+                                                                  .viabilityAtTarget.warning
+                                                            : balanceQuery.data.fixedAdjustment
+                                                                  .viabilityAtBreakEven.warning}
+                                                    </p>
+                                                    <p className="mt-3 text-sm font-medium text-red-800">
+                                                        Rekomendacja: wynajem długoterminowy zamiast
+                                                        krótkoterminowego na kwocie stałej. Próg
+                                                        netto właściciela:{" "}
+                                                        {formatPlnAmount(
+                                                            balanceQuery.data.fixedAdjustment
+                                                                .ownerNetThreshold,
+                                                        )}{" "}
+                                                        / miesiąc.
+                                                    </p>
+                                                </div>
+                                            )}
                                         </div>
                                     )}
                                 </div>
