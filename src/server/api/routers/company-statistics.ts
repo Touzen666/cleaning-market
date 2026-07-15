@@ -2,10 +2,14 @@ import { z } from "zod";
 import { ReportStatus, UserType } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
+import { getFixedPayoutProrateFactor } from "@/lib/report-fixed-prorate";
 import {
     buildCommissionBalance,
+    calculateFixedAmountAdjustment,
     formatMonthLabel,
     getHostPayoutFromSummary,
+    isFixedPaymentApartment,
+    isFixedSettlementType,
     isMonthInRange,
     monthKey,
     type MonthlyCommissionEntry,
@@ -24,6 +28,8 @@ export const companyStatisticsRouter = createTRPCRouter({
                     startMonth: monthSchema,
                     endYear: yearSchema,
                     endMonth: monthSchema,
+                    /** Docelowy zysk ZW przy korekcie kwoty stałej (domyślnie 550 PLN). */
+                    targetProfit: z.number().default(550),
                 })
                 .refine(
                     (input) => {
@@ -46,7 +52,13 @@ export const companyStatisticsRouter = createTRPCRouter({
 
             const apartment = await ctx.db.apartment.findUnique({
                 where: { id: input.apartmentId },
-                select: { id: true, name: true, slug: true },
+                select: {
+                    id: true,
+                    name: true,
+                    slug: true,
+                    paymentType: true,
+                    fixedPaymentAmount: true,
+                },
             });
 
             if (!apartment) {
@@ -108,6 +120,8 @@ export const companyStatisticsRouter = createTRPCRouter({
 
             const monthlyMap = new Map<string, MonthlyCommissionEntry>();
             const monthsWithActiveReports = new Set<string>();
+            let fixedWeight = 0;
+            let fixedMonthCount = 0;
 
             const addCommission = (
                 year: number,
@@ -145,6 +159,39 @@ export const companyStatisticsRouter = createTRPCRouter({
                 });
             };
 
+            const trackFixedWeight = (
+                year: number,
+                month: number,
+                settlementType: string | null | undefined,
+                customSummaryEnabled: boolean | null | undefined,
+                prorateEnabled: boolean | null | undefined,
+                activeDays: number | null | undefined,
+            ) => {
+                if (
+                    !isMonthInRange(
+                        year,
+                        month,
+                        input.startYear,
+                        input.startMonth,
+                        input.endYear,
+                        input.endMonth,
+                    )
+                ) {
+                    return;
+                }
+                if (customSummaryEnabled) return;
+                if (!isFixedSettlementType(settlementType)) return;
+
+                const weight = getFixedPayoutProrateFactor(
+                    year,
+                    month,
+                    prorateEnabled,
+                    activeDays,
+                );
+                fixedWeight += weight;
+                fixedMonthCount += 1;
+            };
+
             for (const report of activeReports) {
                 const key = monthKey(report.year, report.month);
                 monthsWithActiveReports.add(key);
@@ -152,6 +199,14 @@ export const companyStatisticsRouter = createTRPCRouter({
                     report.year,
                     report.month,
                     getHostPayoutFromSummary(report),
+                );
+                trackFixedWeight(
+                    report.year,
+                    report.month,
+                    report.finalSettlementType,
+                    report.customSummaryEnabled,
+                    report.fixedPayoutProrateEnabled,
+                    report.fixedPayoutActiveDays,
                 );
             }
 
@@ -174,12 +229,41 @@ export const companyStatisticsRouter = createTRPCRouter({
                         customHostPayout: null,
                     }),
                 );
+                trackFixedWeight(
+                    report.year,
+                    report.month,
+                    report.finalSettlementType,
+                    false,
+                    null,
+                    null,
+                );
             }
 
             const balance = buildCommissionBalance([...monthlyMap.values()]);
+            const currentFixedAmount = Number(apartment.fixedPaymentAmount ?? 0);
+
+            const fixedAdjustment =
+                isFixedPaymentApartment(apartment.paymentType) &&
+                currentFixedAmount > 0
+                    ? calculateFixedAmountAdjustment({
+                          balance: balance.balance,
+                          currentFixedAmount,
+                          fixedWeight,
+                          monthCount: fixedMonthCount,
+                          targetProfit: input.targetProfit,
+                      })
+                    : null;
 
             return {
-                apartment,
+                apartment: {
+                    id: apartment.id,
+                    name: apartment.name,
+                    slug: apartment.slug,
+                    paymentType: apartment.paymentType,
+                    fixedPaymentAmount: apartment.fixedPaymentAmount
+                        ? Number(apartment.fixedPaymentAmount)
+                        : null,
+                },
                 period: {
                     startYear: input.startYear,
                     startMonth: input.startMonth,
@@ -189,6 +273,7 @@ export const companyStatisticsRouter = createTRPCRouter({
                     endLabel: formatMonthLabel(input.endYear, input.endMonth),
                 },
                 ...balance,
+                fixedAdjustment,
             };
         }),
 });

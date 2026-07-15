@@ -143,3 +143,55 @@ export function buildCommissionBalance(
         balance: roundPln(positiveTotal + negativeTotal),
     };
 }
+
+const FIXED_SETTLEMENT_TYPES = new Set(["FIXED", "FIXED_MINUS_UTILITIES"]);
+const FIXED_PAYMENT_TYPES = new Set([
+    "FIXED_AMOUNT",
+    "FIXED_AMOUNT_MINUS_UTILITIES",
+]);
+
+export function isFixedPaymentApartment(paymentType: string): boolean {
+    return FIXED_PAYMENT_TYPES.has(paymentType);
+}
+
+export function isFixedSettlementType(settlementType: string | null | undefined): boolean {
+    return settlementType != null && FIXED_SETTLEMENT_TYPES.has(settlementType);
+}
+
+/**
+ * Obniżka kwoty stałej o Δ w miesiącu z proratą F zwiększa prowizję ZW o Δ×F.
+ * Żeby osiągnąć bilans `target`, potrzeba: Δ = (target − bilans) / suma(F).
+ */
+export function calculateFixedAmountAdjustment(params: {
+    balance: number;
+    currentFixedAmount: number;
+    /** Suma współczynników proraty dla miesięcy z rozliczeniem stałym. */
+    fixedWeight: number;
+    monthCount: number;
+    targetProfit: number;
+}) {
+    const { balance, currentFixedAmount, fixedWeight, monthCount, targetProfit } =
+        params;
+
+    if (fixedWeight <= 0 || monthCount <= 0) {
+        return null;
+    }
+
+    const reductionToBreakEven = roundPln(-balance / fixedWeight);
+    const reductionToTarget = roundPln((targetProfit - balance) / fixedWeight);
+
+    return {
+        monthCount,
+        fixedWeight: roundPln(fixedWeight),
+        currentFixedAmount: roundPln(currentFixedAmount),
+        targetProfit: roundPln(targetProfit),
+        reductionToBreakEven,
+        reductionToTarget,
+        suggestedFixedToBreakEven: roundPln(
+            currentFixedAmount - reductionToBreakEven,
+        ),
+        suggestedFixedToTarget: roundPln(currentFixedAmount - reductionToTarget),
+        projectedBalanceAtBreakEven: 0,
+        projectedBalanceAtTarget: roundPln(targetProfit),
+    };
+}

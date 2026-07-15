@@ -4,6 +4,8 @@ import React, { useMemo, useState } from "react";
 import { api } from "@/trpc/react";
 import { formatPlnAmount } from "@/lib/company-statistics";
 
+const DEFAULT_TARGET_PROFIT = 550;
+
 const MONTHS = [
     { value: 1, label: "Styczeń" },
     { value: 2, label: "Luty" },
@@ -131,6 +133,7 @@ export default function CompanyStatisticsPage() {
     const [startMonth, setStartMonth] = useState(1);
     const [endYear, setEndYear] = useState(currentYear);
     const [endMonth, setEndMonth] = useState(12);
+    const [targetProfit, setTargetProfit] = useState(DEFAULT_TARGET_PROFIT);
 
     const apartmentsQuery = api.apartments.getAll.useQuery({
         includeArchived: true,
@@ -143,6 +146,7 @@ export default function CompanyStatisticsPage() {
             startMonth,
             endYear,
             endMonth,
+            targetProfit,
         },
         {
             enabled: selectedApartmentId !== null,
@@ -183,8 +187,8 @@ export default function CompanyStatisticsPage() {
                 </p>
             </div>
 
-            <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
-                <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+            <div className="grid items-stretch gap-6 lg:grid-cols-[320px_1fr]">
+                <div className="flex h-full min-h-0 flex-col rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
                     <h2 className="text-lg font-semibold text-gray-900">
                         Apartamenty
                     </h2>
@@ -196,7 +200,7 @@ export default function CompanyStatisticsPage() {
                         className="mt-3 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                     />
 
-                    <div className="mt-4 max-h-[520px] space-y-2 overflow-y-auto">
+                    <div className="mt-4 min-h-0 flex-1 space-y-2 overflow-y-auto">
                         {apartmentsQuery.isLoading && (
                             <p className="text-sm text-gray-500">Ładowanie...</p>
                         )}
@@ -408,6 +412,119 @@ export default function CompanyStatisticsPage() {
                                             </div>
                                         </div>
                                     </div>
+
+                                    {balanceQuery.data.fixedAdjustment && (
+                                        <div className="rounded-lg border border-amber-300 bg-amber-50 p-6">
+                                            <div className="flex flex-wrap items-start justify-between gap-4">
+                                                <div>
+                                                    <h3 className="text-lg font-semibold text-gray-900">
+                                                        Korekta kwoty stałej
+                                                    </h3>
+                                                    <p className="mt-1 text-sm text-gray-600">
+                                                        Na podstawie bilansu w okresie (
+                                                        {balanceQuery.data.fixedAdjustment.monthCount}{" "}
+                                                        {balanceQuery.data.fixedAdjustment.monthCount ===
+                                                        1
+                                                            ? "miesiąc"
+                                                            : "miesięcy"}
+                                                        ). Obniżka kwoty stałej o 1 PLN w każdym
+                                                        miesiącu poprawia bilans ZW o 1 PLN × liczba
+                                                        miesięcy.
+                                                    </p>
+                                                </div>
+                                                <div className="text-right text-sm text-gray-700">
+                                                    <div className="text-xs uppercase tracking-wide text-gray-500">
+                                                        Obecna kwota stała
+                                                    </div>
+                                                    <div className="text-lg font-semibold">
+                                                        {formatPlnAmount(
+                                                            balanceQuery.data.fixedAdjustment
+                                                                .currentFixedAmount,
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <label className="mt-4 inline-flex items-center gap-2 text-sm text-gray-700">
+                                                <span>Cel zysku ZW:</span>
+                                                <input
+                                                    type="number"
+                                                    min={0}
+                                                    step={50}
+                                                    value={targetProfit}
+                                                    onChange={(event) =>
+                                                        setTargetProfit(
+                                                            Number(event.target.value) || 0,
+                                                        )
+                                                    }
+                                                    className="w-28 rounded-md border border-amber-400 bg-white px-2 py-1.5"
+                                                />
+                                                <span>PLN</span>
+                                            </label>
+
+                                            <div className="mt-4 grid gap-4 md:grid-cols-2">
+                                                <div className="rounded-md border border-amber-200 bg-white p-4">
+                                                    <div className="text-sm font-medium text-gray-900">
+                                                        Wyjście na 0
+                                                    </div>
+                                                    <p className="mt-2 text-sm text-gray-600">
+                                                        Obniżyć kwotę stałą o
+                                                    </p>
+                                                    <p className="mt-1 text-xl font-bold text-amber-800">
+                                                        {formatPlnAmount(
+                                                            balanceQuery.data.fixedAdjustment
+                                                                .reductionToBreakEven,
+                                                        )}
+                                                        <span className="text-sm font-normal text-gray-500">
+                                                            {" "}
+                                                            / miesiąc
+                                                        </span>
+                                                    </p>
+                                                    <p className="mt-2 text-sm text-gray-700">
+                                                        Nowa kwota stała:{" "}
+                                                        <span className="font-semibold">
+                                                            {formatPlnAmount(
+                                                                balanceQuery.data.fixedAdjustment
+                                                                    .suggestedFixedToBreakEven,
+                                                            )}
+                                                        </span>
+                                                    </p>
+                                                </div>
+
+                                                <div className="rounded-md border border-amber-200 bg-white p-4">
+                                                    <div className="text-sm font-medium text-gray-900">
+                                                        Zysk co najmniej{" "}
+                                                        {formatPlnAmount(
+                                                            balanceQuery.data.fixedAdjustment
+                                                                .targetProfit,
+                                                        )}
+                                                    </div>
+                                                    <p className="mt-2 text-sm text-gray-600">
+                                                        Obniżyć kwotę stałą o
+                                                    </p>
+                                                    <p className="mt-1 text-xl font-bold text-amber-800">
+                                                        {formatPlnAmount(
+                                                            balanceQuery.data.fixedAdjustment
+                                                                .reductionToTarget,
+                                                        )}
+                                                        <span className="text-sm font-normal text-gray-500">
+                                                            {" "}
+                                                            / miesiąc
+                                                        </span>
+                                                    </p>
+                                                    <p className="mt-2 text-sm text-gray-700">
+                                                        Nowa kwota stała:{" "}
+                                                        <span className="font-semibold">
+                                                            {formatPlnAmount(
+                                                                balanceQuery.data.fixedAdjustment
+                                                                    .suggestedFixedToTarget,
+                                                            )}
+                                                        </span>
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </>
