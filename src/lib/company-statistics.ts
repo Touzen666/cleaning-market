@@ -101,6 +101,49 @@ export type MonthlyCommissionEntry = {
     reportCount: number;
 };
 
+export type MonthSettlementDetail = {
+    year: number;
+    month: number;
+    label: string;
+    commission: number;
+    reports: Array<{
+        id: string;
+        isHistorical: boolean;
+        settlementType: string | null;
+        settlementLabel: string;
+        rentAndUtilitiesDeducted: boolean;
+        rentAmount: number;
+        utilitiesAmount: number;
+        rentAndUtilitiesTotal: number;
+        netIncome: number;
+        hostPayout: number;
+        fixedPaymentAmount: number | null;
+    }>;
+    /** true = we wszystkich raportach miesiąca odjęto czynsz i media od kwoty stałej */
+    rentAndUtilitiesDeducted: boolean | null;
+    /** true = w miesiącu są mieszane typy rozliczenia */
+    mixedSettlement: boolean;
+};
+
+export function getSettlementTypeLabel(settlementType: string | null | undefined): string {
+    switch (settlementType) {
+        case "FIXED":
+            return "Kwota stała (bez odjęcia mediów)";
+        case "FIXED_MINUS_UTILITIES":
+            return "Kwota stała minus czynsz i media";
+        case "COMMISSION":
+            return "Prowizja %";
+        default:
+            return "Brak typu rozliczenia";
+    }
+}
+
+export function doesSettlementDeductRentAndUtilities(
+    settlementType: string | null | undefined,
+): boolean {
+    return settlementType === "FIXED_MINUS_UTILITIES";
+}
+
 export type CommissionBalanceResult = {
     monthlyEntries: MonthlyCommissionEntry[];
     positiveEntries: MonthlyCommissionEntry[];
