@@ -518,18 +518,18 @@ function OwnerCard({
           </div>
         </div>
         <div className="flex items-center space-x-2">
-          {owner.isFirstLogin && (
-            <span className="inline-flex items-center rounded-md bg-yellow-100 px-2 py-1 text-xs font-medium text-yellow-800">
-              Pierwsze logowanie
-            </span>
-          )}
-          {owner.temporaryPassword &&
+          {owner.isFirstLogin &&
+            (owner.temporaryPassword &&
             owner.temporaryPasswordExpiresAt &&
-            new Date(owner.temporaryPasswordExpiresAt) < new Date() && (
+            new Date(owner.temporaryPasswordExpiresAt) < new Date() ? (
               <span className="inline-flex items-center rounded-md bg-red-100 px-2 py-1 text-xs font-medium text-red-800">
-                Hasło wygasło
+                Hasło tymczasowe przeterminowane
               </span>
-            )}
+            ) : (
+              <span className="inline-flex items-center rounded-md bg-yellow-100 px-2 py-1 text-xs font-medium text-yellow-800">
+                Pierwsze logowanie
+              </span>
+            ))}
         </div>
       </div>
 
