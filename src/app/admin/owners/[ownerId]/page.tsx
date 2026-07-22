@@ -65,6 +65,18 @@ export default function OwnerDetailsPage({
     },
   });
 
+  const resetPasswordMutation = api.apartmentOwners.resetPassword.useMutation({
+    onSuccess: (data) => {
+      const emailInfo = data.emailSent
+        ? "Email z nowym hasłem został wysłany."
+        : "Nie udało się wysłać emaila — skopiuj hasło ręcznie.";
+      alert(`Nowe hasło tymczasowe: ${data.temporaryPassword}\n\n${emailInfo}`);
+      void ownerQuery.refetch();
+    },
+    onError: (err: { message: string }) =>
+      alert(`Błąd resetu hasła: ${err.message}`),
+  });
+
   // Mutacje dla notatek
   const createNoteMutation = api.ownerNotes.create.useMutation({
     onSuccess: () => {
@@ -269,6 +281,41 @@ export default function OwnerDetailsPage({
                 </svg>
                 Zarządzaj apartamentami
               </button>
+              <button
+                onClick={() => {
+                  if (
+                    confirm(
+                      "Zresetować hasło tymczasowe? Dotychczasowe hasło przestanie działać, a nowe (ważne 7 dni) zostanie wysłane emailem.",
+                    )
+                  ) {
+                    resetPasswordMutation.mutate({
+                      ownerId,
+                      sendEmail: true,
+                    });
+                  }
+                }}
+                disabled={resetPasswordMutation.isPending}
+                className="inline-flex items-center rounded-md bg-orange-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-orange-500 disabled:opacity-50"
+                title="Wygeneruj nowe hasło tymczasowe i wyślij je emailem"
+              >
+                <svg
+                  className="-ml-0.5 mr-1.5 h-5 w-5"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z"
+                  />
+                </svg>
+                {resetPasswordMutation.isPending
+                  ? "Resetowanie..."
+                  : "Reset hasła tymczasowego"}
+              </button>
             </div>
           </div>
           {owner.contractTermination &&
@@ -452,6 +499,24 @@ export default function OwnerDetailsPage({
                         </svg>
                       </button>
                     </div>
+                    {owner.temporaryPasswordExpiresAt && (
+                      <p
+                        className={`mt-1 text-xs ${
+                          new Date(owner.temporaryPasswordExpiresAt) <
+                          new Date()
+                            ? "font-medium text-red-600"
+                            : "text-gray-500"
+                        }`}
+                      >
+                        {new Date(owner.temporaryPasswordExpiresAt) <
+                        new Date()
+                          ? "Wygasło"
+                          : "Wygasa"}{" "}
+                        {new Date(
+                          owner.temporaryPasswordExpiresAt,
+                        ).toLocaleDateString("pl-PL")}
+                      </p>
+                    )}
                   </div>
                 )}
               </div>

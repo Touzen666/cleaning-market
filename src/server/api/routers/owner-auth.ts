@@ -86,11 +86,14 @@ export const ownerAuthRouter = createTRPCRouter({
             }
 
             let isValidPassword = false;
+            let temporaryPasswordExpired = false;
 
             // Check if using temporary password
             if (owner.temporaryPassword && owner.temporaryPasswordExpiresAt) {
                 if (new Date() <= owner.temporaryPasswordExpiresAt) {
                     isValidPassword = password === owner.temporaryPassword;
+                } else if (password === owner.temporaryPassword) {
+                    temporaryPasswordExpired = true;
                 }
             }
 
@@ -102,7 +105,9 @@ export const ownerAuthRouter = createTRPCRouter({
             if (!isValidPassword) {
                 throw new TRPCError({
                     code: "UNAUTHORIZED",
-                    message: "Nieprawidłowy email lub hasło",
+                    message: temporaryPasswordExpired
+                        ? "Hasło tymczasowe wygasło. Skontaktuj się z administratorem w celu otrzymania nowego hasła."
+                        : "Nieprawidłowy email lub hasło",
                 });
             }
 

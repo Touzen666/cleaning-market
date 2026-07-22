@@ -434,6 +434,18 @@ function OwnerCard({
     onError: (err: { message: string }) => alert(`Błąd: ${err.message}`),
   });
 
+  const resetPasswordMutation = api.apartmentOwners.resetPassword.useMutation({
+    onSuccess: (data) => {
+      const emailInfo = data.emailSent
+        ? "Email z nowym hasłem został wysłany."
+        : "Nie udało się wysłać emaila — skopiuj hasło ręcznie.";
+      alert(`Nowe hasło tymczasowe: ${data.temporaryPassword}\n\n${emailInfo}`);
+      onRefetch();
+    },
+    onError: (err: { message: string }) =>
+      alert(`Błąd resetu hasła: ${err.message}`),
+  });
+
   const deleteOwnerMutation = api.apartmentOwners.delete.useMutation({
     onSuccess: onRefetch,
     onError: (err: { message: string }) =>
@@ -511,6 +523,13 @@ function OwnerCard({
               Pierwsze logowanie
             </span>
           )}
+          {owner.temporaryPassword &&
+            owner.temporaryPasswordExpiresAt &&
+            new Date(owner.temporaryPasswordExpiresAt) < new Date() && (
+              <span className="inline-flex items-center rounded-md bg-red-100 px-2 py-1 text-xs font-medium text-red-800">
+                Hasło wygasło
+              </span>
+            )}
         </div>
       </div>
 
@@ -547,6 +566,28 @@ function OwnerCard({
                 disabled={sendWelcomeEmailMutation.isPending}
               >
                 {sendWelcomeEmailMutation.isPending ? "Wysyłanie..." : "Email"}
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (
+                    confirm(
+                      "Zresetować hasło tymczasowe? Dotychczasowe hasło przestanie działać, a nowe (ważne 7 dni) zostanie wysłane emailem.",
+                    )
+                  ) {
+                    resetPasswordMutation.mutate({
+                      ownerId: owner.id,
+                      sendEmail: true,
+                    });
+                  }
+                }}
+                className="inline-flex items-center rounded-md bg-orange-100 px-2 py-1 text-xs font-medium text-orange-800 hover:bg-orange-200"
+                disabled={resetPasswordMutation.isPending}
+                title="Wygeneruj nowe hasło tymczasowe i wyślij je emailem"
+              >
+                {resetPasswordMutation.isPending
+                  ? "Resetowanie..."
+                  : "Reset hasła"}
               </button>
 
               {/* Login as Owner button */}
@@ -603,22 +644,40 @@ function OwnerCard({
             </div>
             <div>
               {owner.temporaryPassword && (
-                <div className="flex items-center">
-                  <span className="text-xs text-gray-600">
-                    Hasło tymczasowe:
-                  </span>
-                  <input
-                    type="text"
-                    readOnly
-                    value={owner.temporaryPassword}
-                    className="ml-2 rounded-md border-gray-300 bg-gray-100 p-1 text-xs"
-                  />
-                  <button
-                    onClick={() => copyToClipboard(owner.temporaryPassword!)}
-                    className="ml-2 text-xs text-blue-600 hover:text-blue-800"
-                  >
-                    {copied ? "Skopiowano!" : "Kopiuj"}
-                  </button>
+                <div className="flex flex-col items-end gap-1">
+                  <div className="flex items-center">
+                    <span className="text-xs text-gray-600">
+                      Hasło tymczasowe:
+                    </span>
+                    <input
+                      type="text"
+                      readOnly
+                      value={owner.temporaryPassword}
+                      className="ml-2 rounded-md border-gray-300 bg-gray-100 p-1 text-xs"
+                    />
+                    <button
+                      onClick={() => copyToClipboard(owner.temporaryPassword!)}
+                      className="ml-2 text-xs text-blue-600 hover:text-blue-800"
+                    >
+                      {copied ? "Skopiowano!" : "Kopiuj"}
+                    </button>
+                  </div>
+                  {owner.temporaryPasswordExpiresAt && (
+                    <span
+                      className={`text-xs ${
+                        new Date(owner.temporaryPasswordExpiresAt) < new Date()
+                          ? "font-medium text-red-600"
+                          : "text-gray-500"
+                      }`}
+                    >
+                      {new Date(owner.temporaryPasswordExpiresAt) < new Date()
+                        ? "Wygasło"
+                        : "Wygasa"}{" "}
+                      {new Date(
+                        owner.temporaryPasswordExpiresAt,
+                      ).toLocaleDateString("pl-PL")}
+                    </span>
+                  )}
                 </div>
               )}
             </div>

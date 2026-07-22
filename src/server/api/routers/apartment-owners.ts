@@ -375,6 +375,7 @@ export const apartmentOwnersRouter = createTRPCRouter({
     resetPassword: protectedProcedure
         .input(z.object({
             ownerId: z.string(),
+            sendEmail: z.boolean().optional().default(true),
         }))
         .mutation(async ({ input, ctx }) => {
             // Check if user is admin
@@ -382,6 +383,18 @@ export const apartmentOwnersRouter = createTRPCRouter({
                 throw new TRPCError({
                     code: "FORBIDDEN",
                     message: "Only admins can reset passwords",
+                });
+            }
+
+            const owner = await ctx.db.apartmentOwner.findUnique({
+                where: { id: input.ownerId },
+                select: { id: true, email: true },
+            });
+
+            if (!owner) {
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: "Właściciel nie został znaleziony",
                 });
             }
 
@@ -395,13 +408,28 @@ export const apartmentOwnersRouter = createTRPCRouter({
                     temporaryPasswordExpiresAt,
                     isFirstLogin: true,
                     passwordHash: null, // Reset permanent password
+                    resetPasswordToken: null,
+                    resetPasswordTokenExpiresAt: null,
                 },
             });
 
             console.log(`🔑 Reset hasła dla właściciela: ${input.ownerId}`);
 
+            let emailSent = false;
+            if (input.sendEmail) {
+                try {
+                    await _sendWelcomeEmail({ ownerId: input.ownerId, db: ctx.db });
+                    emailSent = true;
+                    console.log(`✅ Welcome email with new temp password sent to ${owner.email}`);
+                } catch (error) {
+                    console.error(`❌ Failed to send welcome email after password reset to ${owner.email}:`, error);
+                }
+            }
+
             return {
                 temporaryPassword,
+                temporaryPasswordExpiresAt,
+                emailSent,
             };
         }),
 
