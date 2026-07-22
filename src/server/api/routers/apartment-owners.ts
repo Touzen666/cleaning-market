@@ -16,6 +16,7 @@ const apartmentOwnerSchema = z.object({
     isActive: z.boolean(),
     isFirstLogin: z.boolean(),
     temporaryPassword: z.string().nullable(),
+    temporaryPasswordExpiresAt: z.date().nullable(),
     createdAt: z.date(),
     updatedAt: z.date(),
     profileImageUrl: z.string().nullable(),
