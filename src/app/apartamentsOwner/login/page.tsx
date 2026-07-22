@@ -81,8 +81,8 @@ export default function ApartmentsOwnerLoginPage() {
 
     try {
       await loginMutation.mutateAsync({
-        email: formData.email,
-        password: formData.password,
+        email: formData.email.trim().toLowerCase(),
+        password: formData.password.trim(),
       });
     } catch (error) {
       // Error is handled in onError callback

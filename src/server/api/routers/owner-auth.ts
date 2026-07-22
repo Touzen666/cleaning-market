@@ -41,7 +41,8 @@ export const ownerAuthRouter = createTRPCRouter({
             password: z.string().min(1),
         }))
         .mutation(async ({ input, ctx }) => {
-            const { email, password } = input;
+            const email = input.email.trim().toLowerCase();
+            const password = input.password.trim();
 
             // Find apartment owner
             const owner = await ctx.db.apartmentOwner.findUnique({
@@ -88,11 +89,15 @@ export const ownerAuthRouter = createTRPCRouter({
             let isValidPassword = false;
             let temporaryPasswordExpired = false;
 
-            // Check if using temporary password
+            // Check if using temporary password (case-insensitive — generator uses A-Z0-9)
             if (owner.temporaryPassword && owner.temporaryPasswordExpiresAt) {
+                const tempPassword = owner.temporaryPassword.trim();
+                const passwordMatchesTemp =
+                    password.toUpperCase() === tempPassword.toUpperCase();
+
                 if (new Date() <= owner.temporaryPasswordExpiresAt) {
-                    isValidPassword = password === owner.temporaryPassword;
-                } else if (password === owner.temporaryPassword) {
+                    isValidPassword = passwordMatchesTemp;
+                } else if (passwordMatchesTemp) {
                     temporaryPasswordExpired = true;
                 }
             }

@@ -179,8 +179,9 @@ export const apartmentOwnersRouter = createTRPCRouter({
             }
 
             // Check if email already exists
+            const normalizedEmail = input.email.trim().toLowerCase();
             const existingOwner = await ctx.db.apartmentOwner.findUnique({
-                where: { email: input.email },
+                where: { email: normalizedEmail },
             });
 
             if (existingOwner) {
@@ -197,7 +198,7 @@ export const apartmentOwnersRouter = createTRPCRouter({
             // Create apartment owner
             const newOwner = await ctx.db.apartmentOwner.create({
                 data: {
-                    email: input.email,
+                    email: normalizedEmail,
                     firstName: input.firstName,
                     lastName: input.lastName,
                     phone: input.phone,
