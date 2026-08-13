@@ -51,22 +51,41 @@ export function getCommissionPayoutNet(params: {
     commissionRate: number;
     /** true = najpierw czynsz i media, potem % prowizji od pozostałości */
     deductCostsBeforeCommission: boolean;
-}): { hostPayout: number; ownerNetBase: number; commissionBase: number } {
+}): {
+    hostPayout: number;
+    ownerNetBase: number;
+    commissionBase: number;
+    /** zysk netto − prowizja ZW (przed odliczeniem czynszu/mediów/dodatkowych przy wypłacie) */
+    afterHostCommission: number;
+    rentAndUtilities: number;
+} {
     const rentAndUtilities = params.rentAmount + params.utilitiesAmount;
 
     if (params.deductCostsBeforeCommission) {
+        // Prowizja % od (zysk − czynsz − media); wypłata właściciela i tak odejmuje czynsz/media.
         const commissionBase = params.netIncome - rentAndUtilities;
         const hostPayout = commissionBase * params.commissionRate;
+        const afterHostCommission = params.netIncome - hostPayout;
         const ownerNetBase =
-            commissionBase - hostPayout - params.additionalDeductionsGross;
-        return { hostPayout, ownerNetBase, commissionBase };
+            afterHostCommission - rentAndUtilities - params.additionalDeductionsGross;
+        return {
+            hostPayout,
+            ownerNetBase,
+            commissionBase,
+            afterHostCommission,
+            rentAndUtilities,
+        };
     }
 
     const hostPayout = params.netIncome * params.commissionRate;
+    const afterHostCommission = params.netIncome - hostPayout;
     const ownerNetBase =
-        params.netIncome -
-        hostPayout -
-        rentAndUtilities -
-        params.additionalDeductionsGross;
-    return { hostPayout, ownerNetBase, commissionBase: params.netIncome };
+        afterHostCommission - rentAndUtilities - params.additionalDeductionsGross;
+    return {
+        hostPayout,
+        ownerNetBase,
+        commissionBase: params.netIncome,
+        afterHostCommission,
+        rentAndUtilities,
+    };
 }

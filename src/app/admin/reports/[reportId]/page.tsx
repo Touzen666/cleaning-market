@@ -6037,20 +6037,19 @@ function OwnerPayoutCalculation({
             commissionRate: adminCommissionRate,
             deductCostsBeforeCommission: true,
           });
-          const afterZw =
-            commissionMinus.commissionBase - commissionMinus.hostPayout;
+          const rentAmt = report.rentAmount ?? 0;
+          const utilAmt = report.utilitiesAmount ?? 0;
           return (
             <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
               <SummaryField
-                label={`Baza po odjęciu czynszu i mediów ${!isVatExempt ? "(netto)" : ""}`}
-                value={`${commissionMinus.commissionBase.toFixed(2)} PLN`}
+                label={`Kwota po prowizji Złote Wynajmy ${!isVatExempt ? "(netto)" : ""}`}
+                value={`${commissionMinus.afterHostCommission.toFixed(2)} PLN`}
                 subtext={
                   <span className="block text-xs text-blue-600">
-                    (zysk netto {report.netIncome.toFixed(2)} PLN − czynsz:{" "}
-                    {(report.rentAmount ?? 0).toFixed(2)} PLN − media:{" "}
-                    {(report.utilitiesAmount ?? 0).toFixed(2)} PLN). Prowizja
-                    Złote Wynajmy {commissionMinus.hostPayout.toFixed(2)} PLN
-                    (25% od tej bazy).
+                    (prowizja ZW {commissionMinus.hostPayout.toFixed(2)} PLN =
+                    25% od bazy {commissionMinus.commissionBase.toFixed(2)} PLN
+                    = zysk {report.netIncome.toFixed(2)} − czynsz{" "}
+                    {rentAmt.toFixed(2)} − media {utilAmt.toFixed(2)})
                   </span>
                 }
                 color="blue"
@@ -6060,9 +6059,15 @@ function OwnerPayoutCalculation({
                 value={`${commissionMinus.ownerNetBase.toFixed(2)} PLN`}
                 subtext={
                   <span className="block text-xs text-blue-600">
-                    (po prowizji ZW: {afterZw.toFixed(2)} PLN − dodatkowe
-                    odliczenia: {totalAdditionalDeductionsGross.toFixed(2)} PLN
-                    brutto)
+                    (po odliczeniu czynszu: {rentAmt.toFixed(2)} PLN + mediów:{" "}
+                    {utilAmt.toFixed(2)} PLN + dodatkowych odliczeń:{" "}
+                    {totalAdditionalDeductionsGross.toFixed(2)} PLN brutto ={" "}
+                    {(
+                      rentAmt +
+                      utilAmt +
+                      totalAdditionalDeductionsGross
+                    ).toFixed(2)}{" "}
+                    PLN)
                   </span>
                 }
                 color="blue"
