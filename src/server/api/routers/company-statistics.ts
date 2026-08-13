@@ -66,6 +66,8 @@ const reportCommissionSelect = {
     fixedPayoutActiveDays: true,
     customSummaryEnabled: true,
     customHostPayout: true,
+    rentAmount: true,
+    utilitiesAmount: true,
     apartment: {
         select: {
             id: true,
@@ -91,6 +93,8 @@ const historicalCommissionSelect = {
     adminCommissionAmount: true,
     finalHostPayout: true,
     finalSettlementType: true,
+    rentAmount: true,
+    utilitiesAmount: true,
     apartment: {
         select: {
             id: true,
@@ -708,6 +712,8 @@ export const companyStatisticsRouter = createTRPCRouter({
                         fixedPayoutActiveDays: report.fixedPayoutActiveDays ?? null,
                         customSummaryEnabled: report.customSummaryEnabled ?? false,
                         customHostPayout: report.customHostPayout ?? null,
+                        rentAmount: report.rentAmount ?? 0,
+                        utilitiesAmount: report.utilitiesAmount ?? 0,
                         apartment: report.apartment,
                     },
                     report.additionalDeductions,

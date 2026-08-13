@@ -29,6 +29,11 @@ import {
     statusRequiresSettlementLikeApproval,
 } from "@/lib/report-status";
 import { summarizeTerminationCosts } from "@/lib/report-termination-costs";
+import {
+    getCommissionPayoutNet,
+    isCommissionSettlementType,
+    mapPaymentTypeToSettlementType,
+} from "@/lib/commission-settlement";
 
 type RecalculateContext = {
     db: PrismaClient;
@@ -541,8 +546,16 @@ async function recalculateReportSettlement(reportId: string, ctx: RecalculateCon
                         baseAmount = contractFixedScaled - rentAndUtilities - totalAdditionalDeductionsGross;
                     }
                 }
-            } else if (settlementType === 'COMMISSION') {
-                baseAmount = afterRentAndUtilities - totalAdditionalDeductionsGross;
+            } else if (isCommissionSettlementType(settlementType)) {
+                const commissionPayout = getCommissionPayoutNet({
+                    netIncome,
+                    rentAmount: report.rentAmount ?? 0,
+                    utilitiesAmount: report.utilitiesAmount ?? 0,
+                    additionalDeductionsGross: totalAdditionalDeductionsGross,
+                    commissionRate: getAdminCommissionRate(actualApartment.paymentType),
+                    deductCostsBeforeCommission: settlementType === "COMMISSION_MINUS_UTILITIES",
+                });
+                baseAmount = commissionPayout.ownerNetBase;
             }
 
             // Zoptymalizowane obliczenia VAT - inline
@@ -553,8 +566,16 @@ async function recalculateReportSettlement(reportId: string, ctx: RecalculateCon
             // Zoptymalizowane obliczanie finalHostPayout
             const fixedAmount = actualApartment.fixedPaymentAmount ? Number(actualApartment.fixedPaymentAmount) : 0;
 
-            if (settlementType === 'COMMISSION') {
-                finalHostPayout = adminCommissionAmount;
+            if (isCommissionSettlementType(settlementType)) {
+                const commissionPayout = getCommissionPayoutNet({
+                    netIncome,
+                    rentAmount: report.rentAmount ?? 0,
+                    utilitiesAmount: report.utilitiesAmount ?? 0,
+                    additionalDeductionsGross: totalAdditionalDeductionsGross,
+                    commissionRate: getAdminCommissionRate(actualApartment.paymentType),
+                    deductCostsBeforeCommission: settlementType === "COMMISSION_MINUS_UTILITIES",
+                });
+                finalHostPayout = commissionPayout.hostPayout;
             } else if (settlementType === 'FIXED' || settlementType === 'FIXED_MINUS_UTILITIES') {
                 const prorateF = getFixedPayoutProrateFactor(
                     report.year,
@@ -1011,16 +1032,7 @@ export const monthlyReportsRouter = createTRPCRouter({
             });
 
             // Automatycznie ustaw typ rozliczenia na podstawie ustawień apartamentu
-            let finalSettlementType: "COMMISSION" | "FIXED" | "FIXED_MINUS_UTILITIES";
-            if (apartment.paymentType === "COMMISSION" || apartment.paymentType === "OWN_APARTMENT") {
-                finalSettlementType = "COMMISSION";
-            } else if (apartment.paymentType === "FIXED_AMOUNT") {
-                finalSettlementType = "FIXED";
-            } else if (apartment.paymentType === "FIXED_AMOUNT_MINUS_UTILITIES") {
-                finalSettlementType = "FIXED_MINUS_UTILITIES";
-            } else {
-                finalSettlementType = "COMMISSION"; // Domyślnie
-            }
+            const finalSettlementType = mapPaymentTypeToSettlementType(apartment.paymentType);
 
             console.log(`🔄 Automatycznie ustawiono typ rozliczenia dla nowego raportu: ${finalSettlementType} (ustawienia apartamentu: ${apartment.paymentType})`);
 
@@ -1319,17 +1331,21 @@ export const monthlyReportsRouter = createTRPCRouter({
             let finalIncomeTax = 0;
             let taxBase = 0; // Podstawa opodatkowania
 
-            if (report.finalSettlementType === "COMMISSION") {
-                // Commission-based settlement
-                const commissionNetBaseAfterUtilities = afterRentAndUtilities - totalAdditionalDeductions;
-                const commissionGrossAfterUtilities = isVatExempt
-                    ? commissionNetBaseAfterUtilities
-                    : getGrossAmount(commissionNetBaseAfterUtilities, report.owner.vatOption);
+            if (report.finalSettlementType === "COMMISSION" || report.finalSettlementType === "COMMISSION_MINUS_UTILITIES") {
+                const commissionPayout = getCommissionPayoutNet({
+                    netIncome,
+                    rentAmount: report.rentAmount ?? 0,
+                    utilitiesAmount: report.utilitiesAmount ?? 0,
+                    additionalDeductionsGross: totalAdditionalDeductions,
+                    commissionRate: adminCommissionRate,
+                    deductCostsBeforeCommission: report.finalSettlementType === "COMMISSION_MINUS_UTILITIES",
+                });
+                const ownerNetBase = commissionPayout.ownerNetBase;
 
                 finalOwnerPayout = isVatExempt
-                    ? commissionNetBaseAfterUtilities
-                    : commissionGrossAfterUtilities;
-                finalHostPayout = adminCommissionAmount;
+                    ? ownerNetBase
+                    : getGrossAmount(ownerNetBase, report.owner.vatOption);
+                finalHostPayout = commissionPayout.hostPayout;
             } else if (report.finalSettlementType === "FIXED") {
                 // Kwota stała × prorata − dodatkowe odliczenia brutto (spójnie z podglądem w panelu admina)
                 const fixedBaseAmount = Number(report.apartment.fixedPaymentAmount ?? 0);
@@ -1365,6 +1381,7 @@ export const monthlyReportsRouter = createTRPCRouter({
 
             if (
                 report.finalSettlementType === "COMMISSION" ||
+                report.finalSettlementType === "COMMISSION_MINUS_UTILITIES" ||
                 report.finalSettlementType === "FIXED" ||
                 report.finalSettlementType === "FIXED_MINUS_UTILITIES"
             ) {
@@ -1451,7 +1468,7 @@ export const monthlyReportsRouter = createTRPCRouter({
                 utilitiesAmount?: number;
             } = { finalSettlementType };
 
-            if (finalSettlementType === 'COMMISSION' || finalSettlementType === 'FIXED_MINUS_UTILITIES') {
+            if (finalSettlementType === 'COMMISSION' || finalSettlementType === 'COMMISSION_MINUS_UTILITIES' || finalSettlementType === 'FIXED_MINUS_UTILITIES') {
                 if (typeof rentAmount === 'number') {
                     updateData.rentAmount = rentAmount;
                 }
@@ -2209,7 +2226,7 @@ export const monthlyReportsRouter = createTRPCRouter({
             reportId: z.string().uuid(),
             rentAmount: z.number().optional(),
             utilitiesAmount: z.number().optional(),
-            finalSettlementType: z.enum([SettlementType.COMMISSION, SettlementType.FIXED, SettlementType.FIXED_MINUS_UTILITIES]).optional(),
+            finalSettlementType: z.enum([SettlementType.COMMISSION, SettlementType.COMMISSION_MINUS_UTILITIES, SettlementType.FIXED, SettlementType.FIXED_MINUS_UTILITIES]).optional(),
         }))
         .mutation(async ({ input, ctx }) => {
             if (ctx.session.user.type !== UserType.ADMIN) {
@@ -2707,6 +2724,7 @@ export const monthlyReportsRouter = createTRPCRouter({
                     } else {
                         if (
                             report.finalSettlementType === "COMMISSION" ||
+                            report.finalSettlementType === "COMMISSION_MINUS_UTILITIES" ||
                             report.finalSettlementType === "FIXED" ||
                             report.finalSettlementType === "FIXED_MINUS_UTILITIES"
                         ) {
@@ -2749,6 +2767,7 @@ export const monthlyReportsRouter = createTRPCRouter({
 
                 if (
                     report.finalSettlementType === "COMMISSION" ||
+                    report.finalSettlementType === "COMMISSION_MINUS_UTILITIES" ||
                     report.finalSettlementType === "FIXED" ||
                     report.finalSettlementType === "FIXED_MINUS_UTILITIES"
                 ) {
@@ -3220,7 +3239,7 @@ export const monthlyReportsRouter = createTRPCRouter({
     setFinalSettlementType: protectedProcedure
         .input(z.object({
             reportId: z.string().uuid(),
-            finalSettlementType: z.enum(["COMMISSION", "FIXED", "FIXED_MINUS_UTILITIES"]),
+            finalSettlementType: z.enum(["COMMISSION", "COMMISSION_MINUS_UTILITIES", "FIXED", "FIXED_MINUS_UTILITIES"]),
         }))
         .mutation(async ({ input, ctx }) => {
             if (ctx.session.user.type !== UserType.ADMIN) {
@@ -3254,7 +3273,7 @@ export const monthlyReportsRouter = createTRPCRouter({
                 where: { id: input.reportId },
                 data: {
                     finalSettlementType: input.finalSettlementType,
-                    ...(input.finalSettlementType === "COMMISSION"
+                    ...(isCommissionSettlementType(input.finalSettlementType)
                         ? { fixedPayoutProrateEnabled: false, fixedPayoutActiveDays: null }
                         : {}),
                 },
@@ -3982,8 +4001,16 @@ export const monthlyReportsRouter = createTRPCRouter({
                                 baseAmount = contractFixedScaled - rentAndUtilities - totalAdditionalDeductionsGross;
                             }
                         }
-                    } else if (settlementType === 'COMMISSION') {
-                        baseAmount = afterRentAndUtilities - totalAdditionalDeductionsGross;
+                    } else if (isCommissionSettlementType(settlementType)) {
+                        const commissionPayout = getCommissionPayoutNet({
+                            netIncome,
+                            rentAmount: report.rentAmount ?? 0,
+                            utilitiesAmount: report.utilitiesAmount ?? 0,
+                            additionalDeductionsGross: totalAdditionalDeductionsGross,
+                            commissionRate: getAdminCommissionRate(report.apartment.paymentType),
+                            deductCostsBeforeCommission: settlementType === "COMMISSION_MINUS_UTILITIES",
+                        });
+                        baseAmount = commissionPayout.ownerNetBase;
                     }
 
                     // Obliczenia VAT
@@ -3994,8 +4021,16 @@ export const monthlyReportsRouter = createTRPCRouter({
                     // Obliczanie finalHostPayout
                     const fixedAmount = report.apartment.fixedPaymentAmount ? Number(report.apartment.fixedPaymentAmount) : 0;
 
-                    if (settlementType === 'COMMISSION') {
-                        finalHostPayout = adminCommissionAmount;
+                    if (isCommissionSettlementType(settlementType)) {
+                        const commissionPayout = getCommissionPayoutNet({
+                            netIncome,
+                            rentAmount: report.rentAmount ?? 0,
+                            utilitiesAmount: report.utilitiesAmount ?? 0,
+                            additionalDeductionsGross: totalAdditionalDeductionsGross,
+                            commissionRate: getAdminCommissionRate(report.apartment.paymentType),
+                            deductCostsBeforeCommission: settlementType === "COMMISSION_MINUS_UTILITIES",
+                        });
+                        finalHostPayout = commissionPayout.hostPayout;
                     } else if (settlementType === 'FIXED' || settlementType === 'FIXED_MINUS_UTILITIES') {
                         finalHostPayout = Math.max(0, netIncome - fixedAmount * prorateF);
                     }

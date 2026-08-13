@@ -15,6 +15,7 @@ import {
 import { Modal } from "@/components/ui/Modal";
 import { getVatAmount, getGrossAmount } from "@/lib/vat";
 import { daysInCalendarMonth, getFixedPayoutProrateFactor } from "@/lib/report-fixed-prorate";
+import { getCommissionPayoutNet, mapPaymentTypeToSettlementType } from "@/lib/commission-settlement";
 import {
   translateReportStatus,
   getReportStatusColor,
@@ -636,22 +637,9 @@ export default function ReportDetailsPage({
     const currentSettlementType = finalReport.finalSettlementType;
 
     // Mapuj typ apartamentu na typ rozliczenia
-    let expectedSettlementType:
-      | "COMMISSION"
-      | "FIXED"
-      | "FIXED_MINUS_UTILITIES";
-    if (
-      apartmentPaymentType === "COMMISSION" ||
-      apartmentPaymentType === "OWN_APARTMENT"
-    ) {
-      expectedSettlementType = "COMMISSION";
-    } else if (apartmentPaymentType === "FIXED_AMOUNT") {
-      expectedSettlementType = "FIXED";
-    } else if (apartmentPaymentType === "FIXED_AMOUNT_MINUS_UTILITIES") {
-      expectedSettlementType = "FIXED_MINUS_UTILITIES";
-    } else {
-      expectedSettlementType = "COMMISSION"; // Domyślnie
-    }
+    const expectedSettlementType = mapPaymentTypeToSettlementType(
+      apartmentPaymentType,
+    );
 
     // Nie nadpisuj ręcznej zmiany użytkownika (flaga globalna) ani ustawionego już typu
     const manualChange =
@@ -1510,6 +1498,24 @@ export default function ReportDetailsPage({
                         />
                       </svg>
                       Prowizja od przychodów
+                    </>
+                  ) : finalReport.apartment.paymentType ===
+                    "COMMISSION_MINUS_UTILITIES" ? (
+                    <>
+                      <svg
+                        className="mr-1.5 h-4 w-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+                        />
+                      </svg>
+                      Prowizja po odjęciu czynszu i mediów
                     </>
                   ) : (
                     <>
@@ -4441,6 +4447,15 @@ export default function ReportDetailsPage({
                     );
                     const adminTopUp = Math.max(fixedAmount - netIncome, 0);
                     remaining = netIncome + adminTopUp - totalDeductionsGross;
+                  } else if (
+                    report?.finalSettlementType === "COMMISSION_MINUS_UTILITIES"
+                  ) {
+                    const rentAndUtilities =
+                      (report?.rentAmount ?? 0) +
+                      (report?.utilitiesAmount ?? 0);
+                    const base = netIncome - rentAndUtilities;
+                    commission = base * 0.25;
+                    remaining = base * 0.75;
                   } else {
                     // Rozliczenie prowizyjne – klasyczne 25% od zysku netto
                     commission = netIncome * 0.25;
@@ -4491,6 +4506,18 @@ export default function ReportDetailsPage({
                         );
                       }
 
+                      // Prowizja 25% po odjęciu czynszu i mediów
+                      if (
+                        report?.finalSettlementType ===
+                        "COMMISSION_MINUS_UTILITIES"
+                      ) {
+                        const base =
+                          (report?.netIncome ?? 0) -
+                          (report?.rentAmount ?? 0) -
+                          (report?.utilitiesAmount ?? 0);
+                        return `${(base * 0.25).toFixed(2)} PLN`;
+                      }
+
                       // Standardowa prowizja 25% gdy nie ma rozliczenia z kwotą stałą
                       return `${((report?.netIncome ?? 0) * 0.25).toFixed(2)} PLN`;
                     })()}
@@ -4539,6 +4566,16 @@ export default function ReportDetailsPage({
                             </div>
                           </>
                         );
+                      }
+                      if (
+                        report?.finalSettlementType ===
+                        "COMMISSION_MINUS_UTILITIES"
+                      ) {
+                        const base =
+                          (report?.netIncome ?? 0) -
+                          (report?.rentAmount ?? 0) -
+                          (report?.utilitiesAmount ?? 0);
+                        return `${(base * 0.75).toFixed(2)} PLN`;
                       }
                       return `${((report?.netIncome ?? 0) * 0.75).toFixed(2)} PLN`;
                     })()}
@@ -5216,6 +5253,18 @@ enum LocalPayoutType {
   FIXED_AMOUNT = "FIXED_AMOUNT",
   FIXED_AMOUNT_MINUS_UTILITIES = "FIXED_AMOUNT_MINUS_UTILITIES",
   COMMISSION = "COMMISSION",
+  COMMISSION_MINUS_UTILITIES = "COMMISSION_MINUS_UTILITIES",
+}
+
+function settlementTypeToLocalPayout(
+  settlementType: string | null | undefined,
+): LocalPayoutType {
+  if (settlementType === "FIXED") return LocalPayoutType.FIXED_AMOUNT;
+  if (settlementType === "FIXED_MINUS_UTILITIES")
+    return LocalPayoutType.FIXED_AMOUNT_MINUS_UTILITIES;
+  if (settlementType === "COMMISSION_MINUS_UTILITIES")
+    return LocalPayoutType.COMMISSION_MINUS_UTILITIES;
+  return LocalPayoutType.COMMISSION;
 }
 
 const PayoutOption = ({
@@ -5323,15 +5372,7 @@ function OwnerPayoutCalculation({
   const [deductRentAndUtilities] = React.useState(true);
   const [isRefreshing, setIsRefreshing] = React.useState(false);
   const [finalPayoutType, setFinalPayoutType] = React.useState<LocalPayoutType>(
-    () => {
-      if (report.finalSettlementType === "FIXED") {
-        return LocalPayoutType.FIXED_AMOUNT;
-      } else if (report.finalSettlementType === "FIXED_MINUS_UTILITIES") {
-        return LocalPayoutType.FIXED_AMOUNT_MINUS_UTILITIES;
-      } else {
-        return LocalPayoutType.COMMISSION;
-      }
-    },
+    () => settlementTypeToLocalPayout(report.finalSettlementType),
   );
 
   // Referencje do wartości przed mutacją - używane do monitorowania zmian
@@ -5409,11 +5450,7 @@ function OwnerPayoutCalculation({
         console.error("Error saving final settlement type:", error);
         // Revert the state change if save failed
         setFinalPayoutType(
-          report.finalSettlementType === "FIXED"
-            ? LocalPayoutType.FIXED_AMOUNT
-            : report.finalSettlementType === "FIXED_MINUS_UTILITIES"
-              ? LocalPayoutType.FIXED_AMOUNT_MINUS_UTILITIES
-              : LocalPayoutType.COMMISSION,
+          settlementTypeToLocalPayout(report.finalSettlementType),
         );
         // Błąd zapisu - nie ma potrzeby ustawiania loaderów
       },
@@ -5448,13 +5485,20 @@ function OwnerPayoutCalculation({
     setFinalPayoutType(newType);
 
     // Mapuj lokalny typ na typ z bazy danych
-    let settlementType: "COMMISSION" | "FIXED" | "FIXED_MINUS_UTILITIES";
+    let settlementType:
+      | "COMMISSION"
+      | "COMMISSION_MINUS_UTILITIES"
+      | "FIXED"
+      | "FIXED_MINUS_UTILITIES";
     switch (newType) {
       case LocalPayoutType.FIXED_AMOUNT:
         settlementType = "FIXED";
         break;
       case LocalPayoutType.FIXED_AMOUNT_MINUS_UTILITIES:
         settlementType = "FIXED_MINUS_UTILITIES";
+        break;
+      case LocalPayoutType.COMMISSION_MINUS_UTILITIES:
+        settlementType = "COMMISSION_MINUS_UTILITIES";
         break;
       case LocalPayoutType.COMMISSION:
       default:
@@ -5478,11 +5522,7 @@ function OwnerPayoutCalculation({
       console.error("Error saving final settlement type:", error);
       // Revert the state change if save failed
       setFinalPayoutType(
-        report.finalSettlementType === "FIXED"
-          ? LocalPayoutType.FIXED_AMOUNT
-          : report.finalSettlementType === "FIXED_MINUS_UTILITIES"
-            ? LocalPayoutType.FIXED_AMOUNT_MINUS_UTILITIES
-            : LocalPayoutType.COMMISSION,
+        settlementTypeToLocalPayout(report.finalSettlementType),
       );
     } finally {
       // Po krótkim czasie zdejmij flagę ręcznej zmiany
@@ -5634,6 +5674,29 @@ function OwnerPayoutCalculation({
           taxBase: fixedMinusUtilitiesOwnerPayout,
         };
 
+      case LocalPayoutType.COMMISSION_MINUS_UTILITIES: {
+        const commissionMinus = getCommissionPayoutNet({
+          netIncome: report.netIncome,
+          rentAmount: report.rentAmount ?? 0,
+          utilitiesAmount: report.utilitiesAmount ?? 0,
+          additionalDeductionsGross: totalAdditionalDeductionsGross,
+          commissionRate: adminCommissionRate,
+          deductCostsBeforeCommission: true,
+        });
+        const ownerPayoutMinus = isVatExemptLocal
+          ? commissionMinus.ownerNetBase
+          : getGrossAmount(
+              commissionMinus.ownerNetBase,
+              report.owner.vatOption,
+            );
+        return {
+          finalOwnerPayout: ownerPayoutMinus,
+          finalHostPayout: commissionMinus.hostPayout,
+          finalIncomeTax: ownerPayoutMinus * 0.085,
+          taxBase: ownerPayoutMinus,
+        };
+      }
+
       case LocalPayoutType.COMMISSION:
       default:
         const commissionOwnerPayout = isVatExemptLocal
@@ -5650,6 +5713,8 @@ function OwnerPayoutCalculation({
   }, [
     report.owner.vatOption,
     report.netIncome,
+    report.rentAmount,
+    report.utilitiesAmount,
     isOwnApartment,
     finalPayoutType,
     fixedBaseAmount,
@@ -5657,6 +5722,8 @@ function OwnerPayoutCalculation({
     kwotaBazowaNetto,
     netIncomeAfterAllDeductions,
     adminCommissionAmount,
+    adminCommissionRate,
+    totalAdditionalDeductionsGross,
     previewProrateF,
   ]);
 
@@ -5940,6 +6007,86 @@ function OwnerPayoutCalculation({
             color="blue"
           />
         </div>
+      </PayoutOption>
+
+      <PayoutOption
+        id="final-commission-minus-utilities"
+        label="Rozliczenie właściciela: prowizyjne po odliczeniu czynszu i mediów"
+        payoutType={LocalPayoutType.COMMISSION_MINUS_UTILITIES}
+        finalPayoutType={finalPayoutType}
+        handleFinalPayoutTypeChange={handleFinalPayoutTypeChange}
+        isSelected={
+          finalPayoutType === LocalPayoutType.COMMISSION_MINUS_UTILITIES
+        }
+        color="blue"
+        isDisabled={isReportReadOnly || customEnabled}
+        disabledTitle={
+          isReportReadOnly
+            ? "Raport jest tylko do odczytu (wysłany lub umowa zamknięta). Aby zmienić rozliczenie, zmień status raportu."
+            : customEnabled
+              ? 'Opcje rozliczenia są zablokowane, ponieważ używasz niestandardowych wartości. Aby wrócić do standardowego sposobu liczenia, odznacz "Użyj niestandardowych wartości w podsumowaniu" i zapisz.'
+              : undefined
+        }
+      >
+        {(() => {
+          const commissionMinus = getCommissionPayoutNet({
+            netIncome: report.netIncome,
+            rentAmount: report.rentAmount ?? 0,
+            utilitiesAmount: report.utilitiesAmount ?? 0,
+            additionalDeductionsGross: totalAdditionalDeductionsGross,
+            commissionRate: adminCommissionRate,
+            deductCostsBeforeCommission: true,
+          });
+          const afterZw =
+            commissionMinus.commissionBase - commissionMinus.hostPayout;
+          return (
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+              <SummaryField
+                label={`Baza po odjęciu czynszu i mediów ${!isVatExempt ? "(netto)" : ""}`}
+                value={`${commissionMinus.commissionBase.toFixed(2)} PLN`}
+                subtext={
+                  <span className="block text-xs text-blue-600">
+                    (zysk netto {report.netIncome.toFixed(2)} PLN − czynsz:{" "}
+                    {(report.rentAmount ?? 0).toFixed(2)} PLN − media:{" "}
+                    {(report.utilitiesAmount ?? 0).toFixed(2)} PLN). Prowizja
+                    Złote Wynajmy {commissionMinus.hostPayout.toFixed(2)} PLN
+                    (25% od tej bazy).
+                  </span>
+                }
+                color="blue"
+              />
+              <SummaryField
+                label={`Kwota bazowa ${!isVatExempt ? "(netto)" : ""}`}
+                value={`${commissionMinus.ownerNetBase.toFixed(2)} PLN`}
+                subtext={
+                  <span className="block text-xs text-blue-600">
+                    (po prowizji ZW: {afterZw.toFixed(2)} PLN − dodatkowe
+                    odliczenia: {totalAdditionalDeductionsGross.toFixed(2)} PLN
+                    brutto)
+                  </span>
+                }
+                color="blue"
+              />
+              {!isVatExempt && (
+                <SummaryField
+                  label="VAT"
+                  value={`${getVatAmount(commissionMinus.ownerNetBase, report.owner.vatOption).toFixed(2)} PLN (${report.owner.vatOption === "VAT_8" ? "8" : "23"}%)`}
+                  color="blue"
+                />
+              )}
+              <SummaryField
+                label="DO WYPŁATY"
+                value={
+                  isVatExempt
+                    ? `${commissionMinus.ownerNetBase.toFixed(2)} PLN`
+                    : `${getGrossAmount(commissionMinus.ownerNetBase, report.owner.vatOption).toFixed(2)} PLN`
+                }
+                isPayout
+                color="blue"
+              />
+            </div>
+          );
+        })()}
       </PayoutOption>
 
       {!isOwnApartment &&
@@ -6431,11 +6578,17 @@ function OwnerPayoutCalculation({
                             </span>
                           );
                         }
-                        if (finalPayoutType === LocalPayoutType.COMMISSION) {
+                        if (
+                          finalPayoutType === LocalPayoutType.COMMISSION ||
+                          finalPayoutType ===
+                            LocalPayoutType.COMMISSION_MINUS_UTILITIES
+                        ) {
                           return (
                             <span className="block text-xs text-gray-600">
-                              Równa kwocie wypłaty właściciela (kwota do wypłaty
-                              po odliczeniach); podatek 8,5% od tej kwoty.
+                              {finalPayoutType ===
+                              LocalPayoutType.COMMISSION_MINUS_UTILITIES
+                                ? "Równa kwocie wypłaty właściciela; prowizja liczona od zysku po odjęciu czynszu i mediów."
+                                : "Równa kwocie wypłaty właściciela (kwota do wypłaty po odliczeniach); podatek 8,5% od tej kwoty."}
                             </span>
                           );
                         }
@@ -6477,6 +6630,17 @@ function OwnerPayoutCalculation({
                     ? netIncomeAfterAllDeductions
                     : finalPayoutType === LocalPayoutType.COMMISSION
                       ? netIncomeAfterAllDeductions
+                      : finalPayoutType ===
+                          LocalPayoutType.COMMISSION_MINUS_UTILITIES
+                        ? getCommissionPayoutNet({
+                            netIncome: report.netIncome,
+                            rentAmount: report.rentAmount ?? 0,
+                            utilitiesAmount: report.utilitiesAmount ?? 0,
+                            additionalDeductionsGross:
+                              totalAdditionalDeductionsGross,
+                            commissionRate: adminCommissionRate,
+                            deductCostsBeforeCommission: true,
+                          }).ownerNetBase
                       : finalPayoutType === LocalPayoutType.FIXED_AMOUNT
                         ? fixedBaseAmountAfterDeductions
                         : kwotaBazowaNetto;

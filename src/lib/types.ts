@@ -105,8 +105,12 @@ export const getPaymentTypeText = (paymentType: PaymentType): string => {
     switch (paymentType) {
         case PaymentType.COMMISSION:
             return "Prowizja";
+        case PaymentType.COMMISSION_MINUS_UTILITIES:
+            return "Prowizja po odjęciu czynszu i mediów";
         case PaymentType.FIXED_AMOUNT:
             return "Stała kwota";
+        case PaymentType.FIXED_AMOUNT_MINUS_UTILITIES:
+            return "Stała kwota minus media";
         case PaymentType.OWN_APARTMENT:
             return "Apartament własny";
         default:

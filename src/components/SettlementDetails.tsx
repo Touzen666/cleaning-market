@@ -77,12 +77,16 @@ export function SettlementDetails({
               Wybierz typ...
             </option>
             <option value="COMMISSION">Prowizja od przychodu</option>
+            <option value="COMMISSION_MINUS_UTILITIES">
+              Prowizja po odjęciu czynszu i mediów
+            </option>
             <option value="FIXED">Stała kwota</option>
             <option value="FIXED_MINUS_UTILITIES">Stała kwota - media</option>
           </select>
         </div>
 
         {(settlementType === "COMMISSION" ||
+          settlementType === "COMMISSION_MINUS_UTILITIES" ||
           settlementType === "FIXED_MINUS_UTILITIES") && (
           <>
             <div className="sm:col-span-3"></div>

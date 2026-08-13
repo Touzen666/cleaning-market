@@ -927,7 +927,10 @@ export default function CompanyStatisticsPage() {
                                                                                 : primary?.settlementType ===
                                                                                     "COMMISSION"
                                                                                   ? "Prowizja % (inna logika)"
-                                                                                  : "Brak danych";
+                                                                                  : primary?.settlementType ===
+                                                                                      "COMMISSION_MINUS_UTILITIES"
+                                                                                    ? "Tak — odjęte przed prowizją"
+                                                                                    : "Brak danych";
 
                                                                     return (
                                                                         <tr key={month.label}>

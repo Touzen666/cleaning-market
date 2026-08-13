@@ -25,6 +25,7 @@ interface ExtendedApartment {
   averageRating: number | null;
   paymentType:
     | "COMMISSION"
+    | "COMMISSION_MINUS_UTILITIES"
     | "FIXED_AMOUNT"
     | "FIXED_AMOUNT_MINUS_UTILITIES"
     | "OWN_APARTMENT";
@@ -64,6 +65,7 @@ export default function EditApartmentPage({
     cleaningCosts: {} as Record<string, number>,
     paymentType: "COMMISSION" as
       | "COMMISSION"
+      | "COMMISSION_MINUS_UTILITIES"
       | "FIXED_AMOUNT"
       | "FIXED_AMOUNT_MINUS_UTILITIES"
       | "OWN_APARTMENT",
@@ -669,6 +671,29 @@ export default function EditApartmentPage({
                       />
                       <span className="ml-3 text-sm text-gray-700">
                         Rozliczenie właściciela: prowizyjne
+                      </span>
+                    </label>
+
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        name="paymentType"
+                        value="COMMISSION_MINUS_UTILITIES"
+                        checked={
+                          form.paymentType === "COMMISSION_MINUS_UTILITIES"
+                        }
+                        onChange={(e) =>
+                          setForm((f) => ({
+                            ...f,
+                            paymentType: e.target
+                              .value as "COMMISSION_MINUS_UTILITIES",
+                          }))
+                        }
+                        className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                      />
+                      <span className="ml-3 text-sm text-gray-700">
+                        Rozliczenie właściciela: prowizyjne po odliczeniu
+                        czynszu i mediów
                       </span>
                     </label>
 

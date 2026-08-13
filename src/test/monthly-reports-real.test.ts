@@ -160,6 +160,55 @@ describe("Monthly Reports - Rzeczywiste funkcje", () => {
             expect(result.finalVatAmount).toBe(0); // NO_VAT
         });
 
+        it("przelicza raport z typem COMMISSION_MINUS_UTILITIES (prowizja po odjęciu czynszu i mediów)", async () => {
+            const mockReport = {
+                id: "report-1b",
+                apartmentId: 1,
+                status: ReportStatus.APPROVED,
+                finalSettlementType: SettlementType.COMMISSION_MINUS_UTILITIES,
+                rentAmount: 2000,
+                utilitiesAmount: 500,
+                ownerId: "owner-1",
+            };
+
+            const mockOwner = {
+                fixedPaymentAmount: null,
+                vatOption: VATOption.NO_VAT,
+            };
+
+            const mockItems = [
+                { type: "REVENUE", total: 15000 },
+                { type: "EXPENSE", total: 3000 },
+                { type: "COMMISSION", total: 1000 },
+            ];
+
+            const mockDeductions = [
+                { vatOption: "NO_VAT", total: 200 },
+            ];
+
+            mockDb.monthlyReport.findUnique.mockResolvedValue(mockReport);
+            mockDb.apartment.findUnique.mockResolvedValue({ fixedPaymentAmount: null });
+            mockDb.apartmentOwner.findUnique.mockResolvedValue(mockOwner);
+            mockDb.$queryRaw
+                .mockResolvedValueOnce(mockItems)
+                .mockResolvedValueOnce(mockDeductions);
+            mockDb.monthlyReport.update.mockResolvedValue({});
+
+            const result = await recalculateReportSettlement("report-1b", mockCtx);
+
+            // 15000 - 3000 - 1000 = 11000 netto
+            // baza prowizji: 11000 - 2000 - 500 = 8500
+            // ZW: 8500 * 0.25 = 2125
+            // właściciel: 8500 - 2125 - 200 = 6175
+            expect(result.netIncome).toBe(11000);
+            expect(result.adminCommissionAmount).toBe(2750); // standardowa 25% od netto (pole pomocnicze)
+            expect(result.finalHostPayout).toBe(2125);
+            expect(result.finalOwnerPayout).toBe(6175);
+            expect(result.taxBase).toBe(6175);
+            expect(result.finalIncomeTax).toBeCloseTo(524.875, 2);
+            expect(result.finalVatAmount).toBe(0);
+        });
+
         it("przelicza raport z typem rozliczenia FIXED", async () => {
             const mockReport = {
                 id: "report-2",

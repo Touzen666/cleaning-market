@@ -1,6 +1,7 @@
 import { getFixedPayoutProrateFactor } from "@/lib/report-fixed-prorate";
 import { getGrossAmount } from "@/lib/vat";
 import type { VATOption } from "@prisma/client";
+import { getCommissionPayoutNet } from "@/lib/commission-settlement";
 
 export type HostPayoutReportInput = {
     customSummaryEnabled?: boolean | null;
@@ -9,6 +10,8 @@ export type HostPayoutReportInput = {
     netIncome?: number | null;
     adminCommissionAmount?: number | null;
     finalHostPayout?: number | null;
+    rentAmount?: number | null;
+    utilitiesAmount?: number | null;
     year: number;
     month: number;
     fixedPayoutProrateEnabled?: boolean | null;
@@ -104,6 +107,17 @@ export function getHostPayoutFromSummary(report: HostPayoutReportInput): number 
 
     if (settlementType === "COMMISSION") {
         return adminCommission;
+    }
+
+    if (settlementType === "COMMISSION_MINUS_UTILITIES") {
+        return getCommissionPayoutNet({
+            netIncome,
+            rentAmount: report.rentAmount ?? 0,
+            utilitiesAmount: report.utilitiesAmount ?? 0,
+            additionalDeductionsGross: 0,
+            commissionRate: getAdminCommissionRate(report.apartment.paymentType),
+            deductCostsBeforeCommission: true,
+        }).hostPayout;
     }
 
     return Number(report.finalHostPayout ?? 0);
@@ -225,6 +239,8 @@ export function getSettlementTypeLabel(settlementType: string | null | undefined
             return "Kwota stała minus czynsz i media";
         case "COMMISSION":
             return "Prowizja %";
+        case "COMMISSION_MINUS_UTILITIES":
+            return "Prowizja % po odjęciu czynszu i mediów";
         default:
             return "Brak typu rozliczenia";
     }
@@ -233,7 +249,10 @@ export function getSettlementTypeLabel(settlementType: string | null | undefined
 export function doesSettlementDeductRentAndUtilities(
     settlementType: string | null | undefined,
 ): boolean {
-    return settlementType === "FIXED_MINUS_UTILITIES";
+    return (
+        settlementType === "FIXED_MINUS_UTILITIES" ||
+        settlementType === "COMMISSION_MINUS_UTILITIES"
+    );
 }
 
 export type CommissionBalanceResult = {

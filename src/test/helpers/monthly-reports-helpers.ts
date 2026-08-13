@@ -1,6 +1,10 @@
 import { type PrismaClient, ReportStatus } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import { summarizeTerminationCosts } from "@/lib/report-termination-costs";
+import {
+    getCommissionPayoutNet,
+    isCommissionSettlementType,
+} from "@/lib/commission-settlement";
 
 type RecalculateContext = {
     db: PrismaClient;
@@ -133,8 +137,16 @@ export async function recalculateReportSettlement(reportId: string, ctx: Recalcu
                         baseAmount = fixedBaseAmount - rentAndUtilities - totalAdditionalDeductionsGross;
                     }
                 }
-            } else if (settlementType === 'COMMISSION') {
-                baseAmount = afterRentAndUtilities - totalAdditionalDeductionsGross;
+            } else if (isCommissionSettlementType(settlementType)) {
+                const commissionPayout = getCommissionPayoutNet({
+                    netIncome,
+                    rentAmount: report.rentAmount ?? 0,
+                    utilitiesAmount: report.utilitiesAmount ?? 0,
+                    additionalDeductionsGross: totalAdditionalDeductionsGross,
+                    commissionRate: 0.25,
+                    deductCostsBeforeCommission: settlementType === "COMMISSION_MINUS_UTILITIES",
+                });
+                baseAmount = commissionPayout.ownerNetBase;
             }
 
             // Zoptymalizowane obliczenia VAT - inline
@@ -145,8 +157,16 @@ export async function recalculateReportSettlement(reportId: string, ctx: Recalcu
             // Zoptymalizowane obliczanie finalHostPayout
             const fixedAmount = actualApartment.fixedPaymentAmount ? Number(actualApartment.fixedPaymentAmount) : 0;
 
-            if (settlementType === 'COMMISSION') {
-                finalHostPayout = adminCommissionAmount;
+            if (isCommissionSettlementType(settlementType)) {
+                const commissionPayout = getCommissionPayoutNet({
+                    netIncome,
+                    rentAmount: report.rentAmount ?? 0,
+                    utilitiesAmount: report.utilitiesAmount ?? 0,
+                    additionalDeductionsGross: totalAdditionalDeductionsGross,
+                    commissionRate: 0.25,
+                    deductCostsBeforeCommission: settlementType === "COMMISSION_MINUS_UTILITIES",
+                });
+                finalHostPayout = commissionPayout.hostPayout;
             } else if (settlementType === 'FIXED' || settlementType === 'FIXED_MINUS_UTILITIES') {
                 finalHostPayout = Math.max(0, netIncome - fixedAmount);
             }

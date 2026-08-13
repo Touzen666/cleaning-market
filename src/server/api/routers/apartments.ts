@@ -4,8 +4,11 @@ import { slugify } from "@/lib/types";
 import { TRPCError } from "@trpc/server";
 import { UserType } from "@prisma/client";
 import { recalculateReportSettlement } from "./monthly-reports";
+import { mapPaymentTypeToSettlementType, PAYMENT_TYPE_VALUES } from "@/lib/commission-settlement";
 
-async function ensureOwnApartmentPaymentTypeEnum(db: {
+const paymentTypeEnum = z.enum(PAYMENT_TYPE_VALUES);
+
+async function ensurePaymentAndSettlementEnumValues(db: {
     $executeRawUnsafe: (query: string) => Promise<unknown>;
 }) {
     await db.$executeRawUnsafe(`
@@ -16,9 +19,25 @@ async function ensureOwnApartmentPaymentTypeEnum(db: {
             WHEN duplicate_object THEN NULL;
         END $$;
     `);
+    await db.$executeRawUnsafe(`
+        DO $$
+        BEGIN
+            ALTER TYPE "PaymentType" ADD VALUE 'COMMISSION_MINUS_UTILITIES';
+        EXCEPTION
+            WHEN duplicate_object THEN NULL;
+        END $$;
+    `);
+    await db.$executeRawUnsafe(`
+        DO $$
+        BEGIN
+            ALTER TYPE "SettlementType" ADD VALUE 'COMMISSION_MINUS_UTILITIES';
+        EXCEPTION
+            WHEN duplicate_object THEN NULL;
+        END $$;
+    `);
 }
 
-function isMissingOwnApartmentEnumError(error: unknown): boolean {
+function isMissingPaymentTypeEnumError(error: unknown): boolean {
     const message =
         error instanceof Error
             ? error.message
@@ -27,7 +46,8 @@ function isMissingOwnApartmentEnumError(error: unknown): boolean {
                 : "";
     return (
         message.includes('invalid input value for enum "PaymentType"') &&
-        message.includes("OWN_APARTMENT")
+        (message.includes("OWN_APARTMENT") ||
+            message.includes("COMMISSION_MINUS_UTILITIES"))
     );
 }
 
@@ -481,7 +501,7 @@ export const apartmentsRouter = createTRPCRouter({
                 hasParking: z.boolean().optional(),
                 maxGuests: z.number().optional(),
                 cleaningCosts: z.record(z.number()).optional(), // Koszty sprzątania dla różnych liczby gości
-                paymentType: z.enum(["COMMISSION", "FIXED_AMOUNT", "FIXED_AMOUNT_MINUS_UTILITIES", "OWN_APARTMENT"]).optional(),
+                paymentType: paymentTypeEnum.optional(),
                 fixedPaymentAmount: z.number().optional(),
                 ownerId: z.string().optional(), // Nowy parametr - ID właściciela
             })
@@ -520,8 +540,11 @@ export const apartmentsRouter = createTRPCRouter({
                 }
             }
 
-            if (input.paymentType === "OWN_APARTMENT") {
-                await ensureOwnApartmentPaymentTypeEnum(ctx.db);
+            if (
+                input.paymentType === "OWN_APARTMENT" ||
+                input.paymentType === "COMMISSION_MINUS_UTILITIES"
+            ) {
+                await ensurePaymentAndSettlementEnumValues(ctx.db);
             }
 
             // Utwórz apartament
@@ -548,8 +571,12 @@ export const apartmentsRouter = createTRPCRouter({
                     },
                 });
             } catch (createErr) {
-                if (input.paymentType === "OWN_APARTMENT" || isMissingOwnApartmentEnumError(createErr)) {
-                    await ensureOwnApartmentPaymentTypeEnum(ctx.db);
+                if (
+                    input.paymentType === "OWN_APARTMENT" ||
+                    input.paymentType === "COMMISSION_MINUS_UTILITIES" ||
+                    isMissingPaymentTypeEnumError(createErr)
+                ) {
+                    await ensurePaymentAndSettlementEnumValues(ctx.db);
                     apartment = await ctx.db.apartment.create({
                         data: {
                             name: input.name,
@@ -610,7 +637,7 @@ export const apartmentsRouter = createTRPCRouter({
                 hasParking: z.boolean().optional(),
                 maxGuests: z.number().optional(),
                 cleaningCosts: z.record(z.number()).optional(), // Koszty sprzątania dla różnych liczby gości
-                paymentType: z.enum(["COMMISSION", "FIXED_AMOUNT", "FIXED_AMOUNT_MINUS_UTILITIES", "OWN_APARTMENT"]).optional(),
+                paymentType: paymentTypeEnum.optional(),
                 fixedPaymentAmount: z.number().optional(),
             })
         )
@@ -628,7 +655,7 @@ export const apartmentsRouter = createTRPCRouter({
                 hasParking?: boolean;
                 maxGuests?: number;
                 cleaningCosts?: Record<string, number>;
-                paymentType?: "COMMISSION" | "FIXED_AMOUNT" | "FIXED_AMOUNT_MINUS_UTILITIES" | "OWN_APARTMENT";
+                paymentType?: (typeof PAYMENT_TYPE_VALUES)[number];
                 fixedPaymentAmount?: number;
                 slug?: string;
             } = { ...updateData };
@@ -657,8 +684,11 @@ export const apartmentsRouter = createTRPCRouter({
                 data.slug = newSlug;
             }
 
-            if (updateData.paymentType === "OWN_APARTMENT") {
-                await ensureOwnApartmentPaymentTypeEnum(ctx.db);
+            if (
+                updateData.paymentType === "OWN_APARTMENT" ||
+                updateData.paymentType === "COMMISSION_MINUS_UTILITIES"
+            ) {
+                await ensurePaymentAndSettlementEnumValues(ctx.db);
             }
 
             let updatedApartment;
@@ -670,8 +700,12 @@ export const apartmentsRouter = createTRPCRouter({
                     data,
                 });
             } catch (updateErr) {
-                if (updateData.paymentType === "OWN_APARTMENT" || isMissingOwnApartmentEnumError(updateErr)) {
-                    await ensureOwnApartmentPaymentTypeEnum(ctx.db);
+                if (
+                    updateData.paymentType === "OWN_APARTMENT" ||
+                    updateData.paymentType === "COMMISSION_MINUS_UTILITIES" ||
+                    isMissingPaymentTypeEnumError(updateErr)
+                ) {
+                    await ensurePaymentAndSettlementEnumValues(ctx.db);
                     updatedApartment = await ctx.db.apartment.update({
                         where: { id: parseInt(id) },
                         data,
@@ -736,30 +770,17 @@ export const apartmentsRouter = createTRPCRouter({
                 // Zaktualizuj każdy raport
                 for (const report of pendingReports) {
                     try {
-                        // Automatycznie ustaw typ rozliczenia na podstawie ustawień apartamentu
-                        let newSettlementType: "COMMISSION" | "FIXED" | "FIXED_MINUS_UTILITIES";
-
-                        if (updateData.paymentType === "COMMISSION" || updateData.paymentType === "OWN_APARTMENT") {
-                            newSettlementType = "COMMISSION";
-                        } else if (updateData.paymentType === "FIXED_AMOUNT") {
-                            newSettlementType = "FIXED";
-                        } else if (updateData.paymentType === "FIXED_AMOUNT_MINUS_UTILITIES") {
-                            newSettlementType = "FIXED_MINUS_UTILITIES";
-                        } else {
-                            // Jeśli nie zmieniono paymentType, zachowaj obecny typ
-                            continue;
+                        if (updateData.paymentType) {
+                            const newSettlementType = mapPaymentTypeToSettlementType(updateData.paymentType);
+                            await ctx.db.monthlyReport.update({
+                                where: { id: report.id },
+                                data: { finalSettlementType: newSettlementType }
+                            });
                         }
 
-                        // Aktualizuj typ rozliczenia w raporcie
-                        await ctx.db.monthlyReport.update({
-                            where: { id: report.id },
-                            data: { finalSettlementType: newSettlementType }
-                        });
-
-                        // Przelicz raport
                         await recalculateReportSettlement(report.id, { db: ctx.db });
 
-                        console.log(`✅ Zaktualizowano raport ${report.id} - nowy typ: ${newSettlementType}`);
+                        console.log(`✅ Zaktualizowano raport ${report.id}${updateData.paymentType ? ` - nowy typ: ${mapPaymentTypeToSettlementType(updateData.paymentType)}` : ""}`);
                     } catch (error) {
                         console.error(`❌ Błąd podczas aktualizacji raportu ${report.id}:`, error);
                     }
@@ -961,7 +982,7 @@ export const apartmentsRouter = createTRPCRouter({
             maxGuests: z.number().nullable(),
             cleaningCosts: z.record(z.number()).nullable(),
             averageRating: z.number().nullable(),
-            paymentType: z.enum(["COMMISSION", "FIXED_AMOUNT", "FIXED_AMOUNT_MINUS_UTILITIES", "OWN_APARTMENT"]),
+            paymentType: paymentTypeEnum,
             fixedPaymentAmount: z.number().nullable(),
             archived: z.boolean(),
             images: z.array(z.object({

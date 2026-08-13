@@ -14,6 +14,7 @@ import {
 } from "@prisma/client";
 import { getVatAmount, getGrossAmount } from "@/lib/vat";
 import { daysInCalendarMonth, getFixedPayoutProrateFactor } from "@/lib/report-fixed-prorate";
+import { getCommissionPayoutNet } from "@/lib/commission-settlement";
 import {
   translateReportStatus,
   getReportStatusColor,
@@ -171,7 +172,9 @@ export default function OwnerReportDetailsPage() {
   const isOwnApartment = report?.apartment?.paymentType === "OWN_APARTMENT";
   /** Kolory „prowizyjne” w podsumowaniu tylko gdy to nie apartament własny */
   const useCommissionSummaryStyle =
-    report?.finalSettlementType === "COMMISSION" && !isOwnApartment;
+    (report?.finalSettlementType === "COMMISSION" ||
+      report?.finalSettlementType === "COMMISSION_MINUS_UTILITIES") &&
+    !isOwnApartment;
 
   if (!ownerEmail) {
     return (
@@ -1223,6 +1226,16 @@ export default function OwnerReportDetailsPage() {
                         );
                         const adminTopUp = Math.max(fixedAmount - net, 0);
                         remaining = net + adminTopUp - totalDeductionsGross;
+                      } else if (
+                        report?.finalSettlementType ===
+                        "COMMISSION_MINUS_UTILITIES"
+                      ) {
+                        const rentAndUtilities =
+                          (report?.rentAmount ?? 0) +
+                          (report?.utilitiesAmount ?? 0);
+                        const base = net - rentAndUtilities;
+                        commission = base * 0.25;
+                        remaining = base * 0.75;
                       } else {
                         commission = net * 0.25;
                         remaining = net * 0.75;
@@ -1270,6 +1283,16 @@ export default function OwnerReportDetailsPage() {
                               </>
                             );
                           }
+                          if (
+                            report?.finalSettlementType ===
+                            "COMMISSION_MINUS_UTILITIES"
+                          ) {
+                            const base =
+                              (report?.netIncome ?? 0) -
+                              (report?.rentAmount ?? 0) -
+                              (report?.utilitiesAmount ?? 0);
+                            return `${(base * 0.25).toFixed(2)} PLN`;
+                          }
                           return `${((report?.netIncome ?? 0) * 0.25).toFixed(2)} PLN`;
                         })()}
                       </div>
@@ -1305,6 +1328,16 @@ export default function OwnerReportDetailsPage() {
                             const remaining =
                               net + adminTopUp - totalDeductionsGross;
                             return `${remaining.toFixed(2)} PLN`;
+                          }
+                          if (
+                            report?.finalSettlementType ===
+                            "COMMISSION_MINUS_UTILITIES"
+                          ) {
+                            const base =
+                              (report?.netIncome ?? 0) -
+                              (report?.rentAmount ?? 0) -
+                              (report?.utilitiesAmount ?? 0);
+                            return `${(base * 0.75).toFixed(2)} PLN`;
                           }
                           return `${((report?.netIncome ?? 0) * 0.75).toFixed(2)} PLN`;
                         })()}
@@ -1524,6 +1557,85 @@ export default function OwnerReportDetailsPage() {
                 )}
 
 
+              {/* Prowizyjne po odliczeniu czynszu i mediów */}
+              {!report.customSummaryEnabled &&
+                !isOwnApartment &&
+                report.finalSettlementType === "COMMISSION_MINUS_UTILITIES" &&
+                (() => {
+                  const commissionMinus = getCommissionPayoutNet({
+                    netIncome: Number(report.netIncome ?? 0),
+                    rentAmount: report.rentAmount ?? 0,
+                    utilitiesAmount: report.utilitiesAmount ?? 0,
+                    additionalDeductionsGross: totalAdditionalDeductionsGross,
+                    commissionRate: 0.25,
+                    deductCostsBeforeCommission: true,
+                  });
+                  const afterZw =
+                    commissionMinus.commissionBase - commissionMinus.hostPayout;
+                  return (
+                    <div className="flex flex-col gap-2 rounded-lg bg-blue-50 p-4">
+                      <div className="mb-2 flex items-center text-lg font-semibold text-blue-800">
+                        Rozliczenie właściciela: prowizyjne po odliczeniu
+                        czynszu i mediów
+                        <FinalBadge />
+                      </div>
+                      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                        <div className="rounded-md bg-blue-100 p-3">
+                          <p className="text-sm text-blue-700">
+                            Baza po odjęciu czynszu i mediów
+                            {!isVatExempt && " (netto)"}:
+                          </p>
+                          <p className="text-lg font-bold text-blue-900">
+                            {commissionMinus.commissionBase.toFixed(2)} PLN
+                            <span className="block text-xs text-blue-600">
+                              (zysk netto {Number(report.netIncome ?? 0).toFixed(2)} PLN
+                              − czynsz: {(report.rentAmount ?? 0).toFixed(2)} PLN
+                              − media: {(report.utilitiesAmount ?? 0).toFixed(2)} PLN).
+                              Prowizja Złote Wynajmy{" "}
+                              {commissionMinus.hostPayout.toFixed(2)} PLN (25% od
+                              tej bazy).
+                            </span>
+                          </p>
+                        </div>
+                        <div className="rounded-md bg-blue-100 p-3">
+                          <p className="text-sm text-blue-700">
+                            Kwota bazowa{!isVatExempt && " (netto)"}:
+                          </p>
+                          <p className="text-lg font-bold text-blue-900">
+                            {commissionMinus.ownerNetBase.toFixed(2)} PLN
+                            <span className="block text-xs text-blue-600">
+                              (po prowizji ZW: {afterZw.toFixed(2)} PLN −
+                              dodatkowe odliczenia:{" "}
+                              {totalAdditionalDeductionsGross.toFixed(2)} PLN
+                              brutto)
+                            </span>
+                          </p>
+                        </div>
+                        {!isVatExempt && (
+                          <div className="rounded-md bg-blue-100 p-3">
+                            <p className="text-sm text-blue-700">VAT:</p>
+                            <p className="text-lg font-bold text-blue-900">
+                              {getVatAmount(
+                                commissionMinus.ownerNetBase,
+                                report.owner.vatOption,
+                              ).toFixed(2)}{" "}
+                              PLN
+                            </p>
+                          </div>
+                        )}
+                        <div className="rounded-md bg-blue-100 p-3">
+                          <p className="text-sm text-blue-700">DO WYPŁATY:</p>
+                          <p className="text-2xl font-bold text-blue-900">
+                            {isVatExempt
+                              ? `${commissionMinus.ownerNetBase.toFixed(2)} PLN`
+                              : `${getGrossAmount(commissionMinus.ownerNetBase, report.owner.vatOption).toFixed(2)} PLN`}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+
               {/* Prowizyjne — tylko apartamenty rozliczane z prowizją zarządcy */}
               {!report.customSummaryEnabled && !isOwnApartment && (
                 <div className="flex flex-col gap-2 rounded-lg bg-blue-50 p-4">
@@ -1694,7 +1806,10 @@ export default function OwnerReportDetailsPage() {
                       <p className="mt-1 text-xs text-purple-600">
                         {report.finalSettlementType === "COMMISSION"
                           ? "Rozliczenie prowizyjne"
-                          : report.finalSettlementType === "FIXED"
+                          : report.finalSettlementType ===
+                              "COMMISSION_MINUS_UTILITIES"
+                            ? "Rozliczenie prowizyjne po odjęciu czynszu i mediów"
+                            : report.finalSettlementType === "FIXED"
                             ? "Rozliczenie kwota stała"
                             : report.finalSettlementType ===
                                 "FIXED_MINUS_UTILITIES"
