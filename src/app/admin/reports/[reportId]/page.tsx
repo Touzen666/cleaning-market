@@ -4517,13 +4517,14 @@ export default function ReportDetailsPage({
                       </div>
                       <div className="rounded-md bg-blue-100 p-3">
                         <p className="text-sm text-blue-700">
-                          Pozostało (po prowizji ZW):
+                          Pozostało (po prowizji ZW) — wypłata właściciela:
                         </p>
                         <div className="text-xl font-bold text-blue-900">
                           {remaining.toFixed(2)} PLN
                         </div>
                         <p className="mt-1 text-xs text-blue-600">
-                          75% od bazy po odjęciu czynszu i mediów
+                          75% od bazy po odjęciu czynszu i mediów (przed
+                          dodatkowymi odliczeniami)
                         </p>
                       </div>
                     </div>

@@ -1299,13 +1299,14 @@ export default function OwnerReportDetailsPage() {
                           </div>
                           <div className="rounded-md bg-blue-100 p-3">
                             <p className="text-sm text-blue-700">
-                              Pozostało (po prowizji ZW):
+                              Pozostało (po prowizji ZW) — wypłata właściciela:
                             </p>
                             <div className="text-xl font-bold text-blue-900">
                               {remaining.toFixed(2)} PLN
                             </div>
                             <p className="mt-1 text-xs text-blue-600">
-                              75% od bazy po odjęciu czynszu i mediów
+                              75% od bazy po odjęciu czynszu i mediów (przed
+                              dodatkowymi odliczeniami)
                             </p>
                           </div>
                         </div>
@@ -1694,18 +1695,14 @@ export default function OwnerReportDetailsPage() {
                   );
                 })()}
 
-              {/* Prowizyjne — tylko apartamenty rozliczane z prowizją zarządcy */}
-              {!report.customSummaryEnabled && !isOwnApartment && (
+              {/* Prowizyjne — tylko gdy to wybrane ostateczne rozliczenie */}
+              {!report.customSummaryEnabled &&
+                !isOwnApartment &&
+                report.finalSettlementType === "COMMISSION" && (
                 <div className="flex flex-col gap-2 rounded-lg bg-blue-50 p-4">
                   <div className="mb-2 flex items-center text-lg font-semibold text-blue-800">
                     Rozliczenie właściciela: prowizyjne
-                    {report.finalSettlementType === "COMMISSION" ? (
-                      <FinalBadge />
-                    ) : (
-                      <span className="ml-2 inline-block rounded bg-blue-200 px-2 py-0.5 align-middle text-xs font-semibold text-blue-800">
-                        poglądowo
-                      </span>
-                    )}
+                    <FinalBadge />
                   </div>
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
                     <div className="rounded-md bg-blue-100 p-3">
