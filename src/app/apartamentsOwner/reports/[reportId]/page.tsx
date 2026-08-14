@@ -1695,14 +1695,22 @@ export default function OwnerReportDetailsPage() {
                   );
                 })()}
 
-              {/* Prowizyjne — tylko gdy to wybrane ostateczne rozliczenie */}
+              {/* Prowizyjne: ostateczne albo poglądowo przy kwocie stałej — nigdy obok drugiej prowizji */}
               {!report.customSummaryEnabled &&
                 !isOwnApartment &&
-                report.finalSettlementType === "COMMISSION" && (
+                (report.finalSettlementType === "COMMISSION" ||
+                  report.finalSettlementType === "FIXED" ||
+                  report.finalSettlementType === "FIXED_MINUS_UTILITIES") && (
                 <div className="flex flex-col gap-2 rounded-lg bg-blue-50 p-4">
                   <div className="mb-2 flex items-center text-lg font-semibold text-blue-800">
                     Rozliczenie właściciela: prowizyjne
-                    <FinalBadge />
+                    {report.finalSettlementType === "COMMISSION" ? (
+                      <FinalBadge />
+                    ) : (
+                      <span className="ml-2 inline-block rounded bg-blue-200 px-2 py-0.5 align-middle text-xs font-semibold text-blue-800">
+                        poglądowo
+                      </span>
+                    )}
                   </div>
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
                     <div className="rounded-md bg-blue-100 p-3">
