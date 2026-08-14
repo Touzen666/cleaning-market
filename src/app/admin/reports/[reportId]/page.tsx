@@ -6040,16 +6040,27 @@ function OwnerPayoutCalculation({
           const rentAmt = report.rentAmount ?? 0;
           const utilAmt = report.utilitiesAmount ?? 0;
           return (
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
               <SummaryField
-                label={`Kwota po prowizji Złote Wynajmy ${!isVatExempt ? "(netto)" : ""}`}
+                label={`Baza po odjęciu czynszu i mediów ${!isVatExempt ? "(netto)" : ""}`}
+                value={`${commissionMinus.commissionBase.toFixed(2)} PLN`}
+                subtext={
+                  <span className="block text-xs text-blue-600">
+                    (zysk {report.netIncome.toFixed(2)} − czynsz{" "}
+                    {rentAmt.toFixed(2)} − media {utilAmt.toFixed(2)}). Prowizja
+                    ZW liczona od tej bazy: {commissionMinus.hostPayout.toFixed(2)}{" "}
+                    PLN (25%).
+                  </span>
+                }
+                color="blue"
+              />
+              <SummaryField
+                label={`Kwota po prowizji ZW od tej bazy ${!isVatExempt ? "(netto)" : ""}`}
                 value={`${commissionMinus.afterHostCommission.toFixed(2)} PLN`}
                 subtext={
                   <span className="block text-xs text-blue-600">
-                    (prowizja ZW {commissionMinus.hostPayout.toFixed(2)} PLN =
-                    25% od bazy {commissionMinus.commissionBase.toFixed(2)} PLN
-                    = zysk {report.netIncome.toFixed(2)} − czynsz{" "}
-                    {rentAmt.toFixed(2)} − media {utilAmt.toFixed(2)})
+                    ({commissionMinus.commissionBase.toFixed(2)} − prowizja ZW{" "}
+                    {commissionMinus.hostPayout.toFixed(2)})
                   </span>
                 }
                 color="blue"
@@ -6059,15 +6070,10 @@ function OwnerPayoutCalculation({
                 value={`${commissionMinus.ownerNetBase.toFixed(2)} PLN`}
                 subtext={
                   <span className="block text-xs text-blue-600">
-                    (po odliczeniu czynszu: {rentAmt.toFixed(2)} PLN + mediów:{" "}
-                    {utilAmt.toFixed(2)} PLN + dodatkowych odliczeń:{" "}
-                    {totalAdditionalDeductionsGross.toFixed(2)} PLN brutto ={" "}
-                    {(
-                      rentAmt +
-                      utilAmt +
-                      totalAdditionalDeductionsGross
-                    ).toFixed(2)}{" "}
-                    PLN)
+                    (po odliczeniu dodatkowych odliczeń:{" "}
+                    {totalAdditionalDeductionsGross.toFixed(2)} PLN brutto;
+                    czynsz i media są już w bazie prowizji — bez ponownego
+                    odejmowania)
                   </span>
                 }
                 color="blue"

@@ -1582,18 +1582,31 @@ export default function OwnerReportDetailsPage() {
                       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                         <div className="rounded-md bg-blue-100 p-3">
                           <p className="text-sm text-blue-700">
-                            Kwota po prowizji Złote Wynajmy
+                            Baza po odjęciu czynszu i mediów
+                            {!isVatExempt && " (netto)"}:
+                          </p>
+                          <p className="text-lg font-bold text-blue-900">
+                            {commissionMinus.commissionBase.toFixed(2)} PLN
+                            <span className="block text-xs text-blue-600">
+                              (zysk {Number(report.netIncome ?? 0).toFixed(2)} −
+                              czynsz {rentAmt.toFixed(2)} − media{" "}
+                              {utilAmt.toFixed(2)}). Prowizja ZW{" "}
+                              {commissionMinus.hostPayout.toFixed(2)} PLN (25%
+                              od tej bazy).
+                            </span>
+                          </p>
+                        </div>
+                        <div className="rounded-md bg-blue-100 p-3">
+                          <p className="text-sm text-blue-700">
+                            Kwota po prowizji ZW od tej bazy
                             {!isVatExempt && " (netto)"}:
                           </p>
                           <p className="text-lg font-bold text-blue-900">
                             {commissionMinus.afterHostCommission.toFixed(2)} PLN
                             <span className="block text-xs text-blue-600">
-                              (prowizja ZW {commissionMinus.hostPayout.toFixed(2)}{" "}
-                              PLN = 25% od bazy{" "}
-                              {commissionMinus.commissionBase.toFixed(2)} PLN =
-                              zysk {Number(report.netIncome ?? 0).toFixed(2)} −
-                              czynsz {rentAmt.toFixed(2)} − media{" "}
-                              {utilAmt.toFixed(2)})
+                              ({commissionMinus.commissionBase.toFixed(2)} −
+                              prowizja ZW{" "}
+                              {commissionMinus.hostPayout.toFixed(2)})
                             </span>
                           </p>
                         </div>
@@ -1604,17 +1617,10 @@ export default function OwnerReportDetailsPage() {
                           <p className="text-lg font-bold text-blue-900">
                             {commissionMinus.ownerNetBase.toFixed(2)} PLN
                             <span className="block text-xs text-blue-600">
-                              (po odliczeniu czynszu: {rentAmt.toFixed(2)} PLN +
-                              mediów: {utilAmt.toFixed(2)} PLN + dodatkowych
-                              odliczeń:{" "}
+                              (po odliczeniu dodatkowych odliczeń:{" "}
                               {totalAdditionalDeductionsGross.toFixed(2)} PLN
-                              brutto ={" "}
-                              {(
-                                rentAmt +
-                                utilAmt +
-                                totalAdditionalDeductionsGross
-                              ).toFixed(2)}{" "}
-                              PLN)
+                              brutto; czynsz i media już w bazie — bez ponownego
+                              odejmowania)
                             </span>
                           </p>
                         </div>

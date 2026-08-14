@@ -42,7 +42,14 @@ export function isCommissionSettlementType(
     );
 }
 
-/** Prowizja ZW i baza netto wypłaty właściciela (przed VAT) dla rozliczenia prowizyjnego. */
+/**
+ * Prowizja ZW i baza netto wypłaty właściciela (przed VAT).
+ *
+ * COMMISSION: ZW = % od pełnego zysku; wypłata = zysk − ZW − czynsz − media − dodatkowe
+ * COMMISSION_MINUS_UTILITIES: ZW = % od (zysk − czynsz − media);
+ *   wypłata = (zysk − czynsz − media) − ZW − dodatkowe
+ *   (czynsz/media nie są odejmowane drugi raz)
+ */
 export function getCommissionPayoutNet(params: {
     netIncome: number;
     rentAmount: number;
@@ -55,19 +62,17 @@ export function getCommissionPayoutNet(params: {
     hostPayout: number;
     ownerNetBase: number;
     commissionBase: number;
-    /** zysk netto − prowizja ZW (przed odliczeniem czynszu/mediów/dodatkowych przy wypłacie) */
+    /** Kwota pozostała po prowizji ZW (przed dodatkowymi odliczeniami; przy MINUS_UTILITIES też przed/już bez czynszu i mediów w bazie) */
     afterHostCommission: number;
     rentAndUtilities: number;
 } {
     const rentAndUtilities = params.rentAmount + params.utilitiesAmount;
 
     if (params.deductCostsBeforeCommission) {
-        // Prowizja % od (zysk − czynsz − media); wypłata właściciela i tak odejmuje czynsz/media.
         const commissionBase = params.netIncome - rentAndUtilities;
         const hostPayout = commissionBase * params.commissionRate;
-        const afterHostCommission = params.netIncome - hostPayout;
-        const ownerNetBase =
-            afterHostCommission - rentAndUtilities - params.additionalDeductionsGross;
+        const afterHostCommission = commissionBase - hostPayout;
+        const ownerNetBase = afterHostCommission - params.additionalDeductionsGross;
         return {
             hostPayout,
             ownerNetBase,
@@ -77,14 +82,15 @@ export function getCommissionPayoutNet(params: {
         };
     }
 
-    const hostPayout = params.netIncome * params.commissionRate;
-    const afterHostCommission = params.netIncome - hostPayout;
+    const commissionBase = params.netIncome;
+    const hostPayout = commissionBase * params.commissionRate;
+    const afterHostCommission = commissionBase - hostPayout;
     const ownerNetBase =
         afterHostCommission - rentAndUtilities - params.additionalDeductionsGross;
     return {
         hostPayout,
         ownerNetBase,
-        commissionBase: params.netIncome,
+        commissionBase,
         afterHostCommission,
         rentAndUtilities,
     };
