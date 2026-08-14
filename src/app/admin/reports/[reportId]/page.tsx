@@ -4422,7 +4422,6 @@ export default function ReportDetailsPage({
               <div className="mb-6 rounded-lg bg-blue-50 p-4">
               <h5 className="mb-2 text-lg font-medium text-blue-800">
                 {(() => {
-                  // Oblicz dynamiczny procent prowizji na podstawie "kwota prowizji" i "pozostało"
                   const netIncome = Number(report?.netIncome ?? 0);
                   let commission = 0;
                   let remaining = 0;
@@ -4434,8 +4433,7 @@ export default function ReportDetailsPage({
                     const fixedAmount = Number(
                       report?.apartment?.fixedPaymentAmount ?? 0,
                     );
-                    commission = netIncome - fixedAmount; // może być ujemna – dopłata admina
-
+                    commission = netIncome - fixedAmount;
                     const deductions = report?.additionalDeductions ?? [];
                     const totalDeductionsGross = deductions.reduce(
                       (sum: number, d: { amount: number; vatOption: string }) =>
@@ -4457,25 +4455,86 @@ export default function ReportDetailsPage({
                     commission = base * 0.25;
                     remaining = base * 0.75;
                   } else {
-                    // Rozliczenie prowizyjne – klasyczne 25% od zysku netto
                     commission = netIncome * 0.25;
                     remaining = netIncome * 0.75;
                   }
 
                   const percent =
-                    netIncome > 0
-                      ? (commission / (commission + remaining)) * 100
+                    Math.abs(commission) + Math.abs(remaining) > 0
+                      ? (Math.abs(commission) /
+                          (Math.abs(commission) + Math.abs(remaining))) *
+                        100
                       : 0;
                   const labelPct = `${percent.toFixed(2)}%`;
+                  if (
+                    report?.finalSettlementType === "COMMISSION_MINUS_UTILITIES"
+                  ) {
+                    return `Prowizja ${labelPct} dla administratora (od bazy po odjęciu czynszu i mediów)`;
+                  }
                   return `Prowizja ${labelPct} dla administratora`;
                 })()}
               </h5>
+              {report?.finalSettlementType === "COMMISSION_MINUS_UTILITIES" ? (
+                (() => {
+                  const netIncome = Number(report?.netIncome ?? 0);
+                  const rentAmt = report?.rentAmount ?? 0;
+                  const utilAmt = report?.utilitiesAmount ?? 0;
+                  const baseAfter = netIncome - rentAmt - utilAmt;
+                  const commission = baseAfter * 0.25;
+                  const remaining = baseAfter * 0.75;
+                  return (
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+                      <div className="rounded-md bg-blue-100 p-3">
+                        <p className="text-sm text-blue-700">
+                          Baza przed odjęciem czynszu i mediów:
+                        </p>
+                        <div className="text-xl font-bold text-blue-900">
+                          {netIncome.toFixed(2)} PLN
+                        </div>
+                        <p className="mt-1 text-xs text-blue-600">
+                          Zysk netto apartamentu
+                        </p>
+                      </div>
+                      <div className="rounded-md bg-blue-100 p-3">
+                        <p className="text-sm text-blue-700">
+                          Baza po odjęciu czynszu i mediów:
+                        </p>
+                        <div className="text-xl font-bold text-blue-900">
+                          {baseAfter.toFixed(2)} PLN
+                        </div>
+                        <p className="mt-1 text-xs text-blue-600">
+                          {netIncome.toFixed(2)} − czynsz {rentAmt.toFixed(2)} −
+                          media {utilAmt.toFixed(2)}
+                        </p>
+                      </div>
+                      <div className="rounded-md bg-blue-100 p-3">
+                        <p className="text-sm text-blue-700">
+                          Kwota prowizji ZW (25% od bazy po odjęciu):
+                        </p>
+                        <div className="text-xl font-bold text-blue-900">
+                          {commission.toFixed(2)} PLN
+                        </div>
+                      </div>
+                      <div className="rounded-md bg-blue-100 p-3">
+                        <p className="text-sm text-blue-700">
+                          Pozostało (po prowizji ZW):
+                        </p>
+                        <div className="text-xl font-bold text-blue-900">
+                          {remaining.toFixed(2)} PLN
+                        </div>
+                        <p className="mt-1 text-xs text-blue-600">
+                          75% od bazy po odjęciu czynszu i mediów
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })()
+              ) : (
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="rounded-md bg-blue-100 p-3">
                   <p className="text-sm text-blue-700">Kwota prowizji:</p>
                   <div className="text-xl font-bold text-blue-900">
                     {(() => {
-                      // Sprawdź czy raport ma ustawiony finalSettlementType
                       if (
                         report?.finalSettlementType === "FIXED" ||
                         report?.finalSettlementType === "FIXED_MINUS_UTILITIES"
@@ -4506,19 +4565,6 @@ export default function ReportDetailsPage({
                         );
                       }
 
-                      // Prowizja 25% po odjęciu czynszu i mediów
-                      if (
-                        report?.finalSettlementType ===
-                        "COMMISSION_MINUS_UTILITIES"
-                      ) {
-                        const base =
-                          (report?.netIncome ?? 0) -
-                          (report?.rentAmount ?? 0) -
-                          (report?.utilitiesAmount ?? 0);
-                        return `${(base * 0.25).toFixed(2)} PLN`;
-                      }
-
-                      // Standardowa prowizja 25% gdy nie ma rozliczenia z kwotą stałą
                       return `${((report?.netIncome ?? 0) * 0.25).toFixed(2)} PLN`;
                     })()}
                   </div>
@@ -4567,21 +4613,12 @@ export default function ReportDetailsPage({
                           </>
                         );
                       }
-                      if (
-                        report?.finalSettlementType ===
-                        "COMMISSION_MINUS_UTILITIES"
-                      ) {
-                        const base =
-                          (report?.netIncome ?? 0) -
-                          (report?.rentAmount ?? 0) -
-                          (report?.utilitiesAmount ?? 0);
-                        return `${(base * 0.75).toFixed(2)} PLN`;
-                      }
                       return `${((report?.netIncome ?? 0) * 0.75).toFixed(2)} PLN`;
                     })()}
                   </div>
                 </div>
               </div>
+              )}
               </div>
             )}
           </div>
