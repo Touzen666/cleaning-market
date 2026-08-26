@@ -36,6 +36,19 @@ import {
   terminationOwnerPaymentKindLabel,
   terminationOwnerPaymentKindTaxNote,
 } from "@/lib/report-termination-costs";
+import { displayReservationChannel } from "@/lib/reservation-channel";
+import {
+  AIRBNB_COMMISSION_PERCENT,
+  AIRBNB_COMMISSION_VAT_RATE,
+  BOOKING_TRANSACTION_FEE_RATE,
+  buildOtaCommissionNotes,
+  calculateOtaCommissionAmount,
+  formatPercentLabel,
+  getDefaultOtaCommissionPercent,
+  isAirbnbCommissionChannel,
+  isBookingCommissionChannel,
+  resolveOtaCommissionPercent,
+} from "@/lib/ota-commission";
 import Spinner from "@/app/_components/shared/Spinner";
 import {
   DndContext,
@@ -1261,14 +1274,7 @@ export default function ReportDetailsPage({
   // - jeżeli źródło z bazy pasuje do standardowych, zwracamy standardową wartość
   // - w przeciwnym razie zwracamy surową wartość z bazy (dynamiczna opcja)
   const computeSourceValue = (src?: string | null): string => {
-    const raw = (src ?? "").trim();
-    if (!raw) return "Złote Wynajmy";
-    const lower = raw.toLowerCase();
-    if (lower.includes("airbnb")) return "Airbnb";
-    if (lower.includes("book")) return "Booking";
-    if (lower === "złote wynajmy" || lower === "zlote wynajmy")
-      return "Złote Wynajmy";
-    return raw;
+    return displayReservationChannel(src);
   };
 
   // Buduje listę opcji do selecta: standardowe + ewentualna dynamiczna z bazy
@@ -3360,8 +3366,9 @@ export default function ReportDetailsPage({
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-2">
-                            {item.reservation?.source?.toLowerCase() ===
-                              "airbnb" && (
+                            {displayReservationChannel(
+                              item.reservation?.source,
+                            ).toLowerCase() === "airbnb" && item.reservation && (
                               <button
                                 onClick={() =>
                                   handleAddDiscount(item.reservation!.id)
@@ -3567,18 +3574,6 @@ export default function ReportDetailsPage({
             })()}
           </div>
         </div>
-
-        {/* Suggested Commissions */}
-        {suggestedCommissionsQuery.data?.suggestions &&
-          suggestedCommissionsQuery.data.suggestions.length > 0 &&
-          !isHistorical &&
-          !isReportLockedForEditing(finalReport.status) && (
-            <SuggestedCommissionsSection
-              suggestions={suggestedCommissionsQuery.data.suggestions}
-              onAddCommission={handleAddSuggestedCommission}
-              loadingIndex={loadingCommissionIndex}
-            />
-          )}
 
         {/* Expense Items */}
         <div className="mb-8 overflow-hidden rounded-lg bg-white shadow">
@@ -3789,6 +3784,16 @@ export default function ReportDetailsPage({
               </div>
             )}
           </div>
+          {suggestedCommissionsQuery.data?.suggestions &&
+            suggestedCommissionsQuery.data.suggestions.length > 0 &&
+            !isHistorical &&
+            !isReportLockedForEditing(finalReport.status) && (
+              <SuggestedCommissionsSection
+                suggestions={suggestedCommissionsQuery.data.suggestions}
+                onAddCommission={handleAddSuggestedCommission}
+                loadingIndex={loadingCommissionIndex}
+              />
+            )}
           <div className="border-t border-gray-200">
             {expenseItems.length === 0 ? (
               <div className="py-12 text-center">
@@ -4960,38 +4965,30 @@ function SuggestedCommissionsSection({
   useEffect(() => {
     const defaultPercentages: Record<string, string> = {};
     suggestions.forEach((suggestion) => {
-      const categoryLower = suggestion.category.toLowerCase();
-      if (categoryLower === "airbnb") {
-        defaultPercentages[suggestion.category] = "15";
-      } else if (categoryLower.startsWith("booking")) {
-        defaultPercentages[suggestion.category] = "12";
+      const defaultPercent = getDefaultOtaCommissionPercent(suggestion.category);
+      if (defaultPercent != null) {
+        defaultPercentages[suggestion.category] = String(defaultPercent);
       }
     });
-    setPercentages((prev) => ({ ...defaultPercentages, ...prev }));
+    setPercentages((prev) => {
+      const next = { ...prev };
+      for (const [channel, defaultPercent] of Object.entries(defaultPercentages)) {
+        const current = next[channel];
+        const parsed = parseFloat(current ?? "");
+        if (
+          current == null ||
+          current === "" ||
+          (isAirbnbCommissionChannel(channel) && parsed === 15)
+        ) {
+          next[channel] = defaultPercent;
+        }
+      }
+      return next;
+    });
   }, [suggestions]);
 
   const handlePercentageChange = (channel: string, value: string) => {
     setPercentages((prev) => ({ ...prev, [channel]: value }));
-  };
-
-  const calculateCommissionAmount = (
-    totalRevenue: number,
-    percentage: number,
-    channel: string,
-  ): number => {
-    const categoryLower = channel.toLowerCase();
-    const commission = (totalRevenue * percentage) / 100;
-
-    if (categoryLower === "airbnb") {
-      return commission * 1.23; // Dodaj 23% VAT
-    }
-
-    if (categoryLower.startsWith("booking")) {
-      const transactionFee = totalRevenue * 0.016; // 1.6% opłaty transakcyjnej
-      return commission + transactionFee;
-    }
-
-    return commission;
   };
 
   const handleAddClick = (
@@ -5005,36 +5002,28 @@ function SuggestedCommissionsSection({
     },
     index: number,
   ) => {
-    const percentage = parseFloat(percentages[suggestion.category] ?? "0");
+    const percentage = resolveOtaCommissionPercent(
+      suggestion.category,
+      parseFloat(percentages[suggestion.category] ?? "0"),
+    );
     if (!isNaN(percentage) && percentage > 0 && suggestion.totalRevenue) {
-      const amount = calculateCommissionAmount(
+      const amount = calculateOtaCommissionAmount(
         suggestion.totalRevenue,
         percentage,
         suggestion.category,
       );
-
-      let notes = `${suggestion.notes} - ${percentage}% od ${suggestion.totalRevenue.toFixed(2)} PLN`;
-      const categoryLower = suggestion.category.toLowerCase();
-
-      if (categoryLower === "airbnb") {
-        const commissionNet = (suggestion.totalRevenue * percentage) / 100;
-        const vat = commissionNet * 0.23;
-        notes = `Prowizja Airbnb (netto): ${commissionNet.toFixed(2)} PLN (${percentage}%) + VAT (23%): ${vat.toFixed(2)} PLN.`;
-      } else if (categoryLower.startsWith("booking")) {
-        const commissionGross = amount;
-        const commissionNet = commissionGross / 1.08;
-        const vat = commissionGross - commissionNet;
-        const standardCommissionValue =
-          (suggestion.totalRevenue * percentage) / 100;
-        const transactionFeeValue = suggestion.totalRevenue * 0.016;
-        notes = `Prowizja Booking (brutto): ${commissionGross.toFixed(2)} PLN. Składowe: Prowizja (${percentage}%): ${standardCommissionValue.toFixed(2)} PLN + Opłata transakcyjna (1.6%): ${transactionFeeValue.toFixed(2)} PLN. W kwocie brutto zawarty jest VAT (8%): ${vat.toFixed(2)} PLN. Kwota netto: ${commissionNet.toFixed(2)} PLN.`;
-      }
+      const notes = buildOtaCommissionNotes(
+        suggestion.category,
+        suggestion.totalRevenue,
+        percentage,
+        amount,
+      );
 
       void onAddCommission(
         {
           ...suggestion,
           amount,
-          notes: notes,
+          notes,
         },
         index,
       );
@@ -5042,41 +5031,30 @@ function SuggestedCommissionsSection({
   };
 
   return (
-    <div className="mb-6 overflow-hidden rounded-lg bg-blue-50 shadow">
+    <div className="border-t border-blue-200 bg-blue-50">
       <div className="px-6 py-4">
-        <h3 className="flex items-center text-lg font-medium text-blue-900">
-          <svg
-            className="mr-2 h-5 w-5 text-blue-600"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-            />
-          </svg>
-          Sugerowane Prowizje
-        </h3>
+        <h4 className="flex items-center text-base font-medium text-blue-900">
+          Sugerowane prowizje kanałów
+        </h4>
         <p className="mt-1 text-sm text-blue-700">
-          Wprowadź procent prowizji od sumy przychodów z każdego kanału:
+          Airbnb: {formatPercentLabel(AIRBNB_COMMISSION_PERCENT)}% +{" "}
+          {AIRBNB_COMMISSION_VAT_RATE * 100}% VAT. Booking: 12% + opłata
+          transakcyjna 1,6%. Podstawa to kwota brutto rezerwacji z
+          wymeldowaniem w tym miesiącu (jak na FV / wykazie wypłaty).
         </p>
       </div>
       <div className="border-t border-blue-200 bg-white">
         <div className="divide-y divide-gray-200">
           {suggestions.map((suggestion, index) => {
-            const categoryLower = suggestion.category.toLowerCase();
-            const isAirbnb = categoryLower === "airbnb";
-            const isBooking = categoryLower.startsWith("booking");
-
-            const percentage = parseFloat(
-              percentages[suggestion.category] ?? "0",
+            const isAirbnb = isAirbnbCommissionChannel(suggestion.category);
+            const isBooking = isBookingCommissionChannel(suggestion.category);
+            const percentage = resolveOtaCommissionPercent(
+              suggestion.category,
+              parseFloat(percentages[suggestion.category] ?? "0"),
             );
             const calculatedAmount =
               suggestion.totalRevenue && percentage > 0
-                ? calculateCommissionAmount(
+                ? calculateOtaCommissionAmount(
                     suggestion.totalRevenue,
                     percentage,
                     suggestion.category,
@@ -5084,8 +5062,13 @@ function SuggestedCommissionsSection({
                 : 0;
             const transactionFeeDisplay =
               isBooking && suggestion.totalRevenue
-                ? suggestion.totalRevenue * 0.016
+                ? suggestion.totalRevenue * BOOKING_TRANSACTION_FEE_RATE
                 : 0;
+            const airbnbNet =
+              isAirbnb && suggestion.totalRevenue && percentage > 0
+                ? (suggestion.totalRevenue * percentage) / 100
+                : 0;
+            const airbnbVat = airbnbNet * AIRBNB_COMMISSION_VAT_RATE;
 
             return (
               <div
@@ -5111,11 +5094,13 @@ function SuggestedCommissionsSection({
                     </div>
                     <div className="ml-3">
                       <p className="text-sm font-medium text-gray-900">
-                        Prowizja - {suggestion.category}
+                        {isAirbnb
+                          ? `Prowizja - Airbnb (${formatPercentLabel(AIRBNB_COMMISSION_PERCENT)}% + VAT)`
+                          : `Prowizja - ${suggestion.category}`}
                       </p>
                       <p className="text-sm text-gray-500">
-                        Przychód z kanału: {suggestion.totalRevenue?.toFixed(2)}{" "}
-                        PLN
+                        Przychód z kanału (wymeldowanie w miesiącu):{" "}
+                        {suggestion.totalRevenue?.toFixed(2)} PLN
                       </p>
                       {transactionFeeDisplay > 0 && (
                         <p className="text-sm text-gray-500">
@@ -5123,17 +5108,21 @@ function SuggestedCommissionsSection({
                           {transactionFeeDisplay.toFixed(2)} PLN
                         </p>
                       )}
+                      {isAirbnb && airbnbNet > 0 && (
+                        <p className="text-sm text-gray-500">
+                          {formatPercentLabel(percentage)}% netto:{" "}
+                          {airbnbNet.toFixed(2)} PLN + VAT (
+                          {AIRBNB_COMMISSION_VAT_RATE * 100}%):{" "}
+                          {airbnbVat.toFixed(2)} PLN
+                        </p>
+                      )}
                       {calculatedAmount > 0 && (
                         <p className="text-sm font-medium text-blue-600">
                           Prowizja (brutto): {calculatedAmount.toFixed(2)} PLN
-                          {isAirbnb && " (z 23% VAT)"}
+                          {isAirbnb &&
+                            ` (${formatPercentLabel(percentage)}% + 23% VAT)`}
                           {isBooking &&
                             " (z wliczonym 8% VAT i opłatą transakcyjną 1.6%)"}
-                        </p>
-                      )}
-                      {isAirbnb && (
-                        <p className="text-xs italic text-gray-500">
-                          Rabat 10% + 23% VAT
                         </p>
                       )}
                     </div>
@@ -5143,7 +5132,7 @@ function SuggestedCommissionsSection({
                   <div className="flex items-center">
                     <input
                       type="number"
-                      placeholder="15"
+                      placeholder={isAirbnb ? "15.5" : "12"}
                       step="0.1"
                       min="0"
                       max="100"
@@ -5159,7 +5148,7 @@ function SuggestedCommissionsSection({
                           handleAddClick(suggestion, index);
                         }
                       }}
-                      className="w-16 rounded-md border-gray-300 px-2 py-1 text-sm"
+                      className="w-20 rounded-md border-gray-300 px-2 py-1 text-sm"
                       disabled={loadingIndex === index}
                     />
                     <span className="ml-1 text-sm text-gray-500">%</span>

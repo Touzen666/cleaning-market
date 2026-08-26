@@ -30,6 +30,7 @@ import {
   hasAnyAgreementTerminationNoticeData,
   terminationNoticePartyLabel,
 } from "@/lib/agreement-termination-notice";
+import { displayReservationChannel } from "@/lib/reservation-channel";
 
 type ReportItemWithReservation = ReportItem & {
   reservation?: Reservation | null;
@@ -819,7 +820,7 @@ export default function OwnerReportDetailsPage() {
                         <td className="whitespace-normal break-words px-6 py-4 text-sm text-gray-900">
                           {item.reservation?.source ? (
                             <span className="inline-flex rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800">
-                              {item.reservation.source}
+                              {displayReservationChannel(item.reservation.source)}
                             </span>
                           ) : (
                             <span className="text-gray-400">Nieznane</span>
