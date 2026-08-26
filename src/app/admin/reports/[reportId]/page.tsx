@@ -42,12 +42,15 @@ import {
   AIRBNB_COMMISSION_VAT_RATE,
   BOOKING_TRANSACTION_FEE_RATE,
   buildOtaCommissionNotes,
+  calculateAirbnbPayoutNet,
+  calculateBookingCommissionParts,
   calculateOtaCommissionAmount,
   formatPercentLabel,
   getDefaultOtaCommissionPercent,
   isAirbnbCommissionChannel,
   isBookingCommissionChannel,
   resolveOtaCommissionPercent,
+  summarizeOtaAccountInflow,
 } from "@/lib/ota-commission";
 import Spinner from "@/app/_components/shared/Spinner";
 import {
@@ -982,6 +985,7 @@ export default function ReportDetailsPage({
       date: Date;
       notes: string;
       totalRevenue?: number;
+      lineGrossAmounts?: number[];
     },
     index: number,
   ) => {
@@ -3363,6 +3367,15 @@ export default function ReportDetailsPage({
                         </td>
                         <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-green-600">
                           +{item.amount.toFixed(2)} {item.currency}
+                          {isAirbnbCommissionChannel(
+                            item.reservation?.source ?? item.category,
+                          ) && (
+                            <div className="text-xs font-normal text-gray-500">
+                              Wypłata po prowizji 15,5%+VAT:{" "}
+                              {calculateAirbnbPayoutNet(item.amount).toFixed(2)}{" "}
+                              {item.currency}
+                            </div>
+                          )}
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-2">
@@ -4389,6 +4402,35 @@ export default function ReportDetailsPage({
               <p className="text-2xl font-bold text-gray-900">
                 {report?.netIncome?.toFixed(2) ?? "0.00"} PLN
               </p>
+              {(() => {
+                const ota = summarizeOtaAccountInflow(report?.items ?? []);
+                if (ota.totalNet <= 0) return null;
+                return (
+                  <div className="mt-3 space-y-1 text-sm text-gray-700">
+                    <p>
+                      Na konto z portali:{" "}
+                      <span className="font-semibold">
+                        {ota.totalNet.toFixed(2)} PLN
+                      </span>
+                    </p>
+                    <p>
+                      Booking: przychód {ota.bookingGross.toFixed(2)} − prowizja{" "}
+                      {ota.bookingCommission.toFixed(2)} ={" "}
+                      <span className="font-medium">
+                        {ota.bookingNet.toFixed(2)} PLN
+                      </span>
+                    </p>
+                    <p>
+                      Airbnb: przychód {ota.airbnbGross.toFixed(2)} − prowizja{" "}
+                      {ota.airbnbCommission.toFixed(2)} ={" "}
+                      <span className="font-medium">
+                        {ota.airbnbNet.toFixed(2)} PLN
+                      </span>{" "}
+                      (wypłata po 15,5%+VAT)
+                    </p>
+                  </div>
+                );
+              })()}
               {report && (
                 <p className="mt-1 text-xs text-gray-600">
                   Uwzględniono zysk z parkingu:{" "}
@@ -4945,6 +4987,7 @@ function SuggestedCommissionsSection({
     date: Date;
     notes: string;
     totalRevenue?: number;
+    lineGrossAmounts?: number[];
   }>;
   onAddCommission: (
     suggestion: {
@@ -4955,6 +4998,7 @@ function SuggestedCommissionsSection({
       date: Date;
       notes: string;
       totalRevenue?: number;
+      lineGrossAmounts?: number[];
     },
     index: number,
   ) => Promise<void>;
@@ -4999,6 +5043,7 @@ function SuggestedCommissionsSection({
       date: Date;
       notes: string;
       totalRevenue?: number;
+      lineGrossAmounts?: number[];
     },
     index: number,
   ) => {
@@ -5011,12 +5056,14 @@ function SuggestedCommissionsSection({
         suggestion.totalRevenue,
         percentage,
         suggestion.category,
+        suggestion.lineGrossAmounts,
       );
       const notes = buildOtaCommissionNotes(
         suggestion.category,
         suggestion.totalRevenue,
         percentage,
         amount,
+        suggestion.lineGrossAmounts,
       );
 
       void onAddCommission(
@@ -5038,9 +5085,9 @@ function SuggestedCommissionsSection({
         </h4>
         <p className="mt-1 text-sm text-blue-700">
           Airbnb: {formatPercentLabel(AIRBNB_COMMISSION_PERCENT)}% +{" "}
-          {AIRBNB_COMMISSION_VAT_RATE * 100}% VAT. Booking: 12% + opłata
-          transakcyjna 1,6%. Podstawa to kwota brutto rezerwacji z
-          wymeldowaniem w tym miesiącu (jak na FV / wykazie wypłaty).
+          {AIRBNB_COMMISSION_VAT_RATE * 100}% VAT. Booking: 12% + opłata za
+          usługę płatniczą {formatPercentLabel(BOOKING_TRANSACTION_FEE_RATE * 100)}
+          %, zaokrąglane per rezerwacja (jak na wykazie wypłaty).
         </p>
       </div>
       <div className="border-t border-blue-200 bg-white">
@@ -5058,12 +5105,23 @@ function SuggestedCommissionsSection({
                     suggestion.totalRevenue,
                     percentage,
                     suggestion.category,
+                    suggestion.lineGrossAmounts,
                   )
                 : 0;
-            const transactionFeeDisplay =
-              isBooking && suggestion.totalRevenue
-                ? suggestion.totalRevenue * BOOKING_TRANSACTION_FEE_RATE
-                : 0;
+            const bookingLineAmounts =
+              suggestion.lineGrossAmounts &&
+              suggestion.lineGrossAmounts.length > 0
+                ? suggestion.lineGrossAmounts
+                : suggestion.totalRevenue
+                  ? [suggestion.totalRevenue]
+                  : null;
+            const bookingParts =
+              isBooking && percentage > 0 && bookingLineAmounts
+                ? calculateBookingCommissionParts(
+                    bookingLineAmounts,
+                    percentage,
+                  )
+                : null;
             const airbnbNet =
               isAirbnb && suggestion.totalRevenue && percentage > 0
                 ? (suggestion.totalRevenue * percentage) / 100
@@ -5102,10 +5160,13 @@ function SuggestedCommissionsSection({
                         Przychód z kanału (wymeldowanie w miesiącu):{" "}
                         {suggestion.totalRevenue?.toFixed(2)} PLN
                       </p>
-                      {transactionFeeDisplay > 0 && (
+                      {bookingParts && (
                         <p className="text-sm text-gray-500">
-                          Opłata transakcyjna (1.6%):{" "}
-                          {transactionFeeDisplay.toFixed(2)} PLN
+                          Prowizja ({formatPercentLabel(percentage)}%):{" "}
+                          {bookingParts.commission.toFixed(2)} PLN + opłata za
+                          usługę płatniczą (
+                          {formatPercentLabel(BOOKING_TRANSACTION_FEE_RATE * 100)}
+                          %): {bookingParts.fee.toFixed(2)} PLN
                         </p>
                       )}
                       {isAirbnb && airbnbNet > 0 && (
@@ -5122,7 +5183,7 @@ function SuggestedCommissionsSection({
                           {isAirbnb &&
                             ` (${formatPercentLabel(percentage)}% + 23% VAT)`}
                           {isBooking &&
-                            " (z wliczonym 8% VAT i opłatą transakcyjną 1.6%)"}
+                            ` (12% + ${formatPercentLabel(BOOKING_TRANSACTION_FEE_RATE * 100)}% opłata, per rezerwacja)`}
                         </p>
                       )}
                     </div>

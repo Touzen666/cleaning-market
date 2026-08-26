@@ -8,6 +8,16 @@ function utcDayMs(date: Date): number {
     return Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
 }
 
+/** Wymeldowanie w okresie [periodStart, periodEnd) — tak OTA ujmują rezerwację na FV/wypłacie. */
+export function checkoutFallsInPeriod(
+    checkout: Date,
+    periodStart: Date,
+    periodEnd: Date,
+): boolean {
+    const day = utcDayMs(checkout);
+    return day >= utcDayMs(periodStart) && day < utcDayMs(periodEnd);
+}
+
 /** Liczba nocy pobytu [start, end). Checkout w dniu X nie jest nocą w tym dniu. */
 export function countStayNights(start: Date, end: Date): number {
     const nights = Math.round((utcDayMs(end) - utcDayMs(start)) / MS_PER_DAY);

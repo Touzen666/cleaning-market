@@ -1,9 +1,28 @@
 import { describe, expect, it } from "vitest";
 import {
     amountForNightsInPeriod,
+    checkoutFallsInPeriod,
     countOverlapNights,
     countStayNights,
 } from "./reservation-stay";
+
+describe("checkoutFallsInPeriod", () => {
+    it("ujmuje rezerwację w miesiącu wymeldowania", () => {
+        const juneStart = new Date(Date.UTC(2026, 5, 1));
+        const julyStart = new Date(Date.UTC(2026, 6, 1));
+        const augustStart = new Date(Date.UTC(2026, 7, 1));
+
+        expect(
+            checkoutFallsInPeriod(new Date("2026-07-01T12:00:00.000Z"), juneStart, julyStart),
+        ).toBe(false);
+        expect(
+            checkoutFallsInPeriod(new Date("2026-07-01T12:00:00.000Z"), julyStart, augustStart),
+        ).toBe(true);
+        expect(
+            checkoutFallsInPeriod(new Date("2026-08-01T12:00:00.000Z"), julyStart, augustStart),
+        ).toBe(false);
+    });
+});
 
 describe("countStayNights", () => {
     it("liczy noce bez dnia wymeldowania", () => {

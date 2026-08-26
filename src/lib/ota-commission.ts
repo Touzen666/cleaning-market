@@ -1,13 +1,18 @@
 import { getRecognizedReservationChannel, resolveReportChannel } from "@/lib/reservation-channel";
-import { roundPln2 } from "@/lib/reservation-stay";
+import { checkoutFallsInPeriod, roundPln2 } from "@/lib/reservation-stay";
 
 export const AIRBNB_COMMISSION_PERCENT = 15.5;
 export const AIRBNB_COMMISSION_VAT_RATE = 0.23;
 export const BOOKING_COMMISSION_PERCENT = 12;
-export const BOOKING_TRANSACTION_FEE_RATE = 0.016;
+/** Booking.com: opłata za usługę płatniczą ≈ 1,4% brutto (nie 1,6%). */
+export const BOOKING_TRANSACTION_FEE_RATE = 0.014;
 
 export function formatPercentLabel(value: number): string {
-    return value.toString().replace(".", ",");
+    return Number(value.toFixed(4)).toString().replace(".", ",");
+}
+
+function roundPlnToFiveGrosze(value: number): number {
+    return Math.round(value * 20) / 20;
 }
 
 export function isAirbnbCommissionChannel(channel: string | null | undefined): boolean {
@@ -37,22 +42,81 @@ export function resolveOtaCommissionPercent(channel: string, rawPercent: number)
     return rawPercent;
 }
 
+export function calculateBookingCommissionParts(
+    lineGrossAmounts: number[],
+    commissionPercent: number = BOOKING_COMMISSION_PERCENT,
+    feeRate: number = BOOKING_TRANSACTION_FEE_RATE,
+): { commission: number; fee: number; total: number } {
+    let commission = 0;
+    let fee = 0;
+    for (const gross of lineGrossAmounts) {
+        commission += roundPln2((gross * commissionPercent) / 100);
+        fee += roundPln2(gross * feeRate);
+    }
+    return {
+        commission: roundPln2(commission),
+        fee: roundPln2(fee),
+        total: roundPln2(commission + fee),
+    };
+}
+
+export function calculateAirbnbCommissionParts(
+    lineGrossAmounts: number[],
+    percentage: number = AIRBNB_COMMISSION_PERCENT,
+): {
+    commissionNet: number;
+    vat: number;
+    commission: number;
+    payout: number;
+    lines: Array<{ gross: number; commissionNet: number; vat: number; commission: number; payout: number }>;
+} {
+    const lines = lineGrossAmounts.map((gross) => {
+        const commissionNet = roundPln2((gross * percentage) / 100);
+        const vat = roundPln2(commissionNet * AIRBNB_COMMISSION_VAT_RATE);
+        const rawCommission = roundPln2(commissionNet + vat);
+        const rawPayout = roundPln2(gross - rawCommission);
+        // Wypłaty Airbnb na fakturach są do 5 groszy (np. 995,82 → 995,80).
+        const payout = roundPlnToFiveGrosze(rawPayout);
+        const commission = roundPln2(gross - payout);
+        return { gross, commissionNet, vat, commission, payout };
+    });
+
+    return {
+        commissionNet: roundPln2(lines.reduce((sum, line) => sum + line.commissionNet, 0)),
+        vat: roundPln2(lines.reduce((sum, line) => sum + line.vat, 0)),
+        commission: roundPln2(lines.reduce((sum, line) => sum + line.commission, 0)),
+        payout: roundPln2(lines.reduce((sum, line) => sum + line.payout, 0)),
+        lines,
+    };
+}
+
 export function calculateOtaCommissionAmount(
     totalRevenue: number,
     percentage: number,
     channel: string,
+    lineGrossAmounts?: number[],
 ): number {
-    const commission = (totalRevenue * percentage) / 100;
-
     if (isAirbnbCommissionChannel(channel)) {
-        return roundPln2(commission * (1 + AIRBNB_COMMISSION_VAT_RATE));
+        const amounts = lineGrossAmounts && lineGrossAmounts.length > 0 ? lineGrossAmounts : [totalRevenue];
+        return calculateAirbnbCommissionParts(amounts, percentage).commission;
     }
 
     if (isBookingCommissionChannel(channel)) {
-        return roundPln2(commission + totalRevenue * BOOKING_TRANSACTION_FEE_RATE);
+        if (lineGrossAmounts && lineGrossAmounts.length > 0) {
+            return calculateBookingCommissionParts(lineGrossAmounts, percentage).total;
+        }
+        const parts = calculateBookingCommissionParts([totalRevenue], percentage);
+        return parts.total;
     }
 
-    return roundPln2(commission);
+    return roundPln2((totalRevenue * percentage) / 100);
+}
+
+export function calculateAirbnbPayoutNet(
+    gross: number,
+    percentage: number = AIRBNB_COMMISSION_PERCENT,
+): number {
+    return calculateAirbnbCommissionParts([gross], percentage).payout;
 }
 
 export function buildOtaCommissionNotes(
@@ -60,39 +124,66 @@ export function buildOtaCommissionNotes(
     totalRevenue: number,
     percentage: number,
     amount: number,
+    lineGrossAmounts?: number[],
 ): string {
     const percentLabel = formatPercentLabel(percentage);
 
     if (isAirbnbCommissionChannel(channel)) {
-        const commissionNet = roundPln2((totalRevenue * percentage) / 100);
-        const vat = roundPln2(commissionNet * AIRBNB_COMMISSION_VAT_RATE);
-        return `Prowizja Airbnb (netto): ${commissionNet.toFixed(2)} PLN (${percentLabel}%) + VAT (23%): ${vat.toFixed(2)} PLN.`;
+        const amounts = lineGrossAmounts && lineGrossAmounts.length > 0 ? lineGrossAmounts : [totalRevenue];
+        const parts = calculateAirbnbCommissionParts(amounts, percentage);
+        const payouts = parts.lines.map((line) => line.payout.toFixed(2)).join(" + ");
+        return `Prowizja Airbnb (netto): ${parts.commissionNet.toFixed(2)} PLN (${percentLabel}%) + VAT (23%): ${parts.vat.toFixed(2)} PLN. Wypłaty na konto: ${payouts} = ${parts.payout.toFixed(2)} PLN.`;
     }
 
     if (isBookingCommissionChannel(channel)) {
-        const commissionGross = amount;
-        const commissionNet = roundPln2(commissionGross / 1.08);
-        const vat = roundPln2(commissionGross - commissionNet);
-        const standardCommissionValue = roundPln2((totalRevenue * percentage) / 100);
-        const transactionFeeValue = roundPln2(totalRevenue * BOOKING_TRANSACTION_FEE_RATE);
-        return `Prowizja Booking (brutto): ${commissionGross.toFixed(2)} PLN. Składowe: Prowizja (${percentLabel}%): ${standardCommissionValue.toFixed(2)} PLN + Opłata transakcyjna (1.6%): ${transactionFeeValue.toFixed(2)} PLN. W kwocie brutto zawarty jest VAT (8%): ${vat.toFixed(2)} PLN. Kwota netto: ${commissionNet.toFixed(2)} PLN.`;
+        const parts =
+            lineGrossAmounts && lineGrossAmounts.length > 0
+                ? calculateBookingCommissionParts(lineGrossAmounts, percentage)
+                : calculateBookingCommissionParts([totalRevenue], percentage);
+        const feePercentLabel = formatPercentLabel(BOOKING_TRANSACTION_FEE_RATE * 100);
+        return `Prowizja Booking: ${parts.commission.toFixed(2)} PLN (${percentLabel}%) + opłata za usługę płatniczą: ${parts.fee.toFixed(2)} PLN (${feePercentLabel}%). Razem: ${parts.total.toFixed(2)} PLN.`;
     }
 
     return `Sugerowana pozycja prowizji dla kanału ${channel} - ${percentLabel}% od ${totalRevenue.toFixed(2)} PLN`;
 }
 
-function utcDayMs(date: Date): number {
-    return Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
-}
+export function summarizeOtaAccountInflow(
+    items: Array<{ type: string; category: string; amount: number }>,
+): {
+    bookingGross: number;
+    bookingCommission: number;
+    bookingNet: number;
+    airbnbGross: number;
+    airbnbCommission: number;
+    airbnbNet: number;
+    totalNet: number;
+} {
+    let bookingGross = 0;
+    let airbnbGross = 0;
+    let bookingCommission = 0;
+    let airbnbCommission = 0;
 
-/** Wymeldowanie w okresie [periodStart, periodEnd) — tak Booking ujmuje rezerwację w wykazie wypłaty. */
-export function checkoutFallsInPeriod(
-    checkout: Date,
-    periodStart: Date,
-    periodEnd: Date,
-): boolean {
-    const day = utcDayMs(checkout);
-    return day >= utcDayMs(periodStart) && day < utcDayMs(periodEnd);
+    for (const item of items) {
+        if (item.type === "REVENUE") {
+            if (isBookingCommissionChannel(item.category)) bookingGross += item.amount;
+            else if (isAirbnbCommissionChannel(item.category)) airbnbGross += item.amount;
+        } else if (item.type === "COMMISSION") {
+            if (isBookingCommissionChannel(item.category)) bookingCommission += item.amount;
+            else if (isAirbnbCommissionChannel(item.category)) airbnbCommission += item.amount;
+        }
+    }
+
+    const bookingNet = roundPln2(bookingGross - bookingCommission);
+    const airbnbNet = roundPln2(airbnbGross - airbnbCommission);
+    return {
+        bookingGross: roundPln2(bookingGross),
+        bookingCommission: roundPln2(bookingCommission),
+        bookingNet,
+        airbnbGross: roundPln2(airbnbGross),
+        airbnbCommission: roundPln2(airbnbCommission),
+        airbnbNet,
+        totalNet: roundPln2(bookingNet + airbnbNet),
+    };
 }
 
 export type OtaCommissionRevenueItem = {
@@ -109,15 +200,22 @@ export type OtaCommissionRevenueItem = {
 
 /**
  * Podstawa prowizji OTA: pełna kwota rezerwacji z wymeldowaniem w miesiącu raportu.
- * Nie używamy podziału proporcjonalnego z pozycji przychodu — ten nie zgadza się z FV/wypłatą.
+ * Booking zaokrągla prowizję i opłatę per rezerwacja, potem je sumuje (jak na wykazie wypłaty).
  */
-export function sumOtaCommissionBaseByChannel(
+export function collectOtaCommissionBaseByChannel(
     items: OtaCommissionRevenueItem[],
     periodStart: Date,
     periodEnd: Date,
-): Map<string, number> {
-    const channels = new Map<string, number>();
+): Map<string, { totalRevenue: number; lineGrossAmounts: number[] }> {
+    const channels = new Map<string, { totalRevenue: number; lineGrossAmounts: number[] }>();
     const seenReservations = new Set<number>();
+
+    const add = (channel: string, gross: number) => {
+        const current = channels.get(channel) ?? { totalRevenue: 0, lineGrossAmounts: [] };
+        current.lineGrossAmounts.push(gross);
+        current.totalRevenue = roundPln2(current.totalRevenue + gross);
+        channels.set(channel, current);
+    };
 
     for (const item of items) {
         const channel = resolveReportChannel(item.category, item.reservation?.source);
@@ -125,7 +223,7 @@ export function sumOtaCommissionBaseByChannel(
 
         const reservation = item.reservation;
         if (!reservation) {
-            channels.set(channel, roundPln2((channels.get(channel) ?? 0) + item.amount));
+            add(channel, item.amount);
             continue;
         }
 
@@ -139,9 +237,19 @@ export function sumOtaCommissionBaseByChannel(
             seenReservations.add(reservationKey);
         }
 
-        const fullAmount = reservation.rateCorrection ?? reservation.paymantValue ?? item.amount;
-        channels.set(channel, roundPln2((channels.get(channel) ?? 0) + fullAmount));
+        add(channel, reservation.rateCorrection ?? reservation.paymantValue ?? item.amount);
     }
 
     return channels;
+}
+
+export function sumOtaCommissionBaseByChannel(
+    items: OtaCommissionRevenueItem[],
+    periodStart: Date,
+    periodEnd: Date,
+): Map<string, number> {
+    const collected = collectOtaCommissionBaseByChannel(items, periodStart, periodEnd);
+    return new Map(
+        [...collected.entries()].map(([channel, value]) => [channel, value.totalRevenue]),
+    );
 }
