@@ -3,6 +3,10 @@ import { createTRPCRouter, publicProcedure, protectedProcedure } from "@/server/
 import { TRPCError } from "@trpc/server";
 import { type Reservation, UserType, ReportItemType } from "@prisma/client";
 import { getRecognizedReservationChannel } from "@/lib/reservation-channel";
+import {
+  exclusionRangeFromApartment,
+  filterReservationsOutsideExclusion,
+} from "@/lib/reservation-exclusion";
 
 // Schema for creating a new reservation
 const createReservationSchema = z.object({
@@ -35,6 +39,9 @@ const apartmentWithReservationsSchema = z.object({
   reservations: z.array(reservationSchema),
   parentApartmentId: z.number().optional(),
   parentApartmentName: z.string().optional(),
+  reservationsDisabled: z.boolean().optional(),
+  reservationsDisabledFrom: z.date().nullable().optional(),
+  reservationsDisabledTo: z.date().nullable().optional(),
 });
 
 export const reservationsRouter = createTRPCRouter({
@@ -305,6 +312,9 @@ export const reservationsRouter = createTRPCRouter({
         id: number;
         name: string;
         address: string;
+        reservationsDisabled?: boolean;
+        reservationsDisabledFrom?: Date | null;
+        reservationsDisabledTo?: Date | null;
         images: Array<{ url: string | null }>;
         rooms: RoomShape[];
         reservations: RoomReservationShape[];
@@ -464,6 +474,12 @@ export const reservationsRouter = createTRPCRouter({
         const apartment: ApartmentShape = ownership.apartment;
         const primaryImageUrl: string | null = apartment.images[0]?.url ?? null;
         const hasMultipleRooms: boolean = Array.isArray(apartment.rooms) && apartment.rooms.length > 1;
+        const exclusionRange = exclusionRangeFromApartment(apartment);
+        const exclusionFields = {
+          reservationsDisabled: apartment.reservationsDisabled ?? false,
+          reservationsDisabledFrom: apartment.reservationsDisabledFrom ?? null,
+          reservationsDisabledTo: apartment.reservationsDisabledTo ?? null,
+        };
 
         if (hasMultipleRooms) {
           const buckets = buildRoomReservationBuckets(apartment);
@@ -473,8 +489,11 @@ export const reservationsRouter = createTRPCRouter({
             for (const res of merged) {
               byId.set(res.id, toCalendarSlice(res));
             }
-            const reservations = Array.from(byId.values()).sort(
-              (a, b) => a.start.getTime() - b.start.getTime(),
+            const reservations = filterReservationsOutsideExclusion(
+              Array.from(byId.values()).sort(
+                (a, b) => a.start.getTime() - b.start.getTime(),
+              ),
+              exclusionRange,
             );
 
             apartmentsData.push({
@@ -485,13 +504,17 @@ export const reservationsRouter = createTRPCRouter({
               reservations,
               parentApartmentId: apartment.id,
               parentApartmentName: apartment.name,
+              ...exclusionFields,
             });
           }
           continue;
         }
 
         // Single-room or no-room apartments -> show as apartment
-        const reservations = apartment.reservations.map(toCalendarSlice);
+        const reservations = filterReservationsOutsideExclusion(
+          apartment.reservations.map(toCalendarSlice),
+          exclusionRange,
+        );
 
         apartmentsData.push({
           id: apartment.id,
@@ -499,6 +522,7 @@ export const reservationsRouter = createTRPCRouter({
           address: apartment.address,
           imageUrl: primaryImageUrl,
           reservations,
+          ...exclusionFields,
           // For single-room or no-room apartments, do not set parent identifiers
         });
       }

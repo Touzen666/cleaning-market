@@ -150,6 +150,10 @@ model Apartment {
   reservations           Reservation[]
   averageRating          Float?               @default(0)
   archived               Boolean              @default(false) // Wycofany z użytku – nie usuwany, tylko ukryty z list
+  /// Obiekt nie przyjmuje rezerwacji – właściciel widzi tylko pobyty poza zakresem wykluczenia
+  reservationsDisabled     Boolean              @default(false)
+  reservationsDisabledFrom DateTime?            @db.Date
+  reservationsDisabledTo   DateTime?            @db.Date
   rooms                  Room[]
 }
 

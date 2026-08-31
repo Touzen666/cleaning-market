@@ -777,6 +777,7 @@ export const apartmentOwnersRouter = createTRPCRouter({
             slug: z.string(),
             address: z.string(),
             archived: z.boolean(),
+            reservationsDisabled: z.boolean(),
             reservations: z.number(),
             defaultRentAmount: z.number().nullable(),
             defaultUtilitiesAmount: z.number().nullable(),
@@ -806,6 +807,7 @@ export const apartmentOwnersRouter = createTRPCRouter({
                             slug: true,
                             address: true,
                             archived: true,
+                            reservationsDisabled: true,
                             defaultRentAmount: true,
                             defaultUtilitiesAmount: true,
                             weeklyLaundryCost: true,
@@ -839,6 +841,7 @@ export const apartmentOwnersRouter = createTRPCRouter({
                     ...apartmentData,
                     id: apartmentData.id.toString(),
                     reservations: _count.reservations,
+                    reservationsDisabled: apartmentData.reservationsDisabled ?? false,
                 };
             });
         }),

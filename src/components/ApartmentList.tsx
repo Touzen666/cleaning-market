@@ -117,6 +117,11 @@ export default function ApartmentList({
                 Zarchiwizowany
               </span>
             )}
+            {apartment.reservationsDisabled && (
+              <span className="rounded-full bg-orange-600 px-2 py-1 text-xs text-white">
+                Rezerwacje wyłączone
+              </span>
+            )}
             {apartment.hasBalcony && (
               <span className="rounded-full bg-brand-gold px-2 py-1 text-xs text-white">
                 Balkon

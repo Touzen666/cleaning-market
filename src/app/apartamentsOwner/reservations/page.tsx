@@ -5,6 +5,10 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { skipToken } from "@tanstack/react-query";
 import { ReservationCalendar } from "./ReservationCalendar";
+import {
+  exclusionRangeFromApartment,
+  formatReservationExclusionNotice,
+} from "@/lib/reservation-exclusion";
 
 export default function OwnerReservationsPage() {
   const router = useRouter();
@@ -73,6 +77,20 @@ export default function OwnerReservationsPage() {
                   {group.groupName}
                 </h2>
               </div>
+              {(() => {
+                const unit = group.items[0];
+                const notice = unit
+                  ? formatReservationExclusionNotice(
+                      exclusionRangeFromApartment(unit),
+                    )
+                  : null;
+                return notice ? (
+                  <div className="mb-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+                    {notice} W kalendarzu widoczne są tylko rezerwacje poza
+                    zakresem wykluczenia.
+                  </div>
+                ) : null;
+              })()}
               <div className="space-y-8">
                 {group.items.map((unit) => (
                   <div key={`${group.groupId}-${unit.id}`}>

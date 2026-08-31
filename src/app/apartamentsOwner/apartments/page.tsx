@@ -14,6 +14,7 @@ type OwnerApartment = {
   images: { url: string; alt: string | null }[] | undefined;
   averageRating: number | null;
   roomsCount?: number;
+  reservationsDisabled?: boolean;
 };
 
 function ApartmentCard({
@@ -77,6 +78,11 @@ function ApartmentCard({
                   : `${apartment.roomsCount} pokoi`}
               </span>
             )}
+          {apartment.reservationsDisabled && (
+            <span className="absolute left-2 top-2 rounded-full bg-orange-600 px-2 py-1 text-xs font-semibold text-white shadow-md">
+              Nie przyjmuje rezerwacji
+            </span>
+          )}
           {hovered && apartment.averageRating && (
             <>
               <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/50">

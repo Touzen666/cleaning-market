@@ -32,6 +32,11 @@ import {
 } from "@/lib/agreement-termination-notice";
 import { displayReservationChannel } from "@/lib/reservation-channel";
 import {
+  exclusionRangeFromApartment,
+  formatReservationExclusionNotice,
+  reservationOverlapsExclusion,
+} from "@/lib/reservation-exclusion";
+import {
   calculateAirbnbPayoutNet,
   isAirbnbCommissionChannel,
   summarizeOtaAccountInflow,
@@ -48,6 +53,9 @@ type OwnerReport = {
     address: string;
     paymentType: PaymentType;
     fixedPaymentAmount: number | null;
+    reservationsDisabled?: boolean;
+    reservationsDisabledFrom?: Date | string | null;
+    reservationsDisabledTo?: Date | string | null;
   };
   owner: {
     id: string;
@@ -275,17 +283,21 @@ export default function OwnerReportDetailsPage() {
     (i) => !i.reservation,
   );
   // Rezerwacje/przychody (tylko skutecznie zrealizowane)
+  const exclusionRange = exclusionRangeFromApartment(report.apartment);
   const reservationItems: ReportItemWithReservation[] = revenueItems.filter(
     (i: ReportItemWithReservation) => {
       const r = i.reservation;
       if (!r) return false;
       const guests = (r.adults ?? 0) + (r.children ?? 0);
       const unknownGuests = r.adults == null && r.children == null;
-      return (
-        r.status !== "Anulowana" &&
-        r.status !== "Odrzucona przez obsługę" &&
-        (guests > 0 || unknownGuests)
-      );
+      if (
+        r.status === "Anulowana" ||
+        r.status === "Odrzucona przez obsługę" ||
+        !(guests > 0 || unknownGuests)
+      ) {
+        return false;
+      }
+      return !reservationOverlapsExclusion(r.start, r.end, exclusionRange);
     },
   );
 
@@ -408,6 +420,17 @@ export default function OwnerReportDetailsPage() {
                   {getStatusText(report.status)}
                 </span>
               </div>
+              {(() => {
+                const notice = formatReservationExclusionNotice(
+                  exclusionRangeFromApartment(report.apartment),
+                );
+                return notice ? (
+                  <p className="mt-3 max-w-3xl rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-950">
+                    {notice} W raporcie widoczne są tylko rezerwacje poza
+                    zakresem wykluczenia.
+                  </p>
+                ) : null;
+              })()}
               {report.status === ReportStatus.AGREEMENT_TERMINATION && (
                 <p className="mt-3 max-w-3xl rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-950">
                   Ten miesiąc został oznaczony jako <strong>rozwiązanie umowy</strong> — raport

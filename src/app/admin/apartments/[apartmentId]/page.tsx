@@ -31,6 +31,9 @@ interface ExtendedApartment {
     | "OWN_APARTMENT";
   fixedPaymentAmount: number | null;
   archived?: boolean;
+  reservationsDisabled?: boolean;
+  reservationsDisabledFrom?: Date | string | null;
+  reservationsDisabledTo?: Date | string | null;
   images: Array<{
     id: string;
     url: string;
@@ -75,6 +78,8 @@ export default function EditApartmentPage({
   const [cleaningTierSlots, setCleaningTierSlots] = useState(4);
   const MAX_CLEANING_TIER_SLOTS = 30;
 
+  const [exclusionFrom, setExclusionFrom] = useState("");
+  const [exclusionTo, setExclusionTo] = useState("");
   const [status, setStatus] = useState<string | null>(null);
   const [ratingStatus, setRatingStatus] = useState<string | null>(null);
   const [returnUrl, setReturnUrl] = useState<string>("/admin/apartments");
@@ -165,6 +170,36 @@ export default function EditApartmentPage({
     },
   });
 
+  const setReservationsDisabledMutation =
+    api.apartments.setReservationsDisabled.useMutation({
+      onSuccess: async (data) => {
+        setStatus(data.message);
+        await utils.apartments.getById.invalidate();
+        await utils.apartments.getAll.invalidate();
+      },
+      onError: (err) => {
+        setStatus(err.message);
+      },
+    });
+
+  const toDateInputValue = (value: Date | string | null | undefined) => {
+    if (!value) return "";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "";
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+    const day = String(date.getUTCDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  const todayDateInput = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
   const recalculateRating = api.apartments.recalculateRating.useMutation({
     onSuccess: () => {
       setRatingStatus("success");
@@ -240,6 +275,10 @@ export default function EditApartmentPage({
         fixedPaymentAmount: apartment.fixedPaymentAmount ?? 0,
       });
       syncCleaningTierSlots(apartment.maxGuests ?? 4, apartment.cleaningCosts ?? {});
+      setExclusionFrom(
+        toDateInputValue(apartment.reservationsDisabledFrom) || todayDateInput(),
+      );
+      setExclusionTo(toDateInputValue(apartment.reservationsDisabledTo));
     }
   }, [
     apartmentQuery.data,
@@ -818,6 +857,113 @@ export default function EditApartmentPage({
                 )}
               </div>
             )}
+
+            {/* Wyłączenie rezerwacji – tylko dla istniejącego apartamentu */}
+            {!roomId &&
+              !isNew &&
+              apartmentQuery.data &&
+              (createdApartmentId ?? apartmentId) && (
+                <div className="border-t border-gray-200 pt-6">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Wyłączenie rezerwacji
+                  </label>
+                  <p className="mt-1 text-sm text-gray-600">
+                    {apartmentQuery.data.reservationsDisabled
+                      ? "Ten obiekt nie przyjmuje już rezerwacji. W kalendarzu i raporcie właściciela widać tylko pobyty poza zakresem wykluczenia."
+                      : "Wyłączenie rezerwacji pokazuje właścicielowi informację, że obiekt nie przyjmuje już rezerwacji, i ukrywa rezerwacje z okresu wykluczenia w kalendarzu oraz raporcie."}
+                  </p>
+                  <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div>
+                      <label
+                        htmlFor="exclusionFrom"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        Wykluczenie od
+                      </label>
+                      <input
+                        id="exclusionFrom"
+                        type="date"
+                        value={exclusionFrom}
+                        onChange={(e) => setExclusionFrom(e.target.value)}
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="exclusionTo"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        Wykluczenie do (opcjonalnie)
+                      </label>
+                      <input
+                        id="exclusionTo"
+                        type="date"
+                        value={exclusionTo}
+                        onChange={(e) => setExclusionTo(e.target.value)}
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                      />
+                    </div>
+                  </div>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!exclusionFrom) {
+                          setStatus("Podaj datę początkową wykluczenia.");
+                          return;
+                        }
+                        if (
+                          confirm(
+                            apartmentQuery.data.reservationsDisabled
+                              ? "Zaktualizować zakres wykluczenia rezerwacji?"
+                              : "Wyłączyć rezerwacje na tym obiekcie? Właściciel zobaczy komunikat i straci z kalendarza oraz raportu rezerwacje z okresu wykluczenia.",
+                          )
+                        ) {
+                          setReservationsDisabledMutation.mutate({
+                            id: createdApartmentId ?? apartmentId,
+                            enabled: true,
+                            from: new Date(`${exclusionFrom}T00:00:00.000Z`),
+                            to: exclusionTo
+                              ? new Date(`${exclusionTo}T00:00:00.000Z`)
+                              : null,
+                          });
+                        }
+                      }}
+                      disabled={setReservationsDisabledMutation.isPending}
+                      className="rounded-md bg-orange-600 px-4 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:opacity-50 hover:bg-orange-700"
+                    >
+                      {setReservationsDisabledMutation.isPending
+                        ? "Zapisywanie..."
+                        : apartmentQuery.data.reservationsDisabled
+                          ? "Zapisz zakres wykluczenia"
+                          : "Wyłącz rezerwacje na tym obiekcie"}
+                    </button>
+                    {apartmentQuery.data.reservationsDisabled && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (
+                            confirm(
+                              "Włączyć ponownie rezerwacje na tym obiekcie? Właściciel znów zobaczy wszystkie rezerwacje.",
+                            )
+                          ) {
+                            setReservationsDisabledMutation.mutate({
+                              id: createdApartmentId ?? apartmentId,
+                              enabled: false,
+                              from: null,
+                              to: null,
+                            });
+                          }
+                        }}
+                        disabled={setReservationsDisabledMutation.isPending}
+                        className="rounded-md bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:opacity-50"
+                      >
+                        Włącz rezerwacje ponownie
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
 
             {/* Archiwizacja – tylko dla istniejącego apartamentu (nie pokój, nie nowy) */}
             {!roomId &&

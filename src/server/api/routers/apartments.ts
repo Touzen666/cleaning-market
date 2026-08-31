@@ -96,6 +96,7 @@ export const apartmentsRouter = createTRPCRouter({
                     })
                 })).optional(),
                 archived: z.boolean(),
+                reservationsDisabled: z.boolean(),
             }))
         }))
         .input(z.object({ includeArchived: z.boolean().optional() }).optional())
@@ -110,6 +111,7 @@ export const apartmentsRouter = createTRPCRouter({
                         name: true,
                         slug: true,
                         archived: true,
+                        reservationsDisabled: true,
                         address: true,
                         _count: { // Zliczamy rezerwacje
                             select: { reservations: true },
@@ -201,6 +203,7 @@ export const apartmentsRouter = createTRPCRouter({
                         reservations: apt._count.reservations, // Przekazujemy liczbę rezerwacji
                         rooms: roomsByApartmentId.get(apt.id) ?? [],
                         archived: apt.archived ?? false,
+                        reservationsDisabled: apt.reservationsDisabled ?? false,
                         images: apt.images.map(img => ({
                             ...img,
                             id: img.id,
@@ -403,6 +406,9 @@ export const apartmentsRouter = createTRPCRouter({
                                     name: true,
                                     address: true,
                                     averageRating: true,
+                                    reservationsDisabled: true,
+                                    reservationsDisabledFrom: true,
+                                    reservationsDisabledTo: true,
                                     images: {
                                         where: { isPrimary: true },
                                         take: 1,
@@ -431,6 +437,9 @@ export const apartmentsRouter = createTRPCRouter({
                         name: string;
                         address: string;
                         averageRating: number | null;
+                        reservationsDisabled: boolean;
+                        reservationsDisabledFrom: Date | null;
+                        reservationsDisabledTo: Date | null;
                         images: Array<{ id: string; url: string; alt: string | null; isPrimary: boolean; order: number }>;
                         _count: { rooms: number };
                     };
@@ -962,6 +971,74 @@ export const apartmentsRouter = createTRPCRouter({
             };
         }),
 
+    setReservationsDisabled: protectedProcedure
+        .input(z.object({
+            id: z.string().min(1),
+            enabled: z.boolean(),
+            from: z.coerce.date().nullable().optional(),
+            to: z.coerce.date().nullable().optional(),
+        }).refine((value) => {
+            if (!value.enabled) return true;
+            if (!value.from) return false;
+            if (value.to && value.to.getTime() < value.from.getTime()) return false;
+            return true;
+        }, {
+            message: "Podaj datę początkową wykluczenia. Data końcowa nie może być wcześniejsza.",
+        }))
+        .output(z.object({
+            success: z.boolean(),
+            message: z.string(),
+        }))
+        .mutation(async ({ input, ctx }) => {
+            if (ctx.session.user.type !== UserType.ADMIN) {
+                throw new TRPCError({
+                    code: "FORBIDDEN",
+                    message: "Tylko administrator może wyłączyć rezerwacje na obiekcie",
+                });
+            }
+            const apartment = await ctx.db.apartment.findUnique({
+                where: { id: parseInt(input.id) },
+                select: { id: true, name: true },
+            });
+            if (!apartment) {
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: "Nie znaleziono apartamentu",
+                });
+            }
+
+            const from = input.enabled && input.from
+                ? new Date(Date.UTC(
+                    input.from.getUTCFullYear(),
+                    input.from.getUTCMonth(),
+                    input.from.getUTCDate(),
+                ))
+                : null;
+            const to = input.enabled && input.to
+                ? new Date(Date.UTC(
+                    input.to.getUTCFullYear(),
+                    input.to.getUTCMonth(),
+                    input.to.getUTCDate(),
+                ))
+                : null;
+
+            await ctx.db.apartment.update({
+                where: { id: apartment.id },
+                data: {
+                    reservationsDisabled: input.enabled,
+                    reservationsDisabledFrom: from,
+                    reservationsDisabledTo: to,
+                },
+            });
+
+            return {
+                success: true,
+                message: input.enabled
+                    ? `Wyłączono rezerwacje na obiekcie "${apartment.name}"`
+                    : `Włączono rezerwacje na obiekcie "${apartment.name}"`,
+            };
+        }),
+
     getById: publicProcedure
         .input(z.object({
             id: z.string().min(1),
@@ -985,6 +1062,9 @@ export const apartmentsRouter = createTRPCRouter({
             paymentType: paymentTypeEnum,
             fixedPaymentAmount: z.number().nullable(),
             archived: z.boolean(),
+            reservationsDisabled: z.boolean(),
+            reservationsDisabledFrom: z.date().nullable(),
+            reservationsDisabledTo: z.date().nullable(),
             images: z.array(z.object({
                 id: z.string(),
                 url: z.string(),
@@ -1010,6 +1090,9 @@ export const apartmentsRouter = createTRPCRouter({
                         wineCost: true,
                         textileCostPerReservation: true,
                         archived: true,
+                        reservationsDisabled: true,
+                        reservationsDisabledFrom: true,
+                        reservationsDisabledTo: true,
                         hasBalcony: true,
                         hasParking: true,
                         maxGuests: true,
@@ -1036,13 +1119,16 @@ export const apartmentsRouter = createTRPCRouter({
                     throw new Error("Apartament nie został znaleziony");
                 }
 
-                return {
+            return {
                     ...apartment,
                     id: apartment.id.toString(),
                     cleaningCosts: apartment.cleaningCosts as Record<string, number> | null,
                     paymentType: apartment.paymentType,
                     fixedPaymentAmount: apartment.fixedPaymentAmount ? Number(apartment.fixedPaymentAmount) : null,
                     textileCostPerReservation: apartment.textileCostPerReservation != null ? Number(apartment.textileCostPerReservation) : null,
+                    reservationsDisabled: apartment.reservationsDisabled ?? false,
+                    reservationsDisabledFrom: apartment.reservationsDisabledFrom ?? null,
+                    reservationsDisabledTo: apartment.reservationsDisabledTo ?? null,
                     images: apartment.images.map(img => ({
                         ...img,
                         id: img.id.toString(),

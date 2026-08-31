@@ -36,6 +36,11 @@ import {
 } from "@/lib/commission-settlement";
 import { resolveReportChannel, getRecognizedReservationChannel } from "@/lib/reservation-channel";
 import { checkoutFallsInPeriod, roundPln2 } from "@/lib/reservation-stay";
+import {
+    exclusionRangeFromApartment,
+    filterReportItemsOutsideExclusion,
+    filterReservationsOutsideExclusion,
+} from "@/lib/reservation-exclusion";
 import { AIRBNB_COMMISSION_PERCENT, collectOtaCommissionBaseByChannel, formatPercentLabel, isAirbnbCommissionChannel } from "@/lib/ota-commission";
 
 type RecalculateContext = {
@@ -998,7 +1003,8 @@ export const monthlyReportsRouter = createTRPCRouter({
             const nextMonthStartDate = new Date(Date.UTC(year, month, 1));
 
             // Rezerwacje do przychodu: wymeldowanie w tym miesiącu (jak na FV/wypłacie OTA)
-            const reservationsForRevenue = await ctx.db.reservation.findMany({
+            const reservationsForRevenue = filterReservationsOutsideExclusion(
+                await ctx.db.reservation.findMany({
                 where: {
                     apartmentId,
                     ...(roomId ? { roomId } : {}),
@@ -1020,10 +1026,13 @@ export const monthlyReportsRouter = createTRPCRouter({
                     adults: true,
                     children: true,
                 },
-            });
+            }),
+                exclusionRangeFromApartment(apartment),
+            );
 
             // Rezerwacje dla kosztów (sprzątanie/pranie/tekstylnia): kończące się w tym miesiącu
-            const reservationsEndMonth = await ctx.db.reservation.findMany({
+            const reservationsEndMonth = filterReservationsOutsideExclusion(
+                await ctx.db.reservation.findMany({
                 where: {
                     apartmentId,
                     ...(roomId ? { roomId } : {}),
@@ -1032,7 +1041,9 @@ export const monthlyReportsRouter = createTRPCRouter({
                         lt: nextMonthStartDate,
                     },
                 },
-            });
+            }),
+                exclusionRangeFromApartment(apartment),
+            );
 
             // Automatycznie ustaw typ rozliczenia na podstawie ustawień apartamentu
             const finalSettlementType = mapPaymentTypeToSettlementType(apartment.paymentType);
@@ -1148,6 +1159,9 @@ export const monthlyReportsRouter = createTRPCRouter({
                             cleaningCosts: true,
                             paymentType: true,
                             fixedPaymentAmount: true,
+                            reservationsDisabled: true,
+                            reservationsDisabledFrom: true,
+                            reservationsDisabledTo: true,
                             _count: { select: { rooms: true } },
                         },
                     },
@@ -1244,7 +1258,8 @@ export const monthlyReportsRouter = createTRPCRouter({
             try {
                 const startDate = new Date(report.year, report.month - 1, 1);
                 const nextMonthStartDate = new Date(report.year, report.month, 1);
-                const reservationsForSuggestions = await ctx.db.reservation.findMany({
+                const reservationsForSuggestions = filterReservationsOutsideExclusion(
+                    await ctx.db.reservation.findMany({
                     where: {
                         apartmentId: report.apartmentId,
                         ...(report.roomId ? { roomId: report.roomId } : {}),
@@ -1260,7 +1275,9 @@ export const monthlyReportsRouter = createTRPCRouter({
                         start: true,
                         end: true,
                     },
-                });
+                }),
+                    exclusionRangeFromApartment(report.apartment),
+                );
                 suggestedCleaning = Number(await calculateCleaningCosts(report.apartmentId, reservationsForSuggestions, ctx));
                 suggestedLaundry = Number(await calculateLaundryCosts(report.apartmentId, report.year, report.month, ctx));
                 suggestedTextile = Number(await calculateTextileCosts(report.apartmentId, reservationsForSuggestions, ctx));
@@ -1271,9 +1288,13 @@ export const monthlyReportsRouter = createTRPCRouter({
 
 
             // Calculations similar to getOwnerReportById
-            const revenueItems = report.items.filter((i) => i.type === "REVENUE" && (!i.reservation || isReservationRealized(i.reservation.status)));
-            const expenseItems = report.items.filter((i) => ["EXPENSE", "FEE", "TAX"].includes(i.type));
-            const commissionItems = report.items.filter((i) => i.type === "COMMISSION");
+            const filteredReportItems = filterReportItemsOutsideExclusion(
+                report.items,
+                exclusionRangeFromApartment(report.apartment),
+            );
+            const revenueItems = filteredReportItems.filter((i) => i.type === "REVENUE" && (!i.reservation || isReservationRealized(i.reservation.status)));
+            const expenseItems = filteredReportItems.filter((i) => ["EXPENSE", "FEE", "TAX"].includes(i.type));
+            const commissionItems = filteredReportItems.filter((i) => i.type === "COMMISSION");
 
             const totalRevenue = revenueItems.reduce((sum, i) => sum + i.amount, 0);
             const totalExpenses = expenseItems.reduce((sum, i) => sum + i.amount, 0);
@@ -1380,6 +1401,7 @@ export const monthlyReportsRouter = createTRPCRouter({
 
             return {
                 ...report,
+                items: filteredReportItems,
                 finalSettlementType: report.finalSettlementType,
                 // Dodaj sugerowane wartości
                 suggestedRent: lastApprovedReport?.rentAmount ?? report.apartment.defaultRentAmount ?? 0,
@@ -1989,6 +2011,9 @@ export const monthlyReportsRouter = createTRPCRouter({
                             name: true,
                             address: true,
                             _count: { select: { rooms: true } },
+                            reservationsDisabled: true,
+                            reservationsDisabledFrom: true,
+                            reservationsDisabledTo: true,
                             images: {
                                 where: { isPrimary: true },
                                 select: { url: true, alt: true },
@@ -2024,6 +2049,10 @@ export const monthlyReportsRouter = createTRPCRouter({
 
             // Process reports differently based on status
             const reportsWithNumbers = await Promise.all(reports.map(async (report) => {
+                const items = filterReportItemsOutsideExclusion(
+                    report.items,
+                    exclusionRangeFromApartment(report.apartment),
+                );
                 let finalOwnerPayout: number | null;
                 let totalRevenue: number;
                 let totalExpenses: number;
@@ -2053,11 +2082,12 @@ export const monthlyReportsRouter = createTRPCRouter({
 
                 return {
                     ...report,
+                    items,
                     finalOwnerPayout,
                     totalRevenue,
                     totalExpenses,
                     netIncome,
-                    fixedCosts: calculateFixedCosts(report.items),
+                    fixedCosts: calculateFixedCosts(items),
                 };
             }));
 
@@ -2506,14 +2536,23 @@ export const monthlyReportsRouter = createTRPCRouter({
             });
             if (!report) throw new TRPCError({ code: "NOT_FOUND", message: "Raport nie istnieje" });
 
-            const apartment = await ctx.db.apartment.findUnique({ where: { id: report.apartmentId }, select: { id: true } });
+            const apartment = await ctx.db.apartment.findUnique({
+                where: { id: report.apartmentId },
+                select: {
+                    id: true,
+                    reservationsDisabled: true,
+                    reservationsDisabledFrom: true,
+                    reservationsDisabledTo: true,
+                },
+            });
             if (!apartment) throw new TRPCError({ code: "NOT_FOUND", message: "Apartament nie istnieje" });
 
             // Ta sama logika zakresu miesiąca co przy `create` (UTC), inaczej część pobytych „wypada” z raportu.
             const startDate = new Date(Date.UTC(report.year, report.month - 1, 1));
             const nextMonthStartDate = new Date(Date.UTC(report.year, report.month, 1));
 
-            const reservations = await ctx.db.reservation.findMany({
+            const reservations = filterReservationsOutsideExclusion(
+                await ctx.db.reservation.findMany({
                 where: {
                     apartmentId: apartment.id,
                     ...(report.roomId ? { roomId: report.roomId } : {}),
@@ -2526,7 +2565,9 @@ export const monthlyReportsRouter = createTRPCRouter({
                     id: true, guest: true, start: true, end: true, currency: true,
                     paymantValue: true, rateCorrection: true, source: true, status: true, adults: true, children: true,
                 }
-            });
+            }),
+                exclusionRangeFromApartment(apartment),
+            );
 
             await ctx.db.reportItem.deleteMany({
                 where: { reportId: report.id, type: ReportItemType.REVENUE, isAutoGenerated: true }
@@ -2583,6 +2624,9 @@ export const monthlyReportsRouter = createTRPCRouter({
                             paymentType: true,
                             fixedPaymentAmount: true,
                             archived: true,
+                            reservationsDisabled: true,
+                            reservationsDisabledFrom: true,
+                            reservationsDisabledTo: true,
                             _count: { select: { rooms: true } },
                         },
                     },
@@ -2793,6 +2837,10 @@ export const monthlyReportsRouter = createTRPCRouter({
 
             return {
                 ...report,
+                items: filterReportItemsOutsideExclusion(
+                    report.items,
+                    exclusionRangeFromApartment(report.apartment),
+                ),
                 netIncome,
                 adminCommissionAmount,
                 afterCommission,
@@ -4483,7 +4531,8 @@ export const monthlyReportsRouter = createTRPCRouter({
             const startDate = new Date(Date.UTC(report.year, report.month - 1, 1));
             const nextMonthStartDate = new Date(Date.UTC(report.year, report.month, 1));
 
-            const reservations = await ctx.db.reservation.findMany({
+            const reservations = filterReservationsOutsideExclusion(
+                await ctx.db.reservation.findMany({
                 where: {
                     apartmentId: report.apartmentId,
                     end: {
@@ -4494,8 +4543,12 @@ export const monthlyReportsRouter = createTRPCRouter({
                 select: {
                     adults: true,
                     children: true,
+                    start: true,
+                    end: true,
                 },
-            });
+            }),
+                exclusionRangeFromApartment(report.apartment),
+            );
 
             // Calculate cleaning costs
             const cleaningCost = await calculateCleaningCosts(report.apartmentId, reservations, ctx);
@@ -4720,7 +4773,8 @@ export const monthlyReportsRouter = createTRPCRouter({
             const startDate = new Date(Date.UTC(report.year, report.month - 1, 1));
             const nextMonthStartDate = new Date(Date.UTC(report.year, report.month, 1));
 
-            const reservations = await ctx.db.reservation.findMany({
+            const reservations = filterReservationsOutsideExclusion(
+                await ctx.db.reservation.findMany({
                 where: {
                     apartmentId: report.apartmentId,
                     end: {
@@ -4728,7 +4782,9 @@ export const monthlyReportsRouter = createTRPCRouter({
                         lt: nextMonthStartDate,
                     },
                 },
-            });
+            }),
+                exclusionRangeFromApartment(report.apartment),
+            );
 
             // Calculate textile costs from apartment settings
             const totalTextileCost = await calculateTextileCosts(report.apartmentId, reservations, ctx);
