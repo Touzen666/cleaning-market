@@ -6,6 +6,10 @@ import { sendEmail, getZloteWynajmyLogoAttachments } from "@/lib/email/email-ser
 import { createResetPasswordEmail } from "@/lib/email/templates/reset-password";
 import { ownerHasReportFinancialAccess } from "@/server/api/lib/owner-monthly-report-access";
 import { ReportStatus } from "@prisma/client";
+import {
+    exclusionRangeFromApartment,
+    reservationOverlapsExclusion,
+} from "@/lib/reservation-exclusion";
 
 // Simple password hashing using Node.js crypto
 function hashPassword(password: string): string {
@@ -183,20 +187,47 @@ export const ownerAuthRouter = createTRPCRouter({
                 },
             });
 
-            const activeReservations = await ctx.db.reservation.count({
+            const activeReservationRows = await ctx.db.reservation.findMany({
                 where: {
                     apartment: {
                         archived: false,
                         ownerships: {
                             some: {
                                 ownerId: owner.id,
+                                isActive: true,
                             },
                         },
                     },
                     end: { gte: new Date() },
-                    status: { notIn: ["CANCELLED", "NOSHOW"] },
+                    status: {
+                        notIn: [
+                            "CANCELLED",
+                            "NOSHOW",
+                            "Anulowana",
+                            "Odrzucona przez obsługę",
+                        ],
+                    },
+                },
+                select: {
+                    start: true,
+                    end: true,
+                    apartment: {
+                        select: {
+                            reservationsDisabled: true,
+                            reservationsDisabledFrom: true,
+                            reservationsDisabledTo: true,
+                        },
+                    },
                 },
             });
+            const activeReservations = activeReservationRows.filter(
+                (reservation) =>
+                    !reservationOverlapsExclusion(
+                        reservation.start,
+                        reservation.end,
+                        exclusionRangeFromApartment(reservation.apartment),
+                    ),
+            ).length;
 
             const startOfYear = new Date(new Date().getFullYear(), 0, 1);
 
@@ -407,7 +438,12 @@ export const ownerAuthRouter = createTRPCRouter({
                         where: { apartment: { archived: false } },
                         include: {
                             apartment: {
-                                select: { id: true },
+                                select: {
+                                    id: true,
+                                    reservationsDisabled: true,
+                                    reservationsDisabledFrom: true,
+                                    reservationsDisabledTo: true,
+                                },
                             },
                         },
                     },
@@ -422,15 +458,41 @@ export const ownerAuthRouter = createTRPCRouter({
             }
 
             const apartmentIds = owner.ownedApartments.map(ownership => ownership.apartment.id);
+            const apartmentById = new Map(
+                owner.ownedApartments.map((ownership) => [ownership.apartment.id, ownership.apartment]),
+            );
 
             // Count active reservations (where end date is in the future or ongoing)
             const now = new Date();
-            const activeReservations = await ctx.db.reservation.count({
+            const activeReservationRows = await ctx.db.reservation.findMany({
                 where: {
                     apartmentId: { in: apartmentIds },
                     end: { gte: now },
+                    status: {
+                        notIn: [
+                            "CANCELLED",
+                            "NOSHOW",
+                            "Anulowana",
+                            "Odrzucona przez obsługę",
+                        ],
+                    },
+                },
+                select: {
+                    start: true,
+                    end: true,
+                    apartmentId: true,
                 },
             });
+            const activeReservations = activeReservationRows.filter((reservation) => {
+                const apartment = reservation.apartmentId != null
+                    ? apartmentById.get(reservation.apartmentId)
+                    : undefined;
+                return !reservationOverlapsExclusion(
+                    reservation.start,
+                    reservation.end,
+                    exclusionRangeFromApartment(apartment),
+                );
+            }).length;
 
             // Calculate revenue for current month
             const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
