@@ -50,8 +50,6 @@ import {
   isAirbnbCommissionChannel,
   isBookingCommissionChannel,
   resolveOtaCommissionPercent,
-  apartmentProfitBeforeDeductions,
-  summarizeOtaAccountInflow,
 } from "@/lib/ota-commission";
 import Spinner from "@/app/_components/shared/Spinner";
 import {
@@ -4401,41 +4399,8 @@ export default function ReportDetailsPage({
                 Zysk netto apartamentu (przed wszystkimi potrąceniami)
               </h5>
               <p className="text-2xl font-bold text-gray-900">
-                {apartmentProfitBeforeDeductions(
-                  report?.items ?? [],
-                  parkingProfit,
-                ).toFixed(2)}{" "}
-                PLN
+                {report?.netIncome?.toFixed(2) ?? "0.00"} PLN
               </p>
-              {(() => {
-                const ota = summarizeOtaAccountInflow(report?.items ?? []);
-                if (ota.totalNet <= 0) return null;
-                return (
-                  <div className="mt-3 space-y-1 text-sm text-gray-700">
-                    <p>
-                      Na konto z portali:{" "}
-                      <span className="font-semibold">
-                        {ota.totalNet.toFixed(2)} PLN
-                      </span>
-                    </p>
-                    <p>
-                      Booking: przychód {ota.bookingGross.toFixed(2)} − prowizja{" "}
-                      {ota.bookingCommission.toFixed(2)} ={" "}
-                      <span className="font-medium">
-                        {ota.bookingNet.toFixed(2)} PLN
-                      </span>
-                    </p>
-                    <p>
-                      Airbnb: przychód {ota.airbnbGross.toFixed(2)} − prowizja{" "}
-                      {ota.airbnbCommission.toFixed(2)} ={" "}
-                      <span className="font-medium">
-                        {ota.airbnbNet.toFixed(2)} PLN
-                      </span>{" "}
-                      (wypłata po 15,5%+VAT)
-                    </p>
-                  </div>
-                );
-              })()}
               {report && (
                 <p className="mt-1 text-xs text-gray-600">
                   Uwzględniono zysk z parkingu:{" "}

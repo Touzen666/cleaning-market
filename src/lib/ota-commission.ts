@@ -186,23 +186,6 @@ export function summarizeOtaAccountInflow(
     };
 }
 
-/**
- * Zysk przed sprzątaniem, praniem, tekstyliami i innymi wydatkami operacyjnymi.
- * Odejmuje tylko prowizje OTA (już w „Na konto z portali”), potem dodaje parking.
- */
-export function apartmentProfitBeforeDeductions(
-    items: Array<{ type: string; amount: number }>,
-    parkingProfit = 0,
-): number {
-    let revenue = 0;
-    let otaCommissions = 0;
-    for (const item of items) {
-        if (item.type === "REVENUE") revenue += item.amount;
-        else if (item.type === "COMMISSION") otaCommissions += item.amount;
-    }
-    return roundPln2(revenue - otaCommissions + parkingProfit);
-}
-
 export type OtaCommissionRevenueItem = {
     reservationId?: number | null;
     category: string;

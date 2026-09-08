@@ -37,10 +37,8 @@ import {
   reservationOverlapsExclusion,
 } from "@/lib/reservation-exclusion";
 import {
-  apartmentProfitBeforeDeductions,
   calculateAirbnbPayoutNet,
   isAirbnbCommissionChannel,
-  summarizeOtaAccountInflow,
 } from "@/lib/ota-commission";
 
 type ReportItemWithReservation = ReportItem & {
@@ -1228,34 +1226,8 @@ export default function OwnerReportDetailsPage() {
                     Zysk netto apartamentu (przed wszystkimi potrąceniami)
                   </h5>
                   <p className="text-2xl font-bold text-gray-900">
-                    {apartmentProfitBeforeDeductions(
-                      report.items,
-                      parkingProfit,
-                    ).toFixed(2)}{" "}
-                    PLN
+                    {netIncome.toFixed(2)} PLN
                   </p>
-                  {(() => {
-                    const ota = summarizeOtaAccountInflow(report.items);
-                    if (ota.totalNet <= 0) return null;
-                    return (
-                      <div className="mt-3 space-y-1 text-sm text-gray-700">
-                        <p>
-                          Na konto z portali:{" "}
-                          <span className="font-semibold">
-                            {ota.totalNet.toFixed(2)} PLN
-                          </span>
-                        </p>
-                        <p>
-                          Booking: {ota.bookingNet.toFixed(2)} PLN (z{" "}
-                          {ota.bookingGross.toFixed(2)} zł)
-                        </p>
-                        <p>
-                          Airbnb: {ota.airbnbNet.toFixed(2)} PLN (z{" "}
-                          {ota.airbnbGross.toFixed(2)} zł)
-                        </p>
-                      </div>
-                    );
-                  })()}
                 </div>
               )}
 
