@@ -7,6 +7,7 @@ import {
     calculateAirbnbPayoutNet,
     calculateBookingCommissionParts,
     calculateOtaCommissionAmount,
+    apartmentProfitBeforeDeductions,
     collectOtaCommissionBaseByChannel,
     formatPercentLabel,
     getDefaultOtaCommissionPercent,
@@ -218,5 +219,32 @@ describe("Booking OTA commission", () => {
             totalRevenue: 269.12,
             lineGrossAmounts: [269.12],
         });
+    });
+});
+
+describe("apartmentProfitBeforeDeductions", () => {
+    it("nie odejmuje sprzątania, prania i tekstyliów od wpłaty z portali", () => {
+        const items = [
+            { type: "REVENUE", amount: 3255.68 },
+            { type: "REVENUE", amount: 2212.2 },
+            { type: "EXPENSE", amount: 541.2 },
+            { type: "EXPENSE", amount: 1618.68 },
+            { type: "EXPENSE", amount: 255.84 },
+            { type: "COMMISSION", amount: 436.26 },
+            { type: "COMMISSION", amount: 421.7 },
+        ];
+
+        expect(apartmentProfitBeforeDeductions(items)).toBe(4609.92);
+        expect(apartmentProfitBeforeDeductions(items, 0)).not.toBe(2194.2);
+    });
+
+    it("dodaje zysk z parkingu do kwoty przed potrąceniami", () => {
+        const items = [
+            { type: "REVENUE", amount: 1000 },
+            { type: "COMMISSION", amount: 150 },
+            { type: "EXPENSE", amount: 200 },
+        ];
+
+        expect(apartmentProfitBeforeDeductions(items, 80)).toBe(930);
     });
 });

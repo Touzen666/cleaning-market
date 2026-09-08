@@ -37,6 +37,7 @@ import {
   reservationOverlapsExclusion,
 } from "@/lib/reservation-exclusion";
 import {
+  apartmentProfitBeforeDeductions,
   calculateAirbnbPayoutNet,
   isAirbnbCommissionChannel,
   summarizeOtaAccountInflow,
@@ -1227,7 +1228,11 @@ export default function OwnerReportDetailsPage() {
                     Zysk netto apartamentu (przed wszystkimi potrąceniami)
                   </h5>
                   <p className="text-2xl font-bold text-gray-900">
-                    {netIncome.toFixed(2)} PLN
+                    {apartmentProfitBeforeDeductions(
+                      report.items,
+                      parkingProfit,
+                    ).toFixed(2)}{" "}
+                    PLN
                   </p>
                   {(() => {
                     const ota = summarizeOtaAccountInflow(report.items);

@@ -50,6 +50,7 @@ import {
   isAirbnbCommissionChannel,
   isBookingCommissionChannel,
   resolveOtaCommissionPercent,
+  apartmentProfitBeforeDeductions,
   summarizeOtaAccountInflow,
 } from "@/lib/ota-commission";
 import Spinner from "@/app/_components/shared/Spinner";
@@ -4400,7 +4401,11 @@ export default function ReportDetailsPage({
                 Zysk netto apartamentu (przed wszystkimi potrąceniami)
               </h5>
               <p className="text-2xl font-bold text-gray-900">
-                {report?.netIncome?.toFixed(2) ?? "0.00"} PLN
+                {apartmentProfitBeforeDeductions(
+                  report?.items ?? [],
+                  parkingProfit,
+                ).toFixed(2)}{" "}
+                PLN
               </p>
               {(() => {
                 const ota = summarizeOtaAccountInflow(report?.items ?? []);
