@@ -14,7 +14,7 @@ import {
 } from "@prisma/client";
 import { getVatAmount, getGrossAmount } from "@/lib/vat";
 import { daysInCalendarMonth, getFixedPayoutProrateFactor } from "@/lib/report-fixed-prorate";
-import { getCommissionPayoutNet } from "@/lib/commission-settlement";
+import { getCommissionPayoutNet, getFixedHostPayout } from "@/lib/commission-settlement";
 import {
   translateReportStatus,
   getReportStatusColor,

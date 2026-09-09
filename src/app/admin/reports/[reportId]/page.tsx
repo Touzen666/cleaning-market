@@ -15,7 +15,7 @@ import {
 import { Modal } from "@/components/ui/Modal";
 import { getVatAmount, getGrossAmount } from "@/lib/vat";
 import { daysInCalendarMonth, getFixedPayoutProrateFactor } from "@/lib/report-fixed-prorate";
-import { getCommissionPayoutNet, mapPaymentTypeToSettlementType } from "@/lib/commission-settlement";
+import { getCommissionPayoutNet, getFixedHostPayout, mapPaymentTypeToSettlementType } from "@/lib/commission-settlement";
 import {
   translateReportStatus,
   getReportStatusColor,
@@ -4442,7 +4442,9 @@ export default function ReportDetailsPage({
               <h5 className="mb-2 text-lg font-medium text-blue-800">
                 {report?.finalSettlementType === "COMMISSION_MINUS_UTILITIES"
                   ? "Prowizja 25.00% dla administratora (od bazy po odjęciu czynszu i mediów)"
-                  : "Prowizja 25.00% dla administratora"}
+                  : report?.finalSettlementType === "FIXED"
+                    ? "Prowizja Złote Wynajmy (ZW pokrywa czynsz i media)"
+                    : "Prowizja 25.00% dla administratora"}
               </h5>
               {report?.finalSettlementType === "COMMISSION_MINUS_UTILITIES" ? (
                 (() => {
@@ -4496,6 +4498,48 @@ export default function ReportDetailsPage({
                           75% od bazy po odjęciu czynszu i mediów (przed
                           dodatkowymi odliczeniami)
                         </p>
+                      </div>
+                    </div>
+                  );
+                })()
+              ) : report?.finalSettlementType === "FIXED" ||
+                report?.finalSettlementType === "FIXED_MINUS_UTILITIES" ? (
+                (() => {
+                  const netIncome = Number(report?.netIncome ?? 0);
+                  const rentAmt = report?.rentAmount ?? 0;
+                  const utilAmt = report?.utilitiesAmount ?? 0;
+                  const coversRent = report?.finalSettlementType === "FIXED";
+                  const commission = getFixedHostPayout({
+                    netIncome,
+                    fixedAmount: Number(
+                      report?.apartment?.fixedPaymentAmount ?? 0,
+                    ),
+                    rentAmount: rentAmt,
+                    utilitiesAmount: utilAmt,
+                    managerCoversRentAndUtilities: coversRent,
+                  });
+                  return (
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                      <div className="rounded-md bg-blue-100 p-3">
+                        <p className="text-sm text-blue-700">Kwota prowizji:</p>
+                        <div className="text-xl font-bold text-blue-900">
+                          {commission.toFixed(2)} PLN
+                        </div>
+                        {coversRent && (
+                          <p className="mt-1 text-xs text-blue-600">
+                            pomniejszona o czynsz {rentAmt.toFixed(2)} i media{" "}
+                            {utilAmt.toFixed(2)} PLN
+                          </p>
+                        )}
+                      </div>
+                      <div className="rounded-md bg-blue-100 p-3">
+                        <p className="text-sm text-blue-700">Pozostało:</p>
+                        <div className="text-xl font-bold text-blue-900">
+                          {(
+                            netIncome - commission
+                          ).toFixed(2)}{" "}
+                          PLN
+                        </div>
                       </div>
                     </div>
                   );
@@ -5589,7 +5633,14 @@ function OwnerPayoutCalculation({
         const ownerPayoutFixed = Math.max(0, fixedBaseAmountAfterDeductions);
         // W trybach z kwotą stałą „Prowizja Złote Wynajmy” to różnica między zyskiem netto a kwotą stałą z umowy
         // (może być ujemna – wtedy oznacza dopłatę administratora)
-        const hostPayoutFixed = report.netIncome - fixedBaseAmount * previewProrateF;
+        const hostPayoutFixed = getFixedHostPayout({
+          netIncome: report.netIncome,
+          fixedAmount: fixedBaseAmount,
+          prorateFactor: previewProrateF,
+          rentAmount: report.rentAmount ?? 0,
+          utilitiesAmount: report.utilitiesAmount ?? 0,
+          managerCoversRentAndUtilities: true,
+        });
 
         const fixedOwnerPayout = isVatExemptLocal
           ? ownerPayoutFixed
@@ -5605,8 +5656,14 @@ function OwnerPayoutCalculation({
       case LocalPayoutType.FIXED_AMOUNT_MINUS_UTILITIES:
         const ownerPayoutFixedMinusUtilities = Math.max(0, kwotaBazowaNetto);
         // „Prowizja Złote Wynajmy” = zysk netto - kwota stała z umowy (niezależnie od potrąceń mediów)
-        const hostPayoutFixedMinusUtilities =
-          report.netIncome - fixedBaseAmount * previewProrateF;
+        const hostPayoutFixedMinusUtilities = getFixedHostPayout({
+          netIncome: report.netIncome,
+          fixedAmount: fixedBaseAmount,
+          prorateFactor: previewProrateF,
+          rentAmount: report.rentAmount ?? 0,
+          utilitiesAmount: report.utilitiesAmount ?? 0,
+          managerCoversRentAndUtilities: false,
+        });
 
         const fixedMinusUtilitiesOwnerPayout = isVatExemptLocal
           ? ownerPayoutFixedMinusUtilities
@@ -6159,6 +6216,27 @@ function OwnerPayoutCalculation({
                 )}
                 {" = "}
                 {fixedBaseAmountAfterDeductions.toFixed(2)} PLN)
+              </span>
+            }
+            color="green"
+          />
+          <SummaryField
+            label="Prowizja Złote Wynajmy"
+            value={`${getFixedHostPayout({
+              netIncome: report.netIncome,
+              fixedAmount: fixedBaseAmount,
+              prorateFactor: previewProrateF,
+              rentAmount: report.rentAmount ?? 0,
+              utilitiesAmount: report.utilitiesAmount ?? 0,
+              managerCoversRentAndUtilities: true,
+            }).toFixed(2)} PLN`}
+            subtext={
+              <span className="block text-xs text-green-700">
+                zysk netto {report.netIncome.toFixed(2)} − kwota stała{" "}
+                {(fixedBaseAmount * previewProrateF).toFixed(2)} − czynsz{" "}
+                {(report.rentAmount ?? 0).toFixed(2)} − media{" "}
+                {(report.utilitiesAmount ?? 0).toFixed(2)} (ZW pokrywa czynsz i
+                media)
               </span>
             }
             color="green"

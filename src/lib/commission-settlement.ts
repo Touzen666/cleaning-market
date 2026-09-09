@@ -43,6 +43,26 @@ export function isCommissionSettlementType(
 }
 
 /**
+ * Prowizja ZW przy kwocie stałej.
+ * FIXED: ZW pokrywa czynsz i media → prowizja = zysk − kwota stała − czynsz − media.
+ * FIXED_MINUS_UTILITIES: czynsz/media idą z wypłaty właściciela → prowizja = zysk − kwota stała.
+ */
+export function getFixedHostPayout(params: {
+    netIncome: number;
+    fixedAmount: number;
+    prorateFactor?: number;
+    rentAmount?: number;
+    utilitiesAmount?: number;
+    managerCoversRentAndUtilities: boolean;
+}): number {
+    const scaled = params.fixedAmount * (params.prorateFactor ?? 1);
+    const coveredCosts = params.managerCoversRentAndUtilities
+        ? (params.rentAmount ?? 0) + (params.utilitiesAmount ?? 0)
+        : 0;
+    return params.netIncome - scaled - coveredCosts;
+}
+
+/**
  * Prowizja ZW i baza netto wypłaty właściciela (przed VAT).
  *
  * COMMISSION: ZW = % od pełnego zysku; wypłata = zysk − ZW − czynsz − media − dodatkowe

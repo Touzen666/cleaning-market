@@ -31,6 +31,7 @@ import {
 import { summarizeTerminationCosts } from "@/lib/report-termination-costs";
 import {
     getCommissionPayoutNet,
+    getFixedHostPayout,
     isCommissionSettlementType,
     mapPaymentTypeToSettlementType,
 } from "@/lib/commission-settlement";
@@ -589,7 +590,14 @@ async function recalculateReportSettlement(reportId: string, ctx: RecalculateCon
                     report.fixedPayoutProrateEnabled,
                     report.fixedPayoutActiveDays,
                 );
-                finalHostPayout = Math.max(0, netIncome - fixedAmount * prorateF);
+                finalHostPayout = Math.max(0, getFixedHostPayout({
+                    netIncome,
+                    fixedAmount,
+                    prorateFactor: prorateF,
+                    rentAmount: report.rentAmount ?? 0,
+                    utilitiesAmount: report.utilitiesAmount ?? 0,
+                    managerCoversRentAndUtilities: settlementType === "FIXED",
+                }));
             }
 
             let terminationAdj: ReturnType<typeof summarizeTerminationCosts> | null = null;
@@ -1350,7 +1358,14 @@ export const monthlyReportsRouter = createTRPCRouter({
                 finalOwnerPayout = isVatExempt
                     ? netAfterDeductions
                     : getGrossAmount(netAfterDeductions, report.owner.vatOption);
-                finalHostPayout = Math.max(0, netIncome - fixedBaseAmount * fixedProrateF);
+                finalHostPayout = Math.max(0, getFixedHostPayout({
+                    netIncome,
+                    fixedAmount: fixedBaseAmount,
+                    prorateFactor: fixedProrateF,
+                    rentAmount: report.rentAmount ?? 0,
+                    utilitiesAmount: report.utilitiesAmount ?? 0,
+                    managerCoversRentAndUtilities: true,
+                }));
             } else if (report.finalSettlementType === "FIXED_MINUS_UTILITIES") {
                 // Fixed amount minus utilities settlement
                 const fixedBaseAmount = Number(report.apartment.fixedPaymentAmount ?? 0);
@@ -1359,7 +1374,14 @@ export const monthlyReportsRouter = createTRPCRouter({
                 finalOwnerPayout = isVatExempt
                     ? netBaseAfterUtilities
                     : getGrossAmount(netBaseAfterUtilities, report.owner.vatOption);
-                finalHostPayout = Math.max(0, netIncome - fixedBaseAmount * fixedProrateF);
+                finalHostPayout = Math.max(0, getFixedHostPayout({
+                    netIncome,
+                    fixedAmount: fixedBaseAmount,
+                    prorateFactor: fixedProrateF,
+                    rentAmount: report.rentAmount ?? 0,
+                    utilitiesAmount: report.utilitiesAmount ?? 0,
+                    managerCoversRentAndUtilities: false,
+                }));
             }
 
             const termCosts = report.terminationCosts ?? [];
@@ -4061,7 +4083,14 @@ export const monthlyReportsRouter = createTRPCRouter({
                         });
                         finalHostPayout = commissionPayout.hostPayout;
                     } else if (settlementType === 'FIXED' || settlementType === 'FIXED_MINUS_UTILITIES') {
-                        finalHostPayout = Math.max(0, netIncome - fixedAmount * prorateF);
+                        finalHostPayout = Math.max(0, getFixedHostPayout({
+                            netIncome,
+                            fixedAmount,
+                            prorateFactor: prorateF,
+                            rentAmount: report.rentAmount ?? 0,
+                            utilitiesAmount: report.utilitiesAmount ?? 0,
+                            managerCoversRentAndUtilities: settlementType === "FIXED",
+                        }));
                     }
                 }
 

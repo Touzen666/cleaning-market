@@ -1,7 +1,7 @@
 import { getFixedPayoutProrateFactor } from "@/lib/report-fixed-prorate";
 import { getGrossAmount } from "@/lib/vat";
 import type { VATOption } from "@prisma/client";
-import { getCommissionPayoutNet } from "@/lib/commission-settlement";
+import { getCommissionPayoutNet, getFixedHostPayout } from "@/lib/commission-settlement";
 
 export type HostPayoutReportInput = {
     customSummaryEnabled?: boolean | null;
@@ -102,7 +102,14 @@ export function getHostPayoutFromSummary(report: HostPayoutReportInput): number 
         netIncome * getAdminCommissionRate(report.apartment.paymentType);
 
     if (settlementType === "FIXED" || settlementType === "FIXED_MINUS_UTILITIES") {
-        return netIncome - fixedBaseAmount * prorateF;
+        return getFixedHostPayout({
+            netIncome,
+            fixedAmount: fixedBaseAmount,
+            prorateFactor: prorateF,
+            rentAmount: report.rentAmount ?? 0,
+            utilitiesAmount: report.utilitiesAmount ?? 0,
+            managerCoversRentAndUtilities: settlementType === "FIXED",
+        });
     }
 
     if (settlementType === "COMMISSION") {
