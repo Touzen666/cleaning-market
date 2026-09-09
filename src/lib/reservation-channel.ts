@@ -9,6 +9,9 @@ export const IDOBOOKING_SOURCE_ID_TO_CHANNEL: Record<number, string> = {
     14: "Airbnb",
 };
 
+/** Kanał rezerwacji z widgetu IdoBooking (katalog często zapisuje samą nazwę `widget`). */
+export const IDOBOOKING_WIDGET_CHANNEL = "IdoBooking widget";
+
 const INTERNAL_SOURCE_LABELS: Record<string, string> = {
     email: "Email",
     phone: "Telefon",
@@ -22,6 +25,12 @@ const IDOBOOKING_TYPE_ID_PATTERN = /idobooking\s*\(\s*typ\s*id:/i;
 function looksLikeIdobookingPlatformLabel(sourceLower: string): boolean {
     const compact = sourceLower.replace(/\s+/g, "");
     return compact === "idobooking" || compact === "idobooking.com";
+}
+
+function looksLikeIdobookingWidget(sourceLower: string): boolean {
+    const compact = sourceLower.replace(/[\s_-]+/g, "");
+    if (compact === "widget") return true;
+    return compact.includes("widget") && compact.includes("idobooking");
 }
 
 function looksLikeAirbnb(sourceLower: string): boolean {
@@ -62,6 +71,7 @@ export function getRecognizedReservationChannel(
     const sourceLower = source.toLowerCase();
 
     if (looksLikeAirbnb(sourceLower)) return "Airbnb";
+    if (looksLikeIdobookingWidget(sourceLower)) return IDOBOOKING_WIDGET_CHANNEL;
     if (looksLikeIdobookingPlatformLabel(sourceLower)) return null;
     if (looksLikeBookingCom(sourceLower)) return "Booking";
     if (looksLikeZloteWynajmy(sourceLower)) return "Złote Wynajmy";

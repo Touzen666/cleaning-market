@@ -11,6 +11,8 @@ import {
     formatPercentLabel,
     getDefaultOtaCommissionPercent,
     isAirbnbCommissionChannel,
+    isBookingCommissionChannel,
+    isIdobookingWidgetChannel,
     resolveOtaCommissionPercent,
     sumOtaCommissionBaseByChannel,
 } from "./ota-commission";
@@ -218,5 +220,18 @@ describe("Booking OTA commission", () => {
             totalRevenue: 269.12,
             lineGrossAmounts: [269.12],
         });
+    });
+});
+
+describe("IdoBooking widget commission", () => {
+    it("klasyfikuje widget jako IdoBooking widget z 12%, bez opłaty Booking 1,4%", () => {
+        expect(isIdobookingWidgetChannel("widget")).toBe(true);
+        expect(isIdobookingWidgetChannel("IdoBooking widget")).toBe(true);
+        expect(isBookingCommissionChannel("widget")).toBe(false);
+        expect(getDefaultOtaCommissionPercent("widget")).toBe(12);
+        expect(resolveOtaCommissionPercent("widget", 0)).toBe(12);
+        expect(calculateOtaCommissionAmount(573.54, 12, "widget")).toBe(68.82);
+        expect(buildOtaCommissionNotes("widget", 573.54, 12, 68.82)).toContain("IdoBooking widget");
+        expect(buildOtaCommissionNotes("widget", 573.54, 12, 68.82)).not.toContain("1,4%");
     });
 });

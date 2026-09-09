@@ -1,9 +1,11 @@
-import { getRecognizedReservationChannel, resolveReportChannel } from "@/lib/reservation-channel";
+import { getRecognizedReservationChannel, IDOBOOKING_WIDGET_CHANNEL, resolveReportChannel } from "@/lib/reservation-channel";
 import { checkoutFallsInPeriod, roundPln2 } from "@/lib/reservation-stay";
 
 export const AIRBNB_COMMISSION_PERCENT = 15.5;
 export const AIRBNB_COMMISSION_VAT_RATE = 0.23;
 export const BOOKING_COMMISSION_PERCENT = 12;
+/** Widget IdoBooking: stała 12% od przychodu (bez opłaty 1,4% z Booking.com). */
+export const IDOBOOKING_WIDGET_COMMISSION_PERCENT = 12;
 /** Booking.com: opłata za usługę płatniczą ≈ 1,4% brutto (nie 1,6%). */
 export const BOOKING_TRANSACTION_FEE_RATE = 0.014;
 
@@ -26,8 +28,13 @@ export function isBookingCommissionChannel(channel: string | null | undefined): 
     return lower.startsWith("booking") && !lower.includes("idobooking");
 }
 
+export function isIdobookingWidgetChannel(channel: string | null | undefined): boolean {
+    return getRecognizedReservationChannel(channel) === IDOBOOKING_WIDGET_CHANNEL;
+}
+
 export function getDefaultOtaCommissionPercent(channel: string): number | null {
     if (isAirbnbCommissionChannel(channel)) return AIRBNB_COMMISSION_PERCENT;
+    if (isIdobookingWidgetChannel(channel)) return IDOBOOKING_WIDGET_COMMISSION_PERCENT;
     if (isBookingCommissionChannel(channel)) return BOOKING_COMMISSION_PERCENT;
     return null;
 }
@@ -35,6 +42,9 @@ export function getDefaultOtaCommissionPercent(channel: string): number | null {
 export function resolveOtaCommissionPercent(channel: string, rawPercent: number): number {
     if (isAirbnbCommissionChannel(channel) && (!Number.isFinite(rawPercent) || rawPercent <= 0 || rawPercent === 15)) {
         return AIRBNB_COMMISSION_PERCENT;
+    }
+    if (isIdobookingWidgetChannel(channel) && (!Number.isFinite(rawPercent) || rawPercent <= 0)) {
+        return IDOBOOKING_WIDGET_COMMISSION_PERCENT;
     }
     if (isBookingCommissionChannel(channel) && (!Number.isFinite(rawPercent) || rawPercent <= 0)) {
         return BOOKING_COMMISSION_PERCENT;
@@ -142,6 +152,10 @@ export function buildOtaCommissionNotes(
                 : calculateBookingCommissionParts([totalRevenue], percentage);
         const feePercentLabel = formatPercentLabel(BOOKING_TRANSACTION_FEE_RATE * 100);
         return `Prowizja Booking: ${parts.commission.toFixed(2)} PLN (${percentLabel}%) + opłata za usługę płatniczą: ${parts.fee.toFixed(2)} PLN (${feePercentLabel}%). Razem: ${parts.total.toFixed(2)} PLN.`;
+    }
+
+    if (isIdobookingWidgetChannel(channel)) {
+        return `Prowizja IdoBooking widget: ${amount.toFixed(2)} PLN (${percentLabel}% od ${totalRevenue.toFixed(2)} PLN).`;
     }
 
     return `Sugerowana pozycja prowizji dla kanału ${channel} - ${percentLabel}% od ${totalRevenue.toFixed(2)} PLN`;

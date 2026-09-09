@@ -27,6 +27,9 @@ describe("getRecognizedReservationChannel", () => {
         expect(getRecognizedReservationChannel("Booking.com")).toBe("Booking");
         expect(getRecognizedReservationChannel("Booking")).toBe("Booking");
         expect(getRecognizedReservationChannel("Złote Wynajmy")).toBe("Złote Wynajmy");
+        expect(getRecognizedReservationChannel("widget")).toBe("IdoBooking widget");
+        expect(getRecognizedReservationChannel("Widget")).toBe("IdoBooking widget");
+        expect(getRecognizedReservationChannel("IdoBooking widget")).toBe("IdoBooking widget");
     });
 });
 
@@ -44,6 +47,7 @@ describe("displayReservationChannel", () => {
     it("pokazuje Airbnb dla ID 14 w selectach i raportach", () => {
         expect(displayReservationChannel("Idobooking (ID: 14)")).toBe("Airbnb");
         expect(displayReservationChannel("Idobooking (ID: 8)")).toBe("Booking");
+        expect(displayReservationChannel("widget")).toBe("IdoBooking widget");
         expect(displayReservationChannel("")).toBe("Złote Wynajmy");
     });
 });
@@ -65,6 +69,12 @@ describe("resolveStoredReservationSource", () => {
                 new Map([[22, "Airbnb.com"]]),
             ),
         ).toBe("Airbnb");
+        expect(
+            resolveStoredReservationSource(
+                { reservationSourceId: 3 },
+                new Map([[3, "widget"]]),
+            ),
+        ).toBe("IdoBooking widget");
     });
 
     it("zachowuje źródła bezpośrednie", () => {
