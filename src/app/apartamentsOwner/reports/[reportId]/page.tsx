@@ -14,7 +14,7 @@ import {
 } from "@prisma/client";
 import { getVatAmount, getGrossAmount } from "@/lib/vat";
 import { daysInCalendarMonth, getFixedPayoutProrateFactor } from "@/lib/report-fixed-prorate";
-import { getCommissionPayoutNet, getFixedHostPayout } from "@/lib/commission-settlement";
+import { getCommissionPayoutNet } from "@/lib/commission-settlement";
 import {
   translateReportStatus,
   getReportStatusColor,
@@ -329,6 +329,12 @@ export default function OwnerReportDetailsPage() {
   const scaledContractFixed = fixedBaseAmount * fixedProrateFactor;
   const kwotaBazowaNetto =
     scaledContractFixed - rentAndUtilities - totalAdditionalDeductionsGross;
+  const fixedZwCommission =
+    report.finalSettlementType === "FIXED"
+      ? netIncome - scaledContractFixed - rentAndUtilities
+      : report.finalSettlementType === "FIXED_MINUS_UTILITIES"
+        ? netIncome - scaledContractFixed
+        : null;
 
   // Wartości wyświetlane w podsumowaniu – respektują niestandardowe wartości
   const summaryTaxBase: number =
@@ -342,18 +348,7 @@ export default function OwnerReportDetailsPage() {
   const summaryHostPayout: number =
     report.customSummaryEnabled && report.customHostPayout != null
       ? Number(report.customHostPayout)
-      : report.finalSettlementType === "FIXED" ||
-          report.finalSettlementType === "FIXED_MINUS_UTILITIES"
-        ? getFixedHostPayout({
-            netIncome,
-            fixedAmount: fixedBaseAmount,
-            prorateFactor: fixedProrateFactor,
-            rentAmount: report.rentAmount ?? 0,
-            utilitiesAmount: report.utilitiesAmount ?? 0,
-            managerCoversRentAndUtilities:
-              report.finalSettlementType === "FIXED",
-          })
-        : (report.finalHostPayout ?? 0);
+      : (fixedZwCommission ?? report.finalHostPayout ?? 0);
   const summaryIncomeTax: number =
     report.customSummaryEnabled && report.customIncomeTax != null
       ? Number(report.customIncomeTax)
@@ -1318,14 +1313,7 @@ export default function OwnerReportDetailsPage() {
                       const rentAmt = report?.rentAmount ?? 0;
                       const utilAmt = report?.utilitiesAmount ?? 0;
                       const coversRent = report?.finalSettlementType === "FIXED";
-                      const commission = getFixedHostPayout({
-                        netIncome,
-                        fixedAmount: fixedBaseAmount,
-                        prorateFactor: fixedProrateFactor,
-                        rentAmount: rentAmt,
-                        utilitiesAmount: utilAmt,
-                        managerCoversRentAndUtilities: coversRent,
-                      });
+                      const commission = fixedZwCommission ?? 0;
                       return (
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                           <div className="rounded-md bg-blue-100 p-3">
@@ -1503,15 +1491,7 @@ export default function OwnerReportDetailsPage() {
                           Prowizja Złote Wynajmy:
                         </p>
                         <p className="text-lg font-bold text-green-900">
-                          {getFixedHostPayout({
-                            netIncome,
-                            fixedAmount: fixedBaseAmount,
-                            prorateFactor: fixedProrateFactor,
-                            rentAmount: report.rentAmount ?? 0,
-                            utilitiesAmount: report.utilitiesAmount ?? 0,
-                            managerCoversRentAndUtilities: true,
-                          }).toFixed(2)}{" "}
-                          PLN
+                          {(fixedZwCommission ?? 0).toFixed(2)} PLN
                           <span className="block text-xs text-green-600">
                             zysk netto {netIncome.toFixed(2)} − kwota stała{" "}
                             {scaledContractFixed.toFixed(2)} − czynsz{" "}
