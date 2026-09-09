@@ -1235,62 +1235,10 @@ export default function OwnerReportDetailsPage() {
               {!report.customSummaryEnabled && !isOwnApartment && (
                 <div className="mb-6 rounded-lg bg-blue-50 p-4">
                   <h5 className="mb-2 text-lg font-medium text-blue-800">
-                    {(() => {
-                      const net = Number(report?.netIncome ?? 0);
-                      let commission = 0;
-                      let remaining = 0;
-
-                      if (
-                        report?.finalSettlementType === "FIXED" ||
-                        report?.finalSettlementType === "FIXED_MINUS_UTILITIES"
-                      ) {
-                        const fixedAmount = Number(
-                          report?.apartment?.fixedPaymentAmount ?? 0,
-                        );
-                        commission = net - fixedAmount;
-                        const deductions = report?.additionalDeductions ?? [];
-                        const totalDeductionsGross = deductions.reduce(
-                          (
-                            sum: number,
-                            d: { amount: number; vatOption: string },
-                          ) =>
-                            sum +
-                            (d.vatOption === "VAT_8" || d.vatOption === "VAT_23"
-                              ? getGrossAmount(d.amount, d.vatOption)
-                              : d.amount),
-                          0,
-                        );
-                        const adminTopUp = Math.max(fixedAmount - net, 0);
-                        remaining = net + adminTopUp - totalDeductionsGross;
-                      } else if (
-                        report?.finalSettlementType ===
-                        "COMMISSION_MINUS_UTILITIES"
-                      ) {
-                        const rentAndUtilities =
-                          (report?.rentAmount ?? 0) +
-                          (report?.utilitiesAmount ?? 0);
-                        const base = net - rentAndUtilities;
-                        commission = base * 0.25;
-                        remaining = base * 0.75;
-                      } else {
-                        commission = net * 0.25;
-                        remaining = net * 0.75;
-                      }
-
-                      const percent =
-                        Math.abs(commission) + Math.abs(remaining) > 0
-                          ? (Math.abs(commission) /
-                              (Math.abs(commission) + Math.abs(remaining))) *
-                            100
-                          : 0;
-                      if (
-                        report?.finalSettlementType ===
-                        "COMMISSION_MINUS_UTILITIES"
-                      ) {
-                        return `Prowizja ${percent.toFixed(2)}% dla administratora (od bazy po odjęciu czynszu i mediów)`;
-                      }
-                      return `Prowizja ${percent.toFixed(2)}% dla administratora`;
-                    })()}
+                    {report?.finalSettlementType ===
+                    "COMMISSION_MINUS_UTILITIES"
+                      ? "Prowizja 25.00% dla administratora (od bazy po odjęciu czynszu i mediów)"
+                      : "Prowizja 25.00% dla administratora"}
                   </h5>
                   {report?.finalSettlementType ===
                   "COMMISSION_MINUS_UTILITIES" ? (
@@ -1354,75 +1302,19 @@ export default function OwnerReportDetailsPage() {
                     <div className="rounded-md bg-blue-100 p-3">
                       <p className="text-sm text-blue-700">Kwota prowizji:</p>
                       <div className="text-xl font-bold text-blue-900">
-                        {(() => {
-                          if (
-                            report?.finalSettlementType === "FIXED" ||
-                            report?.finalSettlementType ===
-                              "FIXED_MINUS_UTILITIES"
-                          ) {
-                            const net = Number(report?.netIncome ?? 0);
-                            const fixedAmount = Number(
-                              report?.apartment?.fixedPaymentAmount ?? 0,
-                            );
-                            const realCommission = net - fixedAmount;
-                            return (
-                              <>
-                                <span
-                                  className={
-                                    realCommission < 0 ? "text-red-600" : ""
-                                  }
-                                >
-                                  {realCommission.toFixed(2)} PLN
-                                </span>
-                                {realCommission < 0 && (
-                                  <div className="mt-2 rounded-md bg-red-100 p-2">
-                                    <p className="text-xs font-medium text-red-700">
-                                      Zarządca dopłaca różnicę:{" "}
-                                      {Math.abs(realCommission).toFixed(2)} PLN
-                                    </p>
-                                  </div>
-                                )}
-                              </>
-                            );
-                          }
-                          return `${((report?.netIncome ?? 0) * 0.25).toFixed(2)} PLN`;
-                        })()}
+                        {((report?.netIncome ?? 0) * 0.25).toFixed(2)} PLN
                       </div>
                     </div>
                     <div className="rounded-md bg-blue-100 p-3">
                       <p className="text-sm text-blue-700">Pozostało:</p>
                       <div className="text-xl font-bold text-blue-900">
-                        {(() => {
-                          if (
-                            report?.finalSettlementType === "FIXED" ||
-                            report?.finalSettlementType ===
-                              "FIXED_MINUS_UTILITIES"
-                          ) {
-                            const net = Number(report?.netIncome ?? 0);
-                            const fixedAmount = Number(
-                              report?.apartment?.fixedPaymentAmount ?? 0,
-                            );
-                            const deductions =
-                              report?.additionalDeductions ?? [];
-                            const totalDeductionsGross = deductions.reduce(
-                              (
-                                sum: number,
-                                d: { amount: number; vatOption: string },
-                              ) =>
-                                sum +
-                                (d.vatOption === "VAT_8" ||
-                                d.vatOption === "VAT_23"
-                                  ? getGrossAmount(d.amount, d.vatOption)
-                                  : d.amount),
-                              0,
-                            );
-                            const adminTopUp = Math.max(fixedAmount - net, 0);
-                            const remaining =
-                              net + adminTopUp - totalDeductionsGross;
-                            return `${remaining.toFixed(2)} PLN`;
-                          }
-                          return `${((report?.netIncome ?? 0) * 0.75).toFixed(2)} PLN`;
-                        })()}
+                        {((report?.netIncome ?? 0) * 0.75).toFixed(2)} PLN
+                        <div className="mt-2 text-xs text-blue-700">
+                          75% od zysku netto{" "}
+                          {Number(report?.netIncome ?? 0).toFixed(2)} PLN (po
+                          wydatkach i prowizjach portali, przed czynszem, mediami
+                          i dodatkowymi odliczeniami)
+                        </div>
                       </div>
                     </div>
                   </div>
