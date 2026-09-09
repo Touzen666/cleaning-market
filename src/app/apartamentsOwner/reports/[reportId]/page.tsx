@@ -342,7 +342,18 @@ export default function OwnerReportDetailsPage() {
   const summaryHostPayout: number =
     report.customSummaryEnabled && report.customHostPayout != null
       ? Number(report.customHostPayout)
-      : (report.finalHostPayout ?? 0);
+      : report.finalSettlementType === "FIXED" ||
+          report.finalSettlementType === "FIXED_MINUS_UTILITIES"
+        ? getFixedHostPayout({
+            netIncome,
+            fixedAmount: fixedBaseAmount,
+            prorateFactor: fixedProrateFactor,
+            rentAmount: report.rentAmount ?? 0,
+            utilitiesAmount: report.utilitiesAmount ?? 0,
+            managerCoversRentAndUtilities:
+              report.finalSettlementType === "FIXED",
+          })
+        : (report.finalHostPayout ?? 0);
   const summaryIncomeTax: number =
     report.customSummaryEnabled && report.customIncomeTax != null
       ? Number(report.customIncomeTax)
@@ -1238,7 +1249,11 @@ export default function OwnerReportDetailsPage() {
                     {report?.finalSettlementType ===
                     "COMMISSION_MINUS_UTILITIES"
                       ? "Prowizja 25.00% dla administratora (od bazy po odjęciu czynszu i mediów)"
-                      : "Prowizja 25.00% dla administratora"}
+                      : report?.finalSettlementType === "FIXED"
+                        ? "Prowizja Złote Wynajmy (ZW pokrywa czynsz i media)"
+                        : report?.finalSettlementType === "FIXED_MINUS_UTILITIES"
+                          ? "Prowizja Złote Wynajmy (czynsz i media z wypłaty właściciela)"
+                          : "Prowizja 25.00% dla administratora"}
                   </h5>
                   {report?.finalSettlementType ===
                   "COMMISSION_MINUS_UTILITIES" ? (
@@ -1293,6 +1308,48 @@ export default function OwnerReportDetailsPage() {
                               75% od bazy po odjęciu czynszu i mediów (przed
                               dodatkowymi odliczeniami)
                             </p>
+                          </div>
+                        </div>
+                      );
+                    })()
+                  ) : report?.finalSettlementType === "FIXED" ||
+                    report?.finalSettlementType === "FIXED_MINUS_UTILITIES" ? (
+                    (() => {
+                      const rentAmt = report?.rentAmount ?? 0;
+                      const utilAmt = report?.utilitiesAmount ?? 0;
+                      const coversRent = report?.finalSettlementType === "FIXED";
+                      const commission = getFixedHostPayout({
+                        netIncome,
+                        fixedAmount: fixedBaseAmount,
+                        prorateFactor: fixedProrateFactor,
+                        rentAmount: rentAmt,
+                        utilitiesAmount: utilAmt,
+                        managerCoversRentAndUtilities: coversRent,
+                      });
+                      return (
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                          <div className="rounded-md bg-blue-100 p-3">
+                            <p className="text-sm text-blue-700">
+                              Kwota prowizji:
+                            </p>
+                            <div className="text-xl font-bold text-blue-900">
+                              {commission.toFixed(2)} PLN
+                            </div>
+                            <p className="mt-1 text-xs text-blue-600">
+                              zysk netto {netIncome.toFixed(2)} − kwota stała{" "}
+                              {scaledContractFixed.toFixed(2)}
+                              {coversRent
+                                ? ` − czynsz ${rentAmt.toFixed(2)} − media ${utilAmt.toFixed(2)} (ZW pokrywa te koszty)`
+                                : " (czynsz i media są w wypłacie właściciela)"}
+                            </p>
+                          </div>
+                          <div className="rounded-md bg-blue-100 p-3">
+                            <p className="text-sm text-blue-700">
+                              Wypłata właściciela (kwota stała):
+                            </p>
+                            <div className="text-xl font-bold text-blue-900">
+                              {scaledContractFixed.toFixed(2)} PLN
+                            </div>
                           </div>
                         </div>
                       );
@@ -1416,7 +1473,7 @@ export default function OwnerReportDetailsPage() {
                           {fixedBaseAmount.toFixed(2)} PLN).
                         </p>
                       )}
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
                       <div className="rounded-md bg-green-100 p-3">
                         <p className="text-sm text-green-700">
                           Kwota bazowa{!isVatExempt && " (netto)"}:
@@ -1438,6 +1495,29 @@ export default function OwnerReportDetailsPage() {
                             )}
                             ; czynsz i media nie pomniejszają tej kwoty w tym
                             wariancie)
+                          </span>
+                        </p>
+                      </div>
+                      <div className="rounded-md bg-green-100 p-3">
+                        <p className="text-sm text-green-700">
+                          Prowizja Złote Wynajmy:
+                        </p>
+                        <p className="text-lg font-bold text-green-900">
+                          {getFixedHostPayout({
+                            netIncome,
+                            fixedAmount: fixedBaseAmount,
+                            prorateFactor: fixedProrateFactor,
+                            rentAmount: report.rentAmount ?? 0,
+                            utilitiesAmount: report.utilitiesAmount ?? 0,
+                            managerCoversRentAndUtilities: true,
+                          }).toFixed(2)}{" "}
+                          PLN
+                          <span className="block text-xs text-green-600">
+                            zysk netto {netIncome.toFixed(2)} − kwota stała{" "}
+                            {scaledContractFixed.toFixed(2)} − czynsz{" "}
+                            {(report.rentAmount ?? 0).toFixed(2)} − media{" "}
+                            {(report.utilitiesAmount ?? 0).toFixed(2)} (ZW
+                            pokrywa czynsz i media)
                           </span>
                         </p>
                       </div>
@@ -1802,25 +1882,18 @@ export default function OwnerReportDetailsPage() {
                               "COMMISSION_MINUS_UTILITIES"
                             ? "Rozliczenie prowizyjne po odjęciu czynszu i mediów"
                             : report.finalSettlementType === "FIXED"
-                            ? "Rozliczenie kwota stała"
+                            ? "Rozliczenie kwota stała — ZW pokrywa czynsz i media (prowizja pomniejszona o te kwoty)"
                             : report.finalSettlementType ===
                                 "FIXED_MINUS_UTILITIES"
                               ? "Rozliczenie kwota stała po odliczeniu mediów"
                               : "Typ rozliczenia nie określony"}
                       </p>
-                      {report.finalSettlementType === "FIXED" &&
-                        report.adminCommissionAmount &&
-                        report.afterCommission && (
+                      {report.finalSettlementType === "FIXED" && (
                           <p className="mt-1 text-xs text-purple-500">
-                            Różnica:{" "}
-                            {(
-                              (report.finalHostPayout ?? 0) -
-                              netIncome * 0.25
-                            ).toFixed(2)}{" "}
-                            PLN (rzeczywista prowizja{" "}
-                            {(report.finalHostPayout ?? 0).toFixed(2)} PLN -
-                            standardowa prowizja {(netIncome * 0.25).toFixed(2)}{" "}
-                            PLN)
+                            zysk netto {netIncome.toFixed(2)} − kwota stała{" "}
+                            {scaledContractFixed.toFixed(2)} − czynsz{" "}
+                            {(report.rentAmount ?? 0).toFixed(2)} − media{" "}
+                            {(report.utilitiesAmount ?? 0).toFixed(2)} PLN
                           </p>
                         )}
                       {report.finalSettlementType === "FIXED_MINUS_UTILITIES" &&

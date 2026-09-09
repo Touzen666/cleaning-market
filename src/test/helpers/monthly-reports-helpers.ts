@@ -3,6 +3,7 @@ import { TRPCError } from "@trpc/server";
 import { summarizeTerminationCosts } from "@/lib/report-termination-costs";
 import {
     getCommissionPayoutNet,
+    getFixedHostPayout,
     isCommissionSettlementType,
 } from "@/lib/commission-settlement";
 
@@ -168,7 +169,13 @@ export async function recalculateReportSettlement(reportId: string, ctx: Recalcu
                 });
                 finalHostPayout = commissionPayout.hostPayout;
             } else if (settlementType === 'FIXED' || settlementType === 'FIXED_MINUS_UTILITIES') {
-                finalHostPayout = Math.max(0, netIncome - fixedAmount);
+                finalHostPayout = Math.max(0, getFixedHostPayout({
+                    netIncome,
+                    fixedAmount,
+                    rentAmount: report.rentAmount ?? 0,
+                    utilitiesAmount: report.utilitiesAmount ?? 0,
+                    managerCoversRentAndUtilities: settlementType === "FIXED",
+                }));
             }
 
             let terminationAdj: ReturnType<typeof summarizeTerminationCosts> | null = null;

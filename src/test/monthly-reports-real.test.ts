@@ -282,6 +282,40 @@ describe("Monthly Reports - Rzeczywiste funkcje", () => {
             expect(result.finalVatAmount).toBe(1150); // 5000 * 0.23
         });
 
+        it("przy kwocie stałej pomniejsza prowizję ZW o czynsz i media", async () => {
+            const mockReport = {
+                id: "report-fixed-covers-rent",
+                apartmentId: 1,
+                status: ReportStatus.APPROVED,
+                finalSettlementType: SettlementType.FIXED,
+                rentAmount: 620,
+                utilitiesAmount: 150,
+                ownerId: "owner-fixed-covers",
+            };
+
+            mockDb.monthlyReport.findUnique.mockResolvedValue(mockReport);
+            mockDb.apartment.findUnique.mockResolvedValue({ fixedPaymentAmount: 2700 });
+            mockDb.apartmentOwner.findUnique.mockResolvedValue({
+                vatOption: VATOption.NO_VAT,
+            });
+            mockDb.$queryRaw
+                .mockResolvedValueOnce([
+                    { type: "REVENUE", total: 8000 },
+                    { type: "EXPENSE", total: 1623.82 },
+                ])
+                .mockResolvedValueOnce([]);
+            mockDb.monthlyReport.update.mockResolvedValue({});
+
+            const result = await recalculateReportSettlement(
+                "report-fixed-covers-rent",
+                mockCtx,
+            );
+
+            expect(result.netIncome).toBeCloseTo(6376.18, 2);
+            expect(result.finalOwnerPayout).toBe(2700);
+            expect(result.finalHostPayout).toBeCloseTo(2906.18, 2);
+        });
+
         it("przelicza raport z typem rozliczenia FIXED_MINUS_UTILITIES", async () => {
             const mockReport = {
                 id: "report-3",
