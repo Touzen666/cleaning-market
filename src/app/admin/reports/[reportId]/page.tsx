@@ -50,6 +50,7 @@ import {
   isAirbnbCommissionChannel,
   isBookingCommissionChannel,
   isIdobookingWidgetChannel,
+  otaCommissionDescription,
   resolveOtaCommissionPercent,
 } from "@/lib/ota-commission";
 import Spinner from "@/app/_components/shared/Spinner";
@@ -5040,6 +5041,7 @@ function SuggestedCommissionsSection({
       void onAddCommission(
         {
           ...suggestion,
+          description: otaCommissionDescription(suggestion.category),
           amount,
           notes,
         },
@@ -5124,11 +5126,7 @@ function SuggestedCommissionsSection({
                     </div>
                     <div className="ml-3">
                       <p className="text-sm font-medium text-gray-900">
-                        {isAirbnb
-                          ? `Prowizja - Airbnb (${formatPercentLabel(AIRBNB_COMMISSION_PERCENT)}% + VAT)`
-                          : isWidget
-                            ? "Prowizja - IdoBooking widget (12%)"
-                            : `Prowizja - ${suggestion.category}`}
+                        {otaCommissionDescription(suggestion.category)}
                       </p>
                       <p className="text-sm text-gray-500">
                         Przychód z kanału (wymeldowanie w miesiącu):{" "}
@@ -5136,9 +5134,8 @@ function SuggestedCommissionsSection({
                       </p>
                       {bookingParts && (
                         <p className="text-sm text-gray-500">
-                          Prowizja ({formatPercentLabel(percentage)}%):{" "}
-                          {bookingParts.commission.toFixed(2)} PLN + opłata za
-                          usługę płatniczą (
+                          {formatPercentLabel(percentage)}%:{" "}
+                          {bookingParts.commission.toFixed(2)} PLN + opłata (
                           {formatPercentLabel(BOOKING_TRANSACTION_FEE_RATE * 100)}
                           %): {bookingParts.fee.toFixed(2)} PLN
                         </p>
@@ -5163,7 +5160,7 @@ function SuggestedCommissionsSection({
                           {isAirbnb &&
                             ` (${formatPercentLabel(percentage)}% + 23% VAT)`}
                           {isBooking &&
-                            ` (12% + ${formatPercentLabel(BOOKING_TRANSACTION_FEE_RATE * 100)}% opłata, per rezerwacja)`}
+                            ` (${formatPercentLabel(percentage)}% + ${formatPercentLabel(BOOKING_TRANSACTION_FEE_RATE * 100)}%)`}
                           {isWidget && ` (12%)`}
                         </p>
                       )}

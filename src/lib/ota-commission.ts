@@ -32,6 +32,19 @@ export function isIdobookingWidgetChannel(channel: string | null | undefined): b
     return getRecognizedReservationChannel(channel) === IDOBOOKING_WIDGET_CHANNEL;
 }
 
+export function otaCommissionDescription(channel: string): string {
+    if (isAirbnbCommissionChannel(channel)) {
+        return `Prowizja - Airbnb (${formatPercentLabel(AIRBNB_COMMISSION_PERCENT)}% + VAT)`;
+    }
+    if (isBookingCommissionChannel(channel)) {
+        return `Prowizja - Booking (${formatPercentLabel(BOOKING_COMMISSION_PERCENT)}% + ${formatPercentLabel(BOOKING_TRANSACTION_FEE_RATE * 100)}%)`;
+    }
+    if (isIdobookingWidgetChannel(channel)) {
+        return `Prowizja - IdoBooking widget (${formatPercentLabel(IDOBOOKING_WIDGET_COMMISSION_PERCENT)}%)`;
+    }
+    return `Prowizja - ${channel}`;
+}
+
 export function getDefaultOtaCommissionPercent(channel: string): number | null {
     if (isAirbnbCommissionChannel(channel)) return AIRBNB_COMMISSION_PERCENT;
     if (isIdobookingWidgetChannel(channel)) return IDOBOOKING_WIDGET_COMMISSION_PERCENT;

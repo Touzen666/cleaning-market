@@ -13,6 +13,7 @@ import {
     isAirbnbCommissionChannel,
     isBookingCommissionChannel,
     isIdobookingWidgetChannel,
+    otaCommissionDescription,
     resolveOtaCommissionPercent,
     sumOtaCommissionBaseByChannel,
 } from "./ota-commission";
@@ -184,6 +185,18 @@ describe("Booking OTA commission", () => {
         expect(notes).not.toContain("1.6");
         expect(notes).not.toContain("1,6");
         expect(notes).not.toContain("VAT (8%)");
+    });
+
+    it("pokazuje prowizję Booking łącznie z 1,4% jak Airbnb z VAT", () => {
+        expect(otaCommissionDescription("Booking")).toBe(
+            "Prowizja - Booking (12% + 1,4%)",
+        );
+        expect(otaCommissionDescription("Airbnb")).toBe(
+            "Prowizja - Airbnb (15,5% + VAT)",
+        );
+        expect(calculateOtaCommissionAmount(307.49, 12, "Booking", [307.49])).toBe(
+            41.2,
+        );
     });
 
     it("zbiera pełne kwoty brutto per rezerwacja z wymeldowaniem w miesiącu", () => {

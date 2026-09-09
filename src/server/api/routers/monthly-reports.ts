@@ -41,7 +41,7 @@ import {
     filterReportItemsOutsideExclusion,
     filterReservationsOutsideExclusion,
 } from "@/lib/reservation-exclusion";
-import { AIRBNB_COMMISSION_PERCENT, collectOtaCommissionBaseByChannel, formatPercentLabel, isAirbnbCommissionChannel } from "@/lib/ota-commission";
+import { AIRBNB_COMMISSION_PERCENT, BOOKING_COMMISSION_PERCENT, BOOKING_TRANSACTION_FEE_RATE, collectOtaCommissionBaseByChannel, formatPercentLabel, isAirbnbCommissionChannel, isBookingCommissionChannel } from "@/lib/ota-commission";
 
 type RecalculateContext = {
     db: PrismaClient;
@@ -2229,9 +2229,11 @@ export const monthlyReportsRouter = createTRPCRouter({
                     category: channel,
                     description: isAirbnb
                         ? `Prowizja - Airbnb (${formatPercentLabel(AIRBNB_COMMISSION_PERCENT)}% + VAT)`
-                        : isWidget
-                            ? "Prowizja - IdoBooking widget (12%)"
-                            : `Prowizja - ${channel}`,
+                        : isBookingCommissionChannel(channel)
+                            ? `Prowizja - Booking (${formatPercentLabel(BOOKING_COMMISSION_PERCENT)}% + ${formatPercentLabel(BOOKING_TRANSACTION_FEE_RATE * 100)}%)`
+                            : isWidget
+                                ? "Prowizja - IdoBooking widget (12%)"
+                                : `Prowizja - ${channel}`,
                     amount: 0, // Będzie obliczona jako procent
                     totalRevenue,
                     lineGrossAmounts,
