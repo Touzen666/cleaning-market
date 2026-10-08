@@ -17,9 +17,12 @@ export default function AdminOwnersPage() {
   const router = useRouter();
   const { data: session, update } = useSession();
   const [showAddForm, setShowAddForm] = useState(false);
+  const [includeArchived, setIncludeArchived] = useState(false);
 
-  // tRPC queries
-  const ownersQuery = api.apartmentOwners.getAll.useQuery();
+  // tRPC queries — pełna lista, filtrowanie archiwum po stronie widoku
+  const ownersQuery = api.apartmentOwners.getAll.useQuery({
+    includeArchived: true,
+  });
   const apartmentsQuery = api.apartments.getAll.useQuery();
 
   const {
@@ -102,6 +105,11 @@ export default function AdminOwnersPage() {
   if (ownersLoading || apartmentsLoading) {
     return <div className="p-4">Loading...</div>;
   }
+
+  const cooperatingOwners = owners?.filter((owner) => !owner.archived) ?? [];
+  const visibleOwners = includeArchived ? (owners ?? []) : cooperatingOwners;
+  const archivedOwnersCount =
+    (owners?.length ?? 0) - cooperatingOwners.length;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -207,7 +215,7 @@ export default function AdminOwnersPage() {
                       Wszyscy właściciele
                     </dt>
                     <dd className="text-lg font-medium text-gray-900">
-                      {owners?.length ?? 0}
+                      {cooperatingOwners.length}
                     </dd>
                   </dl>
                 </div>
@@ -239,7 +247,7 @@ export default function AdminOwnersPage() {
                       Aktywni
                     </dt>
                     <dd className="text-lg font-medium text-gray-900">
-                      {owners?.filter((o) => o.isActive).length ?? 0}
+                      {cooperatingOwners.filter((o) => o.isActive).length}
                     </dd>
                   </dl>
                 </div>
@@ -271,7 +279,7 @@ export default function AdminOwnersPage() {
                       Pierwsze logowanie
                     </dt>
                     <dd className="text-lg font-medium text-gray-900">
-                      {owners?.filter((o) => o.isFirstLogin).length ?? 0}
+                      {cooperatingOwners.filter((o) => o.isFirstLogin).length}
                     </dd>
                   </dl>
                 </div>
@@ -316,12 +324,23 @@ export default function AdminOwnersPage() {
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-1 lg:grid-cols-3">
           <div className="lg:col-span-2">
             <div className="rounded-lg bg-white p-6 shadow">
-              <h2 className="mb-4 text-xl font-bold text-gray-900">
-                Lista Właścicieli
-              </h2>
-              {owners && owners.length > 0 ? (
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                <h2 className="text-xl font-bold text-gray-900">
+                  Lista Właścicieli
+                </h2>
+                <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                  <input
+                    type="checkbox"
+                    checked={includeArchived}
+                    onChange={(e) => setIncludeArchived(e.target.checked)}
+                    className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                  />
+                  Pokaż zarchiwizowanych ({archivedOwnersCount})
+                </label>
+              </div>
+              {visibleOwners.length > 0 ? (
                 <ul className="space-y-4">
-                  {owners.map((owner) => (
+                  {visibleOwners.map((owner) => (
                     <OwnerCard
                       key={owner.id}
                       owner={owner}
@@ -348,11 +367,16 @@ export default function AdminOwnersPage() {
                     />
                   </svg>
                   <h3 className="mt-2 text-sm font-semibold text-gray-900">
-                    Brak właścicieli
+                    {archivedOwnersCount > 0
+                      ? "Brak aktywnych właścicieli"
+                      : "Brak właścicieli"}
                   </h3>
                   <p className="mt-1 text-sm text-gray-500">
-                    Dodaj nowego właściciela, aby zacząć zarządzać.
+                    {archivedOwnersCount > 0
+                      ? "Wszyscy właściciele są w archiwum. Zaznacz „Pokaż zarchiwizowanych”, aby ich zobaczyć i przywrócić."
+                      : "Dodaj nowego właściciela, aby zacząć zarządzać."}
                   </p>
+                  {archivedOwnersCount === 0 && (
                   <div className="mt-6">
                     <button
                       onClick={() => setShowAddForm(true)}
@@ -374,6 +398,7 @@ export default function AdminOwnersPage() {
                       Dodaj pierwszego właściciela
                     </button>
                   </div>
+                  )}
                 </div>
               )}
             </div>
@@ -394,7 +419,9 @@ export default function AdminOwnersPage() {
                 <span className="font-medium text-red-700">czerwono</span>, gdy nie ma już żadnej
                 umowy w toku, a wszystkie objęte procesem są zamknięte. Apartamenty z zamkniętą
                 umową przechodzą do archiwum automatycznie po 30 dniach od daty zamknięcia
-                (cron Vercel).
+                (cron Vercel). Właściciela, z którym zakończono współpracę, można
+                zarchiwizować ręcznie — znika wtedy z tworzenia raportów i nie może
+                się zalogować. Raporty historyczne zostają.
               </p>
             </div>
           </div>
@@ -452,6 +479,15 @@ function OwnerCard({
       alert(`Błąd usuwania: ${err.message}`),
   });
 
+  const setArchivedMutation = api.apartmentOwners.setArchived.useMutation({
+    onSuccess: (data) => {
+      alert(data.message);
+      onRefetch();
+    },
+    onError: (err: { message: string }) =>
+      alert(`Błąd archiwizacji: ${err.message}`),
+  });
+
   const removeApartmentMutation =
     api.apartmentOwners.removeApartmentFromOwner.useMutation({
       onSuccess: onRefetch,
@@ -474,9 +510,11 @@ function OwnerCard({
   return (
     <li
       className={`rounded-lg border p-4 ${
-        ct.listHighlightAllCompleted
-          ? "border-red-400 bg-red-50"
-          : "border-gray-200 bg-white"
+        owner.archived
+          ? "border-gray-300 bg-gray-50"
+          : ct.listHighlightAllCompleted
+            ? "border-red-400 bg-red-50"
+            : "border-gray-200 bg-white"
       }`}
     >
       <div
@@ -491,8 +529,13 @@ function OwnerCard({
             className={owner.isActive ? "" : "opacity-50"}
           />
           <div className="ml-4">
-            <div className="text-lg font-medium text-gray-900">
+            <div className="flex flex-wrap items-center gap-2 text-lg font-medium text-gray-900">
               {owner.firstName} {owner.lastName}
+              {owner.archived && (
+                <span className="inline-flex items-center rounded-full bg-gray-600 px-2 py-0.5 text-xs font-medium text-white">
+                  Zarchiwizowany
+                </span>
+              )}
             </div>
             <div className="text-sm text-gray-500">{owner.email}</div>
             {showTerminationLine && (
@@ -545,6 +588,33 @@ function OwnerCard({
                 className="inline-flex items-center rounded-md bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800 hover:bg-blue-200"
               >
                 Szczegóły
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const name = `${owner.firstName} ${owner.lastName}`;
+                  const confirmed = owner.archived
+                    ? confirm(
+                        `Przywrócić właściciela „${name}” z archiwum? Znów pojawi się przy tworzeniu raportów i będzie mógł się zalogować.`,
+                      )
+                    : confirm(
+                        `Zarchiwizować właściciela „${name}”? Zniknie z tworzenia raportów i nie będzie mógł się zalogować. Dane oraz historyczne raporty zostaną zachowane.`,
+                      );
+                  if (confirmed) {
+                    setArchivedMutation.mutate({
+                      ownerId: owner.id,
+                      archived: !owner.archived,
+                    });
+                  }
+                }}
+                disabled={setArchivedMutation.isPending}
+                className="inline-flex items-center rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-800 hover:bg-gray-200 disabled:opacity-50"
+              >
+                {setArchivedMutation.isPending
+                  ? "Zapisywanie..."
+                  : owner.archived
+                    ? "Przywróć z archiwum"
+                    : "Archiwizuj"}
               </button>
               <button
                 onClick={(e) => {

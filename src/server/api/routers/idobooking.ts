@@ -446,6 +446,13 @@ export async function mapToDBReservations(
         itemCode: string | null;
         apartmentName: string;
         source: string;
+        guest: string;
+        start: Date;
+        end: Date;
+        paymantValue: number;
+        balance: number | null;
+        adults: number | null;
+        children: number | null;
     };
 
     const lineKey = (id: number, objectLineId: number) => `${id}_${objectLineId}`;
@@ -502,6 +509,13 @@ export async function mapToDBReservations(
             itemCode: true,
             apartmentName: true,
             source: true,
+            guest: true,
+            start: true,
+            end: true,
+            paymantValue: true,
+            balance: true,
+            adults: true,
+            children: true,
         },
     });
 
@@ -515,6 +529,13 @@ export async function mapToDBReservations(
             itemCode: r.itemCode ?? null,
             apartmentName: r.apartmentName,
             source: r.source,
+            guest: r.guest,
+            start: r.start,
+            end: r.end,
+            paymantValue: r.paymantValue,
+            balance: r.balance,
+            adults: r.adults,
+            children: r.children,
         };
         existingReservationsMap.set(lineKey(r.idobookingId, r.idobookingObjectItemId), mapped);
     }
@@ -592,6 +613,37 @@ export async function mapToDBReservations(
                     data.idobookingObjectItemId = objectLineId;
                 }
 
+                const linePayment =
+                    totalItems > 1 ? item.price + item.priceCorrection : reservationDetails.price;
+                const nextStart = new Date(reservationDetails.dateFrom);
+                const nextEnd = new Date(reservationDetails.dateTo);
+                const nextBalance = reservationDetails.balance ?? null;
+                const adultsCount = item.numberOfAdults ?? item.numberOfGuests ?? 1;
+                const childrenCount =
+                    (item.numberOfBigChildren ?? 0) + (item.numberOfSmallChildren ?? 0);
+                const guestName = client
+                    ? `${client.firstName ?? ""} ${client.lastName ?? ""}`.trim() || "Nieznany gość"
+                    : existing.guest;
+
+                if (!Number.isNaN(nextStart.getTime()) && existing.start.getTime() !== nextStart.getTime()) {
+                    data.start = nextStart;
+                }
+                if (!Number.isNaN(nextEnd.getTime()) && existing.end.getTime() !== nextEnd.getTime()) {
+                    data.end = nextEnd;
+                }
+                if (Math.abs(existing.paymantValue - linePayment) > 0.001) {
+                    data.paymantValue = linePayment;
+                    data.payment = linePayment.toString();
+                }
+                const balanceChanged =
+                    existing.balance == null
+                        ? nextBalance != null
+                        : nextBalance == null || Math.abs(existing.balance - nextBalance) > 0.001;
+                if (balanceChanged) data.balance = nextBalance;
+                if (existing.guest !== guestName) data.guest = guestName;
+                if (existing.adults !== adultsCount) data.adults = adultsCount;
+                if (existing.children !== childrenCount) data.children = childrenCount;
+
                 if (Object.keys(data).length > 0) {
                     reservationsToUpdate.push({
                         idobookingId,
@@ -652,6 +704,7 @@ export async function mapToDBReservations(
                     children: totalChildrenCount,
                     address: item.objectName ?? "Brak adresu",
                     paymantValue: linePayment,
+                    balance: details.balance ?? null,
                 });
 
                 reservationsCreateMeta.push({

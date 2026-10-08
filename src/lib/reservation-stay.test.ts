@@ -4,6 +4,8 @@ import {
     checkoutFallsInPeriod,
     countOverlapNights,
     countStayNights,
+    keptReservationRevenue,
+    revenueStayFallsInPeriod,
 } from "./reservation-stay";
 
 describe("checkoutFallsInPeriod", () => {
@@ -21,6 +23,48 @@ describe("checkoutFallsInPeriod", () => {
         expect(
             checkoutFallsInPeriod(new Date("2026-08-01T12:00:00.000Z"), julyStart, augustStart),
         ).toBe(false);
+    });
+});
+
+describe("revenueStayFallsInPeriod", () => {
+    const septemberStart = new Date(Date.UTC(2026, 8, 1));
+    const octoberStart = new Date(Date.UTC(2026, 9, 1));
+    const novemberStart = new Date(Date.UTC(2026, 10, 1));
+
+    it("zostawia pobyt 29.09–01.10 w całości we wrześniu", () => {
+        const checkout = new Date("2026-10-01T10:00:00.000Z");
+        expect(revenueStayFallsInPeriod(checkout, septemberStart, octoberStart)).toBe(true);
+        expect(revenueStayFallsInPeriod(checkout, octoberStart, novemberStart)).toBe(false);
+    });
+
+    it("zostawia wymeldowanie 3.09 we wrześniu", () => {
+        expect(
+            revenueStayFallsInPeriod(
+                new Date("2026-09-03T10:00:00.000Z"),
+                septemberStart,
+                octoberStart,
+            ),
+        ).toBe(true);
+    });
+});
+
+describe("keptReservationRevenue", () => {
+    it("bierze pełną cenę zakończonej rezerwacji", () => {
+        expect(
+            keptReservationRevenue({ status: "Zakończona", price: 522, balance: 0 }),
+        ).toBe(522);
+    });
+
+    it("zeruje anulację, gdy saldo jest zwrotem całej przedpłaty", () => {
+        expect(
+            keptReservationRevenue({ status: "Anulowana", price: 441.7, balance: -441.7 }),
+        ).toBe(0);
+    });
+
+    it("zostawia cenę anulacji bez zwrotu", () => {
+        expect(
+            keptReservationRevenue({ status: "Anulowana", price: 400, balance: 0 }),
+        ).toBe(400);
     });
 });
 

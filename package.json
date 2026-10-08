@@ -14,6 +14,7 @@
     "sync:idobooking": "npx tsx --env-file-if-exists=.env --tsconfig tsconfig.json scripts/sync-idobooking.ts",
     "db:add-textile-column": "node scripts/add-textile-column.cjs",
     "db:add-reservations-disabled-columns": "node scripts/add-reservations-disabled-columns.cjs",
+    "db:add-owner-archived-column": "node scripts/add-owner-archived-column.cjs",
     "db:studio": "prisma studio",
     "db:seed": "NODE_ENV=development prisma db seed",
     "dev": "node scripts/update-version.js && next dev --turbo",

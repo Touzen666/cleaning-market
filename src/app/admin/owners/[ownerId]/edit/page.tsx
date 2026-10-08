@@ -43,7 +43,15 @@ export default function EditOwnerPage({
   // Query do pobierania danych właściciela
   const ownerQuery = api.apartmentOwners.getById.useQuery({ ownerId });
 
-  // Mutacja do aktualizacji właściciela
+  const setArchivedMutation = api.apartmentOwners.setArchived.useMutation({
+    onSuccess: (data) => {
+      alert(data.message);
+      void ownerQuery.refetch();
+    },
+    onError: (err: { message: string }) =>
+      alert(`Błąd archiwizacji: ${err.message}`),
+  });
+
   const updateOwnerMutation = api.apartmentOwners.update.useMutation({
     onSuccess: () => {
       // Usuwamy automatyczne przekierowanie - użytkownik sam zdecyduje kiedy opuścić stronę
@@ -281,6 +289,43 @@ export default function EditOwnerPage({
                   className="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
                 />
               </div>
+            </div>
+
+            <div className="rounded-md border border-gray-200 bg-gray-50 p-4">
+              <p className="text-sm font-medium text-gray-900">Archiwizacja</p>
+              <p className="mt-1 text-sm text-gray-600">
+                {ownerQuery.data.archived
+                  ? "Ten właściciel jest zarchiwizowany. Nie pojawia się przy tworzeniu raportów i nie może się zalogować."
+                  : "Po zakończeniu współpracy zarchiwizuj właściciela. Zostanie w bazie razem z raportami, ale zniknie z list operacyjnych."}
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  const archived = ownerQuery.data.archived;
+                  const name = `${ownerQuery.data.firstName} ${ownerQuery.data.lastName}`;
+                  const confirmed = archived
+                    ? confirm(
+                        `Przywrócić właściciela „${name}” z archiwum?`,
+                      )
+                    : confirm(
+                        `Zarchiwizować właściciela „${name}”? Nie zostanie usunięty.`,
+                      );
+                  if (confirmed) {
+                    setArchivedMutation.mutate({
+                      ownerId,
+                      archived: !archived,
+                    });
+                  }
+                }}
+                disabled={setArchivedMutation.isPending}
+                className="mt-3 rounded-md bg-gray-700 px-3 py-2 text-sm font-medium text-white hover:bg-gray-600 disabled:opacity-50"
+              >
+                {setArchivedMutation.isPending
+                  ? "Zapisywanie..."
+                  : ownerQuery.data.archived
+                    ? "Przywróć z archiwum"
+                    : "Archiwizuj właściciela"}
+              </button>
             </div>
 
             <div className="flex items-center">

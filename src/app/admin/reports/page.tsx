@@ -94,7 +94,9 @@ export default function AdminReportsPage() {
     enabled: filtersLoaded,
   });
 
-  const ownersQuery = api.apartmentOwners.getAll.useQuery();
+  const ownersQuery = api.apartmentOwners.getAll.useQuery({
+    includeArchived: true,
+  });
 
   // TRPC mutations
   const recalculateAllMutation =
@@ -358,6 +360,7 @@ export default function AdminReportsPage() {
                 {owners.map((owner) => (
                   <option key={owner.id} value={owner.id}>
                     {owner.firstName} {owner.lastName}
+                    {owner.archived ? " (archiwum)" : ""}
                   </option>
                 ))}
               </select>

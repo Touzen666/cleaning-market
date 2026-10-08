@@ -65,6 +65,15 @@ export default function OwnerDetailsPage({
     },
   });
 
+  const setArchivedMutation = api.apartmentOwners.setArchived.useMutation({
+    onSuccess: (data) => {
+      alert(data.message);
+      void ownerQuery.refetch();
+    },
+    onError: (err: { message: string }) =>
+      alert(`Błąd archiwizacji: ${err.message}`),
+  });
+
   const resetPasswordMutation = api.apartmentOwners.resetPassword.useMutation({
     onSuccess: (data) => {
       const emailInfo = data.emailSent
@@ -221,6 +230,11 @@ export default function OwnerDetailsPage({
               <p className="mt-2 text-sm text-gray-600">
                 {owner.firstName} {owner.lastName} - {owner.email}
               </p>
+              {owner.archived && (
+                <p className="mt-2 inline-flex items-center rounded-full bg-gray-600 px-2.5 py-0.5 text-xs font-medium text-white">
+                  Zarchiwizowany — brak na listach operacyjnych i bez logowania
+                </p>
+              )}
             </div>
             <div className="mt-4 flex gap-3 sm:mt-0">
               <button
@@ -241,6 +255,32 @@ export default function OwnerDetailsPage({
                   />
                 </svg>
                 Powrót do listy
+              </button>
+              <button
+                onClick={() => {
+                  const name = `${owner.firstName} ${owner.lastName}`;
+                  const confirmed = owner.archived
+                    ? confirm(
+                        `Przywrócić właściciela „${name}” z archiwum? Znów pojawi się przy tworzeniu raportów i będzie mógł się zalogować.`,
+                      )
+                    : confirm(
+                        `Zarchiwizować właściciela „${name}”? Zniknie z tworzenia raportów i nie będzie mógł się zalogować. Dane oraz historyczne raporty zostaną zachowane.`,
+                      );
+                  if (confirmed) {
+                    setArchivedMutation.mutate({
+                      ownerId,
+                      archived: !owner.archived,
+                    });
+                  }
+                }}
+                disabled={setArchivedMutation.isPending}
+                className="inline-flex items-center rounded-md bg-gray-700 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-600 disabled:opacity-50"
+              >
+                {setArchivedMutation.isPending
+                  ? "Zapisywanie..."
+                  : owner.archived
+                    ? "Przywróć z archiwum"
+                    : "Archiwizuj właściciela"}
               </button>
               <button
                 onClick={() => router.push(`/admin/owners/${ownerId}/edit`)}
@@ -448,7 +488,11 @@ export default function OwnerDetailsPage({
                     Status
                   </label>
                   <div className="mt-1">
-                    {owner.isActive ? (
+                    {owner.archived ? (
+                      <span className="inline-flex items-center rounded-full bg-gray-200 px-2.5 py-0.5 text-xs font-medium text-gray-800">
+                        Zarchiwizowany
+                      </span>
+                    ) : owner.isActive ? (
                       <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
                         Aktywny
                       </span>

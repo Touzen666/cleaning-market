@@ -1413,7 +1413,7 @@ export default function ReportDetailsPage({
   const revenueItems = (finalReport?.items ?? []).filter(
     (item) => item.type === "REVENUE",
   );
-  // Rezerwacje/przychody (tylko skutecznie zrealizowane – nie filtrujemy po liczbie gości)
+  // Rezerwacje z ostatnią nocą w miesiącu, łącznie z anulowanymi (kwota 0 przy zwrocie).
   const reservationItems = revenueItems.filter((item) => {
     const r = item.reservation;
     if (!r) return false;
@@ -1423,11 +1423,10 @@ export default function ReportDetailsPage({
       .replace(/[\u0300-\u036f]/g, "")
       .toLowerCase()
       .trim();
+    if (s.includes("anul") || s.includes("cancel")) return true;
     if (
-      s.includes("anul") ||
       s.includes("odrzuc") ||
       s.includes("withdraw") ||
-      s.includes("cancel") ||
       s.includes("nieopl") ||
       s.includes("oczekuje") ||
       s.includes("niepopraw") ||
@@ -3368,6 +3367,16 @@ export default function ReportDetailsPage({
                         </td>
                         <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-green-600">
                           +{item.amount.toFixed(2)} {item.currency}
+                          {(item.reservation?.status ?? "")
+                            .toString()
+                            .toLowerCase()
+                            .includes("anul") && (
+                            <div className="text-xs font-normal text-gray-500">
+                              {item.amount > 0
+                                ? "Anulowana, wpłata zatrzymana"
+                                : "Zwrot przedpłaty — poza przychodem"}
+                            </div>
+                          )}
                           {isAirbnbCommissionChannel(
                             item.reservation?.source ?? item.category,
                           ) && (

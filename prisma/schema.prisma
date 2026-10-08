@@ -98,6 +98,8 @@ model Reservation {
   status                String
   payment               String
   paymantValue          Float
+  /// Saldo IdoBooking: 0 = rozliczone, wartość ujemna = zwrot dla gościa
+  balance               Float?
   currency              String
   adults                Int?
   children              Int?
@@ -294,6 +296,7 @@ model ApartmentOwner {
   isFirstLogin                Boolean              @default(true)
   vatOption                   VATOption            @default(NO_VAT) // Zostaje tylko VAT - rozliczenia przeniesione na poziom apartamentu
   isActive                    Boolean              @default(true)
+  archived                    Boolean              @default(false) // Zakończona współpraca – ukryty z list operacyjnych, bez logowania
   lastLoginAt                 DateTime?
   createdByAdminId            String
   resetPasswordToken          String?
@@ -307,6 +310,7 @@ model ApartmentOwner {
 
   @@index([email])
   @@index([isActive])
+  @@index([archived])
 }
 
 model ApartmentOwnership {

@@ -58,7 +58,7 @@ describe("Airbnb OTA commission", () => {
 });
 
 describe("sumOtaCommissionBaseByChannel", () => {
-    it("liczy Booking według wymeldowania i pełnej kwoty z FV, nie podziału nocy", () => {
+    it("liczy Booking według ostatniej nocy i pełnej kwoty, nie podziału nocy", () => {
         const julyStart = new Date(Date.UTC(2026, 6, 1));
         const augustStart = new Date(Date.UTC(2026, 7, 1));
         const channels = sumOtaCommissionBaseByChannel(
@@ -128,7 +128,7 @@ describe("sumOtaCommissionBaseByChannel", () => {
             augustStart,
         );
 
-        expect(channels.get("Booking")).toBe(1859.57);
+        expect(channels.get("Booking")).toBe(1786.49);
         expect(channels.get("Airbnb")).toBe(1230.39);
         expect(channels.has("Booking")).toBe(true);
     });
@@ -230,8 +230,8 @@ describe("Booking OTA commission", () => {
         );
 
         expect(collected.get("Booking")).toEqual({
-            totalRevenue: 269.12,
-            lineGrossAmounts: [269.12],
+            totalRevenue: 196.04,
+            lineGrossAmounts: [196.04],
         });
     });
 });

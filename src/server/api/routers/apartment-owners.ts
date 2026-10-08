@@ -14,6 +14,7 @@ const apartmentOwnerSchema = z.object({
     lastName: z.string(),
     phone: z.string().nullable(),
     isActive: z.boolean(),
+    archived: z.boolean(),
     isFirstLogin: z.boolean(),
     temporaryPassword: z.string().nullable(),
     temporaryPasswordExpiresAt: z.date().nullable(),
@@ -41,8 +42,9 @@ const apartmentOwnerSchema = z.object({
 export const apartmentOwnersRouter = createTRPCRouter({
     // Get all apartment owners (admin only)
     getAll: protectedProcedure
+        .input(z.object({ includeArchived: z.boolean().optional() }).optional())
         .output(z.array(apartmentOwnerSchema))
-        .query(async ({ ctx }) => {
+        .query(async ({ ctx, input }) => {
             // Check if user is admin
             if (ctx.session.user.type !== UserType.ADMIN) {
                 throw new TRPCError({
@@ -53,6 +55,7 @@ export const apartmentOwnersRouter = createTRPCRouter({
 
             try {
                 const owners = await ctx.db.apartmentOwner.findMany({
+                    where: input?.includeArchived ? undefined : { archived: false },
                     include: {
                         createdByAdmin: {
                             select: {
@@ -261,6 +264,46 @@ export const apartmentOwnersRouter = createTRPCRouter({
                 where: { id: input.ownerId },
                 data: { isActive: input.isActive },
             });
+        }),
+
+    // Archive or restore an owner (ended cooperation — record stays)
+    setArchived: protectedProcedure
+        .input(z.object({
+            ownerId: z.string(),
+            archived: z.boolean(),
+        }))
+        .mutation(async ({ input, ctx }) => {
+            if (ctx.session.user.type !== UserType.ADMIN) {
+                throw new TRPCError({
+                    code: "FORBIDDEN",
+                    message: "Only admins can archive apartment owners",
+                });
+            }
+
+            const owner = await ctx.db.apartmentOwner.findUnique({
+                where: { id: input.ownerId },
+                select: { id: true, firstName: true, lastName: true },
+            });
+
+            if (!owner) {
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: "Właściciel nie został znaleziony",
+                });
+            }
+
+            await ctx.db.apartmentOwner.update({
+                where: { id: owner.id },
+                data: { archived: input.archived },
+            });
+
+            const name = `${owner.firstName} ${owner.lastName}`;
+            return {
+                success: true,
+                message: input.archived
+                    ? `Właściciel „${name}” został zarchiwizowany`
+                    : `Właściciel „${name}” został przywrócony z archiwum`,
+            };
         }),
 
     // Update apartment owner

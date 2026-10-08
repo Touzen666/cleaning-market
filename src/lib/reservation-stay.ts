@@ -18,6 +18,84 @@ export function checkoutFallsInPeriod(
     return day >= utcDayMs(periodStart) && day < utcDayMs(periodEnd);
 }
 
+const REPORT_TIME_ZONE = "Europe/Warsaw";
+
+/** Dzień kalendarzowy w Europe/Warsaw, jako północ UTC tego dnia. */
+export function warsawDayMs(date: Date): number {
+    const parts = new Intl.DateTimeFormat("en-CA", {
+        timeZone: REPORT_TIME_ZONE,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+    }).formatToParts(date);
+    const year = Number(parts.find((part) => part.type === "year")?.value);
+    const month = Number(parts.find((part) => part.type === "month")?.value);
+    const day = Number(parts.find((part) => part.type === "day")?.value);
+    return Date.UTC(year, month - 1, day);
+}
+
+/** Ostatnia noc pobytu: dzień przed wymeldowaniem w Europe/Warsaw. */
+export function lastNightDayMs(checkout: Date): number {
+    return warsawDayMs(checkout) - MS_PER_DAY;
+}
+
+/**
+ * Rezerwacja wchodzi do miesiąca, w którym jest jej ostatnia noc.
+ * Wymeldowanie 1.10 o 10:00 nie tworzy nocy w październiku — cała kwota zostaje we wrześniu.
+ */
+export function revenueStayFallsInPeriod(
+    checkout: Date,
+    periodStart: Date,
+    periodEnd: Date,
+): boolean {
+    const night = lastNightDayMs(checkout);
+    return night >= warsawDayMs(periodStart) && night < warsawDayMs(periodEnd);
+}
+
+/** Szerokie okno `end` do pobrania kandydatów. Dokładny miesiąc ustala `revenueStayFallsInPeriod`. */
+export function revenueCheckoutQueryWindow(
+    periodStart: Date,
+    periodEnd: Date,
+): { gte: Date; lt: Date } {
+    return {
+        gte: new Date(periodStart.getTime() - MS_PER_DAY),
+        lt: new Date(periodEnd.getTime() + 2 * MS_PER_DAY),
+    };
+}
+
+export function normalizeReservationStatus(status: string | null | undefined): string {
+    return (status ?? "")
+        .toString()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .trim();
+}
+
+export function isCancelledReservationStatus(status: string | null | undefined): boolean {
+    const normalized = normalizeReservationStatus(status);
+    return normalized.includes("anul") || normalized.includes("cancel");
+}
+
+/**
+ * Kwota, którą obiekt naprawdę zatrzymuje.
+ * Ujemne saldo IdoBooking przy anulacji to zwrot przedpłaty (cena + saldo = 0).
+ * Saldo 0 przy anulacji oznacza, że wpłata została zatrzymana.
+ */
+export function keptReservationRevenue(input: {
+    status: string | null | undefined;
+    price: number;
+    balance?: number | null;
+}): number {
+    const price = roundPln2(Number.isFinite(input.price) ? Math.max(0, input.price) : 0);
+    if (!isCancelledReservationStatus(input.status)) return price;
+
+    const balance = input.balance;
+    if (balance == null || !Number.isFinite(balance)) return 0;
+    if (balance < 0) return roundPln2(Math.max(0, price + balance));
+    return price;
+}
+
 /** Liczba nocy pobytu [start, end). Checkout w dniu X nie jest nocą w tym dniu. */
 export function countStayNights(start: Date, end: Date): number {
     const nights = Math.round((utcDayMs(end) - utcDayMs(start)) / MS_PER_DAY);

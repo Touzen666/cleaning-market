@@ -20,6 +20,10 @@ function verifyPassword(password: string, hash: string): boolean {
     return hashPassword(password) === hash;
 }
 
+function ownerPanelClosed(owner: { isActive: boolean; archived: boolean } | null | undefined) {
+    return !owner || !owner.isActive || owner.archived;
+}
+
 // Helper to generate a secure temporary password
 // function generateSecurePassword(length = 10): string {
 //     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%';
@@ -120,6 +124,13 @@ export const ownerAuthRouter = createTRPCRouter({
                 });
             }
 
+            if (owner.archived) {
+                throw new TRPCError({
+                    code: "FORBIDDEN",
+                    message: "Konto właściciela jest zarchiwizowane. Logowanie zostało wyłączone.",
+                });
+            }
+
             // Update last login
             await ctx.db.apartmentOwner.update({
                 where: { id: owner.id },
@@ -169,10 +180,12 @@ export const ownerAuthRouter = createTRPCRouter({
                     firstName: true,
                     lastName: true,
                     id: true,
+                    isActive: true,
+                    archived: true,
                 },
             });
 
-            if (!owner) {
+            if (!owner || ownerPanelClosed(owner)) {
                 throw new TRPCError({
                     code: "NOT_FOUND",
                     message: "Nie znaleziono właściciela",
@@ -284,7 +297,11 @@ export const ownerAuthRouter = createTRPCRouter({
             });
 
             return {
-                owner,
+                owner: {
+                    id: owner.id,
+                    firstName: owner.firstName,
+                    lastName: owner.lastName,
+                },
                 stats: {
                     totalApartments,
                     activeReservations,
@@ -309,7 +326,7 @@ export const ownerAuthRouter = createTRPCRouter({
                 where: { email },
             });
 
-            if (!owner?.isActive) {
+            if (!owner || ownerPanelClosed(owner)) {
                 throw new TRPCError({
                     code: "NOT_FOUND",
                     message: "Właściciel nie został znaleziony",
@@ -396,7 +413,7 @@ export const ownerAuthRouter = createTRPCRouter({
                 },
             });
 
-            if (!owner || !owner.isActive) {
+            if (!owner || ownerPanelClosed(owner)) {
                 throw new TRPCError({
                     code: "NOT_FOUND",
                     message: "Właściciel nie został znaleziony",
@@ -450,7 +467,7 @@ export const ownerAuthRouter = createTRPCRouter({
                 },
             });
 
-            if (!owner || !owner.isActive) {
+            if (!owner || ownerPanelClosed(owner)) {
                 throw new TRPCError({
                     code: "NOT_FOUND",
                     message: "Właściciel nie został znaleziony",
@@ -535,7 +552,7 @@ export const ownerAuthRouter = createTRPCRouter({
                 const { email } = input;
                 const owner = await ctx.db.apartmentOwner.findUnique({ where: { email } });
 
-                if (owner?.isActive) {
+                if (owner?.isActive && !owner.archived) {
                     const token = randomBytes(32).toString("hex");
                     const expires = new Date(Date.now() + 1000 * 60 * 60); // 1h
 
@@ -587,7 +604,7 @@ export const ownerAuthRouter = createTRPCRouter({
                     resetPasswordTokenExpiresAt: { gte: new Date() },
                 },
             });
-            if (!owner) throw new TRPCError({ code: "BAD_REQUEST", message: "Token jest nieprawidłowy lub wygasł." });
+            if (!owner || owner.archived) throw new TRPCError({ code: "BAD_REQUEST", message: "Token jest nieprawidłowy lub wygasł." });
 
             const passwordHash = hashPassword(input.newPassword);
 
@@ -622,6 +639,8 @@ export const ownerAuthRouter = createTRPCRouter({
                     address: true,
                     city: true,
                     postalCode: true,
+                    isActive: true,
+                    archived: true,
                     profileImages: {
                         where: { isActive: true },
                         orderBy: { createdAt: 'desc' },
@@ -635,18 +654,27 @@ export const ownerAuthRouter = createTRPCRouter({
                 },
             });
 
-            if (!owner) {
+            if (!owner || ownerPanelClosed(owner)) {
                 throw new TRPCError({
                     code: "NOT_FOUND",
                     message: "Właściciel nie został znaleziony.",
                 });
             }
 
-            // Extract the active profile image URL
             const profileImageUrl = owner.profileImages[0]?.url ?? null;
 
             return {
-                ...owner,
+                id: owner.id,
+                firstName: owner.firstName,
+                lastName: owner.lastName,
+                email: owner.email,
+                phone: owner.phone,
+                companyName: owner.companyName,
+                nip: owner.nip,
+                address: owner.address,
+                city: owner.city,
+                postalCode: owner.postalCode,
+                profileImages: owner.profileImages,
                 profileImageUrl,
             };
         }),
@@ -669,7 +697,7 @@ export const ownerAuthRouter = createTRPCRouter({
                 where: { email: ownerEmail },
             });
 
-            if (!owner) {
+            if (!owner || owner.archived) {
                 throw new TRPCError({
                     code: "NOT_FOUND",
                     message: "Właściciel nie został znaleziony.",
@@ -729,7 +757,7 @@ export const ownerAuthRouter = createTRPCRouter({
                 where: { email: ownerEmail },
             });
 
-            if (!owner) {
+            if (!owner || owner.archived) {
                 throw new TRPCError({
                     code: "NOT_FOUND",
                     message: "Właściciel nie został znaleziony.",
@@ -797,7 +825,7 @@ export const ownerAuthRouter = createTRPCRouter({
                 where: { email: ownerEmail },
             });
 
-            if (!owner) {
+            if (!owner || owner.archived) {
                 throw new TRPCError({
                     code: "NOT_FOUND",
                     message: "Właściciel nie został znaleziony.",
@@ -857,7 +885,7 @@ export const ownerAuthRouter = createTRPCRouter({
                 where: { email: ownerEmail },
             });
 
-            if (!owner) {
+            if (!owner || owner.archived) {
                 throw new TRPCError({
                     code: "NOT_FOUND",
                     message: "Właściciel nie został znaleziony.",

@@ -281,7 +281,7 @@ export default function OwnerReportDetailsPage() {
   const manualRevenueItems: ReportItemWithReservation[] = revenueItems.filter(
     (i) => !i.reservation,
   );
-  // Rezerwacje/przychody (tylko skutecznie zrealizowane)
+  // Rezerwacje z ostatnią nocą w miesiącu, łącznie z anulowanymi (kwota 0 przy zwrocie).
   const exclusionRange = exclusionRangeFromApartment(report.apartment);
   const reservationItems: ReportItemWithReservation[] = revenueItems.filter(
     (i: ReportItemWithReservation) => {
@@ -289,13 +289,12 @@ export default function OwnerReportDetailsPage() {
       if (!r) return false;
       const guests = (r.adults ?? 0) + (r.children ?? 0);
       const unknownGuests = r.adults == null && r.children == null;
-      if (
-        r.status === "Anulowana" ||
-        r.status === "Odrzucona przez obsługę" ||
-        !(guests > 0 || unknownGuests)
-      ) {
-        return false;
-      }
+      const cancelled = (r.status ?? "")
+        .toString()
+        .toLowerCase()
+        .includes("anul");
+      if (r.status === "Odrzucona przez obsługę") return false;
+      if (!cancelled && !(guests > 0 || unknownGuests)) return false;
       return !reservationOverlapsExclusion(r.start, r.end, exclusionRange);
     },
   );
@@ -898,6 +897,16 @@ export default function OwnerReportDetailsPage() {
                         </td>
                         <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-green-600">
                           +{item.amount.toFixed(2)} {item.currency}
+                          {(item.reservation?.status ?? "")
+                            .toString()
+                            .toLowerCase()
+                            .includes("anul") && (
+                            <div className="text-xs font-normal text-gray-500">
+                              {item.amount > 0
+                                ? "Anulowana, wpłata zatrzymana"
+                                : "Zwrot przedpłaty — poza przychodem"}
+                            </div>
+                          )}
                           {isAirbnbCommissionChannel(
                             item.reservation?.source ?? item.category,
                           ) && (

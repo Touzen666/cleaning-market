@@ -1,5 +1,5 @@
 import { getRecognizedReservationChannel, IDOBOOKING_WIDGET_CHANNEL, resolveReportChannel } from "@/lib/reservation-channel";
-import { checkoutFallsInPeriod, roundPln2 } from "@/lib/reservation-stay";
+import { revenueStayFallsInPeriod, roundPln2 } from "@/lib/reservation-stay";
 
 export const AIRBNB_COMMISSION_PERCENT = 15.5;
 export const AIRBNB_COMMISSION_VAT_RATE = 0.23;
@@ -254,7 +254,8 @@ export function collectOtaCommissionBaseByChannel(
             continue;
         }
 
-        if (!checkoutFallsInPeriod(new Date(reservation.end), periodStart, periodEnd)) {
+        if (!(item.amount > 0)) continue;
+        if (!revenueStayFallsInPeriod(new Date(reservation.end), periodStart, periodEnd)) {
             continue;
         }
 
