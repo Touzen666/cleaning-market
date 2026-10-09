@@ -1268,6 +1268,19 @@ export default function ReportDetailsPage({
   const STANDARD_SOURCES = ["Booking", "Airbnb", "Złote Wynajmy"] as const;
   // Pozwalamy na dowolny string jako źródło (może pochodzić z bazy)
   type ReservationSource = string;
+  const setReservationTransferred =
+    api.monthlyReports.setReservationTransferred.useMutation({
+      onSuccess: async (_data, variables) => {
+        await reportQuery.refetch();
+        toast.success(
+          variables.transferred
+            ? "Rezerwacja oznaczona jako przeniesiona na inny obiekt"
+            : "Cofnięto oznaczenie przeniesienia",
+        );
+      },
+      onError: (err: { message: string }) => toast.error(err.message),
+    });
+
   const updateReservationSource = api.reservation.updateSource.useMutation({
     onSuccess: async () => {
       await reportQuery.refetch();
@@ -1319,7 +1332,9 @@ export default function ReportDetailsPage({
 
   const cleaningBelongsToThisReport = (reservation: {
     end: Date | string;
+    transferredToOtherProperty?: boolean | null;
   }): boolean => {
+    if (reservation.transferredToOtherProperty) return false;
     if (!finalReport) return false;
     const periodStart = new Date(Date.UTC(finalReport.year, finalReport.month - 1, 1));
     const periodEnd = new Date(Date.UTC(finalReport.year, finalReport.month, 1));
@@ -1332,10 +1347,14 @@ export default function ReportDetailsPage({
     children?: number | null;
     status?: string | null;
     end?: Date | string;
+    transferredToOtherProperty?: boolean | null;
   }): number => {
     if (
       reservation.end &&
-      !cleaningBelongsToThisReport({ end: reservation.end })
+      !cleaningBelongsToThisReport({
+        end: reservation.end,
+        transferredToOtherProperty: reservation.transferredToOtherProperty,
+      })
     ) {
       return 0;
     }
@@ -1468,7 +1487,11 @@ export default function ReportDetailsPage({
     ["EXPENSE", "FEE", "TAX", "COMMISSION"].includes(item.type),
   );
   const localTotalRevenue =
-    revenueItems.reduce((sum, i) => sum + i.amount, 0) +
+    revenueItems.reduce(
+      (sum, i) =>
+        i.reservation?.transferredToOtherProperty ? sum : sum + i.amount,
+      0,
+    ) +
     Number(
       (finalReport as unknown as { parkingRentalIncome?: number })
         ?.parkingRentalIncome ?? 0,
@@ -3283,13 +3306,25 @@ export default function ReportDetailsPage({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 bg-white">
-                    {displayedRevenueItems.map((item, index) => (
-                      <tr key={item.id}>
+                    {displayedRevenueItems.map((item, index) => {
+                      const transferred = Boolean(
+                        item.reservation?.transferredToOtherProperty,
+                      );
+                      return (
+                      <tr
+                        key={item.id}
+                        className={transferred ? "bg-orange-50" : undefined}
+                      >
                         <td className="px-6 py-4 text-sm font-medium text-gray-500">
                           {index + 1}
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-900">
                           {item.reservation?.guest ?? "-"}
+                          {transferred && (
+                            <div className="mt-1 text-xs font-medium text-orange-700">
+                              Przeniesiono na inny obiekt
+                            </div>
+                          )}
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-900">
                           {item.reservation ? (
@@ -3378,7 +3413,11 @@ export default function ReportDetailsPage({
                         </td>
                         <td className="whitespace-nowrap px-6 py-4 text-center text-sm">
                           {item.reservation &&
-                          cleaningBelongsToThisReport({ end: item.reservation.end }) ? (
+                          cleaningBelongsToThisReport({
+                            end: item.reservation.end,
+                            transferredToOtherProperty:
+                              item.reservation.transferredToOtherProperty,
+                          }) ? (
                             <span className="inline-flex items-center rounded-full bg-orange-100 px-2.5 py-0.5 text-xs font-medium text-orange-800">
                               {calculateCleaningCostForReservation(
                                 item.reservation,
@@ -3389,9 +3428,16 @@ export default function ReportDetailsPage({
                             "—"
                           )}
                         </td>
-                        <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-green-600">
+                        <td
+                          className={`whitespace-nowrap px-6 py-4 text-sm font-medium ${transferred ? "text-orange-700" : "text-green-600"}`}
+                        >
                           +{item.amount.toFixed(2)} {item.currency}
-                          {(item.reservation?.status ?? "")
+                          {transferred && (
+                            <div className="text-xs font-normal text-orange-700">
+                              Przeniesiono na inny obiekt — poza przychodem
+                            </div>
+                          )}
+                          {!transferred && (item.reservation?.status ?? "")
                             .toString()
                             .toLowerCase()
                             .includes("anul") && (
@@ -3401,7 +3447,7 @@ export default function ReportDetailsPage({
                                 : "Zwrot przedpłaty — poza przychodem"}
                             </div>
                           )}
-                          {isAirbnbCommissionChannel(
+                          {!transferred && isAirbnbCommissionChannel(
                             item.reservation?.source ?? item.category,
                           ) && (
                             <div className="text-xs font-normal text-gray-500">
@@ -3413,9 +3459,26 @@ export default function ReportDetailsPage({
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-2">
+                            {item.reservation && (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setReservationTransferred.mutate({
+                                    reservationId: item.reservation!.id,
+                                    transferred: !transferred,
+                                  })
+                                }
+                                className="rounded bg-orange-100 px-2 py-1 text-xs font-medium text-orange-800 disabled:opacity-50 hover:bg-orange-200"
+                                disabled={setReservationTransferred.isPending}
+                              >
+                                {transferred
+                                  ? "Cofnij przeniesienie"
+                                  : "Przenieś na inny obiekt"}
+                              </button>
+                            )}
                             {displayReservationChannel(
                               item.reservation?.source,
-                            ).toLowerCase() === "airbnb" && item.reservation && (
+                            ).toLowerCase() === "airbnb" && item.reservation && !transferred && (
                               <button
                                 onClick={() =>
                                   handleAddDiscount(item.reservation!.id)
@@ -3429,7 +3492,8 @@ export default function ReportDetailsPage({
                           </div>
                         </td>
                       </tr>
-                    ))}
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

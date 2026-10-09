@@ -249,7 +249,8 @@ export default function OwnerReportDetailsPage() {
       ["EXPENSE", "FEE", "TAX", "COMMISSION"].includes(i.type),
   );
   const totalRevenue = revenueItems.reduce(
-    (sum: number, i: ReportItemWithReservation) => sum + i.amount,
+    (sum: number, i: ReportItemWithReservation) =>
+      i.reservation?.transferredToOtherProperty ? sum : sum + i.amount,
     0,
   );
   const localTotalRevenue =
@@ -292,7 +293,7 @@ export default function OwnerReportDetailsPage() {
   const reservationItems: ReportItemWithReservation[] = revenueItems.filter(
     (i: ReportItemWithReservation) => {
       const r = i.reservation;
-      if (!r) return false;
+      if (!r || r.transferredToOtherProperty) return false;
       const guests = (r.adults ?? 0) + (r.children ?? 0);
       const unknownGuests = r.adults == null && r.children == null;
       const cancelled = (r.status ?? "")

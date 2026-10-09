@@ -136,8 +136,9 @@ function isReservationRealized(status: string | null | undefined): boolean {
 
 function countsAsReportRevenue(item: {
     amount: number;
-    reservation?: { status: string | null } | null;
+    reservation?: { status: string | null; transferredToOtherProperty?: boolean | null } | null;
 }): boolean {
+    if (item.reservation?.transferredToOtherProperty) return false;
     if (!item.reservation) return true;
     if (isReservationRealized(item.reservation.status)) return true;
     return item.amount > 0;
@@ -501,7 +502,7 @@ async function recalculateReportSettlement(reportId: string, ctx: RecalculateCon
                 where: { reportId },
                 include: {
                     reservation: {
-                        select: { id: true, status: true }
+                        select: { id: true, status: true, transferredToOtherProperty: true }
                     }
                 }
             }),
@@ -1228,7 +1229,7 @@ export const monthlyReportsRouter = createTRPCRouter({
                     items: {
                         include: {
                             reservation: {
-                                select: { id: true, guest: true, start: true, end: true, source: true, adults: true, children: true, status: true, createDate: true },
+                                select: { id: true, guest: true, start: true, end: true, source: true, adults: true, children: true, status: true, createDate: true, transferredToOtherProperty: true },
                             },
                         },
                         orderBy: [{ type: "asc" }, { date: "asc" }],
@@ -1310,10 +1311,12 @@ export const monthlyReportsRouter = createTRPCRouter({
                         start: true,
                         end: true,
                         status: true,
+                        transferredToOtherProperty: true,
                     },
                 }),
                     exclusionRangeFromApartment(report.apartment),
                 ).filter((reservation) =>
+                    !reservation.transferredToOtherProperty &&
                     revenueStayFallsInPeriod(reservation.end, startDate, nextMonthStartDate),
                 );
                 const realizedForTextile = reservationsForSuggestions.filter((reservation) =>
@@ -2090,7 +2093,7 @@ export const monthlyReportsRouter = createTRPCRouter({
                             date: true,
                             expenseCategory: true,
                             reservation: {
-                                select: { id: true, guest: true, start: true, end: true, source: true, status: true },
+                                select: { id: true, guest: true, start: true, end: true, source: true, status: true, transferredToOtherProperty: true },
                             },
                         },
                         orderBy: [{ type: "asc" }, { date: "asc" }],
@@ -2227,6 +2230,7 @@ export const monthlyReportsRouter = createTRPCRouter({
                                     end: true,
                                     paymantValue: true,
                                     rateCorrection: true,
+                                    transferredToOtherProperty: true,
                                 },
                             },
                         },
@@ -2244,7 +2248,9 @@ export const monthlyReportsRouter = createTRPCRouter({
             const periodStart = new Date(Date.UTC(report.year, report.month - 1, 1));
             const periodEnd = new Date(Date.UTC(report.year, report.month, 1));
             const channelsMap = collectOtaCommissionBaseByChannel(
-                report.items.map((item) => ({
+                report.items
+                    .filter((item) => !item.reservation?.transferredToOtherProperty)
+                    .map((item) => ({
                     reservationId: item.reservationId,
                     category: item.category,
                     amount: item.amount,
@@ -2587,6 +2593,41 @@ export const monthlyReportsRouter = createTRPCRouter({
             await recalculateReportSettlement(input.reportId, ctx);
 
             return { success: true };
+        }),
+
+    setReservationTransferred: protectedProcedure
+        .input(z.object({
+            reservationId: z.number().int(),
+            transferred: z.boolean(),
+        }))
+        .mutation(async ({ input, ctx }) => {
+            if (ctx.session.user.type !== UserType.ADMIN) {
+                throw new TRPCError({ code: "FORBIDDEN", message: "Tylko administrator może oznaczyć przeniesienie." });
+            }
+
+            const reservation = await ctx.db.reservation.findUnique({
+                where: { id: input.reservationId },
+                select: { id: true },
+            });
+            if (!reservation) {
+                throw new TRPCError({ code: "NOT_FOUND", message: "Rezerwacja nie istnieje" });
+            }
+
+            await ctx.db.reservation.update({
+                where: { id: input.reservationId },
+                data: { transferredToOtherProperty: input.transferred },
+            });
+
+            const reportLinks = await ctx.db.reportItem.findMany({
+                where: { reservationId: input.reservationId, type: ReportItemType.REVENUE },
+                select: { reportId: true },
+                distinct: ["reportId"],
+            });
+            for (const link of reportLinks) {
+                await recalculateReportSettlement(link.reportId, ctx);
+            }
+
+            return { success: true, transferred: input.transferred };
         }),
 
     // Admin: Rebuild auto-generated revenue items for a report
@@ -4615,10 +4656,12 @@ export const monthlyReportsRouter = createTRPCRouter({
                     start: true,
                     end: true,
                     status: true,
+                    transferredToOtherProperty: true,
                 },
             }),
                 exclusionRangeFromApartment(report.apartment),
             ).filter((reservation) =>
+                !reservation.transferredToOtherProperty &&
                 revenueStayFallsInPeriod(reservation.end, startDate, nextMonthStartDate),
             );
 
