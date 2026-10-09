@@ -6,6 +6,8 @@ import {
     countStayNights,
     keptReservationRevenue,
     revenueStayFallsInPeriod,
+    warsawNightsInPeriod,
+    warsawStayNights,
 } from "./reservation-stay";
 
 describe("checkoutFallsInPeriod", () => {
@@ -86,6 +88,41 @@ describe("countOverlapNights", () => {
 
         expect(countOverlapNights(stayStart, stayEnd, juneStart, julyStart)).toBe(2);
         expect(countOverlapNights(stayStart, stayEnd, julyStart, augustStart)).toBe(1);
+    });
+});
+
+describe("warsawNightsInPeriod", () => {
+    const augustStart = new Date(Date.UTC(2026, 7, 1));
+    const septemberStart = new Date(Date.UTC(2026, 8, 1));
+    const octoberStart = new Date(Date.UTC(2026, 9, 1));
+    const novemberStart = new Date(Date.UTC(2026, 10, 1));
+
+    it("dzieli 31.08–3.09 na 1 noc w sierpniu i 2 noce we wrześniu", () => {
+        const start = new Date("2026-08-31T15:00:00.000Z");
+        const end = new Date("2026-09-03T10:00:00.000Z");
+
+        expect(warsawStayNights(start, end)).toBe(3);
+        expect(warsawNightsInPeriod(start, end, augustStart, septemberStart)).toBe(1);
+        expect(warsawNightsInPeriod(start, end, septemberStart, octoberStart)).toBe(2);
+        expect(amountForNightsInPeriod(686.01, 3, 1)).toBe(228.67);
+        expect(amountForNightsInPeriod(686.01, 3, 2)).toBe(457.34);
+    });
+
+    it("zostawia wymeldowanie 1.10 rano w całości we wrześniu", () => {
+        const start = new Date("2026-09-29T15:00:00.000Z");
+        const end = new Date("2026-10-01T10:00:00.000Z");
+
+        expect(warsawStayNights(start, end)).toBe(2);
+        expect(warsawNightsInPeriod(start, end, septemberStart, octoberStart)).toBe(2);
+        expect(warsawNightsInPeriod(start, end, octoberStart, novemberStart)).toBe(0);
+    });
+
+    it("dzieli 30.09–2.10 po jednej nocy", () => {
+        const start = new Date("2026-09-30T15:00:00.000Z");
+        const end = new Date("2026-10-02T10:00:00.000Z");
+
+        expect(warsawNightsInPeriod(start, end, septemberStart, octoberStart)).toBe(1);
+        expect(warsawNightsInPeriod(start, end, octoberStart, novemberStart)).toBe(1);
     });
 });
 

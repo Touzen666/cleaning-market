@@ -39,9 +39,14 @@ import { resolveReportChannel, getRecognizedReservationChannel, IDOBOOKING_WIDGE
 import {
     isCancelledReservationStatus,
     keptReservationRevenue,
+    amountForNightsInPeriod,
+    buildStaySplitNote,
     revenueCheckoutQueryWindow,
     revenueStayFallsInPeriod,
+    revenueStayQueryWindow,
     roundPln2,
+    warsawNightsInPeriod,
+    warsawStayNights,
 } from "@/lib/reservation-stay";
 import {
     exclusionRangeFromApartment,
@@ -155,27 +160,35 @@ function mapReservationToAutoRevenueItem(
     periodStart: Date,
     periodEnd: Date,
 ) {
+    const stayStart = new Date(reservation.start);
     const stayEnd = new Date(reservation.end);
-    if (!revenueStayFallsInPeriod(stayEnd, periodStart, periodEnd)) return null;
+    const totalNights = warsawStayNights(stayStart, stayEnd);
+    const nightsHere = warsawNightsInPeriod(stayStart, stayEnd, periodStart, periodEnd);
+    if (nightsHere <= 0) return null;
 
     const cancelled = isCancelledReservationStatus(reservation.status);
     const realized = isReservationRealized(reservation.status);
     if (!realized && !cancelled) return null;
 
     const listPrice = reservation.rateCorrection ?? reservation.paymantValue ?? 0;
-    const amount = keptReservationRevenue({
+    const kept = keptReservationRevenue({
         status: reservation.status,
         price: listPrice,
         balance: reservation.balance,
     });
+    const amount = amountForNightsInPeriod(kept, totalNights, nightsHere);
     if (realized && !(amount > 0)) return null;
 
     const revenueCategory = resolveReportChannel(null, reservation.source) ?? "Inne";
+    const splitNote =
+        nightsHere < totalNights
+            ? buildStaySplitNote(kept, totalNights, nightsHere)
+            : "Pełna kwota rezerwacji. Wszystkie noce przypadają na ten miesiąc.";
     const notes = cancelled
         ? amount > 0
-            ? "Anulowana, wpłata zatrzymana. Kwota wliczona do przychodu."
+            ? `Anulowana, wpłata zatrzymana. ${splitNote}`
             : "Anulowana. Przedpłata wróciła do gościa, więc nie wliczamy jej do przychodu."
-        : "Pełna kwota rezerwacji w miesiącu ostatniej nocy. Wymeldowanie rano 1. dnia miesiąca zostaje w poprzednim miesiącu.";
+        : splitNote;
 
     return {
         reportId,
@@ -1048,13 +1061,13 @@ export const monthlyReportsRouter = createTRPCRouter({
             // Start of the *next* month in UTC
             const nextMonthStartDate = new Date(Date.UTC(year, month, 1));
 
-            // Rezerwacje miesiąca: ostatnia noc w tym miesiącu (wymeldowanie 1. dnia następnego miesiąca zostaje tutaj).
+            // Rezerwacje miesiąca: każda noc przypada na swój miesiąc, kwota jest dzielona.
             const reservationsInMonth = filterReservationsOutsideExclusion(
                 await ctx.db.reservation.findMany({
                 where: {
                     apartmentId,
                     ...(roomId ? { roomId } : {}),
-                    end: revenueCheckoutQueryWindow(startDate, nextMonthStartDate),
+                    ...revenueStayQueryWindow(startDate, nextMonthStartDate),
                 },
                 select: {
                     id: true,
@@ -1073,7 +1086,7 @@ export const monthlyReportsRouter = createTRPCRouter({
             }),
                 exclusionRangeFromApartment(apartment),
             ).filter((reservation) =>
-                revenueStayFallsInPeriod(reservation.end, startDate, nextMonthStartDate),
+                warsawNightsInPeriod(reservation.start, reservation.end, startDate, nextMonthStartDate) > 0,
             );
 
             // Automatycznie ustaw typ rozliczenia na podstawie ustawień apartamentu
@@ -2609,7 +2622,7 @@ export const monthlyReportsRouter = createTRPCRouter({
                 where: {
                     apartmentId: apartment.id,
                     ...(report.roomId ? { roomId: report.roomId } : {}),
-                    end: revenueCheckoutQueryWindow(startDate, nextMonthStartDate),
+                    ...revenueStayQueryWindow(startDate, nextMonthStartDate),
                 },
                 select: {
                     id: true, guest: true, start: true, end: true, currency: true,
@@ -2618,7 +2631,7 @@ export const monthlyReportsRouter = createTRPCRouter({
             }),
                 exclusionRangeFromApartment(apartment),
             ).filter((reservation) =>
-                revenueStayFallsInPeriod(reservation.end, startDate, nextMonthStartDate),
+                warsawNightsInPeriod(reservation.start, reservation.end, startDate, nextMonthStartDate) > 0,
             );
 
             await ctx.db.reportItem.deleteMany({

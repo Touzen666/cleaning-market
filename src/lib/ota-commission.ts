@@ -1,5 +1,5 @@
 import { getRecognizedReservationChannel, IDOBOOKING_WIDGET_CHANNEL, resolveReportChannel } from "@/lib/reservation-channel";
-import { revenueStayFallsInPeriod, roundPln2 } from "@/lib/reservation-stay";
+import { roundPln2 } from "@/lib/reservation-stay";
 
 export const AIRBNB_COMMISSION_PERCENT = 15.5;
 export const AIRBNB_COMMISSION_VAT_RATE = 0.23;
@@ -226,13 +226,13 @@ export type OtaCommissionRevenueItem = {
 };
 
 /**
- * Podstawa prowizji OTA: pełna kwota rezerwacji z wymeldowaniem w miesiącu raportu.
+ * Podstawa prowizji OTA: kwota już przypisana do tego raportu (udział nocy miesiąca).
  * Booking zaokrągla prowizję i opłatę per rezerwacja, potem je sumuje (jak na wykazie wypłaty).
  */
 export function collectOtaCommissionBaseByChannel(
     items: OtaCommissionRevenueItem[],
-    periodStart: Date,
-    periodEnd: Date,
+    _periodStart: Date,
+    _periodEnd: Date,
 ): Map<string, { totalRevenue: number; lineGrossAmounts: number[] }> {
     const channels = new Map<string, { totalRevenue: number; lineGrossAmounts: number[] }>();
     const seenReservations = new Set<number>();
@@ -255,9 +255,6 @@ export function collectOtaCommissionBaseByChannel(
         }
 
         if (!(item.amount > 0)) continue;
-        if (!revenueStayFallsInPeriod(new Date(reservation.end), periodStart, periodEnd)) {
-            continue;
-        }
 
         const reservationKey = item.reservationId;
         if (typeof reservationKey === "number") {
@@ -265,7 +262,7 @@ export function collectOtaCommissionBaseByChannel(
             seenReservations.add(reservationKey);
         }
 
-        add(channel, reservation.rateCorrection ?? reservation.paymantValue ?? item.amount);
+        add(channel, item.amount);
     }
 
     return channels;

@@ -31,6 +31,7 @@ import {
   terminationNoticePartyLabel,
 } from "@/lib/agreement-termination-notice";
 import { displayReservationChannel } from "@/lib/reservation-channel";
+import { warsawNightsInPeriod, warsawStayNights } from "@/lib/reservation-stay";
 import {
   exclusionRangeFromApartment,
   formatReservationExclusionNotice,
@@ -119,13 +120,18 @@ const getStatusText = translateReportStatus;
 const getItemTypeText = translateReportItemType;
 const getItemTypeColor = getReportItemTypeColor;
 
-function calculateNights(start: Date | string, end: Date | string) {
-  const s = new Date(start);
-  const e = new Date(end);
-  return Math.max(
-    1,
-    Math.round((e.getTime() - s.getTime()) / (1000 * 60 * 60 * 24)),
-  );
+function calculateNights(
+  start: Date | string,
+  end: Date | string,
+  year: number,
+  month: number,
+) {
+  const stayStart = new Date(start);
+  const stayEnd = new Date(end);
+  const periodStart = new Date(Date.UTC(year, month - 1, 1));
+  const periodEnd = new Date(Date.UTC(year, month, 1));
+  const inMonth = warsawNightsInPeriod(stayStart, stayEnd, periodStart, periodEnd);
+  return inMonth > 0 ? inMonth : warsawStayNights(stayStart, stayEnd);
 }
 
 const obfuscateGuest = (name: string | null | undefined): string => {
@@ -883,10 +889,14 @@ export default function OwnerReportDetailsPage() {
                               {calculateNights(
                                 item.reservation.start,
                                 item.reservation.end,
+                                report.year,
+                                report.month,
                               )}{" "}
                               {calculateNights(
                                 item.reservation.start,
                                 item.reservation.end,
+                                report.year,
+                                report.month,
                               ) === 1
                                 ? "noc"
                                 : "nocy"}

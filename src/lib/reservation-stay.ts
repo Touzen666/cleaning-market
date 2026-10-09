@@ -41,7 +41,7 @@ export function lastNightDayMs(checkout: Date): number {
 
 /**
  * Rezerwacja wchodzi do miesiąca, w którym jest jej ostatnia noc.
- * Wymeldowanie 1.10 o 10:00 nie tworzy nocy w październiku — cała kwota zostaje we wrześniu.
+ * Używane przy sprzątaniu (jedno sprzątanie przy wyjeździe).
  */
 export function revenueStayFallsInPeriod(
     checkout: Date,
@@ -52,7 +52,7 @@ export function revenueStayFallsInPeriod(
     return night >= warsawDayMs(periodStart) && night < warsawDayMs(periodEnd);
 }
 
-/** Szerokie okno `end` do pobrania kandydatów. Dokładny miesiąc ustala `revenueStayFallsInPeriod`. */
+/** Szerokie okno `end` do pobrania kandydatów pod sprzątanie. */
 export function revenueCheckoutQueryWindow(
     periodStart: Date,
     periodEnd: Date,
@@ -61,6 +61,44 @@ export function revenueCheckoutQueryWindow(
         gte: new Date(periodStart.getTime() - MS_PER_DAY),
         lt: new Date(periodEnd.getTime() + 2 * MS_PER_DAY),
     };
+}
+
+/** Pobyt nachodzi na miesiąc, także gdy wymeldowanie jest już w następnym. */
+export function revenueStayQueryWindow(
+    periodStart: Date,
+    periodEnd: Date,
+): { start: { lt: Date }; end: { gt: Date } } {
+    return {
+        start: { lt: new Date(periodEnd.getTime() + MS_PER_DAY) },
+        end: { gt: new Date(periodStart.getTime() - MS_PER_DAY) },
+    };
+}
+
+/** Liczba nocy pobytu w kalendarzu Europe/Warsaw. Dzień wymeldowania nie jest nocą. */
+export function warsawStayNights(stayStart: Date, stayEnd: Date): number {
+    const first = warsawDayMs(stayStart);
+    const last = lastNightDayMs(stayEnd);
+    if (last < first) return 0;
+    return Math.round((last - first) / MS_PER_DAY) + 1;
+}
+
+/** Noce pobytu, które kalendarzowo przypadają na [periodStart, periodEnd). */
+export function warsawNightsInPeriod(
+    stayStart: Date,
+    stayEnd: Date,
+    periodStart: Date,
+    periodEnd: Date,
+): number {
+    const first = warsawDayMs(stayStart);
+    const last = lastNightDayMs(stayEnd);
+    if (last < first) return 0;
+
+    const periodFrom = warsawDayMs(periodStart);
+    const periodTo = warsawDayMs(periodEnd);
+    const overlapFirst = Math.max(first, periodFrom);
+    const overlapLast = Math.min(last, periodTo - MS_PER_DAY);
+    if (overlapLast < overlapFirst) return 0;
+    return Math.round((overlapLast - overlapFirst) / MS_PER_DAY) + 1;
 }
 
 export function normalizeReservationStatus(status: string | null | undefined): string {

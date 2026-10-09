@@ -37,6 +37,7 @@ import {
   terminationOwnerPaymentKindTaxNote,
 } from "@/lib/report-termination-costs";
 import { displayReservationChannel } from "@/lib/reservation-channel";
+import { warsawNightsInPeriod, warsawStayNights } from "@/lib/reservation-stay";
 import {
   AIRBNB_COMMISSION_PERCENT,
   AIRBNB_COMMISSION_VAT_RATE,
@@ -862,11 +863,14 @@ export default function ReportDetailsPage({
     }
   };
 
-  // Funkcja obliczająca liczbę nocy między datami
   const calculateNights = (checkIn: Date, checkOut: Date) => {
-    const oneDay = 24 * 60 * 60 * 1000; // milisekundy w dniu
-    const diffTime = new Date(checkOut).getTime() - new Date(checkIn).getTime();
-    return Math.round(diffTime / oneDay);
+    const stayStart = new Date(checkIn);
+    const stayEnd = new Date(checkOut);
+    if (!finalReport) return warsawStayNights(stayStart, stayEnd);
+    const periodStart = new Date(Date.UTC(finalReport.year, finalReport.month - 1, 1));
+    const periodEnd = new Date(Date.UTC(finalReport.year, finalReport.month, 1));
+    const inMonth = warsawNightsInPeriod(stayStart, stayEnd, periodStart, periodEnd);
+    return inMonth > 0 ? inMonth : warsawStayNights(stayStart, stayEnd);
   };
 
   const handleInputChange = (
