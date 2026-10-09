@@ -37,7 +37,11 @@ import {
   terminationOwnerPaymentKindTaxNote,
 } from "@/lib/report-termination-costs";
 import { displayReservationChannel } from "@/lib/reservation-channel";
-import { warsawNightsInPeriod, warsawStayNights } from "@/lib/reservation-stay";
+import {
+  revenueStayFallsInPeriod,
+  warsawNightsInPeriod,
+  warsawStayNights,
+} from "@/lib/reservation-stay";
 import {
   AIRBNB_COMMISSION_PERCENT,
   AIRBNB_COMMISSION_VAT_RATE,
@@ -1313,11 +1317,48 @@ export default function ReportDetailsPage({
 
   // (Usunięto automatyczne wyliczanie sugerowanych kosztów tekstyliów)
 
-  // Funkcja obliczająca koszt sprzątania dla pojedynczej rezerwacji
+  const cleaningBelongsToThisReport = (reservation: {
+    status?: string | null;
+    end: Date | string;
+  }): boolean => {
+    if (!finalReport) return false;
+    const status = (reservation.status ?? "")
+      .toString()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .trim();
+    if (
+      !status ||
+      status.includes("anul") ||
+      status.includes("cancel") ||
+      status.includes("odrzuc") ||
+      status.includes("withdraw") ||
+      status.includes("nieopl") ||
+      status.includes("oczekuje") ||
+      status.includes("niepopraw") ||
+      status.includes("wyjasn")
+    ) {
+      return false;
+    }
+    const periodStart = new Date(Date.UTC(finalReport.year, finalReport.month - 1, 1));
+    const periodEnd = new Date(Date.UTC(finalReport.year, finalReport.month, 1));
+    return revenueStayFallsInPeriod(new Date(reservation.end), periodStart, periodEnd);
+  };
+
+  // Stawka za jedno sprzątanie przy wymeldowaniu w tym miesiącu.
   const calculateCleaningCostForReservation = (reservation: {
     adults?: number | null;
     children?: number | null;
+    status?: string | null;
+    end?: Date | string;
   }): number => {
+    if (reservation.end && !cleaningBelongsToThisReport({
+      status: reservation.status,
+      end: reservation.end,
+    })) {
+      return 0;
+    }
     const apartment = report?.apartment;
     if (!apartment?.cleaningCosts) {
       return 0;
@@ -3075,7 +3116,7 @@ export default function ReportDetailsPage({
                                 : null;
                             const suggestionNote =
                               key === "sprzatanie"
-                                ? "na bazie liczby gości w rezerwacjach"
+                                ? "za zrealizowane wymeldowania w tym miesiącu, stawka według liczby gości"
                                 : key === "pranie"
                                   ? "na bazie dni w miesiącu (pranie co 7 dni)"
                                   : "na bazie rezerwacji";
@@ -3356,17 +3397,16 @@ export default function ReportDetailsPage({
                           )}
                         </td>
                         <td className="whitespace-nowrap px-6 py-4 text-center text-sm">
-                          {item.reservation ? (
+                          {item.reservation &&
+                          cleaningBelongsToThisReport(item.reservation) ? (
                             <span className="inline-flex items-center rounded-full bg-orange-100 px-2.5 py-0.5 text-xs font-medium text-orange-800">
-                              {(
-                                calculateCleaningCostForReservation(
-                                  item.reservation,
-                                ) || 0
+                              {calculateCleaningCostForReservation(
+                                item.reservation,
                               ).toFixed(2)}{" "}
                               PLN
                             </span>
                           ) : (
-                            "-"
+                            "—"
                           )}
                         </td>
                         <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-green-600">

@@ -4605,19 +4605,22 @@ export const monthlyReportsRouter = createTRPCRouter({
                 await ctx.db.reservation.findMany({
                 where: {
                     apartmentId: report.apartmentId,
-                    end: {
-                        gte: startDate,
-                        lt: nextMonthStartDate,
-                    },
+                    ...(report.roomId ? { roomId: report.roomId } : {}),
+                    end: revenueCheckoutQueryWindow(startDate, nextMonthStartDate),
                 },
                 select: {
                     adults: true,
                     children: true,
                     start: true,
                     end: true,
+                    status: true,
                 },
             }),
                 exclusionRangeFromApartment(report.apartment),
+            ).filter(
+                (reservation) =>
+                    isReservationRealized(reservation.status) &&
+                    revenueStayFallsInPeriod(reservation.end, startDate, nextMonthStartDate),
             );
 
             // Calculate cleaning costs
