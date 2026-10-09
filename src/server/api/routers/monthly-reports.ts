@@ -1313,14 +1313,15 @@ export const monthlyReportsRouter = createTRPCRouter({
                     },
                 }),
                     exclusionRangeFromApartment(report.apartment),
-                ).filter(
-                    (reservation) =>
-                        isReservationRealized(reservation.status) &&
-                        revenueStayFallsInPeriod(reservation.end, startDate, nextMonthStartDate),
+                ).filter((reservation) =>
+                    revenueStayFallsInPeriod(reservation.end, startDate, nextMonthStartDate),
+                );
+                const realizedForTextile = reservationsForSuggestions.filter((reservation) =>
+                    isReservationRealized(reservation.status),
                 );
                 suggestedCleaning = Number(await calculateCleaningCosts(report.apartmentId, reservationsForSuggestions, ctx));
                 suggestedLaundry = Number(await calculateLaundryCosts(report.apartmentId, report.year, report.month, ctx));
-                suggestedTextile = Number(await calculateTextileCosts(report.apartmentId, reservationsForSuggestions, ctx));
+                suggestedTextile = Number(await calculateTextileCosts(report.apartmentId, realizedForTextile, ctx));
             } catch (err) {
                 console.warn("[monthlyReports.getById] Suggested quick expenses calculation failed:", err);
             }
@@ -4617,10 +4618,8 @@ export const monthlyReportsRouter = createTRPCRouter({
                 },
             }),
                 exclusionRangeFromApartment(report.apartment),
-            ).filter(
-                (reservation) =>
-                    isReservationRealized(reservation.status) &&
-                    revenueStayFallsInPeriod(reservation.end, startDate, nextMonthStartDate),
+            ).filter((reservation) =>
+                revenueStayFallsInPeriod(reservation.end, startDate, nextMonthStartDate),
             );
 
             // Calculate cleaning costs

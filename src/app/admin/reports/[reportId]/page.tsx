@@ -1318,29 +1318,9 @@ export default function ReportDetailsPage({
   // (Usunięto automatyczne wyliczanie sugerowanych kosztów tekstyliów)
 
   const cleaningBelongsToThisReport = (reservation: {
-    status?: string | null;
     end: Date | string;
   }): boolean => {
     if (!finalReport) return false;
-    const status = (reservation.status ?? "")
-      .toString()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .toLowerCase()
-      .trim();
-    if (
-      !status ||
-      status.includes("anul") ||
-      status.includes("cancel") ||
-      status.includes("odrzuc") ||
-      status.includes("withdraw") ||
-      status.includes("nieopl") ||
-      status.includes("oczekuje") ||
-      status.includes("niepopraw") ||
-      status.includes("wyjasn")
-    ) {
-      return false;
-    }
     const periodStart = new Date(Date.UTC(finalReport.year, finalReport.month - 1, 1));
     const periodEnd = new Date(Date.UTC(finalReport.year, finalReport.month, 1));
     return revenueStayFallsInPeriod(new Date(reservation.end), periodStart, periodEnd);
@@ -1353,10 +1333,10 @@ export default function ReportDetailsPage({
     status?: string | null;
     end?: Date | string;
   }): number => {
-    if (reservation.end && !cleaningBelongsToThisReport({
-      status: reservation.status,
-      end: reservation.end,
-    })) {
+    if (
+      reservation.end &&
+      !cleaningBelongsToThisReport({ end: reservation.end })
+    ) {
       return 0;
     }
     const apartment = report?.apartment;
@@ -3116,7 +3096,7 @@ export default function ReportDetailsPage({
                                 : null;
                             const suggestionNote =
                               key === "sprzatanie"
-                                ? "za zrealizowane wymeldowania w tym miesiącu, stawka według liczby gości"
+                                ? "za wymeldowania w tym miesiącu, także anulowane, stawka według liczby gości"
                                 : key === "pranie"
                                   ? "na bazie dni w miesiącu (pranie co 7 dni)"
                                   : "na bazie rezerwacji";
@@ -3398,7 +3378,7 @@ export default function ReportDetailsPage({
                         </td>
                         <td className="whitespace-nowrap px-6 py-4 text-center text-sm">
                           {item.reservation &&
-                          cleaningBelongsToThisReport(item.reservation) ? (
+                          cleaningBelongsToThisReport({ end: item.reservation.end }) ? (
                             <span className="inline-flex items-center rounded-full bg-orange-100 px-2.5 py-0.5 text-xs font-medium text-orange-800">
                               {calculateCleaningCostForReservation(
                                 item.reservation,
