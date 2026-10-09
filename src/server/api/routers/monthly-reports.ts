@@ -5249,7 +5249,7 @@ export const monthlyReportsRouter = createTRPCRouter({
                     items: {
                         include: {
                             reservation: {
-                                select: { id: true, guest: true, start: true, end: true, source: true, adults: true, children: true, status: true },
+                                select: { id: true, guest: true, start: true, end: true, source: true, adults: true, children: true, status: true, transferredToOtherProperty: true },
                             },
                         },
                         orderBy: [{ type: "asc" }, { date: "asc" }],
@@ -5304,7 +5304,7 @@ export const monthlyReportsRouter = createTRPCRouter({
                     items: {
                         include: {
                             reservation: {
-                                select: { id: true, guest: true, start: true, end: true, source: true, adults: true, children: true, status: true },
+                                select: { id: true, guest: true, start: true, end: true, source: true, adults: true, children: true, status: true, transferredToOtherProperty: true },
                             },
                         },
                         orderBy: [{ type: "asc" }, { date: "asc" }],
