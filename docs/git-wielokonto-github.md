@@ -96,7 +96,7 @@ Powinny być wartości z `.gitconfig-github-konto2`. Push przez SSH będzie szed
 
 | Repozytorium             | Konto          | Origin (SSH) |
 |--------------------------|----------------|--------------|
-| SCM                      | boberRasputnik | `git@github.com:boberRasputnik/SCM-SP.-z-O.-O.git` |
+| ECOM                      | boberRasputnik | `git@github.com:boberRasputnik/SCM-SP.-z-O.-O.git` |
 | afiliate-panel           | boberRasputnik | `git@github.com:boberRasputnik/afiliate-panel.git` |
 | book-market              | Touzen666      | `git@github.com:Touzen666/cleaning-market.git` |
 | bartosz-wilk-development | Touzen666      | `git@github.com:Touzen666/bartosz-wilk-development.git` |
