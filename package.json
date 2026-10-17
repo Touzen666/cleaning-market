@@ -12,6 +12,7 @@
     "db:push": "prisma db push",
     "db:push:direct": "node scripts/prisma-db-push-direct.mjs",
     "sync:idobooking": "npx tsx --env-file-if-exists=.env --tsconfig tsconfig.json scripts/sync-idobooking.ts",
+    "operations:idobooking": "node scripts/idobooking-operations.mjs",
     "db:add-textile-column": "node scripts/add-textile-column.cjs",
     "db:add-reservations-disabled-columns": "node scripts/add-reservations-disabled-columns.cjs",
     "db:add-owner-archived-column": "node scripts/add-owner-archived-column.cjs",
