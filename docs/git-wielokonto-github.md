@@ -73,7 +73,7 @@ Na **końcu** pliku dopisz (ścieżki dopasuj do swoich repozytoriów):
 [includeIf "gitdir:C:/React Workspace/book-market/"]
     path = ~/.gitconfig-github-konto2
 # Dodaj kolejne repozytoria w razie potrzeby:
-# [includeIf "gitdir:C:/React Workspace/SCM/"]
+# [includeIf "gitdir:C:/React Workspace/ECOM/"]
 #     path = ~/.gitconfig-github-konto2
 ```
 
