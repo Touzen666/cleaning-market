@@ -52,8 +52,10 @@ import {
     exclusionRangeFromApartment,
     filterReportItemsOutsideExclusion,
     filterReservationsOutsideExclusion,
+    type ApartmentReservationExclusion,
 } from "@/lib/reservation-exclusion";
 import { AIRBNB_COMMISSION_PERCENT, BOOKING_COMMISSION_PERCENT, BOOKING_TRANSACTION_FEE_RATE, collectOtaCommissionBaseByChannel, formatPercentLabel, isAirbnbCommissionChannel, isBookingCommissionChannel } from "@/lib/ota-commission";
+import { cleaningCostForReservation } from "@/lib/cleaning-cost";
 
 type RecalculateContext = {
     db: PrismaClient;
@@ -329,43 +331,83 @@ function calculateFixedCosts(items: Array<{ type: string; category: string; amou
         .reduce((sum, item) => sum + item.amount, 0);
 }
 
-// Helper function to calculate cleaning costs based on reservations and apartment settings
-async function calculateCleaningCosts(
-    apartmentId: number,
-    reservations: Array<{ adults?: number | null; children?: number | null }>,
-    ctx: RecalculateContext
-): Promise<number> {
-    // Get apartment cleaning costs configuration
-    const apartment = await ctx.db.apartment.findUnique({
-        where: { id: apartmentId },
-        select: { cleaningCosts: true }
+function totalCleaningCost(
+    reservations: Array<{
+        adults?: number | null;
+        children?: number | null;
+        apartment?: { cleaningCosts?: unknown } | null;
+    }>,
+    reportCleaningCosts: unknown,
+): number {
+    return reservations.reduce(
+        (sum, reservation) =>
+            sum +
+            cleaningCostForReservation({
+                adults: reservation.adults,
+                children: reservation.children,
+                reportCleaningCosts,
+                stayCleaningCosts: reservation.apartment?.cleaningCosts,
+            }),
+        0,
+    );
+}
+
+// Rezerwacje do sprzątania: pobyty raportu oraz te już podpięte do pozycji,
+// także gdy lokal przeniesiono na apartament jednostki, a raport został na budynku.
+async function reservationsForCleaning(
+    report: {
+        id: string;
+        apartmentId: number;
+        roomId: number | null;
+        year: number;
+        month: number;
+        apartment: ApartmentReservationExclusion & { cleaningCosts?: unknown };
+    },
+    ctx: RecalculateContext,
+) {
+    const startDate = new Date(Date.UTC(report.year, report.month - 1, 1));
+    const nextMonthStartDate = new Date(Date.UTC(report.year, report.month, 1));
+    const linked = await ctx.db.reportItem.findMany({
+        where: {
+            reportId: report.id,
+            type: ReportItemType.REVENUE,
+            reservationId: { not: null },
+        },
+        select: { reservationId: true },
     });
+    const linkedIds = linked
+        .map((item) => item.reservationId)
+        .filter((id): id is number => id != null);
 
-    if (!apartment?.cleaningCosts) {
-        return 0; // No cleaning costs configured
-    }
-
-    const cleaningCosts = apartment.cleaningCosts as Record<string, number>;
-    let totalCleaningCost = 0;
-
-    for (const reservation of reservations) {
-        const totalGuests = (reservation.adults ?? 0) + (reservation.children ?? 0);
-
-        if (totalGuests > 0) {
-            // Find the cleaning cost for this number of guests
-            // If exact match not found, use the highest available cost for fewer guests
-            let cleaningCost = 0;
-            for (let i = totalGuests; i >= 1; i--) {
-                if (cleaningCosts[i.toString()] !== undefined) {
-                    cleaningCost = cleaningCosts[i.toString()]!;
-                    break;
-                }
-            }
-            totalCleaningCost += cleaningCost;
-        }
-    }
-
-    return totalCleaningCost;
+    return filterReservationsOutsideExclusion(
+        await ctx.db.reservation.findMany({
+            where: {
+                OR: [
+                    {
+                        apartmentId: report.apartmentId,
+                        ...(report.roomId ? { roomId: report.roomId } : {}),
+                        end: revenueCheckoutQueryWindow(startDate, nextMonthStartDate),
+                    },
+                    ...(linkedIds.length > 0 ? [{ id: { in: linkedIds } }] : []),
+                ],
+            },
+            select: {
+                id: true,
+                adults: true,
+                children: true,
+                start: true,
+                end: true,
+                status: true,
+                transferredToOtherProperty: true,
+                apartment: { select: { cleaningCosts: true } },
+            },
+        }),
+        exclusionRangeFromApartment(report.apartment),
+    ).filter(
+        (reservation) =>
+            !reservation.transferredToOtherProperty &&
+            revenueStayFallsInPeriod(reservation.end, startDate, nextMonthStartDate),
+    );
 }
 
 // Helper function to calculate laundry costs: pranie raz na 7 dni = liczba dni w miesiącu / 7 × stawka tygodniowa z karty apartamentu
@@ -1229,7 +1271,7 @@ export const monthlyReportsRouter = createTRPCRouter({
                     items: {
                         include: {
                             reservation: {
-                                select: { id: true, guest: true, start: true, end: true, source: true, adults: true, children: true, status: true, createDate: true, transferredToOtherProperty: true },
+                                select: { id: true, guest: true, start: true, end: true, source: true, adults: true, children: true, status: true, createDate: true, transferredToOtherProperty: true, apartment: { select: { cleaningCosts: true } } },
                             },
                         },
                         orderBy: [{ type: "asc" }, { date: "asc" }],
@@ -1322,7 +1364,8 @@ export const monthlyReportsRouter = createTRPCRouter({
                 const realizedForTextile = reservationsForSuggestions.filter((reservation) =>
                     isReservationRealized(reservation.status),
                 );
-                suggestedCleaning = Number(await calculateCleaningCosts(report.apartmentId, reservationsForSuggestions, ctx));
+                const cleaningReservations = await reservationsForCleaning(report, ctx);
+                suggestedCleaning = totalCleaningCost(cleaningReservations, report.apartment.cleaningCosts);
                 suggestedLaundry = Number(await calculateLaundryCosts(report.apartmentId, report.year, report.month, ctx));
                 suggestedTextile = Number(await calculateTextileCosts(report.apartmentId, realizedForTextile, ctx));
             } catch (err) {
@@ -4639,34 +4682,8 @@ export const monthlyReportsRouter = createTRPCRouter({
                 },
             });
 
-            // Get reservations for this report period
-            const startDate = new Date(Date.UTC(report.year, report.month - 1, 1));
-            const nextMonthStartDate = new Date(Date.UTC(report.year, report.month, 1));
-
-            const reservations = filterReservationsOutsideExclusion(
-                await ctx.db.reservation.findMany({
-                where: {
-                    apartmentId: report.apartmentId,
-                    ...(report.roomId ? { roomId: report.roomId } : {}),
-                    end: revenueCheckoutQueryWindow(startDate, nextMonthStartDate),
-                },
-                select: {
-                    adults: true,
-                    children: true,
-                    start: true,
-                    end: true,
-                    status: true,
-                    transferredToOtherProperty: true,
-                },
-            }),
-                exclusionRangeFromApartment(report.apartment),
-            ).filter((reservation) =>
-                !reservation.transferredToOtherProperty &&
-                revenueStayFallsInPeriod(reservation.end, startDate, nextMonthStartDate),
-            );
-
-            // Calculate cleaning costs
-            const cleaningCost = await calculateCleaningCosts(report.apartmentId, reservations, ctx);
+            const reservations = await reservationsForCleaning(report, ctx);
+            const cleaningCost = totalCleaningCost(reservations, report.apartment.cleaningCosts);
 
             if (cleaningCost > 0) {
                 if (existingCleaningCost) {
@@ -5249,7 +5266,7 @@ export const monthlyReportsRouter = createTRPCRouter({
                     items: {
                         include: {
                             reservation: {
-                                select: { id: true, guest: true, start: true, end: true, source: true, adults: true, children: true, status: true, transferredToOtherProperty: true },
+                                select: { id: true, guest: true, start: true, end: true, source: true, adults: true, children: true, status: true, transferredToOtherProperty: true, apartment: { select: { cleaningCosts: true } } },
                             },
                         },
                         orderBy: [{ type: "asc" }, { date: "asc" }],
@@ -5304,7 +5321,7 @@ export const monthlyReportsRouter = createTRPCRouter({
                     items: {
                         include: {
                             reservation: {
-                                select: { id: true, guest: true, start: true, end: true, source: true, adults: true, children: true, status: true, transferredToOtherProperty: true },
+                                select: { id: true, guest: true, start: true, end: true, source: true, adults: true, children: true, status: true, transferredToOtherProperty: true, apartment: { select: { cleaningCosts: true } } },
                             },
                         },
                         orderBy: [{ type: "asc" }, { date: "asc" }],

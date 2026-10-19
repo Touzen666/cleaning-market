@@ -37,6 +37,7 @@ import {
   terminationOwnerPaymentKindTaxNote,
 } from "@/lib/report-termination-costs";
 import { displayReservationChannel } from "@/lib/reservation-channel";
+import { cleaningCostForReservation } from "@/lib/cleaning-cost";
 import {
   revenueStayFallsInPeriod,
   warsawNightsInPeriod,
@@ -1348,6 +1349,7 @@ export default function ReportDetailsPage({
     status?: string | null;
     end?: Date | string;
     transferredToOtherProperty?: boolean | null;
+    apartment?: { cleaningCosts?: unknown } | null;
   }): number => {
     if (
       reservation.end &&
@@ -1358,28 +1360,12 @@ export default function ReportDetailsPage({
     ) {
       return 0;
     }
-    const apartment = report?.apartment;
-    if (!apartment?.cleaningCosts) {
-      return 0;
-    }
-
-    const cleaningCosts = apartment.cleaningCosts as Record<
-      string,
-      number
-    > | null;
-    const totalGuests = (reservation.adults ?? 0) + (reservation.children ?? 0);
-
-    if (totalGuests > 0 && cleaningCosts) {
-      // Find the cleaning cost for this number of guests
-      // If exact match not found, use the highest available cost for fewer guests
-      for (let i = totalGuests; i >= 1; i--) {
-        if (cleaningCosts[i.toString()] !== undefined) {
-          return cleaningCosts[i.toString()]!;
-        }
-      }
-    }
-
-    return 0;
+    return cleaningCostForReservation({
+      adults: reservation.adults,
+      children: reservation.children,
+      reportCleaningCosts: finalReport?.apartment?.cleaningCosts,
+      stayCleaningCosts: reservation.apartment?.cleaningCosts,
+    });
   };
 
   if (
