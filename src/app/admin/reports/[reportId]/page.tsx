@@ -39,7 +39,7 @@ import {
 import { displayReservationChannel } from "@/lib/reservation-channel";
 import { cleaningCostForReservation } from "@/lib/cleaning-cost";
 import {
-  revenueStayFallsInPeriod,
+  cleaningFallsInPeriod,
   warsawNightsInPeriod,
   warsawStayNights,
 } from "@/lib/reservation-stay";
@@ -1332,17 +1332,17 @@ export default function ReportDetailsPage({
   // (Usunięto automatyczne wyliczanie sugerowanych kosztów tekstyliów)
 
   const cleaningBelongsToThisReport = (reservation: {
-    end: Date | string;
+    start?: Date | string;
     transferredToOtherProperty?: boolean | null;
   }): boolean => {
     if (reservation.transferredToOtherProperty) return false;
-    if (!finalReport) return false;
+    if (!finalReport || !reservation.start) return false;
     const periodStart = new Date(Date.UTC(finalReport.year, finalReport.month - 1, 1));
     const periodEnd = new Date(Date.UTC(finalReport.year, finalReport.month, 1));
-    return revenueStayFallsInPeriod(new Date(reservation.end), periodStart, periodEnd);
+    return cleaningFallsInPeriod(new Date(reservation.start), periodStart, periodEnd);
   };
 
-  // Stawka za jedno sprzątanie przy wymeldowaniu w tym miesiącu.
+  // Jedno sprzątanie na pobyt, w miesiącu przyjazdu.
   const calculateCleaningCostForReservation = (reservation: {
     adults?: number | null;
     children?: number | null;
@@ -1351,15 +1351,7 @@ export default function ReportDetailsPage({
     transferredToOtherProperty?: boolean | null;
     apartment?: { cleaningCosts?: unknown } | null;
   }): number => {
-    if (
-      reservation.end &&
-      !cleaningBelongsToThisReport({
-        end: reservation.end,
-        transferredToOtherProperty: reservation.transferredToOtherProperty,
-      })
-    ) {
-      return 0;
-    }
+    if (reservation.transferredToOtherProperty) return 0;
     return cleaningCostForReservation({
       adults: reservation.adults,
       children: reservation.children,
@@ -3105,7 +3097,7 @@ export default function ReportDetailsPage({
                                 : null;
                             const suggestionNote =
                               key === "sprzatanie"
-                                ? "za wymeldowania w tym miesiącu, także anulowane, stawka według liczby gości"
+                                ? "za przyjazdy w tym miesiącu, także anulowane, jedno sprzątanie na pobyt"
                                 : key === "pranie"
                                   ? "na bazie dni w miesiącu (pranie co 7 dni)"
                                   : "na bazie rezerwacji";
@@ -3398,18 +3390,36 @@ export default function ReportDetailsPage({
                           )}
                         </td>
                         <td className="whitespace-nowrap px-6 py-4 text-center text-sm">
-                          {item.reservation &&
-                          cleaningBelongsToThisReport({
-                            end: item.reservation.end,
-                            transferredToOtherProperty:
-                              item.reservation.transferredToOtherProperty,
-                          }) ? (
-                            <span className="inline-flex items-center rounded-full bg-orange-100 px-2.5 py-0.5 text-xs font-medium text-orange-800">
-                              {calculateCleaningCostForReservation(
-                                item.reservation,
-                              ).toFixed(2)}{" "}
-                              PLN
-                            </span>
+                          {item.reservation && !transferred ? (
+                            cleaningBelongsToThisReport({
+                              start: item.reservation.start,
+                              transferredToOtherProperty:
+                                item.reservation.transferredToOtherProperty,
+                            }) ? (
+                              <span className="inline-flex items-center rounded-full bg-orange-100 px-2.5 py-0.5 text-xs font-medium text-orange-800">
+                                {calculateCleaningCostForReservation(
+                                  item.reservation,
+                                ).toFixed(2)}{" "}
+                                PLN
+                              </span>
+                            ) : (
+                              <span className="text-xs text-gray-500">
+                                {calculateCleaningCostForReservation(
+                                  item.reservation,
+                                ).toFixed(2)}{" "}
+                                PLN
+                                <div>
+                                  w{" "}
+                                  {new Date(
+                                    item.reservation.start,
+                                  ).toLocaleDateString("pl-PL", {
+                                    timeZone: "Europe/Warsaw",
+                                    month: "2-digit",
+                                    year: "numeric",
+                                  })}
+                                </div>
+                              </span>
+                            )
                           ) : (
                             "—"
                           )}

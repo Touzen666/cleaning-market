@@ -40,8 +40,20 @@ export function lastNightDayMs(checkout: Date): number {
 }
 
 /**
+ * Jedno sprzątanie na pobyt, w miesiącu przyjazdu (pierwsza noc).
+ * Pobyt 28.09–03.10 jest sprzątany we wrześniu i nie wraca w październiku.
+ */
+export function cleaningFallsInPeriod(
+    checkIn: Date,
+    periodStart: Date,
+    periodEnd: Date,
+): boolean {
+    const arrival = warsawDayMs(checkIn);
+    return arrival >= warsawDayMs(periodStart) && arrival < warsawDayMs(periodEnd);
+}
+
+/**
  * Rezerwacja wchodzi do miesiąca, w którym jest jej ostatnia noc.
- * Używane przy sprzątaniu (jedno sprzątanie przy wyjeździe).
  */
 export function revenueStayFallsInPeriod(
     checkout: Date,

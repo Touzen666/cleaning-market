@@ -41,6 +41,7 @@ import {
     keptReservationRevenue,
     amountForNightsInPeriod,
     buildStaySplitNote,
+    cleaningFallsInPeriod,
     revenueCheckoutQueryWindow,
     revenueStayFallsInPeriod,
     revenueStayQueryWindow,
@@ -386,7 +387,7 @@ async function reservationsForCleaning(
                     {
                         apartmentId: report.apartmentId,
                         ...(report.roomId ? { roomId: report.roomId } : {}),
-                        end: revenueCheckoutQueryWindow(startDate, nextMonthStartDate),
+                        ...revenueStayQueryWindow(startDate, nextMonthStartDate),
                     },
                     ...(linkedIds.length > 0 ? [{ id: { in: linkedIds } }] : []),
                 ],
@@ -406,7 +407,7 @@ async function reservationsForCleaning(
     ).filter(
         (reservation) =>
             !reservation.transferredToOtherProperty &&
-            revenueStayFallsInPeriod(reservation.end, startDate, nextMonthStartDate),
+            cleaningFallsInPeriod(reservation.start, startDate, nextMonthStartDate),
     );
 }
 

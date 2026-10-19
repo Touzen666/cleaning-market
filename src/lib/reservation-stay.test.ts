@@ -5,6 +5,7 @@ import {
     countOverlapNights,
     countStayNights,
     keptReservationRevenue,
+    cleaningFallsInPeriod,
     revenueStayFallsInPeriod,
     warsawNightsInPeriod,
     warsawStayNights,
@@ -25,6 +26,22 @@ describe("checkoutFallsInPeriod", () => {
         expect(
             checkoutFallsInPeriod(new Date("2026-08-01T12:00:00.000Z"), julyStart, augustStart),
         ).toBe(false);
+    });
+});
+
+describe("cleaningFallsInPeriod", () => {
+    const septemberStart = new Date(Date.UTC(2026, 8, 1));
+    const octoberStart = new Date(Date.UTC(2026, 9, 1));
+
+    it("zostawia sprzątanie przyjazdu 28.09 we wrześniu, także przy wyjeździe 3.10", () => {
+        const checkIn = new Date("2026-09-28T14:00:00.000Z");
+        expect(cleaningFallsInPeriod(checkIn, septemberStart, octoberStart)).toBe(true);
+        expect(cleaningFallsInPeriod(checkIn, octoberStart, new Date(Date.UTC(2026, 10, 1)))).toBe(false);
+    });
+
+    it("nie powtarza we wrześniu sprzątania przyjazdu z sierpnia", () => {
+        const checkIn = new Date("2026-08-31T14:00:00.000Z");
+        expect(cleaningFallsInPeriod(checkIn, septemberStart, octoberStart)).toBe(false);
     });
 });
 
