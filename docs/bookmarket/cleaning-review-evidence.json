@@ -1,0 +1,123 @@
+{
+  "kind": "synthetic review of existing code, not a cleaning schedule",
+  "date": "2026-10-24",
+  "observed": [
+    {
+      "name": "standard-turnover",
+      "cleaningProposals": [
+        {
+          "reservationId": 101,
+          "earliest": "2026-10-24T10:00",
+          "suggestedEnd": "2026-10-24T11:30",
+          "nextArrival": "2026-10-24T15:00",
+          "conflict": false
+        }
+      ],
+      "maintenanceWindows": [
+        {
+          "from": "2026-10-24T11:30",
+          "to": "2026-10-24T14:30",
+          "minutes": 180
+        }
+      ],
+      "warnings": []
+    },
+    {
+      "name": "awaiting-outgoing-booking",
+      "cleaningProposals": [],
+      "maintenanceWindows": [
+        {
+          "from": "2026-10-24T10:00",
+          "to": "2026-10-24T14:30",
+          "minutes": 270
+        }
+      ],
+      "warnings": [
+        "Tentative reservations also block maintenance windows"
+      ]
+    },
+    {
+      "name": "early-checkout-before-working-hours",
+      "cleaningProposals": [
+        {
+          "reservationId": 101,
+          "earliest": "2026-10-24T08:00",
+          "suggestedEnd": "2026-10-24T09:30",
+          "nextArrival": "2026-10-24T15:00",
+          "conflict": false
+        }
+      ],
+      "maintenanceWindows": [
+        {
+          "from": "2026-10-24T10:00",
+          "to": "2026-10-24T14:30",
+          "minutes": 270
+        }
+      ],
+      "warnings": []
+    },
+    {
+      "name": "late-checkout-after-working-hours",
+      "cleaningProposals": [
+        {
+          "reservationId": 101,
+          "earliest": "2026-10-24T16:00",
+          "suggestedEnd": "2026-10-24T17:30",
+          "nextArrival": null,
+          "conflict": false
+        }
+      ],
+      "maintenanceWindows": [],
+      "warnings": []
+    },
+    {
+      "name": "unmapped-unit",
+      "cleaningProposals": [
+        {
+          "reservationId": 101,
+          "earliest": "2026-10-24T10:00",
+          "suggestedEnd": "2026-10-24T11:30",
+          "nextArrival": "2026-10-24T15:00",
+          "conflict": false
+        }
+      ],
+      "maintenanceWindows": [],
+      "warnings": [
+        "App property mapping unresolved: maintenance windows suppressed"
+      ]
+    },
+    {
+      "name": "tentative-incoming-booking",
+      "cleaningProposals": [
+        {
+          "reservationId": 101,
+          "earliest": "2026-10-24T10:00",
+          "suggestedEnd": "2026-10-24T11:30",
+          "nextArrival": "2026-10-24T10:30",
+          "conflict": true
+        }
+      ],
+      "maintenanceWindows": [],
+      "warnings": [
+        "Tentative reservations also block maintenance windows",
+        "Cleaning conflict after reservation 101"
+      ]
+    }
+  ],
+  "listJobsFilter": {
+    "checkIn": "2026-10-20T15:00",
+    "checkOut": "2026-10-24T10:00",
+    "now": "2026-10-24T08:00:00.000Z",
+    "included": false
+  },
+  "calendarHour": {
+    "utcHour": "10:00Z",
+    "displayedInWarsawOn20261024": "12:00"
+  },
+  "capacity": {
+    "availableMinutes": 300,
+    "threeTimes90Minutes": 270,
+    "fourTimes90Minutes": 360,
+    "travelTimeIncluded": false
+  }
+}

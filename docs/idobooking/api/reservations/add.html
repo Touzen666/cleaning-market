@@ -1,0 +1,925 @@
+<!doctype html><html lang="pl"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Bramka Reservations/Metoda add</title><style>body{font:16px/1.65 system-ui,sans-serif;color:#21302d;margin:0;background:#f5f7f5}main{max-width:1120px;margin:30px auto;background:white;padding:36px;border-radius:12px}a{color:#087f5b}h1{line-height:1.2}h2{margin-top:2em}table{width:100%;border-collapse:collapse;font-size:14px}td,th{border:1px solid #d9e2df;padding:10px;text-align:left;vertical-align:top}th{background:#edf5f0}code,pre{font-family:Consolas,monospace}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#eef3f1;padding:20px}img{max-width:100%;height:auto}.meta{padding:14px;background:#edf5f0}.api_details_item_inner{display:grid;grid-template-columns:minmax(190px,40%) 1fr;border-bottom:1px solid #ddd;padding:12px;gap:16px}.api_details_item_sub{margin-left:18px;border-left:2px solid #a9cdbb;padding-left:8px}.api_required.required_after:after{content:' *';color:#b62323}.api_method_header{background:#edf5f0;padding:12px;margin-top:24px}input{padding:12px;font:inherit;width:90%;max-width:700px}.index li{margin:6px 0}.notice{background:#fff5d7;padding:14px}nav{margin-bottom:24px}@media(max-width:700px){main{padding:16px}.api_details_item_inner{display:block}td,th{padding:5px}}</style><main><nav><a href="../../index.html">← Spis dokumentacji</a></nav><h1>Bramka Reservations/Metoda add</h1><p class="meta">Źródło: <a href="https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&amp;function=reservations&amp;method=add##">iDoBooking</a> · Kopia: 24.10.2026 · API 36 · JSON · <a href="add.jpg">Pełny zrzut</a> · <a href="add.md">Markdown</a></p><div class="content__collapse col-md-9"> 
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <span class="api_title mb-0">Dokumentacja API Booking</span>   
+            <div class="show_list_link"></div>
+          </div>
+        
+            
+        
+            <div id="documentation_background">
+                <div class="content shop api_docs">
+                    <div class="container white_bg" data-equalizer="">
+        
+        <div class="api_content row" data-equalizer-watch=""><div class="col-12 mb-5"><p class="api_short_description">
+Dodaje rezerwacje
+
+
+</p></div><div class="apiDesc col-12 mb-5">
+            <div id="format_type" class="tabs">
+                
+        <div class="tabs__content"><div id="tab1" class="tabs__element --shown">
+            <div id="api_method_adresses" class="mb-5">
+                <div class="api_method_header px-3 d-flex align-items-center">
+                    <i class="icon-info-circled"></i>
+                    <strong>Adresy</strong>
+                </div>
+        
+              <div class="api_method_row">
+                <div class="row align-items-center py-3">
+                    <div class="col-3 pl-5">
+                        <strong>Nasłuch</strong>
+                    </div>
+                    <div class="col-9 col-sm-7">
+                        <a href="https://client1679.idosell.com/api/reservations/add/36/json" class="api_link" id="copyTarget_0json">https://_domena_booking_.idosell.com/api/reservations/add/36/json</a>
+                    </div>
+                    <div class="col-12 col-sm-2 d-flex justify-content-end">
+                        
+                    </div>
+                
+                    </div>
+                </div>
+            </div>
+        
+        <div id="api_method_request_json" class="mb-5"><div class="api_method_header px-3"><div class="api_method_header_left d-flex flex-wrap justify-content-center justify-content-sm-between align-items-center"><div><i class="icon-code"></i> 
+            <strong>Struktura żądania</strong></div></div></div><div id="api_method_request_content" class="api_details visible">
+                <div class="api_details_item open" data-parameter-name="authenticate">
+                    <div class="api_details_item_inner level0 toggle">
+                        <strong class="api_required required_after">authenticate <span>(authenticateType)</span></strong>
+                        <span><p>Element służy do uwierzytelniania konta w celu wywołania metody</p></span>
+                    </div>
+        
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="systemKey">
+                    <div class="api_details_item_inner level1">
+                        <strong class="api_required required_after">systemKey <span>(string)</span></strong>
+                        <span><p>Klucz wykorzystywany podczas uwierzytelniania. Zapoznaj się z <a href="https://www.idosell.com/pl/developers/api/faq/najczesciej-zadawane-pytania-dotyczace-api-pa-idosell/#3">instrukcją generowania klucza</a></p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="systemLogin">
+                    <div class="api_details_item_inner level1">
+                        <strong class="api_required required_after">systemLogin <span>(string)</span></strong>
+                        <span><p>Login użytkownika panelu IdoSell Booking</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="lang">
+                    <div class="api_details_item_inner level1">
+                        <strong class="">lang <span>(apiLanguage)</span></strong>
+                        <span><p>
+                    <span>Możliwe wartości:
+                    </span> (<i>eng, pol, ger</i>)</p><p>Język API</p></span>
+                    </div>
+        </div></div></div>
+                <div class="api_details_item open" data-parameter-name="params">
+                    <div class="api_details_item_inner level0 toggle">
+                        <strong class="api_required required_after">params <span>(paramsType)</span></strong>
+                        <span><p>Parametry przekazywane do metody</p></span>
+                    </div>
+        
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item open" data-parameter-name="reservations">
+                    <div class="api_details_item_inner level1 toggle">
+                        <strong class="api_required required_after">reservations <span>(newReservationTypeArrayType)</span></strong>
+                        <span><p>Dane rezerwacji</p></span>
+                    </div>
+        
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item open" data-parameter-name="newReservationTypeType">
+                    <div class="api_details_item_inner level2 toggle">
+                        <strong class="api_required required_after"> <span>(newReservationTypeType)</span></strong>
+                        <span><p>element typu newReservationTypeType</p></span>
+                    </div>
+        
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="dateFrom">
+                    <div class="api_details_item_inner level3">
+                        <strong class="api_required required_after">dateFrom <span>(string)</span></strong>
+                        <span><p>Data i godzina rozpoczęcia</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="dateTo">
+                    <div class="api_details_item_inner level3">
+                        <strong class="api_required required_after">dateTo <span>(string)</span></strong>
+                        <span><p>Data i godzina zakończenia</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="price">
+                    <div class="api_details_item_inner level3">
+                        <strong class="">price <span>(float)</span></strong>
+                        <span><p>Cena</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="clientId">
+                    <div class="api_details_item_inner level3">
+                        <strong class="">clientId <span>(int)</span></strong>
+                        <span><p>Identyfikator klienta. Pole to jest nieobowiązkowe. Ze względu na lepsze zarządzanie rezerwacją sugerujemy jego uzupełnienie</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item open" data-parameter-name="clientData">
+                    <div class="api_details_item_inner level3 toggle">
+                        <strong class="">clientData <span>(clientWithGuestType)</span></strong>
+                        <span><p>Dane klienta. Pole zostanie uwzględniane, jeżeli nie podane zostało id klienta. Na podstawie wprowadzonych danych zostanie wskazane lub utworzone konto klienta</p></span>
+                    </div>
+        
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="login">
+                    <div class="api_details_item_inner level4">
+                        <strong class="">login <span>(string)</span></strong>
+                        <span><p>Login klienta (minimum 6 znaków)</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="password">
+                    <div class="api_details_item_inner level4">
+                        <strong class="">password <span>(string)</span></strong>
+                        <span><p>Hasło (minimum 8 znaków)</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="type">
+                    <div class="api_details_item_inner level4">
+                        <strong class="api_required required_after">type <span>(clientTypeType)</span></strong>
+                        <span><p>
+                    <span>Możliwe wartości:
+                    </span> (<i>person, company</i>)</p><p>Typ klienta, person - osoba prywatna, company - firma</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="status">
+                    <div class="api_details_item_inner level4">
+                        <strong class="api_required required_after">status <span>(clientStatusType)</span></strong>
+                        <span><p>
+                    <span>Możliwe wartości:
+                    </span> (<i>active, blocked</i>)</p><p>Stan konta</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="companyName">
+                    <div class="api_details_item_inner level4">
+                        <strong class="">companyName <span>(string)</span></strong>
+                        <span><p>Nazwa firmy</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="taxNumber">
+                    <div class="api_details_item_inner level4">
+                        <strong class="">taxNumber <span>(string)</span></strong>
+                        <span><p>NIP</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="firstName">
+                    <div class="api_details_item_inner level4">
+                        <strong class="api_required required_after">firstName <span>(string)</span></strong>
+                        <span><p>Imię</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="lastName">
+                    <div class="api_details_item_inner level4">
+                        <strong class="api_required required_after">lastName <span>(string)</span></strong>
+                        <span><p>Nazwisko</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="street">
+                    <div class="api_details_item_inner level4">
+                        <strong class="api_required required_after">street <span>(string)</span></strong>
+                        <span><p>Adres</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="zipcode">
+                    <div class="api_details_item_inner level4">
+                        <strong class="api_required required_after">zipcode <span>(string)</span></strong>
+                        <span><p>Kod pocztowy zgodny z kodami obowiązującymi w danym kraju</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="city">
+                    <div class="api_details_item_inner level4">
+                        <strong class="api_required required_after">city <span>(string)</span></strong>
+                        <span><p>Miasto</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="countryCode">
+                    <div class="api_details_item_inner level4">
+                        <strong class="api_required required_after">countryCode <span>(string)</span></strong>
+                        <span><p>Kraj (kod w ISO 3166-1 alfa-2). Przykład: en, pl</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="phone">
+                    <div class="api_details_item_inner level4">
+                        <strong class="">phone <span>(string)</span></strong>
+                        <span><p>Telefon Przykład: +48.787676543</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="email">
+                    <div class="api_details_item_inner level4">
+                        <strong class="">email <span>(string)</span></strong>
+                        <span><p>Adres e-mail</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="language">
+                    <div class="api_details_item_inner level4">
+                        <strong class="api_required required_after">language <span>(string)</span></strong>
+                        <span><p>Język panelu zgodny z ISO 639-3 Przykład: eng, pol</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="currency">
+                    <div class="api_details_item_inner level4">
+                        <strong class="api_required required_after">currency <span>(string)</span></strong>
+                        <span><p>Kod waluty zgodny z ISO 4217 Przykład: PLN, EUR</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item open" data-parameter-name="guestData">
+                    <div class="api_details_item_inner level4 toggle">
+                        <strong class="api_required required_after">guestData <span>(guestDataType)</span></strong>
+                        <span><p>Dane gościa</p></span>
+                    </div>
+        
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="firstName">
+                    <div class="api_details_item_inner level5">
+                        <strong class="api_required required_after">firstName <span>(string)</span></strong>
+                        <span><p>Imię</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="lastName">
+                    <div class="api_details_item_inner level5">
+                        <strong class="api_required required_after">lastName <span>(string)</span></strong>
+                        <span><p>Nazwisko</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="street">
+                    <div class="api_details_item_inner level5">
+                        <strong class="api_required required_after">street <span>(string)</span></strong>
+                        <span><p>Adres</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="zipcode">
+                    <div class="api_details_item_inner level5">
+                        <strong class="api_required required_after">zipcode <span>(string)</span></strong>
+                        <span><p>Kod pocztowy zgodny z kodami obowiązującymi w danym kraju</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="city">
+                    <div class="api_details_item_inner level5">
+                        <strong class="api_required required_after">city <span>(string)</span></strong>
+                        <span><p>Miasto</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="countryCode">
+                    <div class="api_details_item_inner level5">
+                        <strong class="api_required required_after">countryCode <span>(string)</span></strong>
+                        <span><p>Kraj (kod w ISO 3166-1 alfa-2). Przykład: en, pl</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="phone">
+                    <div class="api_details_item_inner level5">
+                        <strong class="">phone <span>(string)</span></strong>
+                        <span><p>Telefon Przykład: +48.787676543</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="email">
+                    <div class="api_details_item_inner level5">
+                        <strong class="">email <span>(string)</span></strong>
+                        <span><p>Adres e-mail</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="language">
+                    <div class="api_details_item_inner level5">
+                        <strong class="api_required required_after">language <span>(string)</span></strong>
+                        <span><p>Język panelu zgodny z ISO 639-3 Przykład: eng, pol</p></span>
+                    </div>
+        </div></div></div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item open" data-parameter-name="invoiceData">
+                    <div class="api_details_item_inner level4 toggle">
+                        <strong class="">invoiceData <span>(invoiceDataType)</span></strong>
+                        <span><p>Dane do faktury</p></span>
+                    </div>
+        
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="firstName">
+                    <div class="api_details_item_inner level5">
+                        <strong class="">firstName <span>(string)</span></strong>
+                        <span><p>Imię</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="lastName">
+                    <div class="api_details_item_inner level5">
+                        <strong class="">lastName <span>(string)</span></strong>
+                        <span><p>Nazwisko</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="companyName">
+                    <div class="api_details_item_inner level5">
+                        <strong class="">companyName <span>(string)</span></strong>
+                        <span><p>Nazwa firmy</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="taxNumber">
+                    <div class="api_details_item_inner level5">
+                        <strong class="">taxNumber <span>(string)</span></strong>
+                        <span><p>NIP</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="street">
+                    <div class="api_details_item_inner level5">
+                        <strong class="api_required required_after">street <span>(string)</span></strong>
+                        <span><p>Adres</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="zipcode">
+                    <div class="api_details_item_inner level5">
+                        <strong class="api_required required_after">zipcode <span>(string)</span></strong>
+                        <span><p>Kod pocztowy zgodny z kodami obowiązującymi w danym kraju</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="city">
+                    <div class="api_details_item_inner level5">
+                        <strong class="api_required required_after">city <span>(string)</span></strong>
+                        <span><p>Miasto</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="countryCode">
+                    <div class="api_details_item_inner level5">
+                        <strong class="api_required required_after">countryCode <span>(string)</span></strong>
+                        <span><p>Kraj (kod w ISO 3166-1 alfa-2). Przykład: en, pl</p></span>
+                    </div>
+        </div></div></div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="notification">
+                    <div class="api_details_item_inner level4">
+                        <strong class="">notification <span>(notificationType)</span></strong>
+                        <span><p>
+                    <span>Możliwe wartości:
+                    </span> (<i>y, n</i>)</p><p>Informuj klienta przez wiadomość E-mail o zmianach danych konta </p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="sendNewsletter">
+                    <div class="api_details_item_inner level4">
+                        <strong class="">sendNewsletter <span>(sendNewsletterType)</span></strong>
+                        <span><p>
+                    <span>Możliwe wartości:
+                    </span> (<i>y, n</i>)</p><p>Wyślij newsletter</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="note">
+                    <div class="api_details_item_inner level4">
+                        <strong class="">note <span>(string)</span></strong>
+                        <span><p>Notatka o kliencie</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="discountForItemsInPromotion">
+                    <div class="api_details_item_inner level4">
+                        <strong class="">discountForItemsInPromotion <span>(float)</span></strong>
+                        <span><p>Rabat naliczany do rezerwacji objętych promocją, %</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="discountForItemsNotInPromotion">
+                    <div class="api_details_item_inner level4">
+                        <strong class="">discountForItemsNotInPromotion <span>(float)</span></strong>
+                        <span><p>Rabat naliczany do rezerwacji nieobjętych promocją, %</p></span>
+                    </div>
+        </div></div></div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="apiNote">
+                    <div class="api_details_item_inner level3">
+                        <strong class="">apiNote <span>(string)</span></strong>
+                        <span><p>Notatka API</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="clientNote">
+                    <div class="api_details_item_inner level3">
+                        <strong class="">clientNote <span>(string)</span></strong>
+                        <span><p>Uwagi klienta do rezerwacji</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="externalNote">
+                    <div class="api_details_item_inner level3">
+                        <strong class="">externalNote <span>(string)</span></strong>
+                        <span><p>Informacje dla klienta</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="internalNote">
+                    <div class="api_details_item_inner level3">
+                        <strong class="">internalNote <span>(string)</span></strong>
+                        <span><p>Notatka do rezerwacji</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="validAvailability">
+                    <div class="api_details_item_inner level3">
+                        <strong class="">validAvailability <span>(boolean)</span></strong>
+                        <span><p>Id zestawu</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="status">
+                    <div class="api_details_item_inner level3">
+                        <strong class="">status <span>(reservationStatusTypeType)</span></strong>
+                        <span><p>
+                    <span>Możliwe wartości:
+                    </span> (<i>unconfirmed, confirmed, waitingForPayment, completed, accepted</i>)</p><p>Typ statusu rezerwacji</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="internalSource">
+                    <div class="api_details_item_inner level3">
+                        <strong class="">internalSource <span>(internalSourceType)</span></strong>
+                        <span><p>
+                    <span>Możliwe wartości:
+                    </span> (<i>other, email, phone, faceToFaceConversation, socialMedia</i>)</p><p></p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item open" data-parameter-name="packages">
+                    <div class="api_details_item_inner level3 toggle">
+                        <strong class="">packages <span>(newReservationPackageTypeArrayType)</span></strong>
+                        <span><p>Dane zestawów rezerwacji</p></span>
+                    </div>
+        
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item open" data-parameter-name="newReservationPackageTypeType">
+                    <div class="api_details_item_inner level4 toggle">
+                        <strong class="api_required required_after"> <span>(newReservationPackageTypeType)</span></strong>
+                        <span><p>element typu newReservationPackageTypeType</p></span>
+                    </div>
+        
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="packageId">
+                    <div class="api_details_item_inner level5">
+                        <strong class="api_required required_after">packageId <span>(int)</span></strong>
+                        <span><p>Id zestawu</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="price">
+                    <div class="api_details_item_inner level5">
+                        <strong class="">price <span>(float)</span></strong>
+                        <span><p>Cena</p></span>
+                    </div>
+        </div></div></div></div></div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item open" data-parameter-name="items">
+                    <div class="api_details_item_inner level3 toggle">
+                        <strong class="api_required required_after">items <span>(newReservationItemTypeArrayType)</span></strong>
+                        <span><p>Dane przedmiotów rezerwacji</p></span>
+                    </div>
+        
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item open" data-parameter-name="newReservationItemTypeType">
+                    <div class="api_details_item_inner level4 toggle">
+                        <strong class="api_required required_after"> <span>(newReservationItemTypeType)</span></strong>
+                        <span><p>element typu newReservationItemTypeType</p></span>
+                    </div>
+        
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="objectItemId">
+                    <div class="api_details_item_inner level5">
+                        <strong class="">objectItemId <span>(int)</span></strong>
+                        <span><p>Identyfikator przedmiotu rezerwacji</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="objectId">
+                    <div class="api_details_item_inner level5">
+                        <strong class="">objectId <span>(int)</span></strong>
+                        <span><p>Identyfikator przedmiotu rezerwacji</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="price">
+                    <div class="api_details_item_inner level5">
+                        <strong class="">price <span>(float)</span></strong>
+                        <span><p>Cena</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="vat">
+                    <div class="api_details_item_inner level5">
+                        <strong class="">vat <span>(float)</span></strong>
+                        <span><p>Vat (%)</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="numberOfAdults">
+                    <div class="api_details_item_inner level5">
+                        <strong class="">numberOfAdults <span>(int)</span></strong>
+                        <span><p>Liczba dorosłych</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="numberOfBigChildren">
+                    <div class="api_details_item_inner level5">
+                        <strong class="">numberOfBigChildren <span>(int)</span></strong>
+                        <span><p>liczba dzieci, które według konfiguracji sprzedaży mają inne ceny</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="numberOfSmallChildren">
+                    <div class="api_details_item_inner level5">
+                        <strong class="">numberOfSmallChildren <span>(int)</span></strong>
+                        <span><p>liczba dzieci, które według konfiguracji sprzedaży mają pobyt gratis</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item open" data-parameter-name="addons">
+                    <div class="api_details_item_inner level5 toggle">
+                        <strong class="">addons <span>(addonsType)</span></strong>
+                        <span><p>Dane dodatków rezerwacji</p></span>
+                    </div>
+        
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item open" data-parameter-name="addonType">
+                    <div class="api_details_item_inner level6 toggle">
+                        <strong class="api_required required_after"> <span>(addonType)</span></strong>
+                        <span><p>element typu addonType</p></span>
+                    </div>
+        
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="addonId">
+                    <div class="api_details_item_inner level7">
+                        <strong class="api_required required_after">addonId <span>(int)</span></strong>
+                        <span><p>Identyfikator dodatku</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="persons">
+                    <div class="api_details_item_inner level7">
+                        <strong class="api_required required_after">persons <span>(int)</span></strong>
+                        <span><p>Liczba osób</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="nights">
+                    <div class="api_details_item_inner level7">
+                        <strong class="api_required required_after">nights <span>(int)</span></strong>
+                        <span><p>Liczba nocy</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="quantity">
+                    <div class="api_details_item_inner level7">
+                        <strong class="api_required required_after">quantity <span>(int)</span></strong>
+                        <span><p>Ilość dodatku</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="price">
+                    <div class="api_details_item_inner level7">
+                        <strong class="api_required required_after">price <span>(float)</span></strong>
+                        <span><p>Cena</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="vat">
+                    <div class="api_details_item_inner level7">
+                        <strong class="api_required required_after">vat <span>(float)</span></strong>
+                        <span><p>Vat (%)</p></span>
+                    </div>
+        </div></div></div></div></div></div></div></div></div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="currency">
+                    <div class="api_details_item_inner level3">
+                        <strong class="api_required required_after">currency <span>(string)</span></strong>
+                        <span><p>Kod waluty zgodny z ISO 4217 Przykład: PLN, EUR</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="notify">
+                    <div class="api_details_item_inner level3">
+                        <strong class="">notify <span>(notifyType)</span></strong>
+                        <span><p>
+                    <span>Możliwe wartości:
+                    </span> (<i>y, n</i>)</p><p>Powiadamiaj wiadomością transakcyjną</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="notifyService">
+                    <div class="api_details_item_inner level3">
+                        <strong class="">notifyService <span>(notifyServiceType)</span></strong>
+                        <span><p>
+                    <span>Możliwe wartości:
+                    </span> (<i>y, n</i>)</p><p>Wysyłaj powiadomienia dla obsługi obiektu. Domyślnie są wysyłane</p></span>
+                    </div>
+        </div></div></div></div></div></div></div></div></div>
+        <div id="api_method_response_json" class="mb-5"><div class="api_method_header px-3"><div class="api_method_header_left d-flex flex-wrap justify-content-center justify-content-sm-between align-items-center"><div><i class="icon-code"></i> 
+            <strong>Struktura odpowiedzi</strong></div></div></div><div id="api_method_response_content" class="api_details visible">
+                <div class="api_details_item open" data-parameter-name="authenticate">
+                    <div class="api_details_item_inner level0 toggle">
+                        <strong class="">authenticate <span>(authenticateType)</span></strong>
+                        <span><p>Element zawierający informacje zwrotne z modułu autoryzującego</p></span>
+                    </div>
+        
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="systemKey">
+                    <div class="api_details_item_inner level1">
+                        <strong class="api_required required_after">systemKey <span>(string)</span></strong>
+                        <span><p>Klucz wykorzystywany podczas uwierzytelniania. Zapoznaj się z <a href="https://www.idosell.com/pl/developers/api/faq/najczesciej-zadawane-pytania-dotyczace-api-pa-idosell/#3">instrukcją generowania klucza</a></p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="systemLogin">
+                    <div class="api_details_item_inner level1">
+                        <strong class="api_required required_after">systemLogin <span>(string)</span></strong>
+                        <span><p>Login użytkownika panelu IdoSell Booking</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="lang">
+                    <div class="api_details_item_inner level1">
+                        <strong class="">lang <span>(apiLanguage)</span></strong>
+                        <span><p>
+                    <span>Możliwe wartości:
+                    </span> (<i>eng, pol, ger</i>)</p><p>Język API</p></span>
+                    </div>
+        </div></div></div>
+                <div class="api_details_item open" data-parameter-name="errors">
+                    <div class="api_details_item_inner level0 toggle">
+                        <strong class="">errors <span>(gateErrorType)</span></strong>
+                        <span><p>Lista kodów błędów</p></span>
+                    </div>
+        
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="faultCode">
+                    <div class="api_details_item_inner level1">
+                        <strong class="">faultCode <span>(int)</span></strong>
+                        <span><p>Kod błędu</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="faultString">
+                    <div class="api_details_item_inner level1">
+                        <strong class="">faultString <span>(string)</span></strong>
+                        <span><p>Opis błędu</p></span>
+                    </div>
+        </div></div></div>
+                <div class="api_details_item open" data-parameter-name="reservations">
+                    <div class="api_details_item_inner level0 toggle">
+                        <strong class="api_required required_after">reservations <span>(changeReservationsTypeArray)</span></strong>
+                        <span><p>Dane rezerwacji</p></span>
+                    </div>
+        
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item open" data-parameter-name="changeReservationsType">
+                    <div class="api_details_item_inner level1 toggle">
+                        <strong class="api_required required_after"> <span>(changeReservationsType)</span></strong>
+                        <span><p>element typu changeReservationsType</p></span>
+                    </div>
+        
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="success">
+                    <div class="api_details_item_inner level2">
+                        <strong class="api_required required_after">success <span>(boolean)</span></strong>
+                        <span><p>Sukces</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item open" data-parameter-name="error">
+                    <div class="api_details_item_inner level2 toggle">
+                        <strong class="">error <span>(errorType)</span></strong>
+                        <span><p>Dane błędu</p></span>
+                    </div>
+        
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="faultCode">
+                    <div class="api_details_item_inner level3">
+                        <strong class="">faultCode <span>(int)</span></strong>
+                        <span><p>Kod błędu</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="faultString">
+                    <div class="api_details_item_inner level3">
+                        <strong class="">faultString <span>(string)</span></strong>
+                        <span><p>Opis błędu</p></span>
+                    </div>
+        </div></div></div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="reservationId">
+                    <div class="api_details_item_inner level2">
+                        <strong class="">reservationId <span>(int)</span></strong>
+                        <span><p>Identyfikator rezerwacji</p></span>
+                    </div>
+        </div></div></div></div></div></div></div>
+        <div id="php-example_json" class="code_example mb-5"><div class="api_method_header px-3"><div class="api_method_header_left d-flex flex-wrap justify-content-center justify-content-sm-between align-items-center"><div><i class="icon-file-code"></i> 
+            <strong>Przykład kodu w PHP</strong></div></div></div><div class="api_details visible">
+                <div id="php-example_content_json">
+                    <pre class="highlight-code hljs php"><span class="hljs-meta">&lt;?php</span>
+
+$address = <span class="hljs-string">'https://client1679.idobooking.com/api/reservations/add/36/json'</span>;
+
+$request = <span class="hljs-keyword">array</span>();
+$request[<span class="hljs-string">'authenticate'</span>] = <span class="hljs-keyword">array</span>();
+$request[<span class="hljs-string">'authenticate'</span>][<span class="hljs-string">'systemKey'</span>] = sha1(date(<span class="hljs-string">'Ymd'</span>) . sha1(<span class="hljs-string">'YOUR_KEY'</span>));
+$request[<span class="hljs-string">'authenticate'</span>][<span class="hljs-string">'systemLogin'</span>] = <span class="hljs-string">"systemLogin"</span>;
+$request[<span class="hljs-string">'authenticate'</span>][<span class="hljs-string">'lang'</span>] = <span class="hljs-string">'eng'</span>;
+$request[<span class="hljs-string">'params'</span>] = <span class="hljs-keyword">array</span>();
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>] = <span class="hljs-keyword">array</span>();
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>] = <span class="hljs-keyword">array</span>();
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'dateFrom'</span>] = <span class="hljs-string">"dateFrom"</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'dateTo'</span>] = <span class="hljs-string">"dateTo"</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'price'</span>] = <span class="hljs-number">1.0</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'clientId'</span>] = <span class="hljs-number">2</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'clientData'</span>] = <span class="hljs-keyword">array</span>();
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'clientData'</span>][<span class="hljs-string">'login'</span>] = <span class="hljs-string">"login"</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'clientData'</span>][<span class="hljs-string">'password'</span>] = <span class="hljs-string">"password"</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'clientData'</span>][<span class="hljs-string">'type'</span>] = <span class="hljs-string">'person'</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'clientData'</span>][<span class="hljs-string">'status'</span>] = <span class="hljs-string">'active'</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'clientData'</span>][<span class="hljs-string">'companyName'</span>] = <span class="hljs-string">"companyName"</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'clientData'</span>][<span class="hljs-string">'taxNumber'</span>] = <span class="hljs-string">"taxNumber"</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'clientData'</span>][<span class="hljs-string">'firstName'</span>] = <span class="hljs-string">"firstName"</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'clientData'</span>][<span class="hljs-string">'lastName'</span>] = <span class="hljs-string">"lastName"</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'clientData'</span>][<span class="hljs-string">'street'</span>] = <span class="hljs-string">"street"</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'clientData'</span>][<span class="hljs-string">'zipcode'</span>] = <span class="hljs-string">"zipcode"</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'clientData'</span>][<span class="hljs-string">'city'</span>] = <span class="hljs-string">"city"</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'clientData'</span>][<span class="hljs-string">'countryCode'</span>] = <span class="hljs-string">"countryCode"</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'clientData'</span>][<span class="hljs-string">'phone'</span>] = <span class="hljs-string">"phone"</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'clientData'</span>][<span class="hljs-string">'email'</span>] = <span class="hljs-string">"email"</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'clientData'</span>][<span class="hljs-string">'language'</span>] = <span class="hljs-string">"language"</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'clientData'</span>][<span class="hljs-string">'currency'</span>] = <span class="hljs-string">"currency"</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'clientData'</span>][<span class="hljs-string">'guestData'</span>] = <span class="hljs-keyword">array</span>();
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'clientData'</span>][<span class="hljs-string">'guestData'</span>][<span class="hljs-string">'firstName'</span>] = <span class="hljs-string">"firstName"</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'clientData'</span>][<span class="hljs-string">'guestData'</span>][<span class="hljs-string">'lastName'</span>] = <span class="hljs-string">"lastName"</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'clientData'</span>][<span class="hljs-string">'guestData'</span>][<span class="hljs-string">'street'</span>] = <span class="hljs-string">"street"</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'clientData'</span>][<span class="hljs-string">'guestData'</span>][<span class="hljs-string">'zipcode'</span>] = <span class="hljs-string">"zipcode"</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'clientData'</span>][<span class="hljs-string">'guestData'</span>][<span class="hljs-string">'city'</span>] = <span class="hljs-string">"city"</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'clientData'</span>][<span class="hljs-string">'guestData'</span>][<span class="hljs-string">'countryCode'</span>] = <span class="hljs-string">"countryCode"</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'clientData'</span>][<span class="hljs-string">'guestData'</span>][<span class="hljs-string">'phone'</span>] = <span class="hljs-string">"phone"</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'clientData'</span>][<span class="hljs-string">'guestData'</span>][<span class="hljs-string">'email'</span>] = <span class="hljs-string">"email"</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'clientData'</span>][<span class="hljs-string">'guestData'</span>][<span class="hljs-string">'language'</span>] = <span class="hljs-string">"language"</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'clientData'</span>][<span class="hljs-string">'invoiceData'</span>] = <span class="hljs-keyword">array</span>();
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'clientData'</span>][<span class="hljs-string">'invoiceData'</span>][<span class="hljs-string">'firstName'</span>] = <span class="hljs-string">"firstName"</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'clientData'</span>][<span class="hljs-string">'invoiceData'</span>][<span class="hljs-string">'lastName'</span>] = <span class="hljs-string">"lastName"</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'clientData'</span>][<span class="hljs-string">'invoiceData'</span>][<span class="hljs-string">'companyName'</span>] = <span class="hljs-string">"companyName"</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'clientData'</span>][<span class="hljs-string">'invoiceData'</span>][<span class="hljs-string">'taxNumber'</span>] = <span class="hljs-string">"taxNumber"</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'clientData'</span>][<span class="hljs-string">'invoiceData'</span>][<span class="hljs-string">'street'</span>] = <span class="hljs-string">"street"</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'clientData'</span>][<span class="hljs-string">'invoiceData'</span>][<span class="hljs-string">'zipcode'</span>] = <span class="hljs-string">"zipcode"</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'clientData'</span>][<span class="hljs-string">'invoiceData'</span>][<span class="hljs-string">'city'</span>] = <span class="hljs-string">"city"</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'clientData'</span>][<span class="hljs-string">'invoiceData'</span>][<span class="hljs-string">'countryCode'</span>] = <span class="hljs-string">"countryCode"</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'clientData'</span>][<span class="hljs-string">'notification'</span>] = <span class="hljs-string">'y'</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'clientData'</span>][<span class="hljs-string">'sendNewsletter'</span>] = <span class="hljs-string">'y'</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'clientData'</span>][<span class="hljs-string">'note'</span>] = <span class="hljs-string">"note"</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'clientData'</span>][<span class="hljs-string">'discountForItemsInPromotion'</span>] = <span class="hljs-number">3.0</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'clientData'</span>][<span class="hljs-string">'discountForItemsNotInPromotion'</span>] = <span class="hljs-number">4.0</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'apiNote'</span>] = <span class="hljs-string">"apiNote"</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'clientNote'</span>] = <span class="hljs-string">"clientNote"</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'externalNote'</span>] = <span class="hljs-string">"externalNote"</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'internalNote'</span>] = <span class="hljs-string">"internalNote"</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'validAvailability'</span>] = <span class="hljs-keyword">true</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'status'</span>] = <span class="hljs-string">'unconfirmed'</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'internalSource'</span>] = <span class="hljs-string">'other'</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'packages'</span>] = <span class="hljs-keyword">array</span>();
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'packages'</span>][<span class="hljs-number">0</span>] = <span class="hljs-keyword">array</span>();
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'packages'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'packageId'</span>] = <span class="hljs-number">5</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'packages'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'price'</span>] = <span class="hljs-number">6.0</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'items'</span>] = <span class="hljs-keyword">array</span>();
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'items'</span>][<span class="hljs-number">0</span>] = <span class="hljs-keyword">array</span>();
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'items'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'objectItemId'</span>] = <span class="hljs-number">7</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'items'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'objectId'</span>] = <span class="hljs-number">8</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'items'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'price'</span>] = <span class="hljs-number">9.0</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'items'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'vat'</span>] = <span class="hljs-number">10.0</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'items'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'numberOfAdults'</span>] = <span class="hljs-number">11</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'items'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'numberOfBigChildren'</span>] = <span class="hljs-number">12</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'items'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'numberOfSmallChildren'</span>] = <span class="hljs-number">13</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'items'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'addons'</span>] = <span class="hljs-keyword">array</span>();
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'items'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'addons'</span>][<span class="hljs-number">0</span>] = <span class="hljs-keyword">array</span>();
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'items'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'addons'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'addonId'</span>] = <span class="hljs-number">14</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'items'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'addons'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'persons'</span>] = <span class="hljs-number">15</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'items'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'addons'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'nights'</span>] = <span class="hljs-number">16</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'items'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'addons'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'quantity'</span>] = <span class="hljs-number">17</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'items'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'addons'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'price'</span>] = <span class="hljs-number">18.0</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'items'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'addons'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'vat'</span>] = <span class="hljs-number">19.0</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'currency'</span>] = <span class="hljs-string">"currency"</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'notify'</span>] = <span class="hljs-string">'y'</span>;
+$request[<span class="hljs-string">'params'</span>][<span class="hljs-string">'reservations'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'notifyService'</span>] = <span class="hljs-string">'y'</span>;
+
+[Truncated]</pre></div></div></div></div></div></div></div></div></div></div></div></div></main></html>

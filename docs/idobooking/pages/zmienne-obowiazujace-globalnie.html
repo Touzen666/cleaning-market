@@ -1,0 +1,549 @@
+<!doctype html><html lang="pl"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Zmienne obowiązujące globalnie</title><style>body{font:16px/1.65 system-ui,sans-serif;color:#21302d;margin:0;background:#f5f7f5}main{max-width:1120px;margin:30px auto;background:white;padding:36px;border-radius:12px}a{color:#087f5b}h1{line-height:1.2}h2{margin-top:2em}table{width:100%;border-collapse:collapse;font-size:14px}td,th{border:1px solid #d9e2df;padding:10px;text-align:left;vertical-align:top}th{background:#edf5f0}code,pre{font-family:Consolas,monospace}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#eef3f1;padding:20px}img{max-width:100%;height:auto}.meta{padding:14px;background:#edf5f0}.api_details_item_inner{display:grid;grid-template-columns:minmax(190px,40%) 1fr;border-bottom:1px solid #ddd;padding:12px;gap:16px}.api_details_item_sub{margin-left:18px;border-left:2px solid #a9cdbb;padding-left:8px}.api_required.required_after:after{content:' *';color:#b62323}.api_method_header{background:#edf5f0;padding:12px;margin-top:24px}input{padding:12px;font:inherit;width:90%;max-width:700px}.index li{margin:6px 0}.notice{background:#fff5d7;padding:14px}nav{margin-bottom:24px}@media(max-width:700px){main{padding:16px}.api_details_item_inner{display:block}td,th{padding:5px}}</style><main><nav><a href="../index.html">← Spis dokumentacji</a></nav><h1>Zmienne obowiązujące globalnie</h1><p class="meta">Źródło: <a href="https://api.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/zmienne-obowiazujace-globalnie/">iDoBooking</a> · Kopia: 24.10.2026 · <a href="zmienne-obowiazujace-globalnie.jpg">Pełny zrzut</a> · <a href="zmienne-obowiazujace-globalnie.md">Markdown</a></p><div class="content__collapse col-md-9"> 
+<h3 id="toc6612" class="old_wiki"> <b>$commonGallery</b> - galeria wspólna</h3>
+
+
+<table class="responsive">
+    <tbody><tr class="simple-table-row">
+        <th class="simple-table-head"><b>Zmienna</b></th>
+        <th class="simple-table-head"><b>Opis</b></th>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$commonGallery[item]</td>
+        <td class="simple-table-body">Blok zmiennych dla wspólnej galerii wszystkich podstron</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$commonGallery[item]['url']</td>
+        <td class="simple-table-body">Adres zdjęcia/filmu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$commonGallery[item]['miniature']</td>
+        <td class="simple-table-body">Adres miniatury zdjęcia</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$commonGallery[item]['type']</td>
+        <td class="simple-table-body">Typ (picture lub video)</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$commonGallery[item]['thumbnail']</td>
+        <td class="simple-table-body">Adres miniatury dla typu video</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$commonGallery[item]['full_size']</td>
+        <td class="simple-table-body">Nieprzeskalowana grafika</td>
+    </tr>
+</tbody></table>
+
+
+<h3 id="toc6613" class="old_wiki"> <b>$currenciesActiveInReservation</b> - aktywne waluty w rezerwacjach</h3>
+
+
+<table class="responsive">
+    <tbody><tr class="simple-table-row">
+        <th class="simple-table-head"><b>Zmienna</b></th>
+        <th class="simple-table-head"><b>Opis</b></th>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$currenciesActiveInReservation[item]</td>
+        <td class="simple-table-body">Blok zmiennych dla walut aktywnych w rezerwacjach</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$currenciesActiveInReservation[item]['id']</td>
+        <td class="simple-table-body">Identyfikator waluty aktywnej w rezerwacjach</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$currenciesActiveInReservation[item]['code']</td>
+        <td class="simple-table-body">Kod waluty aktywnej w rezerwacjach np „PLN”</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$currenciesActiveInReservation[item]['symbol']</td>
+        <td class="simple-table-body">Symbol waluty aktywnej w rezerwacjach</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$currenciesActiveInReservation[item]['format']</td>
+        <td class="simple-table-body">Format w jakim zapisuje się kwotę w walucie aktywnej w rezerwacjach</td>
+    </tr>
+</tbody></table>
+
+
+<h3 id="toc6614" class="old_wiki"> <b>$currentCurrency</b> - aktualnie aktywne waluty</h3>
+
+
+<table class="responsive">
+    <tbody><tr class="simple-table-row">
+        <th class="simple-table-head"><b>Zmienna</b></th>
+        <th class="simple-table-head"><b>Opis</b></th>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$currentCurrency['id']</td>
+        <td class="simple-table-body">Identyfikator aktualnie aktywnej waluty</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$currentCurrency['code']</td>
+        <td class="simple-table-body">Kod aktualnie aktywnej waluty np „PLN”</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$currentCurrency['symbol']</td>
+        <td class="simple-table-body">Symbol aktualnie aktywnej waluty</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$currentCurrency['format']</td>
+        <td class="simple-table-body">Format w jakim zapisuje się kwotę w aktualnie aktywnej walucie</td>
+    </tr>
+</tbody></table>
+
+
+<h3 id="toc6615" class="old_wiki"> <b>$language</b> - aktualnie aktywny język</h3>
+
+
+<table class="responsive">
+    <tbody><tr class="simple-table-row">
+        <th class="simple-table-head"><b>Zmienna</b></th>
+        <th class="simple-table-head"><b>Opis</b></th>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$language['id']</td>
+        <td class="simple-table-body">Identyfikator aktualnie aktywnego języka</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$language['locale']</td>
+        <td class="simple-table-body">Kod ISO 3166‑1 aktualnie aktywnego języka np. „pl_PL”</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$language['code']</td>
+        <td class="simple-table-body">Kod ISO 639-3 aktualnie aktywnego języka np. „pol”</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$language['code2']</td>
+        <td class="simple-table-body">Kod ISO 639 aktualnie aktywnego języka np. „pl”</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$language['name']</td>
+        <td class="simple-table-body">Nazwa aktywnego języka</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$language['name_txt']</td>
+        <td class="simple-table-body">Identyfikator aktualnie aktywnego języka</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$language['locale']</td>
+        <td class="simple-table-body">Locale aktualnie aktywnego języka</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$language['default_frontpage_language']</td>
+        <td class="simple-table-body">Domyślny język wizytówki</td>
+    </tr>
+</tbody></table>
+
+
+<h3 id="toc6616" class="old_wiki"> <b>$menu</b> - menu główne</h3>
+
+
+<table class="responsive">
+    <tbody><tr class="simple-table-row">
+        <th class="simple-table-head"><b>Zmienna</b></th>
+        <th class="simple-table-head"><b>Opis</b></th>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$menu[item]</td>
+        <td class="simple-table-body">Nazwa własna elementu menu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$menu[item]['pointerName']</td>
+        <td class="simple-table-body">Nazwa elementu menu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$menu[item]['href']</td>
+        <td class="simple-table-body">Adres do podstrony</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$menu[item]['active']</td>
+        <td class="simple-table-body">Określa czy element jest aktywnym elementem menu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$menu[item]['submenu']</td>
+        <td class="simple-table-body">Podmenu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$menu[item]['submenu'][item]</td>
+        <td class="simple-table-body">Nazwa własna elementu submenu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$menu[item]['submenu'][item]['pointerName']</td>
+        <td class="simple-table-body">Nazwa elementu submenu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$menu[item]['submenu'][item]['href']</td>
+        <td class="simple-table-body">Adres do podstrony</td>
+    </tr>
+</tbody></table>
+
+
+<h3 id="toc6617" class="old_wiki"> <b>$menuLangArray[item]</b> - menu językowe</h3>
+
+
+<table class="responsive">
+    <tbody><tr class="simple-table-row">
+        <th class="simple-table-head"><b>Zmienna</b></th>
+        <th class="simple-table-head"><b>Opis</b></th>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$menuLangArray[item]['url']</td>
+        <td class="simple-table-body">Link do wizytówki w danym języku</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$menuLangArray[item]['name']</td>
+        <td class="simple-table-body">Nazwę języka</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$menuLangArray[item]['shortName']</td>
+        <td class="simple-table-body">Skrócona nazwę języka</td>
+    </tr>
+</tbody></table>
+
+
+<h3 id="toc6618" class="old_wiki"> <b>$meta</b> - znaczniki META</h3>
+
+
+<table class="responsive">
+    <tbody><tr class="simple-table-row">
+        <th class="simple-table-head"><b>Zmienna</b></th>
+        <th class="simple-table-head"><b>Opis</b></th>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$meta['title']</td>
+        <td class="simple-table-body">Tytuł znacznika META</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$meta['description']</td>
+        <td class="simple-table-body">Opis znacznika meta</td>
+    </tr>
+</tbody></table>
+
+
+<h3 id="toc6619" class="old_wiki"> <b>$customStyle</b> - własny arkusz stylów CSS</h3>
+
+
+<table class="responsive">
+    <tbody><tr class="simple-table-row">
+        <th class="simple-table-head"><b>Zmienna</b></th>
+        <th class="simple-table-head"><b>Opis</b></th>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$customStyle</td>
+        <td class="simple-table-body">Czy jest własny arkusz stylów CSS</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$customStylePath</td>
+        <td class="simple-table-body">Adres do arkusza</td>
+    </tr>
+</tbody></table>
+
+
+<h3 id="toc6620" class="old_wiki"> <b>$ownerData</b> - dane o firmie</h3>
+
+
+<table class="responsive">
+    <tbody><tr class="simple-table-row">
+        <th class="simple-table-head"><b>Zmienna</b></th>
+        <th class="simple-table-head"><b>Opis</b></th>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$ownerData['is_vat']</td>
+        <td class="simple-table-body">Określa czy firma jest płatnikiem VAT</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$ownerData['name']</td>
+        <td class="simple-table-body">Nazwa firmy</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$ownerData['short_name']</td>
+        <td class="simple-table-body">Skrócona nazwa firmy</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$ownerData['street']</td>
+        <td class="simple-table-body">Ulica firmy</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$ownerData['city']</td>
+        <td class="simple-table-body">Miasto firmy</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$ownerData['zipcode']</td>
+        <td class="simple-table-body">Kod pocztowy firmy</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$ownerData['country']</td>
+        <td class="simple-table-body">Kraj firmy</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$ownerData['account']</td>
+        <td class="simple-table-body">Numer konta bankowego firmy</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$ownerData['swift']</td>
+        <td class="simple-table-body">Numer SWIFT/BIC konta bankowego</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$ownerData['bank']</td>
+        <td class="simple-table-body">Nazwa banku konta bankowego firmy</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$ownerData['nip']</td>
+        <td class="simple-table-body">NIP firmy</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$ownerData['krs']</td>
+        <td class="simple-table-body">KRS firmy</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$ownerData['object_name']</td>
+        <td class="simple-table-body">Nazwa obiektu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$ownerData['object_short_name']</td>
+        <td class="simple-table-body">Skrócona nazwę obiektu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$ownerData['object_street']</td>
+        <td class="simple-table-body">Ulica obiektu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$ownerData['object_city']</td>
+        <td class="simple-table-body">Miasto obiektu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$ownerData['object_zipcode']</td>
+        <td class="simple-table-body">Kod pocztowy obiektu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$ownerData['object_country']</td>
+        <td class="simple-table-body">Kraj obiektu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$ownerData['object_phone']</td>
+        <td class="simple-table-body">Numer telefonu obiektu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$ownerData['object_fax']</td>
+        <td class="simple-table-body">Fax obiektu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$ownerData['object_email']</td>
+        <td class="simple-table-body">Adres e mail obiektu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$ownerData['object_gg']</td>
+        <td class="simple-table-body">Numer Gadu-Gadu obiektu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$ownerData['object_skype']</td>
+        <td class="simple-table-body">Adres Skype obiektu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$ownerData['geolocation_lat']</td>
+        <td class="simple-table-body">Szerokość geograficzną obiektu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$ownerData['geolocation_lng']</td>
+        <td class="simple-table-body">Długiść geograficzną obiektu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$ownerData['object_phone_2']</td>
+        <td class="simple-table-body">Drugi numer telefonu do obiektu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$ownerData['reception_open_mode']</td>
+        <td class="simple-table-body">Tryb w otwarcia recepcji lub odbioru kluczy</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$ownerData['reception_open_hour']</td>
+        <td class="simple-table-body">Godzina otwarcia recepcji lub rozpoczęcia odbioru kluczy</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$ownerData['reception_close_hour']</td>
+        <td class="simple-table-body">Godzina zamknięcia recepcji lub zakończenia odbioru kluczy</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$ownerData['faviconPath']</td>
+        <td class="simple-table-body">Adres do favicony</td>
+    </tr>
+</tbody></table>
+
+
+<h3 id="toc6621" class="old_wiki"> <b>$ownerData[languages]</b> - rezerwacje w języku </h3>
+
+
+<table class="responsive">
+    <tbody><tr class="simple-table-row">
+        <th class="simple-table-head"><b>Zmienna</b></th>
+        <th class="simple-table-head"><b>Opis</b></th>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$ownerData[languages][id]</td>
+        <td class="simple-table-body">Blok zmiennych dla dodatkowych informacji dla rezerwujących w języku</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$ownerdata[languages][id]['reception_info']</td>
+        <td class="simple-table-body">Dodatkowe informacje dla rezerwujących w języku</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$ownerData['website']</td>
+        <td class="simple-table-body">Adres strony obiektu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$ownerData['object_timezone']</td>
+        <td class="simple-table-body">Strefa czasową obiektu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$ownerData['object_locale']</td>
+        <td class="simple-table-body">Locale obiektu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$ownerData['logoPath']</td>
+        <td class="simple-table-body">Adres do loga obiektu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$ownerData['wideLogoPath']</td>
+        <td class="simple-table-body">Adres do szerokiego loga obiektu</td>
+    </tr>
+</tbody></table>
+
+
+<h3 id="toc6622" class="old_wiki"> <b>$socialMedia</b> - media społecznościowe</h3>
+
+
+<table class="responsive">
+    <tbody><tr class="simple-table-row">
+        <th class="simple-table-head"><b>Zmienna</b></th>
+        <th class="simple-table-head"><b>Opis</b></th>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$socialMedia['facebookCommentsPage']</td>
+        <td class="simple-table-body">Określa czy komentarze Facebook mają być wyświetlane na stronie Facebook</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$socialMedia['specialOffertsDescriptionPage']</td>
+        <td class="simple-table-body">Określa czy komentarze Facebook mają być wyświetlane na stronie zestawu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$socialMedia['accommodationDescriptionPage']</td>
+        <td class="simple-table-body">Określa czy komentarze Facebook mają być wyświetlane na stronie miejsca noclegowego</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$socialMedia['descriptionPage']</td>
+        <td class="simple-table-body">Określa czy komentarze Facebook mają być wyświetlane na stronie głównej</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$socialMedia['contactPage']</td>
+        <td class="simple-table-body">Określa czy komentarze Facebook mają być wyświetlane na stronie kontaktu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$socialMedia['newsPage']</td>
+        <td class="simple-table-body">Określa czy komentarze Facebook mają być wyświetlane na stronie aktualności</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$socialMedia['moderatorComments']</td>
+        <td class="simple-table-body">Blok zmiennych dla identyfikatorów administratorów komentarzy Facebook</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$socialMedia['moderatorComments'][userId]</td>
+        <td class="simple-table-body">Identyfikator administratora komentarzy Facebook</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$socialMedia['facebookAppId']</td>
+        <td class="simple-table-body">Identyfikator aplikacji Facebook</td>
+    </tr>
+</tbody></table>
+
+
+<h3 id="toc6623" class="old_wiki"> <b>Pozostałe zmienne</b></h3>
+
+
+<table class="responsive">
+    <tbody><tr class="simple-table-row">
+        <th class="simple-table-head"><b>Zmienna</b></th>
+        <th class="simple-table-head"><b>Opis</b></th>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$action</td>
+        <td class="simple-table-body">Nazwa akcji</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$frontpageUrl</td>
+        <td class="simple-table-body">Adres strony głównej</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$googleAnalyticsId</td>
+        <td class="simple-table-body">Identyfikator śledzenia Google</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$googleAnalyticsSource</td>
+        <td class="simple-table-body">Skrypt dla Google Analytics</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$mainColor</td>
+        <td class="simple-table-body">Wiodący kolor strony wizytówki</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$path</td>
+        <td class="simple-table-body">Ścieżka do obecnej strony</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$showCurrency</td>
+        <td class="simple-table-body">Określa czy pokazywać walutę</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$showLogo</td>
+        <td class="simple-table-body">Określa czy pokazywać logo obiektu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$showSectionConfiguration</td>
+        <td class="simple-table-body">Określa czy pokazywać sekcję „Zestawy”</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$showWideLogo</td>
+        <td class="simple-table-body">Określa czy pokazywać szerokie logo</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$useGoogleAnalytics</td>
+        <td class="simple-table-body">Określa czy użyć Google Analytics</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$sectionContactVisibility['visibility_company_description']</td>
+        <td class="simple-table-body">Określa czy pokazywać dane firmy</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$sectionContactVisibility['visibility_hotel']</td>
+        <td class="simple-table-body">Określa czy pokazywać dane obiektu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$sectionContactVisibility['visibility_google_maps']</td>
+        <td class="simple-table-body">Określa czy pokazywać mapę z lokalizacją obiektu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$button_light_src</td>
+        <td class="simple-table-body">Adres do obrazka Powered by IdoSell jasny</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$button_src</td>
+        <td class="simple-table-body">Adres do obrazka Powered by IdoSell ciemny</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$button_link</td>
+        <td class="simple-table-body">Adres strony /booking</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$button_text</td>
+        <td class="simple-table-body">Tekst do obrazka Powered by IdoSell - IdoBooking - the best reservation management system</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$allActiveOfferCategories</td>
+        <td class="simple-table-body">Lista aktywnych kategorii dostępnych w przedmiotach rezerwacji</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$promotedOffers</td>
+        <td class="simple-table-body">Wyróżnione oferty</td>
+    </tr>
+</tbody></table>
+
+</div></main></html>

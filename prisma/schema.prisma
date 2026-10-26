@@ -194,6 +194,7 @@ model CleaningUser {
   createdAt            DateTime      @default(now())
   updatedAt            DateTime      @updatedAt
   assignedReservations Reservation[] @relation(name: "CleaningAssignments")
+  cleaningProfile      CleaningProfile?
 }
 
 model ApartmentImage {
@@ -693,4 +694,61 @@ model SystemSettings {
   user        User     @relation("SystemSettingsUpdatedBy", fields: [updatedBy], references: [id])
 
   @@index([key])
+}
+
+// Cleaning is isolated from financial/admin Reservation assignments.
+model CleaningProfile {
+  userId       Int      @id
+  user         CleaningUser @relation(fields: [userId], references: [id], onDelete: Restrict)
+  displayName  String
+  phone        String?
+  photo        String?
+  active       Boolean  @default(true)
+  dailyLimit   Int      @default(4)
+  rules        Json
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model CleaningWorkspace {
+  id        String   @id
+  revision  Int      @default(0)
+  state     Json
+  updatedAt DateTime @updatedAt
+}
+
+model CleaningAsset {
+  id          String   @id @default(cuid())
+  workspaceId String
+  taskId      String
+  userId      Int
+  category    String
+  data        String
+  createdAt   DateTime @default(now())
+  @@index([workspaceId, taskId])
+}
+
+model CleaningAuditEvent {
+  id          String   @id @default(cuid())
+  workspaceId String
+  taskId      String?
+  actor       String
+  kind        String
+  data        Json
+  createdAt   DateTime @default(now())
+  @@index([workspaceId, createdAt])
+}
+
+model CleaningNotification {
+  id          String   @id @default(cuid())
+  workspaceId String
+  taskId      String
+  userId      Int
+  dedupeKey   String   @unique
+  phone       String?
+  status      String   @default("QUEUED")
+  payload     Json
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  @@index([workspaceId, status])
 }

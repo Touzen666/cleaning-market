@@ -1,0 +1,39 @@
+<!doctype html><html lang="pl"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Zapis żądań i odpowiedzi do API</title><style>body{font:16px/1.65 system-ui,sans-serif;color:#21302d;margin:0;background:#f5f7f5}main{max-width:1120px;margin:30px auto;background:white;padding:36px;border-radius:12px}a{color:#087f5b}h1{line-height:1.2}h2{margin-top:2em}table{width:100%;border-collapse:collapse;font-size:14px}td,th{border:1px solid #d9e2df;padding:10px;text-align:left;vertical-align:top}th{background:#edf5f0}code,pre{font-family:Consolas,monospace}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#eef3f1;padding:20px}img{max-width:100%;height:auto}.meta{padding:14px;background:#edf5f0}.api_details_item_inner{display:grid;grid-template-columns:minmax(190px,40%) 1fr;border-bottom:1px solid #ddd;padding:12px;gap:16px}.api_details_item_sub{margin-left:18px;border-left:2px solid #a9cdbb;padding-left:8px}.api_required.required_after:after{content:' *';color:#b62323}.api_method_header{background:#edf5f0;padding:12px;margin-top:24px}input{padding:12px;font:inherit;width:90%;max-width:700px}.index li{margin:6px 0}.notice{background:#fff5d7;padding:14px}nav{margin-bottom:24px}@media(max-width:700px){main{padding:16px}.api_details_item_inner{display:block}td,th{padding:5px}}</style><main><nav><a href="../index.html">← Spis dokumentacji</a></nav><h1>Zapis żądań i odpowiedzi do API</h1><p class="meta">Źródło: <a href="https://api.idobooking.com/pl/developers/zapis-zadan-i-odpowiedzi-do-api/">iDoBooking</a> · Kopia: 24.10.2026 · <a href="zapis-zadan-i-odpowiedzi-do-api.jpg">Pełny zrzut</a> · <a href="zapis-zadan-i-odpowiedzi-do-api.md">Markdown</a></p><div class="content__collapse col-md-9"> <p class="old_wiki">Dostępny w panelu IdoBooking <b>zapis żądań i odpowiedzi do API</b> to mechanizm dzięki któremu jako Developer masz możliwość zbierania w czasie rzeczywistym informacji dotyczących:</p>
+
+<ul class="old_wiki">
+    <li>daty i godziny rozpoczęcia wykonywania poszczególnych zapytań i ich odpowiedzi,</li>
+    <li>data i godziny zakończenia wykonywania poszczególnych zapytań i ich odpowiedzi,</li>
+    <li>czasu wykonywania poszczególnych zapytań i ich odpowiedzi,</li>
+    <li>identyfikatorów UAString (user-agent) zawartych w metadanych nagłówków HTTP poszczególnych zapytań i ich odpowiedzi</li>
+</ul>
+
+<p class="old_wiki">Jest to także narzędzie, które pomoże Ci sprawdzić czy wykonywane przez Twoje programy lub skrypty, zapytania API posiadają właściwą i wymaganą przez daną bramkę strukturę i czy są przez nią poprawnie przetwarzane oraz już na wczesnym etapie zidentyfikować i wyeliminować występujące w nich problemy zapewniając im bardziej optymalne działanie. Jest to więc świetne narzędzie dla Developera, który tworzy własne programy czy indywidualne integracje.</p>
+
+
+<h2 id="toc4157" class="old_wiki"> Konfiguracja zapisu żądania i odpowiedzi wybranego interfejsu API</h2>
+<p class="old_wiki">Chcąc włączyć rejestrację żądań i odpowiedzi do API, przejdź w panelu IdoBooking do strony <b>ADMINISTRACJA / API</b>, a następnie wybierz <i>Zapis żądań i odpowiedzi do API</i>.</p>
+
+<p class="big-in-page"><img src="../assets/131e13520b4a20b3-file-gate.png" alt=""></p>
+
+<p class="old_wiki">Następnie wybierz <i>user agent'a</i>:</p>
+
+<ul class="old_wiki">
+    <li>dowolnego (zarejestrowanego w statystykach)  </li>
+    <li>innego - user agent własnej dowolnej aplikacji</li>
+</ul>
+
+<p class="old_wiki">Wybranie konkretnego user agenta pozwoli Ci odfiltrować z logów niepotrzebne żądania i zapisać w nich tylko te, które będą wykonywane przez interesującą Cię aplikację czy inny wykonywany skrypt.</p>
+
+<p class="old_wiki">Ostatnim krokiem w konfiguracji jest wybór ram czasowych w jakich zapis żądań i odpowiedzi API ma być nasłuchiwany. W tym miejscu wskaż datę oraz konkretną godzinę do kiedy narzędzie ma nasłuchiwać zapis.</p>
+
+<p class="big-in-page"><img src="../assets/a7d34eaf6dd79ba5-file-gate.png" alt=""></p>
+
+<p class="old_wiki">Po skonfigurowaniu powyższych opcji <i>Rozpocznij nowy zapis</i>.</p>
+
+
+<h2 id="toc4158" class="old_wiki"> Pobieranie logów żądań i odpowiedzi do API</h2>
+<p class="old_wiki">Każdy rejestrowany typ żądania i odpowiedzi jest umieszczany w postaci osobno zapisywanych plików XML, gotowych do analizy. Aby pobrać&nbsp;cały zapis wystarczy kliknąć w przycisk <i>Pobierz logi żądań i odpowiedzi API</i> i będzie dostępny w postaci pliku zip.</p>
+
+<p class="old_wiki">Należy pamiętać, że <b>logi żądań i odpowiedzi do API są automatycznie kasowane po upływie 1 miesiąca od daty zapisu</b>.</p>
+
+</div></main></html>

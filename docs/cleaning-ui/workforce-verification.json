@@ -1,0 +1,31 @@
+{
+  "verifiedAt": "2026-10-26T12:42:37.168Z",
+  "unitTests": {
+    "passed": 225,
+    "files": 20,
+    "report": "workforce-unit-tests.json"
+  },
+  "apiScenarios": {
+    "passed": 31,
+    "productionWrites": 0,
+    "whatsappSent": 0
+  },
+  "typeScript": "passed",
+  "eslint": "passed",
+  "build": "passed",
+  "realPanel": {
+    "status": "passed",
+    "origin": "http://127.0.0.1:3100/cleaningService",
+    "sourceReadAt": "2026-10-26 13:44 Europe/Warsaw",
+    "visibleTaskCards": 65,
+    "syntheticWorkersCreatedInRealDatabase": 0
+  },
+  "sourceSha256": {
+    "src/server/api/routers/cleaning-workforce.ts": "a0bfd0bc36d292268fb2924c5cebac51eed5c6df8f7a4027b18f95494f1ba761",
+    "src/server/cleaning/workforce-domain.ts": "2484292d66c8354b832dca367f1b39948cdd44beb9ddd690e79f43dbc043a4a5",
+    "src/server/cleaning/workforce-store.ts": "3dbaa60b5acf717628fec617b859068e7070e635f64418342e27fb98924db50e",
+    "src/app/cleaningService/_components/workforce-panel.tsx": "38e06d1046200ddb0fa3d6dcf0dad4465610dca423a4e75df682e994ec182da3",
+    "src/app/api/cron/cleaning-workforce/route.ts": "a86ccc19ac15dfd0ae8b9ca38dbfd737a937ead2234240890bee17cb9234b334",
+    "prisma/schema.prisma": "57c310cabd07d2987f8806b20b91a277bc106da6474a256fdd412a88b70be281"
+  }
+}

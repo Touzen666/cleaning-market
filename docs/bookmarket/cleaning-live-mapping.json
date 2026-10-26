@@ -1,0 +1,280 @@
+{
+  "checkedAt": "2026-10-25T14:49:54.788Z",
+  "scope": "Read-only evidence. No guest, financial, credential, photo URL or reservation note fields.",
+  "counts": {
+    "activeApartments": 14,
+    "activeWithPrimaryPhoto": 14,
+    "archivedApartments": 19,
+    "sourceUnits": 13,
+    "objectsWithMultipleUnits": 0,
+    "exactAdminIdMatches": 0,
+    "ambiguousNormalizedNames": 0
+  },
+  "propertyMappings": [
+    {
+      "sourceUnitId": 10,
+      "sourceObjectId": 10,
+      "sourceCode": "1",
+      "name": "Przytulny Apartament",
+      "activeApartmentId": 2,
+      "primaryPhotoPresent": true,
+      "mappingBasis": "unique-normalized-name"
+    },
+    {
+      "sourceUnitId": 11,
+      "sourceObjectId": 11,
+      "sourceCode": "10",
+      "name": "Apartament Brooklyn",
+      "activeApartmentId": 1,
+      "primaryPhotoPresent": true,
+      "mappingBasis": "unique-normalized-name"
+    },
+    {
+      "sourceUnitId": 13,
+      "sourceObjectId": 13,
+      "sourceCode": "12",
+      "name": "Miodowy Apartament",
+      "activeApartmentId": 3,
+      "primaryPhotoPresent": true,
+      "mappingBasis": "unique-normalized-name"
+    },
+    {
+      "sourceUnitId": 20,
+      "sourceObjectId": 18,
+      "sourceCode": "Apartament Zamkowy Kopisto 11",
+      "name": "Apartament Zamkowy Kopisto 11",
+      "activeApartmentId": 7,
+      "primaryPhotoPresent": true,
+      "mappingBasis": "unique-normalized-name"
+    },
+    {
+      "sourceUnitId": 21,
+      "sourceObjectId": 17,
+      "sourceCode": "APARTAMENTPRZESTRONNY1",
+      "name": "Apartament Strefa Zen",
+      "activeApartmentId": 4,
+      "primaryPhotoPresent": true,
+      "mappingBasis": "unique-normalized-name"
+    },
+    {
+      "sourceUnitId": 23,
+      "sourceObjectId": 23,
+      "sourceCode": "22",
+      "name": "Apartament Horyzont Kopisto 11 Centrum Rzeszów",
+      "activeApartmentId": 6,
+      "primaryPhotoPresent": true,
+      "mappingBasis": "unique-normalized-name"
+    },
+    {
+      "sourceUnitId": 27,
+      "sourceObjectId": 27,
+      "sourceCode": "26",
+      "name": "Apartament Szmaragdowy Kopisto 11 Centrum Miasta",
+      "activeApartmentId": 12,
+      "primaryPhotoPresent": true,
+      "mappingBasis": "unique-normalized-name"
+    },
+    {
+      "sourceUnitId": 43,
+      "sourceObjectId": 31,
+      "sourceCode": "42",
+      "name": "Apartament nad jeziorem Kwiatkowskiego 44c Rzeszów",
+      "activeApartmentId": 29,
+      "primaryPhotoPresent": true,
+      "mappingBasis": "unique-normalized-name"
+    },
+    {
+      "sourceUnitId": 44,
+      "sourceObjectId": 32,
+      "sourceCode": "43",
+      "name": "Apartament nad Wisłokiem Kopisto Centrum Rzeszów",
+      "activeApartmentId": 30,
+      "primaryPhotoPresent": true,
+      "mappingBasis": "unique-normalized-name"
+    },
+    {
+      "sourceUnitId": 48,
+      "sourceObjectId": 36,
+      "sourceCode": "47",
+      "name": "Apartament Golden Hour, Langiewicza 37, Rzeszów ",
+      "activeApartmentId": 34,
+      "primaryPhotoPresent": true,
+      "mappingBasis": "unique-normalized-name"
+    },
+    {
+      "sourceUnitId": 49,
+      "sourceObjectId": 37,
+      "sourceCode": "48",
+      "name": "Apartament Lipowa Aleja, Husarska, Rzeszów Centrum",
+      "activeApartmentId": 36,
+      "primaryPhotoPresent": true,
+      "mappingBasis": "unique-normalized-name"
+    },
+    {
+      "sourceUnitId": 50,
+      "sourceObjectId": 38,
+      "sourceCode": "49",
+      "name": "Apartament Lazurowe Wybrzeże, Langiewicza, Rzeszów",
+      "activeApartmentId": 37,
+      "primaryPhotoPresent": true,
+      "mappingBasis": "unique-normalized-name"
+    },
+    {
+      "sourceUnitId": 51,
+      "sourceObjectId": 39,
+      "sourceCode": "50",
+      "name": "Apartament Piaskowy Klif Kopisto, Rzeszów Centrum",
+      "activeApartmentId": 35,
+      "primaryPhotoPresent": true,
+      "mappingBasis": "unique-normalized-name"
+    }
+  ],
+  "activeApartmentsWithoutSource": [
+    {
+      "activeApartmentId": 5,
+      "name": "Apartament Przyjazna Przystań",
+      "primaryPhotoPresent": true,
+      "reason": "No source unit with matching native ID or normalized name in the current catalog"
+    }
+  ],
+  "reservations": [
+    {
+      "reservationId": 4717,
+      "sourceStatus": "toClarify",
+      "fromLocal": "2026-11-02T15:00",
+      "toLocal": "2026-11-06T10:00",
+      "units": [
+        {
+          "sourceUnitId": 20,
+          "sourceObjectId": 18,
+          "name": "Apartament Zamkowy Kopisto 11"
+        }
+      ]
+    },
+    {
+      "reservationId": 4718,
+      "sourceStatus": "toClarify",
+      "fromLocal": "2026-11-09T15:00",
+      "toLocal": "2026-11-13T10:00",
+      "units": [
+        {
+          "sourceUnitId": 20,
+          "sourceObjectId": 18,
+          "name": "Apartament Zamkowy Kopisto 11"
+        }
+      ]
+    },
+    {
+      "reservationId": 4719,
+      "sourceStatus": "toClarify",
+      "fromLocal": "2026-11-16T15:00",
+      "toLocal": "2026-11-20T10:00",
+      "units": [
+        {
+          "sourceUnitId": 20,
+          "sourceObjectId": 18,
+          "name": "Apartament Zamkowy Kopisto 11"
+        }
+      ]
+    },
+    {
+      "reservationId": 4720,
+      "sourceStatus": "toClarify",
+      "fromLocal": "2026-10-26T15:00",
+      "toLocal": "2026-10-30T10:00",
+      "units": [
+        {
+          "sourceUnitId": 50,
+          "sourceObjectId": 38,
+          "name": "Apartament Lazurowe Wybrzeże, Langiewicza, Rzeszów"
+        }
+      ]
+    },
+    {
+      "reservationId": 4721,
+      "sourceStatus": "accepted",
+      "fromLocal": "2026-10-26T11:00",
+      "toLocal": "2026-10-28T21:00",
+      "units": [
+        {
+          "sourceUnitId": 27,
+          "sourceObjectId": 27,
+          "name": "Apartament Szmaragdowy Kopisto 11 Centrum Miasta"
+        }
+      ]
+    },
+    {
+      "reservationId": 4727,
+      "sourceStatus": "accepted",
+      "fromLocal": "2026-10-25T13:00",
+      "toLocal": "2026-10-27T10:00",
+      "units": [
+        {
+          "sourceUnitId": 21,
+          "sourceObjectId": 17,
+          "name": "Apartament Strefa Zen"
+        }
+      ]
+    },
+    {
+      "reservationId": 4729,
+      "sourceStatus": "accepted",
+      "fromLocal": "2026-11-06T10:00",
+      "toLocal": "2026-11-08T20:00",
+      "units": [
+        {
+          "sourceUnitId": 27,
+          "sourceObjectId": 27,
+          "name": "Apartament Szmaragdowy Kopisto 11 Centrum Miasta"
+        }
+      ]
+    },
+    {
+      "reservationId": 4731,
+      "sourceStatus": "accepted",
+      "fromLocal": "2026-12-18T15:00",
+      "toLocal": "2026-12-20T10:00",
+      "units": [
+        {
+          "sourceUnitId": 23,
+          "sourceObjectId": 23,
+          "name": "Apartament Horyzont Kopisto 11 Centrum Rzeszów"
+        }
+      ]
+    }
+  ],
+  "uiComparison": {
+    "passed": true,
+    "method": "Source metadata compared with independently observed iDoBooking UI supplied by parent agent",
+    "comparedFields": [
+      "objectId",
+      "fromLocal",
+      "toLocal"
+    ],
+    "reservationIds": [
+      4717,
+      4718,
+      4719,
+      4720,
+      4721,
+      4727,
+      4729,
+      4731
+    ],
+    "awaitingUiCorrespondsToSourceToClarify": [
+      4717,
+      4718,
+      4719,
+      4720
+    ]
+  },
+  "notes": [
+    "All 33 Apartment.idobookingId values are null; native identity cannot depend on them.",
+    "Current source catalog has 13 objects with one unit each. Multi-unit cases must still remain distinct by sourceUnitId.",
+    "Name mapping is directory/photo enrichment only, not a replacement for native source identity.",
+    "Room.id, Room.code, objectId and objectItemId are different namespaces.",
+    "Archive records are counted only and are not published as active apartments.",
+    "The reason active Apartment 5 is absent from the source catalog is not determined by this read.",
+    "No database writes, synchronization, migrations or API mutations were executed."
+  ]
+}

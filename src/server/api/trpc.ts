@@ -31,7 +31,12 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
 
   // Cleaning Service JWT auth (via Authorization: Bearer <token>)
   let cleaningAuth:
-    | { userId: string; email?: string; role?: string }
+    | {
+        userId: string;
+        email?: string;
+        role?: string;
+        credentialVersion?: number;
+      }
     | undefined = undefined;
   try {
     const authHeader = opts.headers.get("authorization") ?? "";
@@ -50,12 +55,29 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
         sub?: string;
         email?: string;
         role?: string;
+        cv?: number;
       };
       if (payload?.sub) {
+        const { cleaningAccountId } = await import(
+          "@/server/cleaning/snapshot"
+        );
+        const { decodeState } = await import(
+          "@/server/cleaning/workforce-store"
+        );
+        const workspace = await db.cleaningWorkspace.findUnique({
+          where: { id: cleaningAccountId() },
+          select: { state: true },
+        });
+        const expectedVersion = workspace
+          ? (decodeState(workspace.state).credentialVersions[payload.sub] ?? 0)
+          : 0;
+        if ((payload.cv ?? 0) !== expectedVersion)
+          throw new Error("Cleaning credentials changed");
         cleaningAuth = {
           userId: payload.sub,
           email: payload.email,
           role: payload.role,
+          credentialVersion: payload.cv ?? 0,
         };
       }
     }

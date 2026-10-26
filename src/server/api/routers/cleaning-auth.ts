@@ -4,6 +4,7 @@ import { TRPCError } from "@trpc/server";
 import { env } from "@/env";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
+import { readWorkforce } from "@/server/cleaning/workforce-store";
 
 function hashPassword(password: string): string {
     const salt = crypto.randomBytes(16);
@@ -67,11 +68,13 @@ export const cleaningAuthRouter = createTRPCRouter({
             }
 
             // Cleaner tokens: bez automatycznego wygasania (brak expiresIn)
+            const { state } = await readWorkforce(ctx.db);
             const token = jwt.sign(
                 {
                     sub: String(user.id),
                     email: user.email,
                     role: user.role ?? "CLEANER",
+                    cv: state.credentialVersions[String(user.id)] ?? 0,
                 },
                 getJwtSecret(),
             );

@@ -1,0 +1,90 @@
+{
+  "title": "Bramka Offer",
+  "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=documentation&function=offer",
+  "kind": "gateway",
+  "height": 1666,
+  "html": "<div class=\"content__collapse col-md-9\"> \n          <div class=\"d-flex justify-content-between align-items-center mb-3\">\n            <span class=\"api_title mb-0\">Dokumentacja API Booking</span>   \n            <div class=\"show_list_link\"></div>\n          </div>\n        \n            \n        \n            <div id=\"documentation_background\">\n                <div class=\"content shop api_docs\">\n                    <div class=\"container white_bg\" data-equalizer=\"\">\n        \n        <div class=\"api_content row\" data-equalizer-watch=\"\">\n            <div class=\"col-12 mb-5\">\n              <p class=\"api_short_description\"></p><p class=\"old_wiki\">Umożliwia pobieranie informacji na temat cen i dostępności dla przedmiotów rezerwacji na każdy dzień\n\n</p>\n            </div>\n            <div class=\"apiDesc cms col-12 mb-5\">\n                <h3 class=\"section__title\">Dostępne metody:</h3>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"getAvailabilityAndPricesForDays.html\"><span>getAvailabilityAndPricesForDays</span></a>\n                    <span>Pobiera ceny oraz dostępność dla obiektów na każdy dzień.</span>\n                </div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"getAvailabilityForDays.html\"><span>getAvailabilityForDays</span></a>\n                    <span>Pobiera dostępność dla obiektów na każdy dzień.</span>\n                </div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"getChildrenInformation.html\"><span>getChildrenInformation</span></a>\n                    <span>Pobiera informacje o zdefiniowanych przedziałach wiekowych dzieci.</span>\n                </div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"getPricesForDays.html\"><span>getPricesForDays</span></a>\n                    <span>Pobiera ceny dla przedmiotów rezerwacji na każdy dzień.</span>\n                </div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"getPricesForDaysForObject.html\"><span>getPricesForDaysForObject</span></a>\n                    <span>Pobiera ceny dla przedmiotu rezerwacji na każdy dzień z uwzględnieniem różnych kombinacji dzieci i dorosłych.</span>\n                </div>\n            </div>\n        \n            </div>\n        \n                        </div>\n                    </div>\n                </div>\n            </div>\n        \n            \n        </div>",
+  "links": [
+    {
+      "title": "Narzędzia dla Developerów",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "API Admin",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/"
+    },
+    {
+      "title": "Bramka Offer",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=documentation&function=offer"
+    },
+    {
+      "title": "Najlepsze rozwiązania do sprzedaży w internecie\n                        \n                            \n                                    \n                                \n                            \n                            \n                                Narzędzia dla Developerów\n                                IdoBooking",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "Wybierz inną dokumentację",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=documentation&function=offer#"
+    },
+    {
+      "title": "Dokumentacja API Admin",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/"
+    },
+    {
+      "title": "Dokumentacja API Customer",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "Dokumentacja API Marketplace",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "Dokumentacja API Storefront",
+      "url": "https://api.idobooking.com/pl/developers/storefront-documentation/"
+    },
+    {
+      "title": "Dokumentacja Smarty",
+      "url": "https://api.idobooking.com/pl/developers/smarty-documentation/"
+    },
+    {
+      "title": "sprawdź historię zmian",
+      "url": "https://api.idobooking.com/pl/developers/api/?branch=booking&action=changelog"
+    },
+    {
+      "title": "Offer",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=documentation&function=offer"
+    },
+    {
+      "title": "getAvailabilityAndPricesForDays",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=offer&method=getAvailabilityAndPricesForDays"
+    },
+    {
+      "title": "getAvailabilityForDays",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=offer&method=getAvailabilityForDays"
+    },
+    {
+      "title": "getChildrenInformation",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=offer&method=getChildrenInformation"
+    },
+    {
+      "title": "getPricesForDays",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=offer&method=getPricesForDays"
+    },
+    {
+      "title": "getPricesForDaysForObject",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=offer&method=getPricesForDaysForObject"
+    }
+  ],
+  "php": "",
+  "request": [],
+  "response": [],
+  "text": "Dokumentacja API Booking   \n            \n          \n        \n            \n        \n            \n                \n                    \n        \n        \n            \n              Umożliwia pobieranie informacji na temat cen i dostępności dla przedmiotów rezerwacji na każdy dzień\n\n\n            \n            \n                Dostępne metody:\n        \n            \n                \n                    getAvailabilityAndPricesForDays\n                    Pobiera ceny oraz dostępność dla obiektów na każdy dzień.\n                \n            \n        \n            \n                \n                    getAvailabilityForDays\n                    Pobiera dostępność dla obiektów na każdy dzień.\n                \n            \n        \n            \n                \n                    getChildrenInformation\n                    Pobiera informacje o zdefiniowanych przedziałach wiekowych dzieci.\n                \n            \n        \n            \n                \n                    getPricesForDays\n                    Pobiera ceny dla przedmiotów rezerwacji na każdy dzień.\n                \n            \n        \n            \n                \n                    getPricesForDaysForObject\n                    Pobiera ceny dla przedmiotu rezerwacji na każdy dzień z uwzględnieniem różnych kombinacji dzieci i dorosłych.",
+  "capturedAt": "2026-10-24T18:00:55.200Z",
+  "version": null,
+  "description": "",
+  "source": {
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=documentation&function=offer",
+    "capturedAt": "2026-10-24T18:00:55.200Z",
+    "transport": "authenticated Chrome HTTPS session",
+    "format": null
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "title": "Szablony własne Wizytówki IdoBooking w Smarty",
+  "url": "https://api.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/",
+  "kind": "page",
+  "height": 1561,
+  "html": "<div class=\"content__collapse col-md-9\"> <ul class=\"old_wiki\">\n    <li><a href=\"https://www.idobooking.com/pl/mozliwosci-systemu-rezerwacji-idobooking/wlasna-strona-www-dla-hotelu-z-idobooking/samodzielna-edycja-strony-wizytowki-w-smarty/jak-dostosowac-wizytowke-samodzielnie-poprzez-edycje-wizytowki-w-smarty/\" title=\"Jak dostosować wizytówkę samodzielnie poprzez  edycję Wizytówki w Smarty?\" class=\"old_wiki \">Jak dostosować wizytówkę samodzielnie poprzez edycję Wizytówki w Smarty?</a></li>\n    <li><a href=\"lista-dostepnych-szablonow-wizytowki-w-smarty.html\" title=\"Opis szablonów stron w IdoSell\" class=\"old_wiki \">Lista dostępnych szablonów Wizytówki w Smarty</a></li>\n</ul>\n\n</div>",
+  "links": [
+    {
+      "title": "Dział dla developerów",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "Najlepsze rozwiązania do sprzedaży w internecie\n                        \n                            \n                                    \n                                \n                            \n                            \n                                Narzędzia dla Developerów\n                                IdoBooking",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "Jak dostosować wizytówkę samodzielnie poprzez edycję Wizytówki w Smarty?",
+      "url": "https://www.idobooking.com/pl/mozliwosci-systemu-rezerwacji-idobooking/wlasna-strona-www-dla-hotelu-z-idobooking/samodzielna-edycja-strony-wizytowki-w-smarty/jak-dostosowac-wizytowke-samodzielnie-poprzez-edycje-wizytowki-w-smarty/"
+    },
+    {
+      "title": "Lista dostępnych szablonów Wizytówki w Smarty",
+      "url": "https://www.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/"
+    }
+  ],
+  "text": "Jak dostosować wizytówkę samodzielnie poprzez edycję Wizytówki w Smarty?\n    Lista dostępnych szablonów Wizytówki w Smarty",
+  "capturedAt": "2026-10-24T18:09:48.274Z",
+  "version": null,
+  "description": "",
+  "source": {
+    "url": "https://api.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/",
+    "capturedAt": "2026-10-24T18:09:48.274Z",
+    "transport": "authenticated Chrome HTTPS session",
+    "format": null
+  }
+}

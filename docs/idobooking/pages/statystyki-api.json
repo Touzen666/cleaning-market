@@ -1,0 +1,27 @@
+{
+  "title": "Statystyki API",
+  "url": "https://api.idobooking.com/pl/developers/statystyki-api/",
+  "kind": "page",
+  "height": 1561,
+  "html": "<div class=\"content__collapse col-md-9\"> <p class=\"old_wiki\">Dostępne w panelu IdoBooking <b>Statystyki API</b> to bardzo przydatny zestaw informacji, dzięki którym możesz dowiedzieć się ze szczegółowych raportów, jak często i które wywoływane są bramki w API.</p>\n\n<p class=\"old_wiki\">Do wykorzystania masz raporty:</p>\n\n<ul class=\"old_wiki\">\n    <li>z obecnego miesiąca</li>\n    <li>z poprzedniego miesiąca</li>\n    <li>z możliwością wyszukiwania zapytań i odpowiedzi według użytkownika</li>\n    <li>z możliwością wyszukiwania zapytań i odpowiedzi według bramki</li>\n</ul>\n\n<p class=\"big-in-page\"><img src=\"../assets/9381b3fc081cf5dd-file-gate.png\" alt=\"\"></p>\n\n<p class=\"old_wiki\">W przypadku analizy statystyk API z obecnego miesiąca i poprzedniego miesiąca dostaniesz raport z wywoływanymi bramkami i ich ilością&nbsp;wywołań:</p>\n\n<p class=\"big-in-page\"><img src=\"../assets/4605203274bab5ed-file-gate.png\" alt=\"\"></p>\n\n<p class=\"old_wiki\">Jeśli natomiast chciałbyś&nbsp;zobaczyć&nbsp;którzy użytkownicy wykonywali zapytania, to wystarczy że klikniesz w link z ilością&nbsp;wywołań:</p>\n\n<p class=\"big-in-page\"><img src=\"../assets/124a4f29a4c6d50b-file-gate.png\" alt=\"\"></p>\n\n<p class=\"old_wiki\">W przypadku statystyk API wyszukiwanych według użytkownika i bramki, wybierz którego użytkownika i bramkę chcesz analizować a także wybierz zakres dat, które Cię&nbsp;interesują:</p>\n\n<p class=\"big-in-page\"><img src=\"../assets/a0aa88d6f3e4b515-file-gate.png\" alt=\"\"></p>\n\n<p class=\"old_wiki\">Następnie w przypadku wyszukiwania według użytkownika, zobaczysz którzy użytkownicy ile razy wywoływali bramki:</p>\n\n<p class=\"big-in-page\"><img src=\"../assets/9d7d8290beda9781-file-gate.png\" alt=\"\"></p>\n\n<p class=\"old_wiki\">a w przypadku wyszukiwania według bramki, zobaczysz ilość&nbsp;wywołań konkretnej bramki:</p>\n\n<p class=\"big-in-page\"><img src=\"../assets/statystyki-67094.png\" alt=\"\"></p>\n\n</div>",
+  "links": [
+    {
+      "title": "Dział dla developerów",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "Najlepsze rozwiązania do sprzedaży w internecie\n                        \n                            \n                                    \n                                \n                            \n                            \n                                Narzędzia dla Developerów\n                                IdoBooking",
+      "url": "https://api.idobooking.com/pl/developers/"
+    }
+  ],
+  "text": "Dostępne w panelu IdoBooking Statystyki API to bardzo przydatny zestaw informacji, dzięki którym możesz dowiedzieć się ze szczegółowych raportów, jak często i które wywoływane są bramki w API.\n\nDo wykorzystania masz raporty:\n\n\n    z obecnego miesiąca\n    z poprzedniego miesiąca\n    z możliwością wyszukiwania zapytań i odpowiedzi według użytkownika\n    z możliwością wyszukiwania zapytań i odpowiedzi według bramki\n\n\n\n\nW przypadku analizy statystyk API z obecnego miesiąca i poprzedniego miesiąca dostaniesz raport z wywoływanymi bramkami i ich ilością wywołań:\n\n\n\nJeśli natomiast chciałbyś zobaczyć którzy użytkownicy wykonywali zapytania, to wystarczy że klikniesz w link z ilością wywołań:\n\n\n\nW przypadku statystyk API wyszukiwanych według użytkownika i bramki, wybierz którego użytkownika i bramkę chcesz analizować a także wybierz zakres dat, które Cię interesują:\n\n\n\nNastępnie w przypadku wyszukiwania według użytkownika, zobaczysz którzy użytkownicy ile razy wywoływali bramki:\n\n\n\na w przypadku wyszukiwania według bramki, zobaczysz ilość wywołań konkretnej bramki:",
+  "capturedAt": "2026-10-24T18:10:17.401Z",
+  "version": null,
+  "description": "",
+  "source": {
+    "url": "https://api.idobooking.com/pl/developers/statystyki-api/",
+    "capturedAt": "2026-10-24T18:10:17.401Z",
+    "transport": "authenticated Chrome HTTPS session",
+    "format": null
+  }
+}

@@ -1,0 +1,498 @@
+{
+  "title": "Bramka Reservations/Metoda edit",
+  "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=reservations&method=edit##",
+  "kind": "method",
+  "gateway": "reservations",
+  "height": 4546,
+  "html": "<div class=\"content__collapse col-md-9\"> \n          <div class=\"d-flex justify-content-between align-items-center mb-3\">\n            <span class=\"api_title mb-0\">Dokumentacja API Booking</span>   \n            <div class=\"show_list_link\"></div>\n          </div>\n        \n            \n        \n            <div id=\"documentation_background\">\n                <div class=\"content shop api_docs\">\n                    <div class=\"container white_bg\" data-equalizer=\"\">\n        \n        <div class=\"api_content row\" data-equalizer-watch=\"\"><div class=\"col-12 mb-5\"><p class=\"api_short_description\">\nEdytuje rezerwacje\n\n\n</p></div><div class=\"apiDesc col-12 mb-5\">\n            <div id=\"format_type\" class=\"tabs\">\n                \n        <div class=\"tabs__content\"><div id=\"tab1\" class=\"tabs__element --shown\">\n            <div id=\"api_method_adresses\" class=\"mb-5\">\n                <div class=\"api_method_header px-3 d-flex align-items-center\">\n                    <i class=\"icon-info-circled\"></i>\n                    <strong>Adresy</strong>\n                </div>\n        \n              <div class=\"api_method_row\">\n                <div class=\"row align-items-center py-3\">\n                    <div class=\"col-3 pl-5\">\n                        <strong>Nasłuch</strong>\n                    </div>\n                    <div class=\"col-9 col-sm-7\">\n                        <a href=\"https://client1679.idosell.com/api/reservations/edit/36/json\" class=\"api_link\" id=\"copyTarget_0json\">https://_domena_booking_.idosell.com/api/reservations/edit/36/json</a>\n                    </div>\n                    <div class=\"col-12 col-sm-2 d-flex justify-content-end\">\n                        \n                    </div>\n                \n                    </div>\n                </div>\n            </div>\n        \n        <div id=\"api_method_request_json\" class=\"mb-5\"><div class=\"api_method_header px-3\"><div class=\"api_method_header_left d-flex flex-wrap justify-content-center justify-content-sm-between align-items-center\"><div><i class=\"icon-code\"></i> \n            <strong>Struktura żądania</strong></div></div></div><div id=\"api_method_request_content\" class=\"api_details visible\">\n                <div class=\"api_details_item open\" data-parameter-name=\"authenticate\">\n                    <div class=\"api_details_item_inner level0 toggle\">\n                        <strong class=\"api_required required_after\">authenticate <span>(authenticateType)</span></strong>\n                        <span><p>Element służy do uwierzytelniania konta w celu wywołania metody</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"systemKey\">\n                    <div class=\"api_details_item_inner level1\">\n                        <strong class=\"api_required required_after\">systemKey <span>(string)</span></strong>\n                        <span><p>Klucz wykorzystywany podczas uwierzytelniania. Zapoznaj się z <a href=\"https://www.idosell.com/pl/developers/api/faq/najczesciej-zadawane-pytania-dotyczace-api-pa-idosell/#3\">instrukcją generowania klucza</a></p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"systemLogin\">\n                    <div class=\"api_details_item_inner level1\">\n                        <strong class=\"api_required required_after\">systemLogin <span>(string)</span></strong>\n                        <span><p>Login użytkownika panelu IdoSell Booking</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"lang\">\n                    <div class=\"api_details_item_inner level1\">\n                        <strong class=\"\">lang <span>(apiLanguage)</span></strong>\n                        <span><p>\n                    <span>Możliwe wartości:\n                    </span> (<i>eng, pol, ger</i>)</p><p>Język API</p></span>\n                    </div>\n        </div></div></div>\n                <div class=\"api_details_item open\" data-parameter-name=\"params\">\n                    <div class=\"api_details_item_inner level0 toggle\">\n                        <strong class=\"api_required required_after\">params <span>(paramsType)</span></strong>\n                        <span><p>Parametry przekazywane do metody</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item open\" data-parameter-name=\"reservations\">\n                    <div class=\"api_details_item_inner level1 toggle\">\n                        <strong class=\"api_required required_after\">reservations <span>(editReservationTypeArray)</span></strong>\n                        <span><p>Dane rezerwacji</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item open\" data-parameter-name=\"editReservationType\">\n                    <div class=\"api_details_item_inner level2 toggle\">\n                        <strong class=\"api_required required_after\"> <span>(editReservationType)</span></strong>\n                        <span><p>element typu editReservationType</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"id\">\n                    <div class=\"api_details_item_inner level3\">\n                        <strong class=\"api_required required_after\">id <span>(int)</span></strong>\n                        <span><p>Identyfikator</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"dateFrom\">\n                    <div class=\"api_details_item_inner level3\">\n                        <strong class=\"\">dateFrom <span>(string)</span></strong>\n                        <span><p>Data i godzina rozpoczęcia</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"dateTo\">\n                    <div class=\"api_details_item_inner level3\">\n                        <strong class=\"\">dateTo <span>(string)</span></strong>\n                        <span><p>Data i godzina zakończenia</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"clientId\">\n                    <div class=\"api_details_item_inner level3\">\n                        <strong class=\"\">clientId <span>(int)</span></strong>\n                        <span><p>Identyfikator klienta</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"clientNote\">\n                    <div class=\"api_details_item_inner level3\">\n                        <strong class=\"\">clientNote <span>(string)</span></strong>\n                        <span><p>Uwagi klienta do rezerwacji</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"externalNote\">\n                    <div class=\"api_details_item_inner level3\">\n                        <strong class=\"\">externalNote <span>(string)</span></strong>\n                        <span><p>Informacje dla klienta</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"apiNote\">\n                    <div class=\"api_details_item_inner level3\">\n                        <strong class=\"\">apiNote <span>(string)</span></strong>\n                        <span><p>Notatka API</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"internalNote\">\n                    <div class=\"api_details_item_inner level3\">\n                        <strong class=\"\">internalNote <span>(string)</span></strong>\n                        <span><p>Notatka do rezerwacji</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item open\" data-parameter-name=\"items\">\n                    <div class=\"api_details_item_inner level3 toggle\">\n                        <strong class=\"\">items <span>(editReservationItemTypeArray)</span></strong>\n                        <span><p>Dane przedmiotów rezerwacji</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item open\" data-parameter-name=\"editReservationItemType\">\n                    <div class=\"api_details_item_inner level4 toggle\">\n                        <strong class=\"api_required required_after\"> <span>(editReservationItemType)</span></strong>\n                        <span><p>element typu editReservationItemType</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"objectItemId\">\n                    <div class=\"api_details_item_inner level5\">\n                        <strong class=\"api_required required_after\">objectItemId <span>(int)</span></strong>\n                        <span><p>Identyfikator przedmiotu rezerwacji</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"price\">\n                    <div class=\"api_details_item_inner level5\">\n                        <strong class=\"\">price <span>(float)</span></strong>\n                        <span><p>Cena</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"priceCorrection\">\n                    <div class=\"api_details_item_inner level5\">\n                        <strong class=\"\">priceCorrection <span>(float)</span></strong>\n                        <span><p>Upust/dopłata. W przypadku wartości ujemnej należy traktować wartość jako upust, w przypadku wartości dodatniej jako dopłatę</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"vat\">\n                    <div class=\"api_details_item_inner level5\">\n                        <strong class=\"\">vat <span>(float)</span></strong>\n                        <span><p>Vat (%)</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"numberOfAdults\">\n                    <div class=\"api_details_item_inner level5\">\n                        <strong class=\"\">numberOfAdults <span>(int)</span></strong>\n                        <span><p>Liczba dorosłych</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"numberOfBigChildren\">\n                    <div class=\"api_details_item_inner level5\">\n                        <strong class=\"\">numberOfBigChildren <span>(int)</span></strong>\n                        <span><p>liczba dzieci, które według konfiguracji sprzedaży mają inne ceny</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"numberOfSmallChildren\">\n                    <div class=\"api_details_item_inner level5\">\n                        <strong class=\"\">numberOfSmallChildren <span>(int)</span></strong>\n                        <span><p>liczba dzieci, które według konfiguracji sprzedaży mają pobyt gratis</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item open\" data-parameter-name=\"addons\">\n                    <div class=\"api_details_item_inner level5 toggle\">\n                        <strong class=\"\">addons <span>(editReservationAddonTypeArray)</span></strong>\n                        <span><p>Dane dodatków rezerwacji</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item open\" data-parameter-name=\"editReservationAddonType\">\n                    <div class=\"api_details_item_inner level6 toggle\">\n                        <strong class=\"api_required required_after\"> <span>(editReservationAddonType)</span></strong>\n                        <span><p>element typu editReservationAddonType</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"addonId\">\n                    <div class=\"api_details_item_inner level7\">\n                        <strong class=\"api_required required_after\">addonId <span>(int)</span></strong>\n                        <span><p>Identyfikator dodatku</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"persons\">\n                    <div class=\"api_details_item_inner level7\">\n                        <strong class=\"api_required required_after\">persons <span>(int)</span></strong>\n                        <span><p>Liczba osób</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"nights\">\n                    <div class=\"api_details_item_inner level7\">\n                        <strong class=\"api_required required_after\">nights <span>(int)</span></strong>\n                        <span><p>Liczba nocy</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"quantity\">\n                    <div class=\"api_details_item_inner level7\">\n                        <strong class=\"api_required required_after\">quantity <span>(int)</span></strong>\n                        <span><p>Ilość dodatku</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"price\">\n                    <div class=\"api_details_item_inner level7\">\n                        <strong class=\"api_required required_after\">price <span>(float)</span></strong>\n                        <span><p>Cena</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"vat\">\n                    <div class=\"api_details_item_inner level7\">\n                        <strong class=\"api_required required_after\">vat <span>(float)</span></strong>\n                        <span><p>Vat (%)</p></span>\n                    </div>\n        </div></div></div></div></div></div></div></div></div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"notify\">\n                    <div class=\"api_details_item_inner level3\">\n                        <strong class=\"\">notify <span>(notifyType)</span></strong>\n                        <span><p>\n                    <span>Możliwe wartości:\n                    </span> (<i>y, n</i>)</p><p>Powiadamiaj wiadomością transakcyjną</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"notifyService\">\n                    <div class=\"api_details_item_inner level3\">\n                        <strong class=\"\">notifyService <span>(notifyServiceType)</span></strong>\n                        <span><p>\n                    <span>Możliwe wartości:\n                    </span> (<i>y, n</i>)</p><p>Wysyłaj powiadomienia dla obsługi obiektu. Domyślnie są wysyłane</p></span>\n                    </div>\n        </div></div></div></div></div></div></div></div></div>\n        <div id=\"api_method_response_json\" class=\"mb-5\"><div class=\"api_method_header px-3\"><div class=\"api_method_header_left d-flex flex-wrap justify-content-center justify-content-sm-between align-items-center\"><div><i class=\"icon-code\"></i> \n            <strong>Struktura odpowiedzi</strong></div></div></div><div id=\"api_method_response_content\" class=\"api_details visible\">\n                <div class=\"api_details_item open\" data-parameter-name=\"errors\">\n                    <div class=\"api_details_item_inner level0 toggle\">\n                        <strong class=\"\">errors <span>(gateErrorType)</span></strong>\n                        <span><p>Lista kodów błędów</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"faultCode\">\n                    <div class=\"api_details_item_inner level1\">\n                        <strong class=\"\">faultCode <span>(int)</span></strong>\n                        <span><p>Kod błędu</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"faultString\">\n                    <div class=\"api_details_item_inner level1\">\n                        <strong class=\"\">faultString <span>(string)</span></strong>\n                        <span><p>Opis błędu</p></span>\n                    </div>\n        </div></div></div>\n                <div class=\"api_details_item open\" data-parameter-name=\"reservations\">\n                    <div class=\"api_details_item_inner level0 toggle\">\n                        <strong class=\"\">reservations <span>(changeReservationsTypeArray)</span></strong>\n                        <span><p>Dane zmienionych rezerwacji</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item open\" data-parameter-name=\"changeReservationsType\">\n                    <div class=\"api_details_item_inner level1 toggle\">\n                        <strong class=\"api_required required_after\"> <span>(changeReservationsType)</span></strong>\n                        <span><p>element typu changeReservationsType</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"success\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"\">success <span>(boolean)</span></strong>\n                        <span><p>Sukces</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"reservationId\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"\">reservationId <span>(int)</span></strong>\n                        <span><p>Identyfikator rezerwacji</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item open\" data-parameter-name=\"error\">\n                    <div class=\"api_details_item_inner level2 toggle\">\n                        <strong class=\"\">error <span>(errorType)</span></strong>\n                        <span><p>Dane błędu</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"faultCode\">\n                    <div class=\"api_details_item_inner level3\">\n                        <strong class=\"\">faultCode <span>(int)</span></strong>\n                        <span><p>Kod błędu</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"faultString\">\n                    <div class=\"api_details_item_inner level3\">\n                        <strong class=\"\">faultString <span>(string)</span></strong>\n                        <span><p>Opis błędu</p></span>\n                    </div>\n        </div></div></div></div></div></div></div></div></div>\n        <div id=\"php-example_json\" class=\"code_example mb-5\"><div class=\"api_method_header px-3\"><div class=\"api_method_header_left d-flex flex-wrap justify-content-center justify-content-sm-between align-items-center\"><div><i class=\"icon-file-code\"></i> \n            <strong>Przykład kodu w PHP</strong></div></div></div><div class=\"api_details visible\">\n                <div id=\"php-example_content_json\">\n                    <pre class=\"highlight-code hljs php\"><span class=\"hljs-meta\">&lt;?php</span>\n\n$address = <span class=\"hljs-string\">'https://client1679.idobooking.com/api/reservations/edit/36/json'</span>;\n\n$request = <span class=\"hljs-keyword\">array</span>();\n$request[<span class=\"hljs-string\">'authenticate'</span>] = <span class=\"hljs-keyword\">array</span>();\n$request[<span class=\"hljs-string\">'authenticate'</span>][<span class=\"hljs-string\">'systemKey'</span>] = sha1(date(<span class=\"hljs-string\">'Ymd'</span>) . sha1(<span class=\"hljs-string\">'YOUR_KEY'</span>));\n$request[<span class=\"hljs-string\">'authenticate'</span>][<span class=\"hljs-string\">'systemLogin'</span>] = <span class=\"hljs-string\">\"systemLogin\"</span>;\n$request[<span class=\"hljs-string\">'authenticate'</span>][<span class=\"hljs-string\">'lang'</span>] = <span class=\"hljs-string\">'eng'</span>;\n$request[<span class=\"hljs-string\">'params'</span>] = <span class=\"hljs-keyword\">array</span>();\n$request[<span class=\"hljs-string\">'params'</span>][<span class=\"hljs-string\">'reservations'</span>] = <span class=\"hljs-keyword\">array</span>();\n$request[<span class=\"hljs-string\">'params'</span>][<span class=\"hljs-string\">'reservations'</span>][<span class=\"hljs-number\">0</span>] = <span class=\"hljs-keyword\">array</span>();\n$request[<span class=\"hljs-string\">'params'</span>][<span class=\"hljs-string\">'reservations'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'id'</span>] = <span class=\"hljs-number\">1</span>;\n$request[<span class=\"hljs-string\">'params'</span>][<span class=\"hljs-string\">'reservations'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'dateFrom'</span>] = <span class=\"hljs-string\">\"dateFrom\"</span>;\n$request[<span class=\"hljs-string\">'params'</span>][<span class=\"hljs-string\">'reservations'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'dateTo'</span>] = <span class=\"hljs-string\">\"dateTo\"</span>;\n$request[<span class=\"hljs-string\">'params'</span>][<span class=\"hljs-string\">'reservations'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'clientId'</span>] = <span class=\"hljs-number\">2</span>;\n$request[<span class=\"hljs-string\">'params'</span>][<span class=\"hljs-string\">'reservations'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'clientNote'</span>] = <span class=\"hljs-string\">\"clientNote\"</span>;\n$request[<span class=\"hljs-string\">'params'</span>][<span class=\"hljs-string\">'reservations'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'externalNote'</span>] = <span class=\"hljs-string\">\"externalNote\"</span>;\n$request[<span class=\"hljs-string\">'params'</span>][<span class=\"hljs-string\">'reservations'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'apiNote'</span>] = <span class=\"hljs-string\">\"apiNote\"</span>;\n$request[<span class=\"hljs-string\">'params'</span>][<span class=\"hljs-string\">'reservations'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'internalNote'</span>] = <span class=\"hljs-string\">\"internalNote\"</span>;\n$request[<span class=\"hljs-string\">'params'</span>][<span class=\"hljs-string\">'reservations'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'items'</span>] = <span class=\"hljs-keyword\">array</span>();\n$request[<span class=\"hljs-string\">'params'</span>][<span class=\"hljs-string\">'reservations'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'items'</span>][<span class=\"hljs-number\">0</span>] = <span class=\"hljs-keyword\">array</span>();\n$request[<span class=\"hljs-string\">'params'</span>][<span class=\"hljs-string\">'reservations'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'items'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'objectItemId'</span>] = <span class=\"hljs-number\">3</span>;\n$request[<span class=\"hljs-string\">'params'</span>][<span class=\"hljs-string\">'reservations'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'items'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'price'</span>] = <span class=\"hljs-number\">4.0</span>;\n$request[<span class=\"hljs-string\">'params'</span>][<span class=\"hljs-string\">'reservations'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'items'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'priceCorrection'</span>] = <span class=\"hljs-number\">5.0</span>;\n$request[<span class=\"hljs-string\">'params'</span>][<span class=\"hljs-string\">'reservations'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'items'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'vat'</span>] = <span class=\"hljs-number\">6.0</span>;\n$request[<span class=\"hljs-string\">'params'</span>][<span class=\"hljs-string\">'reservations'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'items'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'numberOfAdults'</span>] = <span class=\"hljs-number\">7</span>;\n$request[<span class=\"hljs-string\">'params'</span>][<span class=\"hljs-string\">'reservations'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'items'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'numberOfBigChildren'</span>] = <span class=\"hljs-number\">8</span>;\n$request[<span class=\"hljs-string\">'params'</span>][<span class=\"hljs-string\">'reservations'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'items'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'numberOfSmallChildren'</span>] = <span class=\"hljs-number\">9</span>;\n$request[<span class=\"hljs-string\">'params'</span>][<span class=\"hljs-string\">'reservations'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'items'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'addons'</span>] = <span class=\"hljs-keyword\">array</span>();\n$request[<span class=\"hljs-string\">'params'</span>][<span class=\"hljs-string\">'reservations'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'items'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'addons'</span>][<span class=\"hljs-number\">0</span>] = <span class=\"hljs-keyword\">array</span>();\n$request[<span class=\"hljs-string\">'params'</span>][<span class=\"hljs-string\">'reservations'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'items'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'addons'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'addonId'</span>] = <span class=\"hljs-number\">10</span>;\n$request[<span class=\"hljs-string\">'params'</span>][<span class=\"hljs-string\">'reservations'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'items'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'addons'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'persons'</span>] = <span class=\"hljs-number\">11</span>;\n$request[<span class=\"hljs-string\">'params'</span>][<span class=\"hljs-string\">'reservations'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'items'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'addons'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'nights'</span>] = <span class=\"hljs-number\">12</span>;\n$request[<span class=\"hljs-string\">'params'</span>][<span class=\"hljs-string\">'reservations'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'items'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'addons'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'quantity'</span>] = <span class=\"hljs-number\">13</span>;\n$request[<span class=\"hljs-string\">'params'</span>][<span class=\"hljs-string\">'reservations'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'items'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'addons'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'price'</span>] = <span class=\"hljs-number\">14.0</span>;\n$request[<span class=\"hljs-string\">'params'</span>][<span class=\"hljs-string\">'reservations'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'items'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'addons'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'vat'</span>] = <span class=\"hljs-number\">15.0</span>;\n$request[<span class=\"hljs-string\">'params'</span>][<span class=\"hljs-string\">'reservations'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'notify'</span>] = <span class=\"hljs-string\">'y'</span>;\n$request[<span class=\"hljs-string\">'params'</span>][<span class=\"hljs-string\">'reservations'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'notifyService'</span>] = <span class=\"hljs-string\">'y'</span>;\n\n$request_json = json_encode($request);\n$headers = <span class=\"hljs-keyword\">array</span>(\n    <span class=\"hljs-string\">'Accept: application/json'</span>,\n    <span class=\"hljs-string\">'Content-Type: application/json;charset=UTF-8'</span>\n);\n\n$curl = curl_init($address);\ncurl_setopt($curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, <span class=\"hljs-number\">1</span>);\ncurl_setopt($curl, CURLOPT_SSL_VERIFYPEER, <span class=\"hljs-keyword\">false</span>);\ncurl_setopt($curl, CURLOPT_SSL_VERIFYHOST, <span class=\"hljs-keyword\">false</span>);\ncurl_setopt($curl, CURLOPT_FORBID_REUSE, <span class=\"hljs-number\">1</span>);\ncurl_setopt($curl, CURLINFO_HEADER_OUT, <span class=\"hljs-number\">1</span>);\ncurl_setopt($curl, CURLOPT_HEADER, <span class=\"hljs-number\">1</span>);\ncurl_setopt($curl, CURLOPT_POST, <span class=\"hljs-number\">1</span>);\ncurl_setopt($curl, CURLOPT_POSTFIELDS, $request_json);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, $headers);\n\n$response = curl_exec($curl);\n$status = curl_getinfo($curl);\ncurl_close($curl);\n       </pre>\n                </div>\n            </div></div>\n        <div id=\"api_changelog_json\" class=\"mb-5\"><h2>Historia zmian</h2><p>W rozwiniętej historii metody nie wyświetlono wpisów zmian; dostępny był formularz porównywania wersji.</p></div></div></div></div>\n                        </div>\n                    </div>\n                </div>\n            </div>\n        \n            \n        </div></div>",
+  "links": [
+    {
+      "title": "Narzędzia dla Developerów",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "API Admin",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/"
+    },
+    {
+      "title": "Bramka Reservations",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=documentation&function=reservations"
+    },
+    {
+      "title": "Najlepsze rozwiązania do sprzedaży w internecie\n                        \n                            \n                                    \n                                \n                            \n                            \n                                Narzędzia dla Developerów\n                                IdoBooking",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "Wybierz inną dokumentację",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=reservations&method=edit#"
+    },
+    {
+      "title": "Dokumentacja API Admin",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/"
+    },
+    {
+      "title": "Dokumentacja API Customer",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "Dokumentacja API Marketplace",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "Dokumentacja API Storefront",
+      "url": "https://api.idobooking.com/pl/developers/storefront-documentation/"
+    },
+    {
+      "title": "Dokumentacja Smarty",
+      "url": "https://api.idobooking.com/pl/developers/smarty-documentation/"
+    },
+    {
+      "title": "sprawdź historię zmian",
+      "url": "https://api.idobooking.com/pl/developers/api/?branch=booking&action=changelog"
+    },
+    {
+      "title": "Reservations",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=documentation&function=reservations"
+    },
+    {
+      "title": "SOAP",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=reservations&method=edit#tab0"
+    },
+    {
+      "title": "JSON",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=reservations&method=edit#tab1"
+    },
+    {
+      "title": "https://_domena_booking_.idosell.com/api/reservations/edit/36/soap",
+      "url": "https://client1679.idosell.com/api/reservations/edit/36/soap"
+    },
+    {
+      "title": "kopiuj",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=reservations&method=edit#copyContentHref"
+    },
+    {
+      "title": "https://_domena_booking_.idosell.com/api/reservations/edit/36/soap/wsdl/pol",
+      "url": "https://client1679.idosell.com/api/reservations/edit/36/soap/wsdl/pol"
+    },
+    {
+      "title": "kopiuj",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=reservations&method=edit#copyContentHref"
+    },
+    {
+      "title": "rozwiń wszystkie węzły",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=reservations&method=edit##"
+    },
+    {
+      "title": "zwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=reservations&method=edit##"
+    },
+    {
+      "title": "instrukcją generowania klucza",
+      "url": "https://www.idosell.com/pl/developers/api/faq/najczesciej-zadawane-pytania-dotyczace-api-pa-idosell/#3"
+    },
+    {
+      "title": "rozwiń wszystkie węzły",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=reservations&method=edit##"
+    },
+    {
+      "title": "zwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=reservations&method=edit##"
+    },
+    {
+      "title": "pobierz",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=reservations&method=edit##"
+    },
+    {
+      "title": "kopiuj",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=reservations&method=edit##"
+    },
+    {
+      "title": "rozwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=reservations&method=edit##"
+    },
+    {
+      "title": "pobierz",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=reservations&method=edit##"
+    },
+    {
+      "title": "kopiuj",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=reservations&method=edit##"
+    },
+    {
+      "title": "rozwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=reservations&method=edit##"
+    },
+    {
+      "title": "rozwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=reservations&method=edit##"
+    },
+    {
+      "title": "https://_domena_booking_.idosell.com/api/reservations/edit/36/json",
+      "url": "https://client1679.idosell.com/api/reservations/edit/36/json"
+    },
+    {
+      "title": "kopiuj",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=reservations&method=edit#copyContentHref"
+    },
+    {
+      "title": "zwiń wszystkie węzły",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=reservations&method=edit##"
+    },
+    {
+      "title": "zwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=reservations&method=edit##"
+    },
+    {
+      "title": "instrukcją generowania klucza",
+      "url": "https://www.idosell.com/pl/developers/api/faq/najczesciej-zadawane-pytania-dotyczace-api-pa-idosell/#3"
+    },
+    {
+      "title": "zwiń wszystkie węzły",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=reservations&method=edit##"
+    },
+    {
+      "title": "zwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=reservations&method=edit##"
+    },
+    {
+      "title": "pobierz",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=reservations&method=edit##"
+    },
+    {
+      "title": "kopiuj",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=reservations&method=edit##"
+    },
+    {
+      "title": "zwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=reservations&method=edit##"
+    },
+    {
+      "title": "zwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=reservations&method=edit##"
+    }
+  ],
+  "php": "\n                    <?php\n\n$address = 'https://client1679.idobooking.com/api/reservations/edit/36/json';\n\n$request = array();\n$request['authenticate'] = array();\n$request['authenticate']['systemKey'] = sha1(date('Ymd') . sha1('YOUR_KEY'));\n$request['authenticate']['systemLogin'] = \"systemLogin\";\n$request['authenticate']['lang'] = 'eng';\n$request['params'] = array();\n$request['params']['reservations'] = array();\n$request['params']['reservations'][0] = array();\n$request['params']['reservations'][0]['id'] = 1;\n$request['params']['reservations'][0]['dateFrom'] = \"dateFrom\";\n$request['params']['reservations'][0]['dateTo'] = \"dateTo\";\n$request['params']['reservations'][0]['clientId'] = 2;\n$request['params']['reservations'][0]['clientNote'] = \"clientNote\";\n$request['params']['reservations'][0]['externalNote'] = \"externalNote\";\n$request['params']['reservations'][0]['apiNote'] = \"apiNote\";\n$request['params']['reservations'][0]['internalNote'] = \"internalNote\";\n$request['params']['reservations'][0]['items'] = array();\n$request['params']['reservations'][0]['items'][0] = array();\n$request['params']['reservations'][0]['items'][0]['objectItemId'] = 3;\n$request['params']['reservations'][0]['items'][0]['price'] = 4.0;\n$request['params']['reservations'][0]['items'][0]['priceCorrection'] = 5.0;\n$request['params']['reservations'][0]['items'][0]['vat'] = 6.0;\n$request['params']['reservations'][0]['items'][0]['numberOfAdults'] = 7;\n$request['params']['reservations'][0]['items'][0]['numberOfBigChildren'] = 8;\n$request['params']['reservations'][0]['items'][0]['numberOfSmallChildren'] = 9;\n$request['params']['reservations'][0]['items'][0]['addons'] = array();\n$request['params']['reservations'][0]['items'][0]['addons'][0] = array();\n$request['params']['reservations'][0]['items'][0]['addons'][0]['addonId'] = 10;\n$request['params']['reservations'][0]['items'][0]['addons'][0]['persons'] = 11;\n$request['params']['reservations'][0]['items'][0]['addons'][0]['nights'] = 12;\n$request['params']['reservations'][0]['items'][0]['addons'][0]['quantity'] = 13;\n$request['params']['reservations'][0]['items'][0]['addons'][0]['price'] = 14.0;\n$request['params']['reservations'][0]['items'][0]['addons'][0]['vat'] = 15.0;\n$request['params']['reservations'][0]['notify'] = 'y';\n$request['params']['reservations'][0]['notifyService'] = 'y';\n\n$request_json = json_encode($request);\n$headers = array(\n    'Accept: application/json',\n    'Content-Type: application/json;charset=UTF-8'\n);\n\n$curl = curl_init($address);\ncurl_setopt($curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);\ncurl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);\ncurl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);\ncurl_setopt($curl, CURLOPT_FORBID_REUSE, 1);\ncurl_setopt($curl, CURLINFO_HEADER_OUT, 1);\ncurl_setopt($curl, CURLOPT_HEADER, 1);\ncurl_setopt($curl, CURLOPT_POST, 1);\ncurl_setopt($curl, CURLOPT_POSTFIELDS, $request_json);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, $headers);\n\n$response = curl_exec($curl);\n$status = curl_getinfo($curl);\ncurl_close($curl);\n       \n                ",
+  "request": [
+    {
+      "description": "Element służy do uwierzytelniania konta w celu wywołania metody",
+      "name": "authenticate",
+      "path": "authenticate",
+      "required": true,
+      "type": "authenticateType"
+    },
+    {
+      "description": "Klucz wykorzystywany podczas uwierzytelniania. Zapoznaj się z instrukcją generowania klucza",
+      "name": "systemKey",
+      "path": "authenticate.systemKey",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "description": "Login użytkownika panelu IdoSell Booking",
+      "name": "systemLogin",
+      "path": "authenticate.systemLogin",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "description": "Możliwe wartości: (eng, pol, ger)\n\nJęzyk API",
+      "name": "lang",
+      "path": "authenticate.lang",
+      "required": false,
+      "type": "apiLanguage"
+    },
+    {
+      "description": "Parametry przekazywane do metody",
+      "name": "params",
+      "path": "params",
+      "required": true,
+      "type": "paramsType"
+    },
+    {
+      "description": "Dane rezerwacji",
+      "name": "reservations",
+      "path": "params.reservations",
+      "required": true,
+      "type": "editReservationTypeArray"
+    },
+    {
+      "description": "element typu editReservationType",
+      "name": "editReservationType",
+      "path": "params.reservations.editReservationType",
+      "required": true,
+      "type": "editReservationType"
+    },
+    {
+      "description": "Identyfikator",
+      "name": "id",
+      "path": "params.reservations.editReservationType.id",
+      "required": true,
+      "type": "int"
+    },
+    {
+      "description": "Data i godzina rozpoczęcia",
+      "name": "dateFrom",
+      "path": "params.reservations.editReservationType.dateFrom",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "Data i godzina zakończenia",
+      "name": "dateTo",
+      "path": "params.reservations.editReservationType.dateTo",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "Identyfikator klienta",
+      "name": "clientId",
+      "path": "params.reservations.editReservationType.clientId",
+      "required": false,
+      "type": "int"
+    },
+    {
+      "description": "Uwagi klienta do rezerwacji",
+      "name": "clientNote",
+      "path": "params.reservations.editReservationType.clientNote",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "Informacje dla klienta",
+      "name": "externalNote",
+      "path": "params.reservations.editReservationType.externalNote",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "Notatka API",
+      "name": "apiNote",
+      "path": "params.reservations.editReservationType.apiNote",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "Notatka do rezerwacji",
+      "name": "internalNote",
+      "path": "params.reservations.editReservationType.internalNote",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "Dane przedmiotów rezerwacji",
+      "name": "items",
+      "path": "params.reservations.editReservationType.items",
+      "required": false,
+      "type": "editReservationItemTypeArray"
+    },
+    {
+      "description": "element typu editReservationItemType",
+      "name": "editReservationItemType",
+      "path": "params.reservations.editReservationType.items.editReservationItemType",
+      "required": true,
+      "type": "editReservationItemType"
+    },
+    {
+      "description": "Identyfikator przedmiotu rezerwacji",
+      "name": "objectItemId",
+      "path": "params.reservations.editReservationType.items.editReservationItemType.objectItemId",
+      "required": true,
+      "type": "int"
+    },
+    {
+      "description": "Cena",
+      "name": "price",
+      "path": "params.reservations.editReservationType.items.editReservationItemType.price",
+      "required": false,
+      "type": "float"
+    },
+    {
+      "description": "Upust/dopłata. W przypadku wartości ujemnej należy traktować wartość jako upust, w przypadku wartości dodatniej jako dopłatę",
+      "name": "priceCorrection",
+      "path": "params.reservations.editReservationType.items.editReservationItemType.priceCorrection",
+      "required": false,
+      "type": "float"
+    },
+    {
+      "description": "Vat (%)",
+      "name": "vat",
+      "path": "params.reservations.editReservationType.items.editReservationItemType.vat",
+      "required": false,
+      "type": "float"
+    },
+    {
+      "description": "Liczba dorosłych",
+      "name": "numberOfAdults",
+      "path": "params.reservations.editReservationType.items.editReservationItemType.numberOfAdults",
+      "required": false,
+      "type": "int"
+    },
+    {
+      "description": "liczba dzieci, które według konfiguracji sprzedaży mają inne ceny",
+      "name": "numberOfBigChildren",
+      "path": "params.reservations.editReservationType.items.editReservationItemType.numberOfBigChildren",
+      "required": false,
+      "type": "int"
+    },
+    {
+      "description": "liczba dzieci, które według konfiguracji sprzedaży mają pobyt gratis",
+      "name": "numberOfSmallChildren",
+      "path": "params.reservations.editReservationType.items.editReservationItemType.numberOfSmallChildren",
+      "required": false,
+      "type": "int"
+    },
+    {
+      "description": "Dane dodatków rezerwacji",
+      "name": "addons",
+      "path": "params.reservations.editReservationType.items.editReservationItemType.addons",
+      "required": false,
+      "type": "editReservationAddonTypeArray"
+    },
+    {
+      "description": "element typu editReservationAddonType",
+      "name": "editReservationAddonType",
+      "path": "params.reservations.editReservationType.items.editReservationItemType.addons.editReservationAddonType",
+      "required": true,
+      "type": "editReservationAddonType"
+    },
+    {
+      "description": "Identyfikator dodatku",
+      "name": "addonId",
+      "path": "params.reservations.editReservationType.items.editReservationItemType.addons.editReservationAddonType.addonId",
+      "required": true,
+      "type": "int"
+    },
+    {
+      "description": "Liczba osób",
+      "name": "persons",
+      "path": "params.reservations.editReservationType.items.editReservationItemType.addons.editReservationAddonType.persons",
+      "required": true,
+      "type": "int"
+    },
+    {
+      "description": "Liczba nocy",
+      "name": "nights",
+      "path": "params.reservations.editReservationType.items.editReservationItemType.addons.editReservationAddonType.nights",
+      "required": true,
+      "type": "int"
+    },
+    {
+      "description": "Ilość dodatku",
+      "name": "quantity",
+      "path": "params.reservations.editReservationType.items.editReservationItemType.addons.editReservationAddonType.quantity",
+      "required": true,
+      "type": "int"
+    },
+    {
+      "description": "Cena",
+      "name": "price",
+      "path": "params.reservations.editReservationType.items.editReservationItemType.addons.editReservationAddonType.price",
+      "required": true,
+      "type": "float"
+    },
+    {
+      "description": "Vat (%)",
+      "name": "vat",
+      "path": "params.reservations.editReservationType.items.editReservationItemType.addons.editReservationAddonType.vat",
+      "required": true,
+      "type": "float"
+    },
+    {
+      "description": "Możliwe wartości: (y, n)\n\nPowiadamiaj wiadomością transakcyjną",
+      "name": "notify",
+      "path": "params.reservations.editReservationType.notify",
+      "required": false,
+      "type": "notifyType"
+    },
+    {
+      "description": "Możliwe wartości: (y, n)\n\nWysyłaj powiadomienia dla obsługi obiektu. Domyślnie są wysyłane",
+      "name": "notifyService",
+      "path": "params.reservations.editReservationType.notifyService",
+      "required": false,
+      "type": "notifyServiceType"
+    }
+  ],
+  "response": [
+    {
+      "description": "Lista kodów błędów",
+      "name": "errors",
+      "path": "errors",
+      "required": false,
+      "type": "gateErrorType"
+    },
+    {
+      "description": "Kod błędu",
+      "name": "faultCode",
+      "path": "errors.faultCode",
+      "required": false,
+      "type": "int"
+    },
+    {
+      "description": "Opis błędu",
+      "name": "faultString",
+      "path": "errors.faultString",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "Dane zmienionych rezerwacji",
+      "name": "reservations",
+      "path": "reservations",
+      "required": false,
+      "type": "changeReservationsTypeArray"
+    },
+    {
+      "description": "element typu changeReservationsType",
+      "name": "changeReservationsType",
+      "path": "reservations.changeReservationsType",
+      "required": true,
+      "type": "changeReservationsType"
+    },
+    {
+      "description": "Sukces",
+      "name": "success",
+      "path": "reservations.changeReservationsType.success",
+      "required": false,
+      "type": "boolean"
+    },
+    {
+      "description": "Identyfikator rezerwacji",
+      "name": "reservationId",
+      "path": "reservations.changeReservationsType.reservationId",
+      "required": false,
+      "type": "int"
+    },
+    {
+      "description": "Dane błędu",
+      "name": "error",
+      "path": "reservations.changeReservationsType.error",
+      "required": false,
+      "type": "errorType"
+    },
+    {
+      "description": "Kod błędu",
+      "name": "faultCode",
+      "path": "reservations.changeReservationsType.error.faultCode",
+      "required": false,
+      "type": "int"
+    },
+    {
+      "description": "Opis błędu",
+      "name": "faultString",
+      "path": "reservations.changeReservationsType.error.faultString",
+      "required": false,
+      "type": "string"
+    }
+  ],
+  "text": "Dokumentacja API Booking   \n            \n          \n        \n            \n        \n            \n                \n                    \n        \n        \nEdytuje rezerwacje\n\n\n\n            \n                \n        \n            \n                \n                    \n                    Adresy\n                \n        \n              \n                \n                    \n                        Nasłuch\n                    \n                    \n                        https://_domena_booking_.idosell.com/api/reservations/edit/36/json\n                    \n                    \n                        \n                    \n                \n                    \n                \n            \n        \n         \n            Struktura żądania\n                \n                    \n                        authenticate (authenticateType)\n                        Element służy do uwierzytelniania konta w celu wywołania metody\n                    \n        \n            \n            \n                \n                    \n                        systemKey (string)\n                        Klucz wykorzystywany podczas uwierzytelniania. Zapoznaj się z instrukcją generowania klucza\n                    \n        \n            \n            \n                \n                    \n                        systemLogin (string)\n                        Login użytkownika panelu IdoSell Booking\n                    \n        \n            \n            \n                \n                    \n                        lang (apiLanguage)\n                        \n                    Możliwe wartości:\n                     (eng, pol, ger)Język API\n                    \n        \n                \n                    \n                        params (paramsType)\n                        Parametry przekazywane do metody\n                    \n        \n            \n            \n                \n                    \n                        reservations (editReservationTypeArray)\n                        Dane rezerwacji\n                    \n        \n            \n            \n                \n                    \n                         (editReservationType)\n                        element typu editReservationType\n                    \n        \n            \n            \n                \n                    \n                        id (int)\n                        Identyfikator\n                    \n        \n            \n            \n                \n                    \n                        dateFrom (string)\n                        Data i godzina rozpoczęcia\n                    \n        \n            \n            \n                \n                    \n                        dateTo (string)\n                        Data i godzina zakończenia\n                    \n        \n            \n            \n                \n                    \n                        clientId (int)\n                        Identyfikator klienta\n                    \n        \n            \n            \n                \n                    \n                        clientNote (string)\n                        Uwagi klienta do rezerwacji\n                    \n        \n            \n            \n                \n                    \n                        externalNote (string)\n                        Informacje dla klienta\n                    \n        \n            \n            \n                \n                    \n                        apiNote (string)\n                        Notatka API\n                    \n        \n            \n            \n                \n                    \n                        internalNote (string)\n                        Notatka do rezerwacji\n                    \n        \n            \n            \n                \n                    \n                        items (editReservationItemTypeArray)\n                        Dane przedmiotów rezerwacji\n                    \n        \n            \n            \n                \n                    \n                         (editReservationItemType)\n                        element typu editReservationItemType\n                    \n        \n            \n            \n                \n                    \n                        objectItemId (int)\n                        Identyfikator przedmiotu rezerwacji\n                    \n        \n            \n            \n                \n                    \n                        price (float)\n                        Cena\n                    \n        \n            \n            \n                \n                    \n                        priceCorrection (float)\n                        Upust/dopłata. W przypadku wartości ujemnej należy traktować wartość jako upust, w przypadku wartości dodatniej jako dopłatę\n                    \n        \n            \n            \n                \n                    \n                        vat (float)\n                        Vat (%)\n                    \n        \n            \n            \n                \n                    \n                        numberOfAdults (int)\n                        Liczba dorosłych\n                    \n        \n            \n            \n                \n                    \n                        numberOfBigChildren (int)\n                        liczba dzieci, które według konfiguracji sprzedaży mają inne ceny\n                    \n        \n            \n            \n                \n                    \n                        numberOfSmallChildren (int)\n                        liczba dzieci, które według konfiguracji sprzedaży mają pobyt gratis\n                    \n        \n            \n            \n                \n                    \n                        addons (editReservationAddonTypeArray)\n                        Dane dodatków rezerwacji\n                    \n        \n            \n            \n                \n                    \n                         (editReservationAddonType)\n                        element typu editReservationAddonType\n                    \n        \n            \n            \n                \n                    \n                        addonId (int)\n                        Identyfikator dodatku\n                    \n        \n            \n            \n                \n                    \n                        persons (int)\n                        Liczba osób\n                    \n        \n            \n            \n                \n                    \n                        nights (int)\n                        Liczba nocy\n                    \n        \n            \n            \n                \n                    \n                        quantity (int)\n                        Ilość dodatku\n                    \n        \n            \n            \n                \n                    \n                        price (float)\n                        Cena\n                    \n        \n            \n            \n                \n                    \n                        vat (float)\n                        Vat (%)\n                    \n        \n            \n            \n                \n                    \n                        notify (notifyType)\n                        \n                    Możliwe wartości:\n                     (y, n)Powiadamiaj wiadomością transakcyjną\n                    \n        \n            \n            \n                \n                    \n                        notifyService (notifyServiceType)\n                        \n                    Możliwe wartości:\n                     (y, n)Wysyłaj powiadomienia dla obsługi obiektu. Domyślnie są wysyłane\n                    \n        \n         \n            Struktura odpowiedzi\n                \n                    \n                        errors (gateErrorType)\n                        Lista kodów błędów\n                    \n        \n            \n            \n                \n                    \n                        faultCode (int)\n                        Kod błędu\n                    \n        \n            \n            \n                \n                    \n                        faultString (string)\n                        Opis błędu\n                    \n        \n                \n                    \n                        reservations (changeReservationsTypeArray)\n                        Dane zmienionych rezerwacji\n                    \n        \n            \n            \n                \n                    \n                         (changeReservationsType)\n                        element typu changeReservationsType\n                    \n        \n            \n            \n                \n                    \n                        success (boolean)\n                        Sukces\n                    \n        \n            \n            \n                \n                    \n                        reservationId (int)\n                        Identyfikator rezerwacji\n                    \n        \n            \n            \n                \n                    \n                        error (errorType)\n                        Dane błędu\n                    \n        \n            \n            \n                \n                    \n                        faultCode (int)\n                        Kod błędu\n                    \n        \n            \n            \n                \n                    \n                        faultString (string)\n                        Opis błędu\n                    \n        \n         \n            Przykład kodu w PHP\n                \n                    <?php\n\n$address = 'https://client1679.idobooking.com/api/reservations/edit/36/json';\n\n$request = array();\n$request['authenticate'] = array();\n$request['authenticate']['systemKey'] = sha1(date('Ymd') . sha1('YOUR_KEY'));\n$request['authenticate']['systemLogin'] = \"systemLogin\";\n$request['authenticate']['lang'] = 'eng';\n$request['params'] = array();\n$request['params']['reservations'] = array();\n$request['params']['reservations'][0] = array();\n$request['params']['reservations'][0]['id'] = 1;\n$request['params']['reservations'][0]['dateFrom'] = \"dateFrom\";\n$request['params']['reservations'][0]['dateTo'] = \"dateTo\";\n$request['params']['reservations'][0]['clientId'] = 2;\n$request['params']['reservations'][0]['clientNote'] = \"clientNote\";\n$request['params']['reservations'][0]['externalNote'] = \"externalNote\";\n$request['params']['reservations'][0]['apiNote'] = \"apiNote\";\n$request['params']['reservations'][0]['internalNote'] = \"internalNote\";\n$request['params']['reservations'][0]['items'] = array();\n$request['params']['reservations'][0]['items'][0] = array();\n$request['params']['reservations'][0]['items'][0]['objectItemId'] = 3;\n$request['params']['reservations'][0]['items'][0]['price'] = 4.0;\n$request['params']['reservations'][0]['items'][0]['priceCorrection'] = 5.0;\n$request['params']['reservations'][0]['items'][0]['vat'] = 6.0;\n$request['params']['reservations'][0]['items'][0]['numberOfAdults'] = 7;\n$request['params']['reservations'][0]['items'][0]['numberOfBigChildren'] = 8;\n$request['params']['reservations'][0]['items'][0]['numberOfSmallChildren'] = 9;\n$request['params']['reservations'][0]['items'][0]['addons'] = array();\n$request['params']['reservations'][0]['items'][0]['addons'][0] = array();\n$request['params']['reservations'][0]['items'][0]['addons'][0]['addonId'] = 10;\n$request['params']['reservations'][0]['items'][0]['addons'][0]['persons'] = 11;\n$request['params']['reservations'][0]['items'][0]['addons'][0]['nights'] = 12;\n$request['params']['reservations'][0]['items'][0]['addons'][0]['quantity'] = 13;\n$request['params']['reservations'][0]['items'][0]['addons'][0]['price'] = 14.0;\n$request['params']['reservations'][0]['items'][0]['addons'][0]['vat'] = 15.0;\n$request['params']['reservations'][0]['notify'] = 'y';\n$request['params']['reservations'][0]['notifyService'] = 'y';\n\n$request_json = json_encode($request);\n$headers = array(\n    'Accept: application/json',\n    'Content-Type: application/json;charset=UTF-8'\n);\n\n$curl = curl_init($address);\ncurl_setopt($curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);\ncurl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);\ncurl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);\ncurl_setopt($curl, CURLOPT_FORBID_REUSE, 1);\ncurl_setopt($curl, CURLINFO_HEADER_OUT, 1);\ncurl_setopt($curl, CURLOPT_HEADER, 1);\ncurl_setopt($curl, CURLOPT_POST, 1);\ncurl_setopt($curl, CURLOPT_POSTFIELDS, $request_json);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, $headers);\n\n$response = curl_exec($curl);\n$status = curl_getinfo($curl);\ncurl_close($curl);\n       \n                \n            \n        Historia zmianW rozwiniętej historii metody nie wyświetlono wpisów zmian; dostępny był formularz porównywania wersji.",
+  "version": 36,
+  "capturedAt": "2026-10-24T18:07:45.992Z",
+  "endpoint": "https://_domena_booking_.idosell.com/api/reservations/edit/36/json",
+  "description": "Edytuje rezerwacje",
+  "source": {
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=reservations&method=edit##",
+    "capturedAt": "2026-10-24T18:07:45.992Z",
+    "transport": "authenticated Chrome HTTPS session",
+    "format": "JSON"
+  }
+}

@@ -18,6 +18,7 @@ export default function RootLayout({
   const isHomePage = pathname === "/";
   const isAdmin = pathname.startsWith("/admin");
   const isOwner = pathname.startsWith("/apartamentsOwner");
+  const isCleaning = pathname === "/cleaningService" || pathname.startsWith("/cleaningService/");
 
   return (
     <html
@@ -35,7 +36,7 @@ export default function RootLayout({
       >
         <SessionProvider>
           <TRPCReactProvider>
-            {!isHomePage &&
+            {!isHomePage && !isCleaning &&
               (isAdmin ? (
                 <HeaderAdmin />
               ) : isOwner ? (
@@ -44,7 +45,7 @@ export default function RootLayout({
                 <Header />
               ))}
             <main className="flex-grow">{children}</main>
-            {!isHomePage && <Footer />}
+            {!isHomePage && !isCleaning && <Footer />}
           </TRPCReactProvider>
         </SessionProvider>
       </body>

@@ -1,0 +1,482 @@
+[
+  {
+    "title": "deleteExceptions",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=allotments&method=deleteExceptions",
+    "kind": "method",
+    "gateway": "allotments"
+  },
+  {
+    "title": "getExceptions",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=allotments&method=getExceptions",
+    "kind": "method",
+    "gateway": "allotments"
+  },
+  {
+    "title": "setExceptions",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=allotments&method=setExceptions",
+    "kind": "method",
+    "gateway": "allotments"
+  },
+  {
+    "title": "sources",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=allotments&method=sources",
+    "kind": "method",
+    "gateway": "allotments"
+  },
+  {
+    "title": "getForAddons",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=amenities&method=getForAddons",
+    "kind": "method",
+    "gateway": "amenities"
+  },
+  {
+    "title": "getForObjects",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=amenities&method=getForObjects",
+    "kind": "method",
+    "gateway": "amenities"
+  },
+  {
+    "title": "add",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=availabilitylocks&method=add",
+    "kind": "method",
+    "gateway": "availabilitylocks"
+  },
+  {
+    "title": "delete",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=availabilitylocks&method=delete",
+    "kind": "method",
+    "gateway": "availabilitylocks"
+  },
+  {
+    "title": "edit",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=availabilitylocks&method=edit",
+    "kind": "method",
+    "gateway": "availabilitylocks"
+  },
+  {
+    "title": "get",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=availabilitylocks&method=get",
+    "kind": "method",
+    "gateway": "availabilitylocks"
+  },
+  {
+    "title": "add",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=clients&method=add",
+    "kind": "method",
+    "gateway": "clients"
+  },
+  {
+    "title": "delete",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=clients&method=delete",
+    "kind": "method",
+    "gateway": "clients"
+  },
+  {
+    "title": "edit",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=clients&method=edit",
+    "kind": "method",
+    "gateway": "clients"
+  },
+  {
+    "title": "get",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=clients&method=get",
+    "kind": "method",
+    "gateway": "clients"
+  },
+  {
+    "title": "history",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=clients&method=history",
+    "kind": "method",
+    "gateway": "clients"
+  },
+  {
+    "title": "add",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=locks&method=add",
+    "kind": "method",
+    "gateway": "locks"
+  },
+  {
+    "title": "delete",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=locks&method=delete",
+    "kind": "method",
+    "gateway": "locks"
+  },
+  {
+    "title": "edit",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=locks&method=edit",
+    "kind": "method",
+    "gateway": "locks"
+  },
+  {
+    "title": "get",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=locks&method=get",
+    "kind": "method",
+    "gateway": "locks"
+  },
+  {
+    "title": "getDevices",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=locks&method=getDevices",
+    "kind": "method",
+    "gateway": "locks"
+  },
+  {
+    "title": "addAmenities",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=objects&method=addAmenities",
+    "kind": "method",
+    "gateway": "objects"
+  },
+  {
+    "title": "addItems",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=objects&method=addItems",
+    "kind": "method",
+    "gateway": "objects"
+  },
+  {
+    "title": "addMedia",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=objects&method=addMedia",
+    "kind": "method",
+    "gateway": "objects"
+  },
+  {
+    "title": "deleteAmenities",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=objects&method=deleteAmenities",
+    "kind": "method",
+    "gateway": "objects"
+  },
+  {
+    "title": "deleteItems",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=objects&method=deleteItems",
+    "kind": "method",
+    "gateway": "objects"
+  },
+  {
+    "title": "deleteMedia",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=objects&method=deleteMedia",
+    "kind": "method",
+    "gateway": "objects"
+  },
+  {
+    "title": "editDescriptions",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=objects&method=editDescriptions",
+    "kind": "method",
+    "gateway": "objects"
+  },
+  {
+    "title": "editItems",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=objects&method=editItems",
+    "kind": "method",
+    "gateway": "objects"
+  },
+  {
+    "title": "editLengthSetup",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=objects&method=editLengthSetup",
+    "kind": "method",
+    "gateway": "objects"
+  },
+  {
+    "title": "editLocation",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=objects&method=editLocation",
+    "kind": "method",
+    "gateway": "objects"
+  },
+  {
+    "title": "editMedia",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=objects&method=editMedia",
+    "kind": "method",
+    "gateway": "objects"
+  },
+  {
+    "title": "editType",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=objects&method=editType",
+    "kind": "method",
+    "gateway": "objects"
+  },
+  {
+    "title": "getAll",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=objects&method=getAll",
+    "kind": "method",
+    "gateway": "objects"
+  },
+  {
+    "title": "getAmenities",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=objects&method=getAmenities",
+    "kind": "method",
+    "gateway": "objects"
+  },
+  {
+    "title": "getAvailabilityByDateRange",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=objects&method=getAvailabilityByDateRange",
+    "kind": "method",
+    "gateway": "objects"
+  },
+  {
+    "title": "getDescriptions",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=objects&method=getDescriptions",
+    "kind": "method",
+    "gateway": "objects"
+  },
+  {
+    "title": "getFilters",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=objects&method=getFilters",
+    "kind": "method",
+    "gateway": "objects"
+  },
+  {
+    "title": "getItems",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=objects&method=getItems",
+    "kind": "method",
+    "gateway": "objects"
+  },
+  {
+    "title": "getLengthSetup",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=objects&method=getLengthSetup",
+    "kind": "method",
+    "gateway": "objects"
+  },
+  {
+    "title": "getLocation",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=objects&method=getLocation",
+    "kind": "method",
+    "gateway": "objects"
+  },
+  {
+    "title": "getMedia",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=objects&method=getMedia",
+    "kind": "method",
+    "gateway": "objects"
+  },
+  {
+    "title": "getType",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=objects&method=getType",
+    "kind": "method",
+    "gateway": "objects"
+  },
+  {
+    "title": "getAvailabilityAndPricesForDays",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=offer&method=getAvailabilityAndPricesForDays",
+    "kind": "method",
+    "gateway": "offer"
+  },
+  {
+    "title": "getAvailabilityForDays",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=offer&method=getAvailabilityForDays",
+    "kind": "method",
+    "gateway": "offer"
+  },
+  {
+    "title": "getChildrenInformation",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=offer&method=getChildrenInformation",
+    "kind": "method",
+    "gateway": "offer"
+  },
+  {
+    "title": "getPricesForDays",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=offer&method=getPricesForDays",
+    "kind": "method",
+    "gateway": "offer"
+  },
+  {
+    "title": "getPricesForDaysForObject",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=offer&method=getPricesForDaysForObject",
+    "kind": "method",
+    "gateway": "offer"
+  },
+  {
+    "title": "add",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=payments&method=add",
+    "kind": "method",
+    "gateway": "payments"
+  },
+  {
+    "title": "cancel",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=payments&method=cancel",
+    "kind": "method",
+    "gateway": "payments"
+  },
+  {
+    "title": "confirm",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=payments&method=confirm",
+    "kind": "method",
+    "gateway": "payments"
+  },
+  {
+    "title": "edit",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=payments&method=edit",
+    "kind": "method",
+    "gateway": "payments"
+  },
+  {
+    "title": "get",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=payments&method=get",
+    "kind": "method",
+    "gateway": "payments"
+  },
+  {
+    "title": "getPaymentForms",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=payments&method=getPaymentForms",
+    "kind": "method",
+    "gateway": "payments"
+  },
+  {
+    "title": "deleteExceptions",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=prices&method=deleteExceptions",
+    "kind": "method",
+    "gateway": "prices"
+  },
+  {
+    "title": "getExceptions",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=prices&method=getExceptions",
+    "kind": "method",
+    "gateway": "prices"
+  },
+  {
+    "title": "setExceptions",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=prices&method=setExceptions",
+    "kind": "method",
+    "gateway": "prices"
+  },
+  {
+    "title": "availability",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=public&method=availability",
+    "kind": "method",
+    "gateway": "public"
+  },
+  {
+    "title": "filters",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=public&method=filters",
+    "kind": "method",
+    "gateway": "public"
+  },
+  {
+    "title": "offer",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=public&method=offer",
+    "kind": "method",
+    "gateway": "public"
+  },
+  {
+    "title": "parameters",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=public&method=parameters",
+    "kind": "method",
+    "gateway": "public"
+  },
+  {
+    "title": "pricingOffers",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=public&method=pricingOffers",
+    "kind": "method",
+    "gateway": "public"
+  },
+  {
+    "title": "specialOffer",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=public&method=specialOffer",
+    "kind": "method",
+    "gateway": "public"
+  },
+  {
+    "title": "add",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=reservations&method=add",
+    "kind": "method",
+    "gateway": "reservations"
+  },
+  {
+    "title": "changeCurrency",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=reservations&method=changeCurrency",
+    "kind": "method",
+    "gateway": "reservations"
+  },
+  {
+    "title": "edit",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=reservations&method=edit",
+    "kind": "method",
+    "gateway": "reservations"
+  },
+  {
+    "title": "editStatus",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=reservations&method=editStatus",
+    "kind": "method",
+    "gateway": "reservations"
+  },
+  {
+    "title": "get",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=reservations&method=get",
+    "kind": "method",
+    "gateway": "reservations"
+  },
+  {
+    "title": "getSources",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=reservations&method=getSources",
+    "kind": "method",
+    "gateway": "reservations"
+  },
+  {
+    "title": "notifyClient",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=reservations&method=notifyClient",
+    "kind": "method",
+    "gateway": "reservations"
+  },
+  {
+    "title": "notifyExternalService",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=reservations&method=notifyExternalService",
+    "kind": "method",
+    "gateway": "reservations"
+  },
+  {
+    "title": "setDiscount",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=reservations&method=setDiscount",
+    "kind": "method",
+    "gateway": "reservations"
+  },
+  {
+    "title": "cancelDocuments",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=reservationsdocuments&method=cancelDocuments",
+    "kind": "method",
+    "gateway": "reservationsdocuments"
+  },
+  {
+    "title": "createDocuments",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=reservationsdocuments&method=createDocuments",
+    "kind": "method",
+    "gateway": "reservationsdocuments"
+  },
+  {
+    "title": "editDocuments",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=reservationsdocuments&method=editDocuments",
+    "kind": "method",
+    "gateway": "reservationsdocuments"
+  },
+  {
+    "title": "getDocuments",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=reservationsdocuments&method=getDocuments",
+    "kind": "method",
+    "gateway": "reservationsdocuments"
+  },
+  {
+    "title": "deleteExceptions",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=restrictions&method=deleteExceptions",
+    "kind": "method",
+    "gateway": "restrictions"
+  },
+  {
+    "title": "getExceptions",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=restrictions&method=getExceptions",
+    "kind": "method",
+    "gateway": "restrictions"
+  },
+  {
+    "title": "setExceptions",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=restrictions&method=setExceptions",
+    "kind": "method",
+    "gateway": "restrictions"
+  },
+  {
+    "title": "get",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=users&method=get",
+    "kind": "method",
+    "gateway": "users"
+  },
+  {
+    "title": "getLogs",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=users&method=getLogs",
+    "kind": "method",
+    "gateway": "users"
+  }
+]

@@ -1,0 +1,184 @@
+<!doctype html><html lang="pl"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Strona contact.tpl w szablonach Wizytówki</title><style>body{font:16px/1.65 system-ui,sans-serif;color:#21302d;margin:0;background:#f5f7f5}main{max-width:1120px;margin:30px auto;background:white;padding:36px;border-radius:12px}a{color:#087f5b}h1{line-height:1.2}h2{margin-top:2em}table{width:100%;border-collapse:collapse;font-size:14px}td,th{border:1px solid #d9e2df;padding:10px;text-align:left;vertical-align:top}th{background:#edf5f0}code,pre{font-family:Consolas,monospace}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#eef3f1;padding:20px}img{max-width:100%;height:auto}.meta{padding:14px;background:#edf5f0}.api_details_item_inner{display:grid;grid-template-columns:minmax(190px,40%) 1fr;border-bottom:1px solid #ddd;padding:12px;gap:16px}.api_details_item_sub{margin-left:18px;border-left:2px solid #a9cdbb;padding-left:8px}.api_required.required_after:after{content:' *';color:#b62323}.api_method_header{background:#edf5f0;padding:12px;margin-top:24px}input{padding:12px;font:inherit;width:90%;max-width:700px}.index li{margin:6px 0}.notice{background:#fff5d7;padding:14px}nav{margin-bottom:24px}@media(max-width:700px){main{padding:16px}.api_details_item_inner{display:block}td,th{padding:5px}}</style><main><nav><a href="../index.html">← Spis dokumentacji</a></nav><h1>Strona contact.tpl w szablonach Wizytówki</h1><p class="meta">Źródło: <a href="https://api.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/strona-contact-tpl-w-szablonach-wizytowki/">iDoBooking</a> · Kopia: 24.10.2026 · <a href="strona-contact-tpl-w-szablonach-wizytowki.jpg">Pełny zrzut</a> · <a href="strona-contact-tpl-w-szablonach-wizytowki.md">Markdown</a></p><div class="content__collapse col-md-9"> 
+<h3 id="toc6650" class="old_wiki"> <b>$bankAccountData</b> - konto bankowe</h3>
+
+
+<table class="responsive">
+    <tbody><tr class="simple-table-row">
+        <th class="simple-table-head"><b>Zmienna</b></th>
+        <th class="simple-table-head"><b>Opis</b></th>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$bankAccountData['enableCurrencies']</td>
+        <td class="simple-table-body">Lista walut dla których są widoczne konta bankowe</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$bankAccountData['enableCurrencies']['currency']</td>
+        <td class="simple-table-body">Określa czy w danej walucie mamy dostępne konto bankowe</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$bankAccountData['enableCurrencies']['active']</td>
+        <td class="simple-table-body">Określa czy chcemy pokazywać konta bankowe na stronie wizytówce</td>
+    </tr>
+</tbody></table>
+
+
+<h3 id="toc6651" class="old_wiki"> <b>$bankData['currencies_settings'][currency_id]</b> - konto bankowe w walucie</h3>
+
+
+<table class="responsive">
+    <tbody><tr class="simple-table-row">
+        <th class="simple-table-head"><b>Zmienna</b></th>
+        <th class="simple-table-head"><b>Opis</b></th>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$bankAccountData['currencies_settings'][currency_id]['account']</td>
+        <td class="simple-table-body">Numer konta dla waluty</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$bankAccountData['currencies_settings'][currency_id]['swift']</td>
+        <td class="simple-table-body">Numer SWIFT/BIC dla waluty</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$bankAccountData['currencies_settings'][currency_id]['bank']</td>
+        <td class="simple-table-body">Nazwa banku dla waluty</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$bankAccountData['currencies_settings'][currency_id]['name']</td>
+        <td class="simple-table-body">Nazwę odbiorcy dla waluty</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$bankAccountData['currencies_settings'][currency_id]['address']</td>
+        <td class="simple-table-body">Adres odbiorcy dla waluty</td>
+    </tr>
+</tbody></table>
+
+
+<h3 id="toc6652" class="old_wiki"> <b>$locations[item]</b> - informacje na temat lokalizacji</h3>
+
+
+<table class="responsive">
+    <tbody><tr class="simple-table-row">
+        <th class="simple-table-head"><b>Zmienna</b></th>
+        <th class="simple-table-head"><b>Opis</b></th>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$locations[item]['lng']</td>
+        <td class="simple-table-body">Długość geograficzna</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$locations[item]['lat']</td>
+        <td class="simple-table-body">Szerokość geograficzna</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$locations[item]['name']</td>
+        <td class="simple-table-body">Nazwa lokalizacji</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$locations[item]['id']</td>
+        <td class="simple-table-body">Identyfikator lokalizacji</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$locations[item][ 'city']</td>
+        <td class="simple-table-body">Miasto</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$locations[item]['street']</td>
+        <td class="simple-table-body">Ulica</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$locations[item]['zipcode']</td>
+        <td class="simple-table-body">Kod pocztowy</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$locations[item]['country']</td>
+        <td class="simple-table-body">Państwo</td>
+    </tr>
+</tbody></table>
+
+
+<h3 id="toc6653" class="old_wiki"> <b>$hotel_description_section</b> - dane obiektu</h3>
+
+
+<table class="responsive">
+    <tbody><tr class="simple-table-row">
+        <td class="simple-table-body">$hotel_description_section['object_phone']</td>
+        <td class="simple-table-body">Numer telefonu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$hotel_description_section['object_phone_2']</td>
+        <td class="simple-table-body">Drugi numer telefonu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$hotel_description_section['object_fax']</td>
+        <td class="simple-table-body">Fax</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$hotel_description_section['object_skype']</td>
+        <td class="simple-table-body">Skype</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$hotel_description_section['object_mail']</td>
+        <td class="simple-table-body">Adres e-mail</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$hotel_description_section['reception_open_mode']</td>
+        <td class="simple-table-body">Ustawienie 'Godzina odbioru rezerwacji'</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$hotel_description_section['reception_open_hour']</td>
+        <td class="simple-table-body">Godzina otwarcia recepcji lub odbioru kluczy</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$hotel_description_section['reception_close_hour]</td>
+        <td class="simple-table-body">Godzina zamknięcia recepcji lub odbioru kluczy</td>
+    </tr>
+</tbody></table>
+
+
+<h3 id="toc6654" class="old_wiki"> <b>$company_description_section</b> - dane twojej firmy</h3>
+
+
+<table class="responsive">
+    <tbody><tr class="simple-table-row">
+        <td class="simple-table-body">$company_description_section['name']</td>
+        <td class="simple-table-body">Nazwa firmy</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$company_description_section['street']</td>
+        <td class="simple-table-body">Ulica</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$company_description_section['zipcode']</td>
+        <td class="simple-table-body">Kod pocztowy</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$company_description_section['city']</td>
+        <td class="simple-table-body">Miasto</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$company_description_section['nip']</td>
+        <td class="simple-table-body">NIP</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$company_description_section['country']</td>
+        <td class="simple-table-body">Kod kraju</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$company_description_section['bankAccountData']['enable_currencies']</td>
+        <td class="simple-table-body">Lista walut dla których są widoczne konta bankowe</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$company_description_section['bankAccountData']['active']</td>
+        <td class="simple-table-body">Określa czy chcemy pokazywać konta bankowe na stronie wizytówce</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$company_description_section['bankAccountData']['active_settings']</td>
+        <td class="simple-table-body">Konfiguracja konta bankowego dla aktywnej waluty</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$company_description_section['bankAccountData']['currencies_settings']</td>
+        <td class="simple-table-body">Konfiguracja kont bankowych dla walut</td>
+    </tr>
+</tbody></table>
+
+</div></main></html>

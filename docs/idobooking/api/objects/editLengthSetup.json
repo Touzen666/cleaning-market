@@ -1,0 +1,555 @@
+{
+  "title": "Bramka Objects/Metoda editLengthSetup",
+  "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editLengthSetup##",
+  "kind": "method",
+  "gateway": "objects",
+  "height": 5620,
+  "html": "<div class=\"content__collapse col-md-9\"> \n          <div class=\"d-flex justify-content-between align-items-center mb-3\">\n            <span class=\"api_title mb-0\">Dokumentacja API Booking</span>   \n            <div class=\"show_list_link\"></div>\n          </div>\n        \n            \n        \n            <div id=\"documentation_background\">\n                <div class=\"content shop api_docs\">\n                    <div class=\"container white_bg\" data-equalizer=\"\">\n        \n        <div class=\"api_content row\" data-equalizer-watch=\"\"><div class=\"col-12 mb-5\"><p class=\"api_short_description\">\nZmienia ustawienia dotyczące długości pobytu oraz możliwych dni rozpoczęcia i zakończenia rezerwacji w przedmiocie rezerwacji.\n\n\n</p></div><div class=\"apiDesc col-12 mb-5\">\n            <div id=\"format_type\" class=\"tabs\">\n                \n        <div class=\"tabs__content\"><div id=\"tab1\" class=\"tabs__element --shown\">\n            <div id=\"api_method_adresses\" class=\"mb-5\">\n                <div class=\"api_method_header px-3 d-flex align-items-center\">\n                    <i class=\"icon-info-circled\"></i>\n                    <strong>Adresy</strong>\n                </div>\n        \n              <div class=\"api_method_row\">\n                <div class=\"row align-items-center py-3\">\n                    <div class=\"col-3 pl-5\">\n                        <strong>Nasłuch</strong>\n                    </div>\n                    <div class=\"col-9 col-sm-7\">\n                        <a href=\"https://client1679.idosell.com/api/objects/editLengthSetup/36/json\" class=\"api_link\" id=\"copyTarget_0json\">https://_domena_booking_.idosell.com/api/objects/editLengthSetup/36/json</a>\n                    </div>\n                    <div class=\"col-12 col-sm-2 d-flex justify-content-end\">\n                        \n                    </div>\n                \n                    </div>\n                </div>\n            </div>\n        \n        <div id=\"api_method_request_json\" class=\"mb-5\"><div class=\"api_method_header px-3\"><div class=\"api_method_header_left d-flex flex-wrap justify-content-center justify-content-sm-between align-items-center\"><div><i class=\"icon-code\"></i> \n            <strong>Struktura żądania</strong></div></div></div><div id=\"api_method_request_content\" class=\"api_details visible\">\n                <div class=\"api_details_item open\" data-parameter-name=\"authenticate\">\n                    <div class=\"api_details_item_inner level0 toggle\">\n                        <strong class=\"api_required required_after\">authenticate <span>(authenticateType)</span></strong>\n                        <span><p>Element służy do uwierzytelniania konta w celu wywołania metody</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"systemKey\">\n                    <div class=\"api_details_item_inner level1\">\n                        <strong class=\"api_required required_after\">systemKey <span>(string)</span></strong>\n                        <span><p>Klucz wykorzystywany podczas uwierzytelniania. Zapoznaj się z <a href=\"https://pomoc.idobooking.com/dodatkowe-moduly/api\">instrukcją generowania klucza</a></p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"systemLogin\">\n                    <div class=\"api_details_item_inner level1\">\n                        <strong class=\"api_required required_after\">systemLogin <span>(string)</span></strong>\n                        <span><p>Login użytkownika panelu IdoSell Booking</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"lang\">\n                    <div class=\"api_details_item_inner level1\">\n                        <strong class=\"\">lang <span>(apiLanguage)</span></strong>\n                        <span><p>\n                    <span>Możliwe wartości:\n                    </span> (<i>eng, pol, ger</i>)</p><p>Język API</p></span>\n                    </div>\n        </div></div></div>\n                <div class=\"api_details_item open\" data-parameter-name=\"objectsLengthSetups\">\n                    <div class=\"api_details_item_inner level0 toggle\">\n                        <strong class=\"api_required required_after\">objectsLengthSetups <span>(objectLengthSetupArray)</span></strong>\n                        <span><p>Lista powiązanych ustawień pobytu z przedmiotem rezerwacji w postaci tablicy elementów objectSetupLength</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item open\" data-parameter-name=\"objectSetupLengthType\">\n                    <div class=\"api_details_item_inner level1 toggle\">\n                        <strong class=\"api_required required_after\"> <span>(objectSetupLengthType)</span></strong>\n                        <span><p>element typu objectSetupLengthType</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"objectId\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"api_required required_after\">objectId <span>(int)</span></strong>\n                        <span><p>Identyfikator przedmiotu rezerwacji</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"objectLengthSetupMode\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"\">objectLengthSetupMode <span>(objectLengthSetupModeType)</span></strong>\n                        <span><p>\n                    <span>Możliwe wartości:\n                    </span> (<i>inherited, own</i>)</p><p>Ustawienie źródła restrykcji rezerwacji przedmiotu rezerwacji</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item open\" data-parameter-name=\"ownLengthSetup\">\n                    <div class=\"api_details_item_inner level2 toggle\">\n                        <strong class=\"\">ownLengthSetup <span>(ownLengthSetupType)</span></strong>\n                        <span><p>element typu  ownLengthSetup</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"lengthSetupMode\">\n                    <div class=\"api_details_item_inner level3\">\n                        <strong class=\"api_required required_after\">lengthSetupMode <span>(lengthSetupModeType)</span></strong>\n                        <span><p>\n                    <span>Możliwe wartości:\n                    </span> (<i>free, minimal, multiplication, exact</i>)</p><p>Ustawienie trybu długości rezerwacji</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"lengthSetupType\">\n                    <div class=\"api_details_item_inner level3\">\n                        <strong class=\"\">lengthSetupType <span>(lengthSetupTypeType)</span></strong>\n                        <span><p>\n                    <span>Możliwe wartości:\n                    </span> (<i>days, weeks, months</i>)</p><p>Ustawienie jednostki długości rezerwacji</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"lengthSetupValue\">\n                    <div class=\"api_details_item_inner level3\">\n                        <strong class=\"\">lengthSetupValue <span>(int)</span></strong>\n                        <span><p>Ustawienie wartości długości rezerwacji</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"lengthSetupStartingMode\">\n                    <div class=\"api_details_item_inner level3\">\n                        <strong class=\"api_required required_after\">lengthSetupStartingMode <span>(lengthSetupStartingModeType)</span></strong>\n                        <span><p>\n                    <span>Możliwe wartości:\n                    </span> (<i>any, indicated_day_of_the_week, indicated_day_of_the_month</i>)</p><p>Ustawienie trybu początku rezerwacji</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item open\" data-parameter-name=\"lengthSetupStartingWeekDays\">\n                    <div class=\"api_details_item_inner level3 toggle\">\n                        <strong class=\"\">lengthSetupStartingWeekDays <span>(lengthSetupWeekDayArray)</span></strong>\n                        <span><p>Lista dni tygodnia akceptowanych jako początek rezerwacji. Dzień tygodnia (1 - poniedziałek do 7 - niedziela)<br><br><i>element typu int</i></p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"int\">\n                    <div class=\"api_details_item_inner level4\">\n                        <strong class=\"api_required required_after\"> <span>(int)</span></strong>\n                        <span><p>element typu int</p></span>\n                    </div>\n        </div></div></div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"lengthSetupStartingMonthDay\">\n                    <div class=\"api_details_item_inner level3\">\n                        <strong class=\"\">lengthSetupStartingMonthDay <span>(int)</span></strong>\n                        <span><p>Dzień miesiąca akceptowany jako początek rezerwacji</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"lengthSetupEndingMode\">\n                    <div class=\"api_details_item_inner level3\">\n                        <strong class=\"api_required required_after\">lengthSetupEndingMode <span>(lengthSetupEndingModeType)</span></strong>\n                        <span><p>\n                    <span>Możliwe wartości:\n                    </span> (<i>any, indicated_day_of_the_week, indicated_day_of_the_month</i>)</p><p>Ustawienie trybu końca rezerwacji</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item open\" data-parameter-name=\"lengthSetupEndingWeekDays\">\n                    <div class=\"api_details_item_inner level3 toggle\">\n                        <strong class=\"\">lengthSetupEndingWeekDays <span>(lengthSetupWeekDayArray)</span></strong>\n                        <span><p>Lista dni tygodnia akceptowanych jako koniec rezerwacji. Dzień tygodnia (1 - poniedziałek do 7 - niedziela)<br><br><i>element typu int</i></p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"int\">\n                    <div class=\"api_details_item_inner level4\">\n                        <strong class=\"api_required required_after\"> <span>(int)</span></strong>\n                        <span><p>element typu int</p></span>\n                    </div>\n        </div></div></div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"lengthSetupEndingMonthDay\">\n                    <div class=\"api_details_item_inner level3\">\n                        <strong class=\"\">lengthSetupEndingMonthDay <span>(int)</span></strong>\n                        <span><p>Dzień miesiąca akceptowany jako koniec rezerwacji</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"lengthSetupGapSaleMode\">\n                    <div class=\"api_details_item_inner level3\">\n                        <strong class=\"\">lengthSetupGapSaleMode <span>(lengthSetupGapSaleModeType)</span></strong>\n                        <span><p>\n                    <span>Możliwe wartości:\n                    </span> (<i>allowed, disallowed</i>)</p><p>Zezwalaj na składanie rezerwacji, gdy powstanie luka krótsza od wymaganej długości rezerwacji</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"lengthSetupGapSaleDays\">\n                    <div class=\"api_details_item_inner level3\">\n                        <strong class=\"\">lengthSetupGapSaleDays <span>(int)</span></strong>\n                        <span><p>Ustawienie minimalnej liczby dni na które można składać rezerwację w przypadku luki</p></span>\n                    </div>\n        </div></div></div></div></div></div></div></div></div>\n        <div id=\"api_method_response_json\" class=\"mb-5\"><div class=\"api_method_header px-3\"><div class=\"api_method_header_left d-flex flex-wrap justify-content-center justify-content-sm-between align-items-center\"><div><i class=\"icon-code\"></i> \n            <strong>Struktura odpowiedzi</strong></div></div></div><div id=\"api_method_response_content\" class=\"api_details visible\">\n                <div class=\"api_details_item open\" data-parameter-name=\"authenticate\">\n                    <div class=\"api_details_item_inner level0 toggle\">\n                        <strong class=\"api_required required_after\">authenticate <span>(authenticateType)</span></strong>\n                        <span><p>Element służy do uwierzytelniania konta w celu wywołania metody</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"systemKey\">\n                    <div class=\"api_details_item_inner level1\">\n                        <strong class=\"api_required required_after\">systemKey <span>(string)</span></strong>\n                        <span><p>Klucz wykorzystywany podczas uwierzytelniania. Zapoznaj się z <a href=\"https://pomoc.idobooking.com/dodatkowe-moduly/api\">instrukcją generowania klucza</a></p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"systemLogin\">\n                    <div class=\"api_details_item_inner level1\">\n                        <strong class=\"api_required required_after\">systemLogin <span>(string)</span></strong>\n                        <span><p>Login użytkownika panelu IdoSell Booking</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"lang\">\n                    <div class=\"api_details_item_inner level1\">\n                        <strong class=\"\">lang <span>(apiLanguage)</span></strong>\n                        <span><p>\n                    <span>Możliwe wartości:\n                    </span> (<i>eng, pol, ger</i>)</p><p>Język API</p></span>\n                    </div>\n        </div></div></div>\n                <div class=\"api_details_item\" data-parameter-name=\"success\">\n                    <div class=\"api_details_item_inner level0\">\n                        <strong class=\"api_required required_after\">success <span>(boolean)</span></strong>\n                        <span><p>Sukces</p></span>\n                    </div>\n        </div>\n                <div class=\"api_details_item open\" data-parameter-name=\"errors\">\n                    <div class=\"api_details_item_inner level0 toggle\">\n                        <strong class=\"\">errors <span>(gateErrorType)</span></strong>\n                        <span><p>Lista kodów błędów</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"faultCode\">\n                    <div class=\"api_details_item_inner level1\">\n                        <strong class=\"\">faultCode <span>(int)</span></strong>\n                        <span><p>Kod błędu</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"faultString\">\n                    <div class=\"api_details_item_inner level1\">\n                        <strong class=\"\">faultString <span>(string)</span></strong>\n                        <span><p>Opis błędu</p></span>\n                    </div>\n        </div></div></div>\n                <div class=\"api_details_item open\" data-parameter-name=\"objectsLengthSetupsResponse\">\n                    <div class=\"api_details_item_inner level0 toggle\">\n                        <strong class=\"\">objectsLengthSetupsResponse <span>(objectLengthSetupResultArray)</span></strong>\n                        <span><p>Lista powiązanych ustawień pobytu z przedmiotem rezerwacji w postaci tablicy elementów ObjectSetupLengthResponse</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item open\" data-parameter-name=\"objectLengthSetupResultType\">\n                    <div class=\"api_details_item_inner level1 toggle\">\n                        <strong class=\"api_required required_after\"> <span>(objectLengthSetupResultType)</span></strong>\n                        <span><p>element typu objectLengthSetupResultType</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item open\" data-parameter-name=\"error\">\n                    <div class=\"api_details_item_inner level2 toggle\">\n                        <strong class=\"\">error <span>(errorType)</span></strong>\n                        <span><p></p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"faultCode\">\n                    <div class=\"api_details_item_inner level3\">\n                        <strong class=\"\">faultCode <span>(int)</span></strong>\n                        <span><p>Kod błędu</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"faultString\">\n                    <div class=\"api_details_item_inner level3\">\n                        <strong class=\"\">faultString <span>(string)</span></strong>\n                        <span><p>Opis błędu</p></span>\n                    </div>\n        </div></div></div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"objectId\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"api_required required_after\">objectId <span>(int)</span></strong>\n                        <span><p></p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"objectLengthSetupMode\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"\">objectLengthSetupMode <span>(objectLengthSetupModeType)</span></strong>\n                        <span><p>\n                    <span>Możliwe wartości:\n                    </span> (<i>inherited, own</i>)</p><p>Ustawienie źródła restrykcji rezerwacji przedmiotu rezerwacji</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item open\" data-parameter-name=\"ownLengthSetup\">\n                    <div class=\"api_details_item_inner level2 toggle\">\n                        <strong class=\"\">ownLengthSetup <span>(ownLengthSetupType)</span></strong>\n                        <span><p>element typu  ownLengthSetup</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"lengthSetupMode\">\n                    <div class=\"api_details_item_inner level3\">\n                        <strong class=\"api_required required_after\">lengthSetupMode <span>(lengthSetupModeType)</span></strong>\n                        <span><p>\n                    <span>Możliwe wartości:\n                    </span> (<i>free, minimal, multiplication, exact</i>)</p><p>Ustawienie trybu długości rezerwacji</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"lengthSetupType\">\n                    <div class=\"api_details_item_inner level3\">\n                        <strong class=\"\">lengthSetupType <span>(lengthSetupTypeType)</span></strong>\n                        <span><p>\n                    <span>Możliwe wartości:\n                    </span> (<i>days, weeks, months</i>)</p><p>Ustawienie jednostki długości rezerwacji</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"lengthSetupValue\">\n                    <div class=\"api_details_item_inner level3\">\n                        <strong class=\"\">lengthSetupValue <span>(int)</span></strong>\n                        <span><p>Ustawienie wartości długości rezerwacji</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"lengthSetupStartingMode\">\n                    <div class=\"api_details_item_inner level3\">\n                        <strong class=\"api_required required_after\">lengthSetupStartingMode <span>(lengthSetupStartingModeType)</span></strong>\n                        <span><p>\n                    <span>Możliwe wartości:\n                    </span> (<i>any, indicated_day_of_the_week, indicated_day_of_the_month</i>)</p><p>Ustawienie trybu początku rezerwacji</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item open\" data-parameter-name=\"lengthSetupStartingWeekDays\">\n                    <div class=\"api_details_item_inner level3 toggle\">\n                        <strong class=\"\">lengthSetupStartingWeekDays <span>(lengthSetupWeekDayArray)</span></strong>\n                        <span><p>Lista dni tygodnia akceptowanych jako początek rezerwacji. Dzień tygodnia (1 - poniedziałek do 7 - niedziela)<br><br><i>element typu int</i></p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"int\">\n                    <div class=\"api_details_item_inner level4\">\n                        <strong class=\"api_required required_after\"> <span>(int)</span></strong>\n                        <span><p>element typu int</p></span>\n                    </div>\n        </div></div></div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"lengthSetupStartingMonthDay\">\n                    <div class=\"api_details_item_inner level3\">\n                        <strong class=\"\">lengthSetupStartingMonthDay <span>(int)</span></strong>\n                        <span><p>Dzień miesiąca akceptowany jako początek rezerwacji</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"lengthSetupEndingMode\">\n                    <div class=\"api_details_item_inner level3\">\n                        <strong class=\"api_required required_after\">lengthSetupEndingMode <span>(lengthSetupEndingModeType)</span></strong>\n                        <span><p>\n                    <span>Możliwe wartości:\n                    </span> (<i>any, indicated_day_of_the_week, indicated_day_of_the_month</i>)</p><p>Ustawienie trybu końca rezerwacji</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item open\" data-parameter-name=\"lengthSetupEndingWeekDays\">\n                    <div class=\"api_details_item_inner level3 toggle\">\n                        <strong class=\"\">lengthSetupEndingWeekDays <span>(lengthSetupWeekDayArray)</span></strong>\n                        <span><p>Lista dni tygodnia akceptowanych jako koniec rezerwacji. Dzień tygodnia (1 - poniedziałek do 7 - niedziela)<br><br><i>element typu int</i></p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"int\">\n                    <div class=\"api_details_item_inner level4\">\n                        <strong class=\"api_required required_after\"> <span>(int)</span></strong>\n                        <span><p>element typu int</p></span>\n                    </div>\n        </div></div></div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"lengthSetupEndingMonthDay\">\n                    <div class=\"api_details_item_inner level3\">\n                        <strong class=\"\">lengthSetupEndingMonthDay <span>(int)</span></strong>\n                        <span><p>Dzień miesiąca akceptowany jako koniec rezerwacji</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"lengthSetupGapSaleMode\">\n                    <div class=\"api_details_item_inner level3\">\n                        <strong class=\"\">lengthSetupGapSaleMode <span>(lengthSetupGapSaleModeType)</span></strong>\n                        <span><p>\n                    <span>Możliwe wartości:\n                    </span> (<i>allowed, disallowed</i>)</p><p>Zezwalaj na składanie rezerwacji, gdy powstanie luka krótsza od wymaganej długości rezerwacji</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"lengthSetupGapSaleDays\">\n                    <div class=\"api_details_item_inner level3\">\n                        <strong class=\"\">lengthSetupGapSaleDays <span>(int)</span></strong>\n                        <span><p>Ustawienie minimalnej liczby dni na które można składać rezerwację w przypadku luki</p></span>\n                    </div>\n        </div></div></div></div></div></div></div></div></div>\n        <div id=\"php-example_json\" class=\"code_example mb-5\"><div class=\"api_method_header px-3\"><div class=\"api_method_header_left d-flex flex-wrap justify-content-center justify-content-sm-between align-items-center\"><div><i class=\"icon-file-code\"></i> \n            <strong>Przykład kodu w PHP</strong></div></div></div><div class=\"api_details visible\">\n                <div id=\"php-example_content_json\">\n                    <pre class=\"highlight-code hljs php\"><span class=\"hljs-meta\">&lt;?php</span>\n\n$address = <span class=\"hljs-string\">'https://client1679.idobooking.com/api/objects/editLengthSetup/36/json'</span>;\n\n$request = <span class=\"hljs-keyword\">array</span>();\n$request[<span class=\"hljs-string\">'authenticate'</span>] = <span class=\"hljs-keyword\">array</span>();\n$request[<span class=\"hljs-string\">'authenticate'</span>][<span class=\"hljs-string\">'systemKey'</span>] = sha1(date(<span class=\"hljs-string\">'Ymd'</span>) . sha1(<span class=\"hljs-string\">'YOUR_KEY'</span>));\n$request[<span class=\"hljs-string\">'authenticate'</span>][<span class=\"hljs-string\">'systemLogin'</span>] = <span class=\"hljs-string\">\"systemLogin\"</span>;\n$request[<span class=\"hljs-string\">'authenticate'</span>][<span class=\"hljs-string\">'lang'</span>] = <span class=\"hljs-string\">'eng'</span>;\n$request[<span class=\"hljs-string\">'objectsLengthSetups'</span>] = <span class=\"hljs-keyword\">array</span>();\n$request[<span class=\"hljs-string\">'objectsLengthSetups'</span>][<span class=\"hljs-number\">0</span>] = <span class=\"hljs-keyword\">array</span>();\n$request[<span class=\"hljs-string\">'objectsLengthSetups'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'objectId'</span>] = <span class=\"hljs-number\">1</span>;\n$request[<span class=\"hljs-string\">'objectsLengthSetups'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'objectLengthSetupMode'</span>] = <span class=\"hljs-string\">'inherited'</span>;\n$request[<span class=\"hljs-string\">'objectsLengthSetups'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'ownLengthSetup'</span>] = <span class=\"hljs-keyword\">array</span>();\n$request[<span class=\"hljs-string\">'objectsLengthSetups'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'ownLengthSetup'</span>][<span class=\"hljs-string\">'lengthSetupMode'</span>] = <span class=\"hljs-string\">'free'</span>;\n$request[<span class=\"hljs-string\">'objectsLengthSetups'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'ownLengthSetup'</span>][<span class=\"hljs-string\">'lengthSetupType'</span>] = <span class=\"hljs-string\">'days'</span>;\n$request[<span class=\"hljs-string\">'objectsLengthSetups'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'ownLengthSetup'</span>][<span class=\"hljs-string\">'lengthSetupValue'</span>] = <span class=\"hljs-number\">2</span>;\n$request[<span class=\"hljs-string\">'objectsLengthSetups'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'ownLengthSetup'</span>][<span class=\"hljs-string\">'lengthSetupStartingMode'</span>] = <span class=\"hljs-string\">'any'</span>;\n$request[<span class=\"hljs-string\">'objectsLengthSetups'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'ownLengthSetup'</span>][<span class=\"hljs-string\">'lengthSetupStartingWeekDays'</span>] = <span class=\"hljs-keyword\">array</span>();\n$request[<span class=\"hljs-string\">'objectsLengthSetups'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'ownLengthSetup'</span>][<span class=\"hljs-string\">'lengthSetupStartingWeekDays'</span>][<span class=\"hljs-number\">0</span>] = <span class=\"hljs-number\">3</span>;\n$request[<span class=\"hljs-string\">'objectsLengthSetups'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'ownLengthSetup'</span>][<span class=\"hljs-string\">'lengthSetupStartingMonthDay'</span>] = <span class=\"hljs-number\">4</span>;\n$request[<span class=\"hljs-string\">'objectsLengthSetups'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'ownLengthSetup'</span>][<span class=\"hljs-string\">'lengthSetupEndingMode'</span>] = <span class=\"hljs-string\">'any'</span>;\n$request[<span class=\"hljs-string\">'objectsLengthSetups'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'ownLengthSetup'</span>][<span class=\"hljs-string\">'lengthSetupEndingWeekDays'</span>] = <span class=\"hljs-keyword\">array</span>();\n$request[<span class=\"hljs-string\">'objectsLengthSetups'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'ownLengthSetup'</span>][<span class=\"hljs-string\">'lengthSetupEndingWeekDays'</span>][<span class=\"hljs-number\">0</span>] = <span class=\"hljs-number\">5</span>;\n$request[<span class=\"hljs-string\">'objectsLengthSetups'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'ownLengthSetup'</span>][<span class=\"hljs-string\">'lengthSetupEndingMonthDay'</span>] = <span class=\"hljs-number\">6</span>;\n$request[<span class=\"hljs-string\">'objectsLengthSetups'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'ownLengthSetup'</span>][<span class=\"hljs-string\">'lengthSetupGapSaleMode'</span>] = <span class=\"hljs-string\">'allowed'</span>;\n$request[<span class=\"hljs-string\">'objectsLengthSetups'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'ownLengthSetup'</span>][<span class=\"hljs-string\">'lengthSetupGapSaleDays'</span>] = <span class=\"hljs-number\">7</span>;\n\n$request_json = json_encode($request);\n$headers = <span class=\"hljs-keyword\">array</span>(\n    <span class=\"hljs-string\">'Accept: application/json'</span>,\n    <span class=\"hljs-string\">'Content-Type: application/json;charset=UTF-8'</span>\n);\n\n$curl = curl_init($address);\ncurl_setopt($curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, <span class=\"hljs-number\">1</span>);\ncurl_setopt($curl, CURLOPT_SSL_VERIFYPEER, <span class=\"hljs-keyword\">false</span>);\ncurl_setopt($curl, CURLOPT_SSL_VERIFYHOST, <span class=\"hljs-keyword\">false</span>);\ncurl_setopt($curl, CURLOPT_FORBID_REUSE, <span class=\"hljs-number\">1</span>);\ncurl_setopt($curl, CURLINFO_HEADER_OUT, <span class=\"hljs-number\">1</span>);\ncurl_setopt($curl, CURLOPT_HEADER, <span class=\"hljs-number\">1</span>);\ncurl_setopt($curl, CURLOPT_POST, <span class=\"hljs-number\">1</span>);\ncurl_setopt($curl, CURLOPT_POSTFIELDS, $request_json);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, $headers);\n\n$response = curl_exec($curl);\n$status = curl_getinfo($curl);\ncurl_close($curl);\n       </pre>\n                </div>\n            </div></div>\n        <div id=\"api_changelog_json\" class=\"mb-5\"><h2>Historia zmian</h2><p>W rozwiniętej historii metody nie wyświetlono wpisów zmian; dostępny był formularz porównywania wersji.</p></div></div></div></div>\n                        </div>\n                    </div>\n                </div>\n            </div>\n        \n            \n        </div></div>",
+  "links": [
+    {
+      "title": "Narzędzia dla Developerów",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "API Admin",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/"
+    },
+    {
+      "title": "Bramka Objects",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=documentation&function=objects"
+    },
+    {
+      "title": "Najlepsze rozwiązania do sprzedaży w internecie\n                        \n                            \n                                    \n                                \n                            \n                            \n                                Narzędzia dla Developerów\n                                IdoBooking",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "Wybierz inną dokumentację",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editLengthSetup#"
+    },
+    {
+      "title": "Dokumentacja API Admin",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/"
+    },
+    {
+      "title": "Dokumentacja API Customer",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "Dokumentacja API Marketplace",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "Dokumentacja API Storefront",
+      "url": "https://api.idobooking.com/pl/developers/storefront-documentation/"
+    },
+    {
+      "title": "Dokumentacja Smarty",
+      "url": "https://api.idobooking.com/pl/developers/smarty-documentation/"
+    },
+    {
+      "title": "sprawdź historię zmian",
+      "url": "https://api.idobooking.com/pl/developers/api/?branch=booking&action=changelog"
+    },
+    {
+      "title": "Objects",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=documentation&function=objects"
+    },
+    {
+      "title": "SOAP",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editLengthSetup#tab0"
+    },
+    {
+      "title": "JSON",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editLengthSetup#tab1"
+    },
+    {
+      "title": "https://_domena_booking_.idosell.com/api/objects/editLengthSetup/36/soap",
+      "url": "https://client1679.idosell.com/api/objects/editLengthSetup/36/soap"
+    },
+    {
+      "title": "kopiuj",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editLengthSetup#copyContentHref"
+    },
+    {
+      "title": "https://_domena_booking_.idosell.com/api/objects/editLengthSetup/36/soap/wsdl/pol",
+      "url": "https://client1679.idosell.com/api/objects/editLengthSetup/36/soap/wsdl/pol"
+    },
+    {
+      "title": "kopiuj",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editLengthSetup#copyContentHref"
+    },
+    {
+      "title": "rozwiń wszystkie węzły",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editLengthSetup##"
+    },
+    {
+      "title": "zwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editLengthSetup##"
+    },
+    {
+      "title": "instrukcją generowania klucza",
+      "url": "https://pomoc.idobooking.com/dodatkowe-moduly/api"
+    },
+    {
+      "title": "rozwiń wszystkie węzły",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editLengthSetup##"
+    },
+    {
+      "title": "zwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editLengthSetup##"
+    },
+    {
+      "title": "instrukcją generowania klucza",
+      "url": "https://pomoc.idobooking.com/dodatkowe-moduly/api"
+    },
+    {
+      "title": "pobierz",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editLengthSetup##"
+    },
+    {
+      "title": "kopiuj",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editLengthSetup##"
+    },
+    {
+      "title": "rozwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editLengthSetup##"
+    },
+    {
+      "title": "pobierz",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editLengthSetup##"
+    },
+    {
+      "title": "kopiuj",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editLengthSetup##"
+    },
+    {
+      "title": "rozwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editLengthSetup##"
+    },
+    {
+      "title": "rozwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editLengthSetup##"
+    },
+    {
+      "title": "https://_domena_booking_.idosell.com/api/objects/editLengthSetup/36/json",
+      "url": "https://client1679.idosell.com/api/objects/editLengthSetup/36/json"
+    },
+    {
+      "title": "kopiuj",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editLengthSetup#copyContentHref"
+    },
+    {
+      "title": "zwiń wszystkie węzły",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editLengthSetup##"
+    },
+    {
+      "title": "zwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editLengthSetup##"
+    },
+    {
+      "title": "instrukcją generowania klucza",
+      "url": "https://pomoc.idobooking.com/dodatkowe-moduly/api"
+    },
+    {
+      "title": "zwiń wszystkie węzły",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editLengthSetup##"
+    },
+    {
+      "title": "zwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editLengthSetup##"
+    },
+    {
+      "title": "instrukcją generowania klucza",
+      "url": "https://pomoc.idobooking.com/dodatkowe-moduly/api"
+    },
+    {
+      "title": "pobierz",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editLengthSetup##"
+    },
+    {
+      "title": "kopiuj",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editLengthSetup##"
+    },
+    {
+      "title": "zwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editLengthSetup##"
+    },
+    {
+      "title": "zwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editLengthSetup##"
+    }
+  ],
+  "php": "\n                    <?php\n\n$address = 'https://client1679.idobooking.com/api/objects/editLengthSetup/36/json';\n\n$request = array();\n$request['authenticate'] = array();\n$request['authenticate']['systemKey'] = sha1(date('Ymd') . sha1('YOUR_KEY'));\n$request['authenticate']['systemLogin'] = \"systemLogin\";\n$request['authenticate']['lang'] = 'eng';\n$request['objectsLengthSetups'] = array();\n$request['objectsLengthSetups'][0] = array();\n$request['objectsLengthSetups'][0]['objectId'] = 1;\n$request['objectsLengthSetups'][0]['objectLengthSetupMode'] = 'inherited';\n$request['objectsLengthSetups'][0]['ownLengthSetup'] = array();\n$request['objectsLengthSetups'][0]['ownLengthSetup']['lengthSetupMode'] = 'free';\n$request['objectsLengthSetups'][0]['ownLengthSetup']['lengthSetupType'] = 'days';\n$request['objectsLengthSetups'][0]['ownLengthSetup']['lengthSetupValue'] = 2;\n$request['objectsLengthSetups'][0]['ownLengthSetup']['lengthSetupStartingMode'] = 'any';\n$request['objectsLengthSetups'][0]['ownLengthSetup']['lengthSetupStartingWeekDays'] = array();\n$request['objectsLengthSetups'][0]['ownLengthSetup']['lengthSetupStartingWeekDays'][0] = 3;\n$request['objectsLengthSetups'][0]['ownLengthSetup']['lengthSetupStartingMonthDay'] = 4;\n$request['objectsLengthSetups'][0]['ownLengthSetup']['lengthSetupEndingMode'] = 'any';\n$request['objectsLengthSetups'][0]['ownLengthSetup']['lengthSetupEndingWeekDays'] = array();\n$request['objectsLengthSetups'][0]['ownLengthSetup']['lengthSetupEndingWeekDays'][0] = 5;\n$request['objectsLengthSetups'][0]['ownLengthSetup']['lengthSetupEndingMonthDay'] = 6;\n$request['objectsLengthSetups'][0]['ownLengthSetup']['lengthSetupGapSaleMode'] = 'allowed';\n$request['objectsLengthSetups'][0]['ownLengthSetup']['lengthSetupGapSaleDays'] = 7;\n\n$request_json = json_encode($request);\n$headers = array(\n    'Accept: application/json',\n    'Content-Type: application/json;charset=UTF-8'\n);\n\n$curl = curl_init($address);\ncurl_setopt($curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);\ncurl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);\ncurl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);\ncurl_setopt($curl, CURLOPT_FORBID_REUSE, 1);\ncurl_setopt($curl, CURLINFO_HEADER_OUT, 1);\ncurl_setopt($curl, CURLOPT_HEADER, 1);\ncurl_setopt($curl, CURLOPT_POST, 1);\ncurl_setopt($curl, CURLOPT_POSTFIELDS, $request_json);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, $headers);\n\n$response = curl_exec($curl);\n$status = curl_getinfo($curl);\ncurl_close($curl);\n       \n                ",
+  "request": [
+    {
+      "description": "Element służy do uwierzytelniania konta w celu wywołania metody",
+      "name": "authenticate",
+      "path": "authenticate",
+      "required": true,
+      "type": "authenticateType"
+    },
+    {
+      "description": "Klucz wykorzystywany podczas uwierzytelniania. Zapoznaj się z instrukcją generowania klucza",
+      "name": "systemKey",
+      "path": "authenticate.systemKey",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "description": "Login użytkownika panelu IdoSell Booking",
+      "name": "systemLogin",
+      "path": "authenticate.systemLogin",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "description": "Możliwe wartości: (eng, pol, ger)\n\nJęzyk API",
+      "name": "lang",
+      "path": "authenticate.lang",
+      "required": false,
+      "type": "apiLanguage"
+    },
+    {
+      "description": "Lista powiązanych ustawień pobytu z przedmiotem rezerwacji w postaci tablicy elementów objectSetupLength",
+      "name": "objectsLengthSetups",
+      "path": "objectsLengthSetups",
+      "required": true,
+      "type": "objectLengthSetupArray"
+    },
+    {
+      "description": "element typu objectSetupLengthType",
+      "name": "objectSetupLengthType",
+      "path": "objectsLengthSetups.objectSetupLengthType",
+      "required": true,
+      "type": "objectSetupLengthType"
+    },
+    {
+      "description": "Identyfikator przedmiotu rezerwacji",
+      "name": "objectId",
+      "path": "objectsLengthSetups.objectSetupLengthType.objectId",
+      "required": true,
+      "type": "int"
+    },
+    {
+      "description": "Możliwe wartości: (inherited, own)\n\nUstawienie źródła restrykcji rezerwacji przedmiotu rezerwacji",
+      "name": "objectLengthSetupMode",
+      "path": "objectsLengthSetups.objectSetupLengthType.objectLengthSetupMode",
+      "required": false,
+      "type": "objectLengthSetupModeType"
+    },
+    {
+      "description": "element typu ownLengthSetup",
+      "name": "ownLengthSetup",
+      "path": "objectsLengthSetups.objectSetupLengthType.ownLengthSetup",
+      "required": false,
+      "type": "ownLengthSetupType"
+    },
+    {
+      "description": "Możliwe wartości: (free, minimal, multiplication, exact)\n\nUstawienie trybu długości rezerwacji",
+      "name": "lengthSetupMode",
+      "path": "objectsLengthSetups.objectSetupLengthType.ownLengthSetup.lengthSetupMode",
+      "required": true,
+      "type": "lengthSetupModeType"
+    },
+    {
+      "description": "Możliwe wartości: (days, weeks, months)\n\nUstawienie jednostki długości rezerwacji",
+      "name": "lengthSetupType",
+      "path": "objectsLengthSetups.objectSetupLengthType.ownLengthSetup.lengthSetupType",
+      "required": false,
+      "type": "lengthSetupTypeType"
+    },
+    {
+      "description": "Ustawienie wartości długości rezerwacji",
+      "name": "lengthSetupValue",
+      "path": "objectsLengthSetups.objectSetupLengthType.ownLengthSetup.lengthSetupValue",
+      "required": false,
+      "type": "int"
+    },
+    {
+      "description": "Możliwe wartości: (any, indicated_day_of_the_week, indicated_day_of_the_month)\n\nUstawienie trybu początku rezerwacji",
+      "name": "lengthSetupStartingMode",
+      "path": "objectsLengthSetups.objectSetupLengthType.ownLengthSetup.lengthSetupStartingMode",
+      "required": true,
+      "type": "lengthSetupStartingModeType"
+    },
+    {
+      "description": "Lista dni tygodnia akceptowanych jako początek rezerwacji. Dzień tygodnia (1 - poniedziałek do 7 - niedziela)\n\nelement typu int",
+      "name": "lengthSetupStartingWeekDays",
+      "path": "objectsLengthSetups.objectSetupLengthType.ownLengthSetup.lengthSetupStartingWeekDays",
+      "required": false,
+      "type": "lengthSetupWeekDayArray"
+    },
+    {
+      "description": "element typu int",
+      "name": "int",
+      "path": "objectsLengthSetups.objectSetupLengthType.ownLengthSetup.lengthSetupStartingWeekDays.int",
+      "required": true,
+      "type": "int"
+    },
+    {
+      "description": "Dzień miesiąca akceptowany jako początek rezerwacji",
+      "name": "lengthSetupStartingMonthDay",
+      "path": "objectsLengthSetups.objectSetupLengthType.ownLengthSetup.lengthSetupStartingMonthDay",
+      "required": false,
+      "type": "int"
+    },
+    {
+      "description": "Możliwe wartości: (any, indicated_day_of_the_week, indicated_day_of_the_month)\n\nUstawienie trybu końca rezerwacji",
+      "name": "lengthSetupEndingMode",
+      "path": "objectsLengthSetups.objectSetupLengthType.ownLengthSetup.lengthSetupEndingMode",
+      "required": true,
+      "type": "lengthSetupEndingModeType"
+    },
+    {
+      "description": "Lista dni tygodnia akceptowanych jako koniec rezerwacji. Dzień tygodnia (1 - poniedziałek do 7 - niedziela)\n\nelement typu int",
+      "name": "lengthSetupEndingWeekDays",
+      "path": "objectsLengthSetups.objectSetupLengthType.ownLengthSetup.lengthSetupEndingWeekDays",
+      "required": false,
+      "type": "lengthSetupWeekDayArray"
+    },
+    {
+      "description": "element typu int",
+      "name": "int",
+      "path": "objectsLengthSetups.objectSetupLengthType.ownLengthSetup.lengthSetupEndingWeekDays.int",
+      "required": true,
+      "type": "int"
+    },
+    {
+      "description": "Dzień miesiąca akceptowany jako koniec rezerwacji",
+      "name": "lengthSetupEndingMonthDay",
+      "path": "objectsLengthSetups.objectSetupLengthType.ownLengthSetup.lengthSetupEndingMonthDay",
+      "required": false,
+      "type": "int"
+    },
+    {
+      "description": "Możliwe wartości: (allowed, disallowed)\n\nZezwalaj na składanie rezerwacji, gdy powstanie luka krótsza od wymaganej długości rezerwacji",
+      "name": "lengthSetupGapSaleMode",
+      "path": "objectsLengthSetups.objectSetupLengthType.ownLengthSetup.lengthSetupGapSaleMode",
+      "required": false,
+      "type": "lengthSetupGapSaleModeType"
+    },
+    {
+      "description": "Ustawienie minimalnej liczby dni na które można składać rezerwację w przypadku luki",
+      "name": "lengthSetupGapSaleDays",
+      "path": "objectsLengthSetups.objectSetupLengthType.ownLengthSetup.lengthSetupGapSaleDays",
+      "required": false,
+      "type": "int"
+    }
+  ],
+  "response": [
+    {
+      "description": "Element służy do uwierzytelniania konta w celu wywołania metody",
+      "name": "authenticate",
+      "path": "authenticate",
+      "required": true,
+      "type": "authenticateType"
+    },
+    {
+      "description": "Klucz wykorzystywany podczas uwierzytelniania. Zapoznaj się z instrukcją generowania klucza",
+      "name": "systemKey",
+      "path": "authenticate.systemKey",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "description": "Login użytkownika panelu IdoSell Booking",
+      "name": "systemLogin",
+      "path": "authenticate.systemLogin",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "description": "Możliwe wartości: (eng, pol, ger)\n\nJęzyk API",
+      "name": "lang",
+      "path": "authenticate.lang",
+      "required": false,
+      "type": "apiLanguage"
+    },
+    {
+      "description": "Sukces",
+      "name": "success",
+      "path": "success",
+      "required": true,
+      "type": "boolean"
+    },
+    {
+      "description": "Lista kodów błędów",
+      "name": "errors",
+      "path": "errors",
+      "required": false,
+      "type": "gateErrorType"
+    },
+    {
+      "description": "Kod błędu",
+      "name": "faultCode",
+      "path": "errors.faultCode",
+      "required": false,
+      "type": "int"
+    },
+    {
+      "description": "Opis błędu",
+      "name": "faultString",
+      "path": "errors.faultString",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "Lista powiązanych ustawień pobytu z przedmiotem rezerwacji w postaci tablicy elementów ObjectSetupLengthResponse",
+      "name": "objectsLengthSetupsResponse",
+      "path": "objectsLengthSetupsResponse",
+      "required": false,
+      "type": "objectLengthSetupResultArray"
+    },
+    {
+      "description": "element typu objectLengthSetupResultType",
+      "name": "objectLengthSetupResultType",
+      "path": "objectsLengthSetupsResponse.objectLengthSetupResultType",
+      "required": true,
+      "type": "objectLengthSetupResultType"
+    },
+    {
+      "description": "",
+      "name": "error",
+      "path": "objectsLengthSetupsResponse.objectLengthSetupResultType.error",
+      "required": false,
+      "type": "errorType"
+    },
+    {
+      "description": "Kod błędu",
+      "name": "faultCode",
+      "path": "objectsLengthSetupsResponse.objectLengthSetupResultType.error.faultCode",
+      "required": false,
+      "type": "int"
+    },
+    {
+      "description": "Opis błędu",
+      "name": "faultString",
+      "path": "objectsLengthSetupsResponse.objectLengthSetupResultType.error.faultString",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "",
+      "name": "objectId",
+      "path": "objectsLengthSetupsResponse.objectLengthSetupResultType.objectId",
+      "required": true,
+      "type": "int"
+    },
+    {
+      "description": "Możliwe wartości: (inherited, own)\n\nUstawienie źródła restrykcji rezerwacji przedmiotu rezerwacji",
+      "name": "objectLengthSetupMode",
+      "path": "objectsLengthSetupsResponse.objectLengthSetupResultType.objectLengthSetupMode",
+      "required": false,
+      "type": "objectLengthSetupModeType"
+    },
+    {
+      "description": "element typu ownLengthSetup",
+      "name": "ownLengthSetup",
+      "path": "objectsLengthSetupsResponse.objectLengthSetupResultType.ownLengthSetup",
+      "required": false,
+      "type": "ownLengthSetupType"
+    },
+    {
+      "description": "Możliwe wartości: (free, minimal, multiplication, exact)\n\nUstawienie trybu długości rezerwacji",
+      "name": "lengthSetupMode",
+      "path": "objectsLengthSetupsResponse.objectLengthSetupResultType.ownLengthSetup.lengthSetupMode",
+      "required": true,
+      "type": "lengthSetupModeType"
+    },
+    {
+      "description": "Możliwe wartości: (days, weeks, months)\n\nUstawienie jednostki długości rezerwacji",
+      "name": "lengthSetupType",
+      "path": "objectsLengthSetupsResponse.objectLengthSetupResultType.ownLengthSetup.lengthSetupType",
+      "required": false,
+      "type": "lengthSetupTypeType"
+    },
+    {
+      "description": "Ustawienie wartości długości rezerwacji",
+      "name": "lengthSetupValue",
+      "path": "objectsLengthSetupsResponse.objectLengthSetupResultType.ownLengthSetup.lengthSetupValue",
+      "required": false,
+      "type": "int"
+    },
+    {
+      "description": "Możliwe wartości: (any, indicated_day_of_the_week, indicated_day_of_the_month)\n\nUstawienie trybu początku rezerwacji",
+      "name": "lengthSetupStartingMode",
+      "path": "objectsLengthSetupsResponse.objectLengthSetupResultType.ownLengthSetup.lengthSetupStartingMode",
+      "required": true,
+      "type": "lengthSetupStartingModeType"
+    },
+    {
+      "description": "Lista dni tygodnia akceptowanych jako początek rezerwacji. Dzień tygodnia (1 - poniedziałek do 7 - niedziela)\n\nelement typu int",
+      "name": "lengthSetupStartingWeekDays",
+      "path": "objectsLengthSetupsResponse.objectLengthSetupResultType.ownLengthSetup.lengthSetupStartingWeekDays",
+      "required": false,
+      "type": "lengthSetupWeekDayArray"
+    },
+    {
+      "description": "element typu int",
+      "name": "int",
+      "path": "objectsLengthSetupsResponse.objectLengthSetupResultType.ownLengthSetup.lengthSetupStartingWeekDays.int",
+      "required": true,
+      "type": "int"
+    },
+    {
+      "description": "Dzień miesiąca akceptowany jako początek rezerwacji",
+      "name": "lengthSetupStartingMonthDay",
+      "path": "objectsLengthSetupsResponse.objectLengthSetupResultType.ownLengthSetup.lengthSetupStartingMonthDay",
+      "required": false,
+      "type": "int"
+    },
+    {
+      "description": "Możliwe wartości: (any, indicated_day_of_the_week, indicated_day_of_the_month)\n\nUstawienie trybu końca rezerwacji",
+      "name": "lengthSetupEndingMode",
+      "path": "objectsLengthSetupsResponse.objectLengthSetupResultType.ownLengthSetup.lengthSetupEndingMode",
+      "required": true,
+      "type": "lengthSetupEndingModeType"
+    },
+    {
+      "description": "Lista dni tygodnia akceptowanych jako koniec rezerwacji. Dzień tygodnia (1 - poniedziałek do 7 - niedziela)\n\nelement typu int",
+      "name": "lengthSetupEndingWeekDays",
+      "path": "objectsLengthSetupsResponse.objectLengthSetupResultType.ownLengthSetup.lengthSetupEndingWeekDays",
+      "required": false,
+      "type": "lengthSetupWeekDayArray"
+    },
+    {
+      "description": "element typu int",
+      "name": "int",
+      "path": "objectsLengthSetupsResponse.objectLengthSetupResultType.ownLengthSetup.lengthSetupEndingWeekDays.int",
+      "required": true,
+      "type": "int"
+    },
+    {
+      "description": "Dzień miesiąca akceptowany jako koniec rezerwacji",
+      "name": "lengthSetupEndingMonthDay",
+      "path": "objectsLengthSetupsResponse.objectLengthSetupResultType.ownLengthSetup.lengthSetupEndingMonthDay",
+      "required": false,
+      "type": "int"
+    },
+    {
+      "description": "Możliwe wartości: (allowed, disallowed)\n\nZezwalaj na składanie rezerwacji, gdy powstanie luka krótsza od wymaganej długości rezerwacji",
+      "name": "lengthSetupGapSaleMode",
+      "path": "objectsLengthSetupsResponse.objectLengthSetupResultType.ownLengthSetup.lengthSetupGapSaleMode",
+      "required": false,
+      "type": "lengthSetupGapSaleModeType"
+    },
+    {
+      "description": "Ustawienie minimalnej liczby dni na które można składać rezerwację w przypadku luki",
+      "name": "lengthSetupGapSaleDays",
+      "path": "objectsLengthSetupsResponse.objectLengthSetupResultType.ownLengthSetup.lengthSetupGapSaleDays",
+      "required": false,
+      "type": "int"
+    }
+  ],
+  "text": "Dokumentacja API Booking   \n            \n          \n        \n            \n        \n            \n                \n                    \n        \n        \nZmienia ustawienia dotyczące długości pobytu oraz możliwych dni rozpoczęcia i zakończenia rezerwacji w przedmiocie rezerwacji.\n\n\n\n            \n                \n        \n            \n                \n                    \n                    Adresy\n                \n        \n              \n                \n                    \n                        Nasłuch\n                    \n                    \n                        https://_domena_booking_.idosell.com/api/objects/editLengthSetup/36/json\n                    \n                    \n                        \n                    \n                \n                    \n                \n            \n        \n         \n            Struktura żądania\n                \n                    \n                        authenticate (authenticateType)\n                        Element służy do uwierzytelniania konta w celu wywołania metody\n                    \n        \n            \n            \n                \n                    \n                        systemKey (string)\n                        Klucz wykorzystywany podczas uwierzytelniania. Zapoznaj się z instrukcją generowania klucza\n                    \n        \n            \n            \n                \n                    \n                        systemLogin (string)\n                        Login użytkownika panelu IdoSell Booking\n                    \n        \n            \n            \n                \n                    \n                        lang (apiLanguage)\n                        \n                    Możliwe wartości:\n                     (eng, pol, ger)Język API\n                    \n        \n                \n                    \n                        objectsLengthSetups (objectLengthSetupArray)\n                        Lista powiązanych ustawień pobytu z przedmiotem rezerwacji w postaci tablicy elementów objectSetupLength\n                    \n        \n            \n            \n                \n                    \n                         (objectSetupLengthType)\n                        element typu objectSetupLengthType\n                    \n        \n            \n            \n                \n                    \n                        objectId (int)\n                        Identyfikator przedmiotu rezerwacji\n                    \n        \n            \n            \n                \n                    \n                        objectLengthSetupMode (objectLengthSetupModeType)\n                        \n                    Możliwe wartości:\n                     (inherited, own)Ustawienie źródła restrykcji rezerwacji przedmiotu rezerwacji\n                    \n        \n            \n            \n                \n                    \n                        ownLengthSetup (ownLengthSetupType)\n                        element typu  ownLengthSetup\n                    \n        \n            \n            \n                \n                    \n                        lengthSetupMode (lengthSetupModeType)\n                        \n                    Możliwe wartości:\n                     (free, minimal, multiplication, exact)Ustawienie trybu długości rezerwacji\n                    \n        \n            \n            \n                \n                    \n                        lengthSetupType (lengthSetupTypeType)\n                        \n                    Możliwe wartości:\n                     (days, weeks, months)Ustawienie jednostki długości rezerwacji\n                    \n        \n            \n            \n                \n                    \n                        lengthSetupValue (int)\n                        Ustawienie wartości długości rezerwacji\n                    \n        \n            \n            \n                \n                    \n                        lengthSetupStartingMode (lengthSetupStartingModeType)\n                        \n                    Możliwe wartości:\n                     (any, indicated_day_of_the_week, indicated_day_of_the_month)Ustawienie trybu początku rezerwacji\n                    \n        \n            \n            \n                \n                    \n                        lengthSetupStartingWeekDays (lengthSetupWeekDayArray)\n                        Lista dni tygodnia akceptowanych jako początek rezerwacji. Dzień tygodnia (1 - poniedziałek do 7 - niedziela)element typu int\n                    \n        \n            \n            \n                \n                    \n                         (int)\n                        element typu int\n                    \n        \n            \n            \n                \n                    \n                        lengthSetupStartingMonthDay (int)\n                        Dzień miesiąca akceptowany jako początek rezerwacji\n                    \n        \n            \n            \n                \n                    \n                        lengthSetupEndingMode (lengthSetupEndingModeType)\n                        \n                    Możliwe wartości:\n                     (any, indicated_day_of_the_week, indicated_day_of_the_month)Ustawienie trybu końca rezerwacji\n                    \n        \n            \n            \n                \n                    \n                        lengthSetupEndingWeekDays (lengthSetupWeekDayArray)\n                        Lista dni tygodnia akceptowanych jako koniec rezerwacji. Dzień tygodnia (1 - poniedziałek do 7 - niedziela)element typu int\n                    \n        \n            \n            \n                \n                    \n                         (int)\n                        element typu int\n                    \n        \n            \n            \n                \n                    \n                        lengthSetupEndingMonthDay (int)\n                        Dzień miesiąca akceptowany jako koniec rezerwacji\n                    \n        \n            \n            \n                \n                    \n                        lengthSetupGapSaleMode (lengthSetupGapSaleModeType)\n                        \n                    Możliwe wartości:\n                     (allowed, disallowed)Zezwalaj na składanie rezerwacji, gdy powstanie luka krótsza od wymaganej długości rezerwacji\n                    \n        \n            \n            \n                \n                    \n                        lengthSetupGapSaleDays (int)\n                        Ustawienie minimalnej liczby dni na które można składać rezerwację w przypadku luki\n                    \n        \n         \n            Struktura odpowiedzi\n                \n                    \n                        authenticate (authenticateType)\n                        Element służy do uwierzytelniania konta w celu wywołania metody\n                    \n        \n            \n            \n                \n                    \n                        systemKey (string)\n                        Klucz wykorzystywany podczas uwierzytelniania. Zapoznaj się z instrukcją generowania klucza\n                    \n        \n            \n            \n                \n                    \n                        systemLogin (string)\n                        Login użytkownika panelu IdoSell Booking\n                    \n        \n            \n            \n                \n                    \n                        lang (apiLanguage)\n                        \n                    Możliwe wartości:\n                     (eng, pol, ger)Język API\n                    \n        \n                \n                    \n                        success (boolean)\n                        Sukces\n                    \n        \n                \n                    \n                        errors (gateErrorType)\n                        Lista kodów błędów\n                    \n        \n            \n            \n                \n                    \n                        faultCode (int)\n                        Kod błędu\n                    \n        \n            \n            \n                \n                    \n                        faultString (string)\n                        Opis błędu\n                    \n        \n                \n                    \n                        objectsLengthSetupsResponse (objectLengthSetupResultArray)\n                        Lista powiązanych ustawień pobytu z przedmiotem rezerwacji w postaci tablicy elementów ObjectSetupLengthResponse\n                    \n        \n            \n            \n                \n                    \n                         (objectLengthSetupResultType)\n                        element typu objectLengthSetupResultType\n                    \n        \n            \n            \n                \n                    \n                        error (errorType)\n                        \n                    \n        \n            \n            \n                \n                    \n                        faultCode (int)\n                        Kod błędu\n                    \n        \n            \n            \n                \n                    \n                        faultString (string)\n                        Opis błędu\n                    \n        \n            \n            \n                \n                    \n                        objectId (int)\n                        \n                    \n        \n            \n            \n                \n                    \n                        objectLengthSetupMode (objectLengthSetupModeType)\n                        \n                    Możliwe wartości:\n                     (inherited, own)Ustawienie źródła restrykcji rezerwacji przedmiotu rezerwacji\n                    \n        \n            \n            \n                \n                    \n                        ownLengthSetup (ownLengthSetupType)\n                        element typu  ownLengthSetup\n                    \n        \n            \n            \n                \n                    \n                        lengthSetupMode (lengthSetupModeType)\n                        \n                    Możliwe wartości:\n                     (free, minimal, multiplication, exact)Ustawienie trybu długości rezerwacji\n                    \n        \n            \n            \n                \n                    \n                        lengthSetupType (lengthSetupTypeType)\n                        \n                    Możliwe wartości:\n                     (days, weeks, months)Ustawienie jednostki długości rezerwacji\n                    \n        \n            \n            \n                \n                    \n                        lengthSetupValue (int)\n                        Ustawienie wartości długości rezerwacji\n                    \n        \n            \n            \n                \n                    \n                        lengthSetupStartingMode (lengthSetupStartingModeType)\n                        \n                    Możliwe wartości:\n                     (any, indicated_day_of_the_week, indicated_day_of_the_month)Ustawienie trybu początku rezerwacji\n                    \n        \n            \n            \n                \n                    \n                        lengthSetupStartingWeekDays (lengthSetupWeekDayArray)\n                        Lista dni tygodnia akceptowanych jako początek rezerwacji. Dzień tygodnia (1 - poniedziałek do 7 - niedziela)element typu int\n                    \n        \n            \n            \n                \n                    \n                         (int)\n                        element typu int\n                    \n        \n            \n            \n                \n                    \n                        lengthSetupStartingMonthDay (int)\n                        Dzień miesiąca akceptowany jako początek rezerwacji\n                    \n        \n            \n            \n                \n                    \n                        lengthSetupEndingMode (lengthSetupEndingModeType)\n                        \n                    Możliwe wartości:\n                     (any, indicated_day_of_the_week, indicated_day_of_the_month)Ustawienie trybu końca rezerwacji\n                    \n        \n            \n            \n                \n                    \n                        lengthSetupEndingWeekDays (lengthSetupWeekDayArray)\n                        Lista dni tygodnia akceptowanych jako koniec rezerwacji. Dzień tygodnia (1 - poniedziałek do 7 - niedziela)element typu int\n                    \n        \n            \n            \n                \n                    \n                         (int)\n                        element typu int\n                    \n        \n            \n            \n                \n                    \n                        lengthSetupEndingMonthDay (int)\n                        Dzień miesiąca akceptowany jako koniec rezerwacji\n                    \n        \n            \n            \n                \n                    \n                        lengthSetupGapSaleMode (lengthSetupGapSaleModeType)\n                        \n                    Możliwe wartości:\n                     (allowed, disallowed)Zezwalaj na składanie rezerwacji, gdy powstanie luka krótsza od wymaganej długości rezerwacji\n                    \n        \n            \n            \n                \n                    \n                        lengthSetupGapSaleDays (int)\n                        Ustawienie minimalnej liczby dni na które można składać rezerwację w przypadku luki\n                    \n        \n         \n            Przykład kodu w PHP\n                \n                    <?php\n\n$address = 'https://client1679.idobooking.com/api/objects/editLengthSetup/36/json';\n\n$request = array();\n$request['authenticate'] = array();\n$request['authenticate']['systemKey'] = sha1(date('Ymd') . sha1('YOUR_KEY'));\n$request['authenticate']['systemLogin'] = \"systemLogin\";\n$request['authenticate']['lang'] = 'eng';\n$request['objectsLengthSetups'] = array();\n$request['objectsLengthSetups'][0] = array();\n$request['objectsLengthSetups'][0]['objectId'] = 1;\n$request['objectsLengthSetups'][0]['objectLengthSetupMode'] = 'inherited';\n$request['objectsLengthSetups'][0]['ownLengthSetup'] = array();\n$request['objectsLengthSetups'][0]['ownLengthSetup']['lengthSetupMode'] = 'free';\n$request['objectsLengthSetups'][0]['ownLengthSetup']['lengthSetupType'] = 'days';\n$request['objectsLengthSetups'][0]['ownLengthSetup']['lengthSetupValue'] = 2;\n$request['objectsLengthSetups'][0]['ownLengthSetup']['lengthSetupStartingMode'] = 'any';\n$request['objectsLengthSetups'][0]['ownLengthSetup']['lengthSetupStartingWeekDays'] = array();\n$request['objectsLengthSetups'][0]['ownLengthSetup']['lengthSetupStartingWeekDays'][0] = 3;\n$request['objectsLengthSetups'][0]['ownLengthSetup']['lengthSetupStartingMonthDay'] = 4;\n$request['objectsLengthSetups'][0]['ownLengthSetup']['lengthSetupEndingMode'] = 'any';\n$request['objectsLengthSetups'][0]['ownLengthSetup']['lengthSetupEndingWeekDays'] = array();\n$request['objectsLengthSetups'][0]['ownLengthSetup']['lengthSetupEndingWeekDays'][0] = 5;\n$request['objectsLengthSetups'][0]['ownLengthSetup']['lengthSetupEndingMonthDay'] = 6;\n$request['objectsLengthSetups'][0]['ownLengthSetup']['lengthSetupGapSaleMode'] = 'allowed';\n$request['objectsLengthSetups'][0]['ownLengthSetup']['lengthSetupGapSaleDays'] = 7;\n\n$request_json = json_encode($request);\n$headers = array(\n    'Accept: application/json',\n    'Content-Type: application/json;charset=UTF-8'\n);\n\n$curl = curl_init($address);\ncurl_setopt($curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);\ncurl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);\ncurl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);\ncurl_setopt($curl, CURLOPT_FORBID_REUSE, 1);\ncurl_setopt($curl, CURLINFO_HEADER_OUT, 1);\ncurl_setopt($curl, CURLOPT_HEADER, 1);\ncurl_setopt($curl, CURLOPT_POST, 1);\ncurl_setopt($curl, CURLOPT_POSTFIELDS, $request_json);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, $headers);\n\n$response = curl_exec($curl);\n$status = curl_getinfo($curl);\ncurl_close($curl);\n       \n                \n            \n        Historia zmianW rozwiniętej historii metody nie wyświetlono wpisów zmian; dostępny był formularz porównywania wersji.",
+  "version": 36,
+  "capturedAt": "2026-10-24T18:04:02.823Z",
+  "endpoint": "https://_domena_booking_.idosell.com/api/objects/editLengthSetup/36/json",
+  "description": "Zmienia ustawienia dotyczące długości pobytu oraz możliwych dni rozpoczęcia i zakończenia rezerwacji w przedmiocie rezerwacji.",
+  "source": {
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editLengthSetup##",
+    "capturedAt": "2026-10-24T18:04:02.823Z",
+    "transport": "authenticated Chrome HTTPS session",
+    "format": "JSON"
+  }
+}

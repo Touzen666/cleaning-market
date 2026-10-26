@@ -1,0 +1,145 @@
+<!doctype html><html lang="pl"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Strona index.tpl w szablonach Wizytówki</title><style>body{font:16px/1.65 system-ui,sans-serif;color:#21302d;margin:0;background:#f5f7f5}main{max-width:1120px;margin:30px auto;background:white;padding:36px;border-radius:12px}a{color:#087f5b}h1{line-height:1.2}h2{margin-top:2em}table{width:100%;border-collapse:collapse;font-size:14px}td,th{border:1px solid #d9e2df;padding:10px;text-align:left;vertical-align:top}th{background:#edf5f0}code,pre{font-family:Consolas,monospace}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#eef3f1;padding:20px}img{max-width:100%;height:auto}.meta{padding:14px;background:#edf5f0}.api_details_item_inner{display:grid;grid-template-columns:minmax(190px,40%) 1fr;border-bottom:1px solid #ddd;padding:12px;gap:16px}.api_details_item_sub{margin-left:18px;border-left:2px solid #a9cdbb;padding-left:8px}.api_required.required_after:after{content:' *';color:#b62323}.api_method_header{background:#edf5f0;padding:12px;margin-top:24px}input{padding:12px;font:inherit;width:90%;max-width:700px}.index li{margin:6px 0}.notice{background:#fff5d7;padding:14px}nav{margin-bottom:24px}@media(max-width:700px){main{padding:16px}.api_details_item_inner{display:block}td,th{padding:5px}}</style><main><nav><a href="../index.html">← Spis dokumentacji</a></nav><h1>Strona index.tpl w szablonach Wizytówki</h1><p class="meta">Źródło: <a href="https://api.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/strona-index-tpl-w-szablonach-wizytowki/">iDoBooking</a> · Kopia: 24.10.2026 · <a href="strona-index-tpl-w-szablonach-wizytowki.jpg">Pełny zrzut</a> · <a href="strona-index-tpl-w-szablonach-wizytowki.md">Markdown</a></p><div class="content__collapse col-md-9"> 
+<h3 id="toc6642" class="old_wiki"> <b>$newsArray</b> - lista "Aktualności"</h3>
+
+
+<table class="responsive">
+    <tbody><tr class="simple-table-row">
+        <th class="simple-table-head"><b>Zmienna</b></th>
+        <th class="simple-table-head"><b>Opis</b></th>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$newsArray[item]</td>
+        <td class="simple-table-body">Blok zmiennych dla aktualności</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$newsArray[item]['visible']</td>
+        <td class="simple-table-body">Informacja czy aktualność jest widoczna</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$newsArray[item]['url']</td>
+        <td class="simple-table-body">Link do aktualności</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$newsArray[item]['title']</td>
+        <td class="simple-table-body">Tytuł aktualności</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$newsArray[item]['content']</td>
+        <td class="simple-table-body">Treść aktualności</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$newsArray[item]['createDate']</td>
+        <td class="simple-table-body">Data utworzenia aktualności</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$newsArray[item]['content_sections']</td>
+        <td class="simple-table-body">Sekcje opisu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$newsArray[item]['content_sections'][]['type']</td>
+        <td class="simple-table-body">Typ sekcji</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$newsArray[item]['content_sections'][]['text']</td>
+        <td class="simple-table-body">Zawartość sekcji</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$newsArray[item]['content_sections'][]['src']</td>
+        <td class="simple-table-body">Adres do zdjęcia/filmu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$newsArray[item]['content_sections'][]['src2']</td>
+        <td class="simple-table-body">Adres do drugiego zdjęcia</td>
+    </tr>
+</tbody></table>
+
+
+<h3 id="toc6643" class="old_wiki"> <b>$aboutPage</b> - podstawowe zmienne dla strony "O nas"</h3>
+
+
+<table class="responsive">
+    <tbody><tr class="simple-table-row">
+        <th class="simple-table-head"><b>Zmienna</b></th>
+        <th class="simple-table-head"><b>Opis</b></th>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$aboutPage['title']</td>
+        <td class="simple-table-body">Tytuł strony "O nas”</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$aboutPage['content']</td>
+        <td class="simple-table-body">Treść strony "O nas" (Informacje o Twoim obiekcie)</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$aboutPage['facebook_comments']</td>
+        <td class="simple-table-body">Zwraca czy pokazać komentarze Facebook</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$aboutPage['content_sections']</td>
+        <td class="simple-table-body">Sekcje opisu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$aboutPage['content_sections'][]['type']</td>
+        <td class="simple-table-body">Typ sekcji</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$aboutPage['content_sections'][]['text']</td>
+        <td class="simple-table-body">Zawartość sekcji</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$aboutPage['content_sections'][]['src']</td>
+        <td class="simple-table-body">Adres do zdjęcia/filmu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$aboutPage['content_sections'][]['src2']</td>
+        <td class="simple-table-body">Adres do drugiego zdjęcia</td>
+    </tr>
+</tbody></table>
+
+
+<h3 id="toc6644" class="old_wiki"> <b>$gallery[item]</b> - elementy galerii strony wizytówki</h3>
+
+
+<table class="responsive">
+    <tbody><tr class="simple-table-row">
+        <th class="simple-table-head"><b>Zmienna</b></th>
+        <th class="simple-table-head"><b>Opis</b></th>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$gallery[item]['url']</td>
+        <td class="simple-table-body">Adres zdjęcia (filmu)</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$gallery[item]['miniature']</td>
+        <td class="simple-table-body">Adres miniatury zdjęcia</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$gallery[item]['type']</td>
+        <td class="simple-table-body">Typ (picture lub video)</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$gallery[item]['thumbnail']</td>
+        <td class="simple-table-body">Miniatura dla typu video</td>
+    </tr>
+</tbody></table>
+
+
+<h3 id="toc6645" class="old_wiki"> <b>Pozostałe zmienne</b></h3>
+
+
+<table class="responsive">
+    <tbody><tr class="simple-table-row">
+        <th class="simple-table-head"><b>Zmienna</b></th>
+        <th class="simple-table-head"><b>Opis</b></th>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$mainPage</td>
+        <td class="simple-table-body">Określa czy strona jest stroną główną</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$headerName</td>
+        <td class="simple-table-body">Nagłówek strony wizytówki</td>
+    </tr>
+</tbody></table>
+
+</div></main></html>

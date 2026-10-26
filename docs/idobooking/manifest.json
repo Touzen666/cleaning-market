@@ -1,0 +1,2247 @@
+[
+  {
+    "title": "Allotments/Metoda sources",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=allotments&method=sources##",
+    "kind": "method",
+    "gateway": "allotments",
+    "stem": "api/allotments/sources",
+    "requestFields": 4,
+    "responseFields": 13,
+    "php": true,
+    "height": 3100,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/allotments/sources/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "kind": "index",
+    "title": "API IdoBooking",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/",
+    "stem": "api/index",
+    "requestFields": 0,
+    "responseFields": 0,
+    "php": false,
+    "height": 2213,
+    "version": null,
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Allotments",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=documentation&function=allotments",
+    "kind": "gateway",
+    "stem": "api/allotments/index",
+    "requestFields": 0,
+    "responseFields": 0,
+    "php": false,
+    "height": 1666,
+    "version": null,
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Amenities",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=documentation&function=amenities",
+    "kind": "gateway",
+    "stem": "api/amenities/index",
+    "requestFields": 0,
+    "responseFields": 0,
+    "php": false,
+    "height": 1666,
+    "version": null,
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Availability Locks",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=documentation&function=availabilitylocks",
+    "kind": "gateway",
+    "stem": "api/availabilitylocks/index",
+    "requestFields": 0,
+    "responseFields": 0,
+    "php": false,
+    "height": 1666,
+    "version": null,
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Clients",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=documentation&function=clients",
+    "kind": "gateway",
+    "stem": "api/clients/index",
+    "requestFields": 0,
+    "responseFields": 0,
+    "php": false,
+    "height": 1666,
+    "version": null,
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Locks",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=documentation&function=locks",
+    "kind": "gateway",
+    "stem": "api/locks/index",
+    "requestFields": 0,
+    "responseFields": 0,
+    "php": false,
+    "height": 1666,
+    "version": null,
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Objects",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=documentation&function=objects",
+    "kind": "gateway",
+    "stem": "api/objects/index",
+    "requestFields": 0,
+    "responseFields": 0,
+    "php": false,
+    "height": 2096,
+    "version": null,
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Offer",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=documentation&function=offer",
+    "kind": "gateway",
+    "stem": "api/offer/index",
+    "requestFields": 0,
+    "responseFields": 0,
+    "php": false,
+    "height": 1666,
+    "version": null,
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Payments",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=documentation&function=payments",
+    "kind": "gateway",
+    "stem": "api/payments/index",
+    "requestFields": 0,
+    "responseFields": 0,
+    "php": false,
+    "height": 1666,
+    "version": null,
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Prices",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=documentation&function=prices",
+    "kind": "gateway",
+    "stem": "api/prices/index",
+    "requestFields": 0,
+    "responseFields": 0,
+    "php": false,
+    "height": 1666,
+    "version": null,
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Public",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=documentation&function=public",
+    "kind": "gateway",
+    "stem": "api/public/index",
+    "requestFields": 0,
+    "responseFields": 0,
+    "php": false,
+    "height": 1666,
+    "version": null,
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Reservations",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=documentation&function=reservations",
+    "kind": "gateway",
+    "stem": "api/reservations/index",
+    "requestFields": 0,
+    "responseFields": 0,
+    "php": false,
+    "height": 1666,
+    "version": null,
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Reservations Documents",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=documentation&function=reservationsdocuments",
+    "kind": "gateway",
+    "stem": "api/reservationsdocuments/index",
+    "requestFields": 0,
+    "responseFields": 0,
+    "php": false,
+    "height": 1666,
+    "version": null,
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Restrictions",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=documentation&function=restrictions",
+    "kind": "gateway",
+    "stem": "api/restrictions/index",
+    "requestFields": 0,
+    "responseFields": 0,
+    "php": false,
+    "height": 1666,
+    "version": null,
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Users",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=documentation&function=users",
+    "kind": "gateway",
+    "stem": "api/users/index",
+    "requestFields": 0,
+    "responseFields": 0,
+    "php": false,
+    "height": 1666,
+    "version": null,
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Allotments/Metoda deleteExceptions",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=allotments&method=deleteExceptions##",
+    "kind": "method",
+    "gateway": "allotments",
+    "stem": "api/allotments/deleteExceptions",
+    "requestFields": 13,
+    "responseFields": 14,
+    "php": true,
+    "height": 3736,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/allotments/deleteExceptions/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Allotments/Metoda getExceptions",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=allotments&method=getExceptions##",
+    "kind": "method",
+    "gateway": "allotments",
+    "stem": "api/allotments/getExceptions",
+    "requestFields": 12,
+    "responseFields": 15,
+    "php": true,
+    "height": 3673,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/allotments/getExceptions/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Allotments/Metoda setExceptions",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=allotments&method=setExceptions##",
+    "kind": "method",
+    "gateway": "allotments",
+    "stem": "api/allotments/setExceptions",
+    "requestFields": 14,
+    "responseFields": 8,
+    "php": true,
+    "height": 3431,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/allotments/setExceptions/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Amenities/Metoda getForAddons",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=amenities&method=getForAddons##",
+    "kind": "method",
+    "gateway": "amenities",
+    "stem": "api/amenities/getForAddons",
+    "requestFields": 6,
+    "responseFields": 20,
+    "php": true,
+    "height": 3631,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/amenities/getForAddons/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Amenities/Metoda getForObjects",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=amenities&method=getForObjects##",
+    "kind": "method",
+    "gateway": "amenities",
+    "stem": "api/amenities/getForObjects",
+    "requestFields": 6,
+    "responseFields": 19,
+    "php": true,
+    "height": 3629,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/amenities/getForObjects/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Availability Locks/Metoda add",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=availabilitylocks&method=add##",
+    "kind": "method",
+    "gateway": "availabilitylocks",
+    "stem": "api/availabilitylocks/add",
+    "requestFields": 12,
+    "responseFields": 14,
+    "php": true,
+    "height": 3580,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/availabilitylocks/add/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Availability Locks/Metoda delete",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=availabilitylocks&method=delete##",
+    "kind": "method",
+    "gateway": "availabilitylocks",
+    "stem": "api/availabilitylocks/delete",
+    "requestFields": 11,
+    "responseFields": 13,
+    "php": true,
+    "height": 3471,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/availabilitylocks/delete/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Availability Locks/Metoda edit",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=availabilitylocks&method=edit##",
+    "kind": "method",
+    "gateway": "availabilitylocks",
+    "stem": "api/availabilitylocks/edit",
+    "requestFields": 13,
+    "responseFields": 14,
+    "php": true,
+    "height": 3630,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/availabilitylocks/edit/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Availability Locks/Metoda get",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=availabilitylocks&method=get##",
+    "kind": "method",
+    "gateway": "availabilitylocks",
+    "stem": "api/availabilitylocks/get",
+    "requestFields": 14,
+    "responseFields": 17,
+    "php": true,
+    "height": 3836,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/availabilitylocks/get/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Clients/Metoda add",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=clients&method=add##",
+    "kind": "method",
+    "gateway": "clients",
+    "stem": "api/clients/add",
+    "requestFields": 47,
+    "responseFields": 15,
+    "php": true,
+    "height": 5576,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/clients/add/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Clients/Metoda delete",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=clients&method=delete##",
+    "kind": "method",
+    "gateway": "clients",
+    "stem": "api/clients/delete",
+    "requestFields": 9,
+    "responseFields": 15,
+    "php": true,
+    "height": 3438,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/clients/delete/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Clients/Metoda edit",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=clients&method=edit##",
+    "kind": "method",
+    "gateway": "clients",
+    "stem": "api/clients/edit",
+    "requestFields": 48,
+    "responseFields": 15,
+    "php": true,
+    "height": 5604,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/clients/edit/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Clients/Metoda get",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=clients&method=get##",
+    "kind": "method",
+    "gateway": "clients",
+    "stem": "api/clients/get",
+    "requestFields": 13,
+    "responseFields": 55,
+    "php": true,
+    "height": 5838,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/clients/get/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Clients/Metoda history",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=clients&method=history##",
+    "kind": "method",
+    "gateway": "clients",
+    "stem": "api/clients/history",
+    "requestFields": 7,
+    "responseFields": 9,
+    "php": true,
+    "height": 3048,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/clients/history/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Locks/Metoda add",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=locks&method=add##",
+    "kind": "method",
+    "gateway": "locks",
+    "stem": "api/locks/add",
+    "requestFields": 10,
+    "responseFields": 13,
+    "php": true,
+    "height": 3427,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/locks/add/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Locks/Metoda delete",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=locks&method=delete##",
+    "kind": "method",
+    "gateway": "locks",
+    "stem": "api/locks/delete",
+    "requestFields": 9,
+    "responseFields": 13,
+    "php": true,
+    "height": 3368,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/locks/delete/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Locks/Metoda edit",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=locks&method=edit##",
+    "kind": "method",
+    "gateway": "locks",
+    "stem": "api/locks/edit",
+    "requestFields": 10,
+    "responseFields": 13,
+    "php": true,
+    "height": 3419,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/locks/edit/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Locks/Metoda get",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=locks&method=get##",
+    "kind": "method",
+    "gateway": "locks",
+    "stem": "api/locks/get",
+    "requestFields": 10,
+    "responseFields": 14,
+    "php": true,
+    "height": 3473,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/locks/get/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Locks/Metoda getDevices",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=locks&method=getDevices##",
+    "kind": "method",
+    "gateway": "locks",
+    "stem": "api/locks/getDevices",
+    "requestFields": 4,
+    "responseFields": 11,
+    "php": true,
+    "height": 3022,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/locks/getDevices/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Objects/Metoda addAmenities",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=addAmenities##",
+    "kind": "method",
+    "gateway": "objects",
+    "stem": "api/objects/addAmenities",
+    "requestFields": 8,
+    "responseFields": 16,
+    "php": true,
+    "height": 3449,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/objects/addAmenities/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Objects/Metoda addItems",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=addItems##",
+    "kind": "method",
+    "gateway": "objects",
+    "stem": "api/objects/addItems",
+    "requestFields": 9,
+    "responseFields": 18,
+    "php": true,
+    "height": 3650,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/objects/addItems/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Objects/Metoda addMedia",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=addMedia##",
+    "kind": "method",
+    "gateway": "objects",
+    "stem": "api/objects/addMedia",
+    "requestFields": 12,
+    "responseFields": 16,
+    "php": true,
+    "height": 3760,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/objects/addMedia/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Objects/Metoda deleteAmenities",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=deleteAmenities##",
+    "kind": "method",
+    "gateway": "objects",
+    "stem": "api/objects/deleteAmenities",
+    "requestFields": 8,
+    "responseFields": 15,
+    "php": true,
+    "height": 3425,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/objects/deleteAmenities/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Objects/Metoda deleteItems",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=deleteItems##",
+    "kind": "method",
+    "gateway": "objects",
+    "stem": "api/objects/deleteItems",
+    "requestFields": 8,
+    "responseFields": 16,
+    "php": true,
+    "height": 3497,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/objects/deleteItems/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Objects/Metoda deleteMedia",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=deleteMedia##",
+    "kind": "method",
+    "gateway": "objects",
+    "stem": "api/objects/deleteMedia",
+    "requestFields": 8,
+    "responseFields": 15,
+    "php": true,
+    "height": 3386,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/objects/deleteMedia/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Objects/Metoda editDescriptions",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editDescriptions##",
+    "kind": "method",
+    "gateway": "objects",
+    "stem": "api/objects/editDescriptions",
+    "requestFields": 13,
+    "responseFields": 20,
+    "php": true,
+    "height": 3937,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/objects/editDescriptions/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Objects/Metoda editItems",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editItems##",
+    "kind": "method",
+    "gateway": "objects",
+    "stem": "api/objects/editItems",
+    "requestFields": 10,
+    "responseFields": 18,
+    "php": true,
+    "height": 3701,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/objects/editItems/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Objects/Metoda editLengthSetup",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editLengthSetup##",
+    "kind": "method",
+    "gateway": "objects",
+    "stem": "api/objects/editLengthSetup",
+    "requestFields": 22,
+    "responseFields": 29,
+    "php": true,
+    "height": 5620,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/objects/editLengthSetup/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Objects/Metoda editLocation",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editLocation##",
+    "kind": "method",
+    "gateway": "objects",
+    "stem": "api/objects/editLocation",
+    "requestFields": 8,
+    "responseFields": 12,
+    "php": true,
+    "height": 3272,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/objects/editLocation/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Objects/Metoda editMedia",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editMedia##",
+    "kind": "method",
+    "gateway": "objects",
+    "stem": "api/objects/editMedia",
+    "requestFields": 12,
+    "responseFields": 15,
+    "php": true,
+    "height": 3716,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/objects/editMedia/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Objects/Metoda editType",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editType##",
+    "kind": "method",
+    "gateway": "objects",
+    "stem": "api/objects/editType",
+    "requestFields": 6,
+    "responseFields": 12,
+    "php": true,
+    "height": 3127,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/objects/editType/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Objects/Metoda getAll",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=getAll##",
+    "kind": "method",
+    "gateway": "objects",
+    "stem": "api/objects/getAll",
+    "requestFields": 7,
+    "responseFields": 62,
+    "php": true,
+    "height": 5932,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/objects/getAll/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Objects/Metoda getAmenities",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=getAmenities##",
+    "kind": "method",
+    "gateway": "objects",
+    "stem": "api/objects/getAmenities",
+    "requestFields": 5,
+    "responseFields": 13,
+    "php": true,
+    "height": 3122,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/objects/getAmenities/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Objects/Metoda getAvailabilityByDateRange",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=getAvailabilityByDateRange##",
+    "kind": "method",
+    "gateway": "objects",
+    "stem": "api/objects/getAvailabilityByDateRange",
+    "requestFields": 9,
+    "responseFields": 22,
+    "php": true,
+    "height": 3824,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/objects/getAvailabilityByDateRange/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Objects/Metoda getDescriptions",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=getDescriptions##",
+    "kind": "method",
+    "gateway": "objects",
+    "stem": "api/objects/getDescriptions",
+    "requestFields": 7,
+    "responseFields": 17,
+    "php": true,
+    "height": 3457,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/objects/getDescriptions/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Objects/Metoda getFilters",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=getFilters##",
+    "kind": "method",
+    "gateway": "objects",
+    "stem": "api/objects/getFilters",
+    "requestFields": 4,
+    "responseFields": 25,
+    "php": true,
+    "height": 3735,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/objects/getFilters/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Objects/Metoda getItems",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=getItems##",
+    "kind": "method",
+    "gateway": "objects",
+    "stem": "api/objects/getItems",
+    "requestFields": 8,
+    "responseFields": 14,
+    "php": true,
+    "height": 3354,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/objects/getItems/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Objects/Metoda getLengthSetup",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=getLengthSetup##",
+    "kind": "method",
+    "gateway": "objects",
+    "stem": "api/objects/getLengthSetup",
+    "requestFields": 5,
+    "responseFields": 25,
+    "php": true,
+    "height": 4074,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/objects/getLengthSetup/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Objects/Metoda getLocation",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=getLocation##",
+    "kind": "method",
+    "gateway": "objects",
+    "stem": "api/objects/getLocation",
+    "requestFields": 8,
+    "responseFields": 13,
+    "php": true,
+    "height": 3338,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/objects/getLocation/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Objects/Metoda getMedia",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=getMedia##",
+    "kind": "method",
+    "gateway": "objects",
+    "stem": "api/objects/getMedia",
+    "requestFields": 5,
+    "responseFields": 16,
+    "php": true,
+    "height": 3306,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/objects/getMedia/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Objects/Metoda getType",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=getType##",
+    "kind": "method",
+    "gateway": "objects",
+    "stem": "api/objects/getType",
+    "requestFields": 5,
+    "responseFields": 12,
+    "php": true,
+    "height": 3077,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/objects/getType/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Offer/Metoda getAvailabilityAndPricesForDays",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=offer&method=getAvailabilityAndPricesForDays##",
+    "kind": "method",
+    "gateway": "offer",
+    "stem": "api/offer/getAvailabilityAndPricesForDays",
+    "requestFields": 14,
+    "responseFields": 25,
+    "php": true,
+    "height": 4204,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/offer/getAvailabilityAndPricesForDays/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Offer/Metoda getAvailabilityForDays",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=offer&method=getAvailabilityForDays##",
+    "kind": "method",
+    "gateway": "offer",
+    "stem": "api/offer/getAvailabilityForDays",
+    "requestFields": 12,
+    "responseFields": 21,
+    "php": true,
+    "height": 3897,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/offer/getAvailabilityForDays/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Offer/Metoda getChildrenInformation",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=offer&method=getChildrenInformation##",
+    "kind": "method",
+    "gateway": "offer",
+    "stem": "api/offer/getChildrenInformation",
+    "requestFields": 4,
+    "responseFields": 16,
+    "php": true,
+    "height": 3227,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/offer/getChildrenInformation/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Offer/Metoda getPricesForDays",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=offer&method=getPricesForDays##",
+    "kind": "method",
+    "gateway": "offer",
+    "stem": "api/offer/getPricesForDays",
+    "requestFields": 14,
+    "responseFields": 21,
+    "php": true,
+    "height": 4000,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/offer/getPricesForDays/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Offer/Metoda getPricesForDaysForObject",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=offer&method=getPricesForDaysForObject##",
+    "kind": "method",
+    "gateway": "offer",
+    "stem": "api/offer/getPricesForDaysForObject",
+    "requestFields": 11,
+    "responseFields": 19,
+    "php": true,
+    "height": 3777,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/offer/getPricesForDaysForObject/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Payments/Metoda add",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=payments&method=add##",
+    "kind": "method",
+    "gateway": "payments",
+    "stem": "api/payments/add",
+    "requestFields": 13,
+    "responseFields": 11,
+    "php": true,
+    "height": 3442,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/payments/add/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Payments/Metoda cancel",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=payments&method=cancel##",
+    "kind": "method",
+    "gateway": "payments",
+    "stem": "api/payments/cancel",
+    "requestFields": 8,
+    "responseFields": 9,
+    "php": true,
+    "height": 3057,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/payments/cancel/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Payments/Metoda confirm",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=payments&method=confirm##",
+    "kind": "method",
+    "gateway": "payments",
+    "stem": "api/payments/confirm",
+    "requestFields": 8,
+    "responseFields": 9,
+    "php": true,
+    "height": 3057,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/payments/confirm/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Payments/Metoda edit",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=payments&method=edit##",
+    "kind": "method",
+    "gateway": "payments",
+    "stem": "api/payments/edit",
+    "requestFields": 11,
+    "responseFields": 9,
+    "php": true,
+    "height": 3194,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/payments/edit/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Payments/Metoda get",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=payments&method=get##",
+    "kind": "method",
+    "gateway": "payments",
+    "stem": "api/payments/get",
+    "requestFields": 16,
+    "responseFields": 18,
+    "php": true,
+    "height": 4094,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/payments/get/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Payments/Metoda getPaymentForms",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=payments&method=getPaymentForms##",
+    "kind": "method",
+    "gateway": "payments",
+    "stem": "api/payments/getPaymentForms",
+    "requestFields": 4,
+    "responseFields": 7,
+    "php": true,
+    "height": 2711,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/payments/getPaymentForms/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Prices/Metoda deleteExceptions",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=prices&method=deleteExceptions##",
+    "kind": "method",
+    "gateway": "prices",
+    "stem": "api/prices/deleteExceptions",
+    "requestFields": 13,
+    "responseFields": 14,
+    "php": true,
+    "height": 3697,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/prices/deleteExceptions/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Prices/Metoda getExceptions",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=prices&method=getExceptions##",
+    "kind": "method",
+    "gateway": "prices",
+    "stem": "api/prices/getExceptions",
+    "requestFields": 12,
+    "responseFields": 22,
+    "php": true,
+    "height": 4035,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/prices/getExceptions/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Prices/Metoda setExceptions",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=prices&method=setExceptions##",
+    "kind": "method",
+    "gateway": "prices",
+    "stem": "api/prices/setExceptions",
+    "requestFields": 16,
+    "responseFields": 8,
+    "php": true,
+    "height": 3557,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/prices/setExceptions/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Public/Metoda availability",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=public&method=availability##",
+    "kind": "method",
+    "gateway": "public",
+    "stem": "api/public/availability",
+    "requestFields": 4,
+    "responseFields": 12,
+    "php": true,
+    "height": 2899,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/public/availability/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Public/Metoda filters",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=public&method=filters##",
+    "kind": "method",
+    "gateway": "public",
+    "stem": "api/public/filters",
+    "requestFields": 0,
+    "responseFields": 21,
+    "php": true,
+    "height": 3079,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/public/filters/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Public/Metoda offer",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=public&method=offer##",
+    "kind": "method",
+    "gateway": "public",
+    "stem": "api/public/offer",
+    "requestFields": 3,
+    "responseFields": 16,
+    "php": true,
+    "height": 3146,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/public/offer/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Public/Metoda parameters",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=public&method=parameters##",
+    "kind": "method",
+    "gateway": "public",
+    "stem": "api/public/parameters",
+    "requestFields": 0,
+    "responseFields": 37,
+    "php": true,
+    "height": 3677,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/public/parameters/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Public/Metoda pricingOffers",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=public&method=pricingOffers##",
+    "kind": "method",
+    "gateway": "public",
+    "stem": "api/public/pricingOffers",
+    "requestFields": 8,
+    "responseFields": 16,
+    "php": true,
+    "height": 3350,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/public/pricingOffers/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Public/Metoda specialOffer",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=public&method=specialOffer##",
+    "kind": "method",
+    "gateway": "public",
+    "stem": "api/public/specialOffer",
+    "requestFields": 3,
+    "responseFields": 16,
+    "php": true,
+    "height": 3119,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/public/specialOffer/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Reservations/Metoda add",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=reservations&method=add##",
+    "kind": "method",
+    "gateway": "reservations",
+    "stem": "api/reservations/add",
+    "requestFields": 83,
+    "responseFields": 14,
+    "php": true,
+    "height": 7597,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/reservations/add/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Reservations/Metoda changeCurrency",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=reservations&method=changeCurrency##",
+    "kind": "method",
+    "gateway": "reservations",
+    "stem": "api/reservations/changeCurrency",
+    "requestFields": 9,
+    "responseFields": 12,
+    "php": true,
+    "height": 3324,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/reservations/changeCurrency/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Reservations/Metoda edit",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=reservations&method=edit##",
+    "kind": "method",
+    "gateway": "reservations",
+    "stem": "api/reservations/edit",
+    "requestFields": 34,
+    "responseFields": 10,
+    "php": true,
+    "height": 4546,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/reservations/edit/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Reservations/Metoda editStatus",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=reservations&method=editStatus##",
+    "kind": "method",
+    "gateway": "reservations",
+    "stem": "api/reservations/editStatus",
+    "requestFields": 10,
+    "responseFields": 14,
+    "php": true,
+    "height": 3587,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/reservations/editStatus/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Reservations/Metoda get",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=reservations&method=get##",
+    "kind": "method",
+    "gateway": "reservations",
+    "stem": "api/reservations/get",
+    "requestFields": 36,
+    "responseFields": 100,
+    "php": true,
+    "height": 10135,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/reservations/get/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Reservations/Metoda getSources",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=reservations&method=getSources##",
+    "kind": "method",
+    "gateway": "reservations",
+    "stem": "api/reservations/getSources",
+    "requestFields": 7,
+    "responseFields": 13,
+    "php": true,
+    "height": 3233,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/reservations/getSources/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Reservations/Metoda notifyClient",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=reservations&method=notifyClient##",
+    "kind": "method",
+    "gateway": "reservations",
+    "stem": "api/reservations/notifyClient",
+    "requestFields": 9,
+    "responseFields": 14,
+    "php": true,
+    "height": 3473,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/reservations/notifyClient/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Reservations/Metoda notifyExternalService",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=reservations&method=notifyExternalService##",
+    "kind": "method",
+    "gateway": "reservations",
+    "stem": "api/reservations/notifyExternalService",
+    "requestFields": 9,
+    "responseFields": 14,
+    "php": true,
+    "height": 3473,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/reservations/notifyExternalService/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Reservations/Metoda setDiscount",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=reservations&method=setDiscount##",
+    "kind": "method",
+    "gateway": "reservations",
+    "stem": "api/reservations/setDiscount",
+    "requestFields": 8,
+    "responseFields": 11,
+    "php": true,
+    "height": 3222,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/reservations/setDiscount/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Reservations Documents/Metoda cancelDocuments",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=reservationsdocuments&method=cancelDocuments##",
+    "kind": "method",
+    "gateway": "reservationsdocuments",
+    "stem": "api/reservationsdocuments/cancelDocuments",
+    "requestFields": 10,
+    "responseFields": 12,
+    "php": true,
+    "height": 3501,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/reservationsdocuments/cancelDocuments/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Reservations Documents/Metoda createDocuments",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=reservationsdocuments&method=createDocuments##",
+    "kind": "method",
+    "gateway": "reservationsdocuments",
+    "stem": "api/reservationsdocuments/createDocuments",
+    "requestFields": 13,
+    "responseFields": 15,
+    "php": true,
+    "height": 3769,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/reservationsdocuments/createDocuments/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Reservations Documents/Metoda editDocuments",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=reservationsdocuments&method=editDocuments##",
+    "kind": "method",
+    "gateway": "reservationsdocuments",
+    "stem": "api/reservationsdocuments/editDocuments",
+    "requestFields": 13,
+    "responseFields": 15,
+    "php": true,
+    "height": 3809,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/reservationsdocuments/editDocuments/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Reservations Documents/Metoda getDocuments",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=reservationsdocuments&method=getDocuments##",
+    "kind": "method",
+    "gateway": "reservationsdocuments",
+    "stem": "api/reservationsdocuments/getDocuments",
+    "requestFields": 6,
+    "responseFields": 19,
+    "php": true,
+    "height": 3592,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/reservationsdocuments/getDocuments/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Restrictions/Metoda deleteExceptions",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=restrictions&method=deleteExceptions##",
+    "kind": "method",
+    "gateway": "restrictions",
+    "stem": "api/restrictions/deleteExceptions",
+    "requestFields": 11,
+    "responseFields": 14,
+    "php": true,
+    "height": 3571,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/restrictions/deleteExceptions/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Restrictions/Metoda getExceptions",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=restrictions&method=getExceptions##",
+    "kind": "method",
+    "gateway": "restrictions",
+    "stem": "api/restrictions/getExceptions",
+    "requestFields": 10,
+    "responseFields": 19,
+    "php": true,
+    "height": 3751,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/restrictions/getExceptions/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Restrictions/Metoda setExceptions",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=restrictions&method=setExceptions##",
+    "kind": "method",
+    "gateway": "restrictions",
+    "stem": "api/restrictions/setExceptions",
+    "requestFields": 17,
+    "responseFields": 8,
+    "php": true,
+    "height": 3532,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/restrictions/setExceptions/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Users/Metoda get",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=users&method=get##",
+    "kind": "method",
+    "gateway": "users",
+    "stem": "api/users/get",
+    "requestFields": 9,
+    "responseFields": 33,
+    "php": true,
+    "height": 5119,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/users/get/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Users/Metoda getLogs",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=users&method=getLogs##",
+    "kind": "method",
+    "gateway": "users",
+    "stem": "api/users/getLogs",
+    "requestFields": 6,
+    "responseFields": 14,
+    "php": true,
+    "height": 3372,
+    "version": 36,
+    "endpoint": "https://_domena_booking_.idosell.com/api/users/getLogs/36/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Dział developerów tworzących programy współpracujące z IdoBooking",
+    "url": "https://api.idobooking.com/pl/developers/",
+    "kind": "page",
+    "stem": "pages/developers",
+    "height": 1562,
+    "version": null,
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Szablony własne Wizytówki IdoBooking w Smarty",
+    "url": "https://api.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/",
+    "kind": "page",
+    "stem": "pages/szablony-wlasne-wizytowki-idobooking-w-smarty",
+    "height": 1561,
+    "version": null,
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Lista dostępnych szablonów Wizytówki w Smarty",
+    "url": "https://api.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/",
+    "kind": "page",
+    "stem": "pages/lista-dostepnych-szablonow-wizytowki-w-smarty",
+    "height": 1561,
+    "version": null,
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Zmienne obowiązujące globalnie",
+    "url": "https://api.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/zmienne-obowiazujace-globalnie/",
+    "kind": "page",
+    "stem": "pages/zmienne-obowiazujace-globalnie",
+    "height": 6027,
+    "version": null,
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Strona index.tpl w szablonach Wizytówki",
+    "url": "https://api.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/strona-index-tpl-w-szablonach-wizytowki/",
+    "kind": "page",
+    "stem": "pages/strona-index-tpl-w-szablonach-wizytowki",
+    "height": 2009,
+    "version": null,
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Strona contact.tpl w szablonach Wizytówki",
+    "url": "https://api.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/strona-contact-tpl-w-szablonach-wizytowki/",
+    "kind": "page",
+    "stem": "pages/strona-contact-tpl-w-szablonach-wizytowki",
+    "height": 2454,
+    "version": null,
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Strona txt.tpl w szablonach Wizytówki",
+    "url": "https://api.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/strona-txt-tpl-w-szablonach-wizytowki/",
+    "kind": "page",
+    "stem": "pages/strona-txt-tpl-w-szablonach-wizytowki",
+    "height": 1713,
+    "version": null,
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Strona offers.tpl w szablonach Wizytówki",
+    "url": "https://api.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/strona-offers-tpl-w-szablonach-wizytowki/",
+    "kind": "page",
+    "stem": "pages/strona-offers-tpl-w-szablonach-wizytowki",
+    "height": 2825,
+    "version": null,
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Strona special-offer.tpl w szablonach Wizytówki",
+    "url": "https://api.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/strona-special-offer-tpl-w-szablonach-wizytowki/",
+    "kind": "page",
+    "stem": "pages/strona-special-offer-tpl-w-szablonach-wizytowki",
+    "height": 4148,
+    "version": null,
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Strona promotions.tpl w szablonach Wizytówki",
+    "url": "https://api.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/strona-promotions-tpl-w-szablonach-wizytowki/",
+    "kind": "page",
+    "stem": "pages/strona-promotions-tpl-w-szablonach-wizytowki",
+    "height": 1561,
+    "version": null,
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Strona facebook.tpl w szablonach Wizytówki",
+    "url": "https://api.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/strona-facebook-tpl-w-szablonach-wizytowki/",
+    "kind": "page",
+    "stem": "pages/strona-facebook-tpl-w-szablonach-wizytowki",
+    "height": 1561,
+    "version": null,
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Strona news.tpl w szablonach Wizytówki",
+    "url": "https://api.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/strona-news-tpl-w-szablonach-wizytowki/",
+    "kind": "page",
+    "stem": "pages/strona-news-tpl-w-szablonach-wizytowki",
+    "height": 1561,
+    "version": null,
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Strona offer.tpl w szablonach Wizytówki",
+    "url": "https://api.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/strona-offer-tpl-w-szablonach-wizytowki/",
+    "kind": "page",
+    "stem": "pages/strona-offer-tpl-w-szablonach-wizytowki",
+    "height": 4355,
+    "version": null,
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Strona about.tpl w szablonach Wizytówki",
+    "url": "https://api.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/strona-about-tpl-w-szablonach-wizytowki/",
+    "kind": "page",
+    "stem": "pages/strona-about-tpl-w-szablonach-wizytowki",
+    "height": 1561,
+    "version": null,
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Strona analytics.tpl w szablonach Wizytówki",
+    "url": "https://api.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/strona-analytics-tpl-w-szablonach-wizytowki/",
+    "kind": "page",
+    "stem": "pages/strona-analytics-tpl-w-szablonach-wizytowki",
+    "height": 1561,
+    "version": null,
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Strona facebook-comments.tpl w szablonach Wizytówki",
+    "url": "https://api.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/strona-facebook-comments-tpl-w-szablonach-wizytowki/",
+    "kind": "page",
+    "stem": "pages/strona-facebook-comments-tpl-w-szablonach-wizytowki",
+    "height": 1561,
+    "version": null,
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Strona footer.tpl w szablonach Wizytówki",
+    "url": "https://api.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/strona-footer-tpl-w-szablonach-wizytowki/",
+    "kind": "page",
+    "stem": "pages/strona-footer-tpl-w-szablonach-wizytowki",
+    "height": 1561,
+    "version": null,
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Strona header.tpl w szablonach Wizytówki",
+    "url": "https://api.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/strona-header-tpl-w-szablonach-wizytowki/",
+    "kind": "page",
+    "stem": "pages/strona-header-tpl-w-szablonach-wizytowki",
+    "height": 1561,
+    "version": null,
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Strona opinions.tpl w szablonach Wizytówki",
+    "url": "https://api.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/strona-opinions-tpl-w-szablonach-wizytowki/",
+    "kind": "page",
+    "stem": "pages/strona-opinions-tpl-w-szablonach-wizytowki",
+    "height": 1561,
+    "version": null,
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Dostęp do demo",
+    "url": "https://api.idobooking.com/pl/demo/przetestuj-system-w-wersji-demo/",
+    "kind": "page",
+    "stem": "pages/przetestuj-system-w-wersji-demo",
+    "height": 2379,
+    "version": null,
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Zapis żądań i odpowiedzi do API",
+    "url": "https://api.idobooking.com/pl/developers/zapis-zadan-i-odpowiedzi-do-api/",
+    "kind": "page",
+    "stem": "pages/zapis-zadan-i-odpowiedzi-do-api",
+    "height": 2013,
+    "version": null,
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Statystyki API",
+    "url": "https://api.idobooking.com/pl/developers/statystyki-api/",
+    "kind": "page",
+    "stem": "pages/statystyki-api",
+    "height": 1561,
+    "version": null,
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Kontakt dla Developerów IdoBooking",
+    "url": "https://api.idobooking.com/pl/developers/kontakt-dla-developerow/",
+    "kind": "page",
+    "stem": "pages/kontakt-dla-developerow",
+    "height": 1561,
+    "version": null,
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Lista dostępnych szablonów Wizytówki w Smarty",
+    "url": "https://api.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/",
+    "kind": "page",
+    "stem": "pages/strona-menu-tpl-w-szablonach-wizytowki",
+    "height": 1561,
+    "version": null,
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Reservations/Metoda get",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=reservations&method=get##",
+    "kind": "legacy-method",
+    "gateway": "reservations",
+    "stem": "api-v34/reservations/get",
+    "requestFields": 36,
+    "responseFields": 100,
+    "php": true,
+    "height": 10135,
+    "version": 34,
+    "endpoint": "https://_domena_booking_.idosell.com/api/reservations/get/34/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Bramka Reservations/Metoda getSources",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=reservations&method=getSources##",
+    "kind": "legacy-method",
+    "gateway": "reservations",
+    "stem": "api-v34/reservations/getSources",
+    "requestFields": 7,
+    "responseFields": 13,
+    "php": true,
+    "height": 3233,
+    "version": 34,
+    "endpoint": "https://_domena_booking_.idosell.com/api/reservations/getSources/34/json",
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "php",
+      "jpg"
+    ]
+  },
+  {
+    "title": "Konfiguracja strony głównej",
+    "url": "https://pomoc.idobooking.com/strona-www/szablon-strony-www/strona-glowna",
+    "kind": "supplement",
+    "stem": "pages/poradnik-edycji-wizytowki",
+    "height": 3755,
+    "version": null,
+    "formats": [
+      "md",
+      "html",
+      "json",
+      "jpg"
+    ]
+  }
+]

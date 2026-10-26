@@ -1,0 +1,154 @@
+[
+  {
+    "title": "Dział dla developerów",
+    "url": "https://api.idobooking.com/pl/developers/"
+  },
+  {
+    "title": "API IdoBooking",
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/"
+  },
+  {
+    "title": "Allotments",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=documentation&function=allotments"
+  },
+  {
+    "title": "Amenities",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=documentation&function=amenities"
+  },
+  {
+    "title": "Availability Locks",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=documentation&function=availabilitylocks"
+  },
+  {
+    "title": "Clients",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=documentation&function=clients"
+  },
+  {
+    "title": "Locks",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=documentation&function=locks"
+  },
+  {
+    "title": "Objects",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=documentation&function=objects"
+  },
+  {
+    "title": "Offer",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=documentation&function=offer"
+  },
+  {
+    "title": "Payments",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=documentation&function=payments"
+  },
+  {
+    "title": "Prices",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=documentation&function=prices"
+  },
+  {
+    "title": "Public",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=documentation&function=public"
+  },
+  {
+    "title": "Reservations",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=documentation&function=reservations"
+  },
+  {
+    "title": "Reservations Documents",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=documentation&function=reservationsdocuments"
+  },
+  {
+    "title": "Restrictions",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=documentation&function=restrictions"
+  },
+  {
+    "title": "Users",
+    "url": "https://api.idobooking.com/pl/developers/api/?action=documentation&function=users"
+  },
+  {
+    "title": "Szablony własne Wizytówki w Smarty",
+    "url": "https://api.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/"
+  },
+  {
+    "title": "Lista szablonów Wizytówki w Smarty",
+    "url": "https://api.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/"
+  },
+  {
+    "title": "Zmienne globalne",
+    "url": "https://api.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/zmienne-obowiazujace-globalnie/"
+  },
+  {
+    "title": "index.tpl",
+    "url": "https://api.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/strona-index-tpl-w-szablonach-wizytowki/"
+  },
+  {
+    "title": "contact.tpl",
+    "url": "https://api.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/strona-contact-tpl-w-szablonach-wizytowki/"
+  },
+  {
+    "title": "txt.tpl",
+    "url": "https://api.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/strona-txt-tpl-w-szablonach-wizytowki/"
+  },
+  {
+    "title": "offers.tpl",
+    "url": "https://api.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/strona-offers-tpl-w-szablonach-wizytowki/"
+  },
+  {
+    "title": "special-offer.tpl",
+    "url": "https://api.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/strona-special-offer-tpl-w-szablonach-wizytowki/"
+  },
+  {
+    "title": "promotions.tpl",
+    "url": "https://api.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/strona-promotions-tpl-w-szablonach-wizytowki/"
+  },
+  {
+    "title": "facebook.tpl",
+    "url": "https://api.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/strona-facebook-tpl-w-szablonach-wizytowki/"
+  },
+  {
+    "title": "news.tpl",
+    "url": "https://api.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/strona-news-tpl-w-szablonach-wizytowki/"
+  },
+  {
+    "title": "offer.tpl",
+    "url": "https://api.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/strona-offer-tpl-w-szablonach-wizytowki/"
+  },
+  {
+    "title": "about.tpl",
+    "url": "https://api.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/strona-about-tpl-w-szablonach-wizytowki/"
+  },
+  {
+    "title": "analytics.tpl",
+    "url": "https://api.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/strona-analytics-tpl-w-szablonach-wizytowki/"
+  },
+  {
+    "title": "facebook-comments.tpl",
+    "url": "https://api.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/strona-facebook-comments-tpl-w-szablonach-wizytowki/"
+  },
+  {
+    "title": "footer.tpl",
+    "url": "https://api.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/strona-footer-tpl-w-szablonach-wizytowki/"
+  },
+  {
+    "title": "header.tpl",
+    "url": "https://api.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/strona-header-tpl-w-szablonach-wizytowki/"
+  },
+  {
+    "title": "opinions.tpl",
+    "url": "https://api.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/strona-opinions-tpl-w-szablonach-wizytowki/"
+  },
+  {
+    "title": "Sandbox",
+    "url": "https://api.idobooking.com/pl/demo/przetestuj-system-w-wersji-demo/"
+  },
+  {
+    "title": "Zapis żądań i odpowiedzi do API",
+    "url": "https://api.idobooking.com/pl/developers/zapis-zadan-i-odpowiedzi-do-api/"
+  },
+  {
+    "title": "Statystyki API",
+    "url": "https://api.idobooking.com/pl/developers/statystyki-api/"
+  },
+  {
+    "title": "Kontakt",
+    "url": "https://api.idobooking.com/pl/developers/kontakt-dla-developerow/"
+  }
+]

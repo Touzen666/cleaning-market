@@ -1,0 +1,359 @@
+{
+  "title": "Bramka Locks/Metoda add",
+  "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=locks&method=add##",
+  "kind": "method",
+  "gateway": "locks",
+  "height": 3427,
+  "html": "<div class=\"content__collapse col-md-9\"> \n          <div class=\"d-flex justify-content-between align-items-center mb-3\">\n            <span class=\"api_title mb-0\">Dokumentacja API Booking</span>   \n            <div class=\"show_list_link\"></div>\n          </div>\n        \n            \n        \n            <div id=\"documentation_background\">\n                <div class=\"content shop api_docs\">\n                    <div class=\"container white_bg\" data-equalizer=\"\">\n        \n        <div class=\"api_content row\" data-equalizer-watch=\"\"><div class=\"col-12 mb-5\"><p class=\"api_short_description\">\nDodaje kod do zamka elektronicznego dla rezerwacji\n\n\n</p></div><div class=\"apiDesc col-12 mb-5\">\n            <div id=\"format_type\" class=\"tabs\">\n                \n        <div class=\"tabs__content\"><div id=\"tab1\" class=\"tabs__element --shown\">\n            <div id=\"api_method_adresses\" class=\"mb-5\">\n                <div class=\"api_method_header px-3 d-flex align-items-center\">\n                    <i class=\"icon-info-circled\"></i>\n                    <strong>Adresy</strong>\n                </div>\n        \n              <div class=\"api_method_row\">\n                <div class=\"row align-items-center py-3\">\n                    <div class=\"col-3 pl-5\">\n                        <strong>Nasłuch</strong>\n                    </div>\n                    <div class=\"col-9 col-sm-7\">\n                        <a href=\"https://client1679.idosell.com/api/locks/add/36/json\" class=\"api_link\" id=\"copyTarget_0json\">https://_domena_booking_.idosell.com/api/locks/add/36/json</a>\n                    </div>\n                    <div class=\"col-12 col-sm-2 d-flex justify-content-end\">\n                        \n                    </div>\n                \n                    </div>\n                </div>\n            </div>\n        \n        <div id=\"api_method_request_json\" class=\"mb-5\"><div class=\"api_method_header px-3\"><div class=\"api_method_header_left d-flex flex-wrap justify-content-center justify-content-sm-between align-items-center\"><div><i class=\"icon-code\"></i> \n            <strong>Struktura żądania</strong></div></div></div><div id=\"api_method_request_content\" class=\"api_details visible\">\n                <div class=\"api_details_item open\" data-parameter-name=\"authenticate\">\n                    <div class=\"api_details_item_inner level0 toggle\">\n                        <strong class=\"api_required required_after\">authenticate <span>(authenticateType)</span></strong>\n                        <span><p>Element służy do uwierzytelniania konta w celu wywołania metody</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"systemKey\">\n                    <div class=\"api_details_item_inner level1\">\n                        <strong class=\"api_required required_after\">systemKey <span>(string)</span></strong>\n                        <span><p>Klucz wykorzystywany podczas uwierzytelniania. Zapoznaj się z <a href=\"https://pomoc.idobooking.com/dodatkowe-moduly/api\">instrukcją generowania klucza</a></p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"systemLogin\">\n                    <div class=\"api_details_item_inner level1\">\n                        <strong class=\"api_required required_after\">systemLogin <span>(string)</span></strong>\n                        <span><p>Login użytkownika panelu IdoSell Booking</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"lang\">\n                    <div class=\"api_details_item_inner level1\">\n                        <strong class=\"\">lang <span>(apiLanguage)</span></strong>\n                        <span><p>\n                    <span>Możliwe wartości:\n                    </span> (<i>eng, pol, ger</i>)</p><p>Język API, możliwe wartości:\n        - eng - angielski\n        - pol - polski\n        - ger - niemiecki</p></span>\n                    </div>\n        </div></div></div>\n                <div class=\"api_details_item open\" data-parameter-name=\"Locks\">\n                    <div class=\"api_details_item_inner level0 toggle\">\n                        <strong class=\"api_required required_after\">Locks <span>(addLocksTypeArray)</span></strong>\n                        <span><p>Dane dodawanych kodów zamków</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item open\" data-parameter-name=\"addLocksType\">\n                    <div class=\"api_details_item_inner level1 toggle\">\n                        <strong class=\"api_required required_after\"> <span>(addLocksType)</span></strong>\n                        <span><p>element typu addLocksType</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"reservationId\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"api_required required_after\">reservationId <span>(int)</span></strong>\n                        <span><p>Identyfikator rezerwacji</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"itemId\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"api_required required_after\">itemId <span>(int)</span></strong>\n                        <span><p>Identyfikator egzemplarza</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"lockDeviceId\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"api_required required_after\">lockDeviceId <span>(string)</span></strong>\n                        <span><p>Identyfikator zamka elektronicznego w systemie</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"lock\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"api_required required_after\">lock <span>(string)</span></strong>\n                        <span><p>Kod zamka</p></span>\n                    </div>\n        </div></div></div></div></div></div></div>\n        <div id=\"api_method_response_json\" class=\"mb-5\"><div class=\"api_method_header px-3\"><div class=\"api_method_header_left d-flex flex-wrap justify-content-center justify-content-sm-between align-items-center\"><div><i class=\"icon-code\"></i> \n            <strong>Struktura odpowiedzi</strong></div></div></div><div id=\"api_method_response_content\" class=\"api_details visible\">\n                <div class=\"api_details_item open\" data-parameter-name=\"authenticate\">\n                    <div class=\"api_details_item_inner level0 toggle\">\n                        <strong class=\"\">authenticate <span>(authenticateType)</span></strong>\n                        <span><p>Element zawierający informacje zwrotne z modułu autoryzującego</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"systemKey\">\n                    <div class=\"api_details_item_inner level1\">\n                        <strong class=\"api_required required_after\">systemKey <span>(string)</span></strong>\n                        <span><p>Klucz wykorzystywany podczas uwierzytelniania. Zapoznaj się z <a href=\"https://pomoc.idobooking.com/dodatkowe-moduly/api\">instrukcją generowania klucza</a></p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"systemLogin\">\n                    <div class=\"api_details_item_inner level1\">\n                        <strong class=\"api_required required_after\">systemLogin <span>(string)</span></strong>\n                        <span><p>Login użytkownika panelu IdoSell Booking</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"lang\">\n                    <div class=\"api_details_item_inner level1\">\n                        <strong class=\"\">lang <span>(apiLanguage)</span></strong>\n                        <span><p>\n                    <span>Możliwe wartości:\n                    </span> (<i>eng, pol, ger</i>)</p><p>Język API, możliwe wartości:\n        - eng - angielski\n        - pol - polski\n        - ger - niemiecki</p></span>\n                    </div>\n        </div></div></div>\n                <div class=\"api_details_item open\" data-parameter-name=\"responseErrors\">\n                    <div class=\"api_details_item_inner level0 toggle\">\n                        <strong class=\"\">responseErrors <span>(gateErrorType)</span></strong>\n                        <span><p>Lista kodów błędów</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"faultCode\">\n                    <div class=\"api_details_item_inner level1\">\n                        <strong class=\"\">faultCode <span>(int)</span></strong>\n                        <span><p>Kod błędu</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"faultString\">\n                    <div class=\"api_details_item_inner level1\">\n                        <strong class=\"\">faultString <span>(string)</span></strong>\n                        <span><p>Opis błędu</p></span>\n                    </div>\n        </div></div></div>\n                <div class=\"api_details_item open\" data-parameter-name=\"Locks\">\n                    <div class=\"api_details_item_inner level0 toggle\">\n                        <strong class=\"\">Locks <span>(addLocksResultTypeArray)</span></strong>\n                        <span><p>Wynik dodania kodu</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item open\" data-parameter-name=\"addLocksResultType\">\n                    <div class=\"api_details_item_inner level1 toggle\">\n                        <strong class=\"api_required required_after\"> <span>(addLocksResultType)</span></strong>\n                        <span><p>element typu addLocksResultType</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"success\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"api_required required_after\">success <span>(boolean)</span></strong>\n                        <span><p>Sukces</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item open\" data-parameter-name=\"error\">\n                    <div class=\"api_details_item_inner level2 toggle\">\n                        <strong class=\"\">error <span>(errorType)</span></strong>\n                        <span><p>Błąd</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"faultCode\">\n                    <div class=\"api_details_item_inner level3\">\n                        <strong class=\"\">faultCode <span>(int)</span></strong>\n                        <span><p>Kod błędu</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"faultString\">\n                    <div class=\"api_details_item_inner level3\">\n                        <strong class=\"\">faultString <span>(string)</span></strong>\n                        <span><p>Opis błędu</p></span>\n                    </div>\n        </div></div></div></div></div></div></div></div></div>\n        <div id=\"php-example_json\" class=\"code_example mb-5\"><div class=\"api_method_header px-3\"><div class=\"api_method_header_left d-flex flex-wrap justify-content-center justify-content-sm-between align-items-center\"><div><i class=\"icon-file-code\"></i> \n            <strong>Przykład kodu w PHP</strong></div></div></div><div class=\"api_details visible\">\n                <div id=\"php-example_content_json\">\n                    <pre class=\"highlight-code hljs php\"><span class=\"hljs-meta\">&lt;?php</span>\n\n$address = <span class=\"hljs-string\">'https://client1679.idobooking.com/api/locks/add/36/json'</span>;\n\n$request = <span class=\"hljs-keyword\">array</span>();\n$request[<span class=\"hljs-string\">'authenticate'</span>] = <span class=\"hljs-keyword\">array</span>();\n$request[<span class=\"hljs-string\">'authenticate'</span>][<span class=\"hljs-string\">'systemKey'</span>] = sha1(date(<span class=\"hljs-string\">'Ymd'</span>) . sha1(<span class=\"hljs-string\">'YOUR_KEY'</span>));\n$request[<span class=\"hljs-string\">'authenticate'</span>][<span class=\"hljs-string\">'systemLogin'</span>] = <span class=\"hljs-string\">\"systemLogin\"</span>;\n$request[<span class=\"hljs-string\">'authenticate'</span>][<span class=\"hljs-string\">'lang'</span>] = <span class=\"hljs-string\">'eng'</span>;\n$request[<span class=\"hljs-string\">'Locks'</span>] = <span class=\"hljs-keyword\">array</span>();\n$request[<span class=\"hljs-string\">'Locks'</span>][<span class=\"hljs-number\">0</span>] = <span class=\"hljs-keyword\">array</span>();\n$request[<span class=\"hljs-string\">'Locks'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'reservationId'</span>] = <span class=\"hljs-number\">1</span>;\n$request[<span class=\"hljs-string\">'Locks'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'itemId'</span>] = <span class=\"hljs-number\">2</span>;\n$request[<span class=\"hljs-string\">'Locks'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'lockDeviceId'</span>] = <span class=\"hljs-string\">\"lockDeviceId\"</span>;\n$request[<span class=\"hljs-string\">'Locks'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'lock'</span>] = <span class=\"hljs-string\">\"lock\"</span>;\n\n$request_json = json_encode($request);\n$headers = <span class=\"hljs-keyword\">array</span>(\n    <span class=\"hljs-string\">'Accept: application/json'</span>,\n    <span class=\"hljs-string\">'Content-Type: application/json;charset=UTF-8'</span>\n);\n\n$curl = curl_init($address);\ncurl_setopt($curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, <span class=\"hljs-number\">1</span>);\ncurl_setopt($curl, CURLOPT_SSL_VERIFYPEER, <span class=\"hljs-keyword\">false</span>);\ncurl_setopt($curl, CURLOPT_SSL_VERIFYHOST, <span class=\"hljs-keyword\">false</span>);\ncurl_setopt($curl, CURLOPT_FORBID_REUSE, <span class=\"hljs-number\">1</span>);\ncurl_setopt($curl, CURLINFO_HEADER_OUT, <span class=\"hljs-number\">1</span>);\ncurl_setopt($curl, CURLOPT_HEADER, <span class=\"hljs-number\">1</span>);\ncurl_setopt($curl, CURLOPT_POST, <span class=\"hljs-number\">1</span>);\ncurl_setopt($curl, CURLOPT_POSTFIELDS, $request_json);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, $headers);\n\n$response = curl_exec($curl);\n$status = curl_getinfo($curl);\ncurl_close($curl);\n       </pre>\n                </div>\n            </div></div>\n        <div id=\"api_changelog_json\" class=\"mb-5\"><h2>Historia zmian</h2><p>W rozwiniętej historii metody nie wyświetlono wpisów zmian; dostępny był formularz porównywania wersji.</p></div></div></div></div>\n                        </div>\n                    </div>\n                </div>\n            </div>\n        \n            \n        </div></div>",
+  "links": [
+    {
+      "title": "Narzędzia dla Developerów",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "API Admin",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/"
+    },
+    {
+      "title": "Bramka Locks",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=documentation&function=locks"
+    },
+    {
+      "title": "Najlepsze rozwiązania do sprzedaży w internecie\n                        \n                            \n                                    \n                                \n                            \n                            \n                                Narzędzia dla Developerów\n                                IdoBooking",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "Wybierz inną dokumentację",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=locks&method=add#"
+    },
+    {
+      "title": "Dokumentacja API Admin",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/"
+    },
+    {
+      "title": "Dokumentacja API Customer",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "Dokumentacja API Marketplace",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "Dokumentacja API Storefront",
+      "url": "https://api.idobooking.com/pl/developers/storefront-documentation/"
+    },
+    {
+      "title": "Dokumentacja Smarty",
+      "url": "https://api.idobooking.com/pl/developers/smarty-documentation/"
+    },
+    {
+      "title": "sprawdź historię zmian",
+      "url": "https://api.idobooking.com/pl/developers/api/?branch=booking&action=changelog"
+    },
+    {
+      "title": "Locks",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=documentation&function=locks"
+    },
+    {
+      "title": "SOAP",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=locks&method=add#tab0"
+    },
+    {
+      "title": "JSON",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=locks&method=add#tab1"
+    },
+    {
+      "title": "https://_domena_booking_.idosell.com/api/locks/add/36/soap",
+      "url": "https://client1679.idosell.com/api/locks/add/36/soap"
+    },
+    {
+      "title": "kopiuj",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=locks&method=add#copyContentHref"
+    },
+    {
+      "title": "https://_domena_booking_.idosell.com/api/locks/add/36/soap/wsdl/pol",
+      "url": "https://client1679.idosell.com/api/locks/add/36/soap/wsdl/pol"
+    },
+    {
+      "title": "kopiuj",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=locks&method=add#copyContentHref"
+    },
+    {
+      "title": "rozwiń wszystkie węzły",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=locks&method=add##"
+    },
+    {
+      "title": "zwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=locks&method=add##"
+    },
+    {
+      "title": "instrukcją generowania klucza",
+      "url": "https://pomoc.idobooking.com/dodatkowe-moduly/api"
+    },
+    {
+      "title": "rozwiń wszystkie węzły",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=locks&method=add##"
+    },
+    {
+      "title": "zwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=locks&method=add##"
+    },
+    {
+      "title": "instrukcją generowania klucza",
+      "url": "https://pomoc.idobooking.com/dodatkowe-moduly/api"
+    },
+    {
+      "title": "pobierz",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=locks&method=add##"
+    },
+    {
+      "title": "kopiuj",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=locks&method=add##"
+    },
+    {
+      "title": "rozwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=locks&method=add##"
+    },
+    {
+      "title": "pobierz",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=locks&method=add##"
+    },
+    {
+      "title": "kopiuj",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=locks&method=add##"
+    },
+    {
+      "title": "rozwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=locks&method=add##"
+    },
+    {
+      "title": "rozwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=locks&method=add##"
+    },
+    {
+      "title": "https://_domena_booking_.idosell.com/api/locks/add/36/json",
+      "url": "https://client1679.idosell.com/api/locks/add/36/json"
+    },
+    {
+      "title": "kopiuj",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=locks&method=add#copyContentHref"
+    },
+    {
+      "title": "zwiń wszystkie węzły",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=locks&method=add##"
+    },
+    {
+      "title": "zwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=locks&method=add##"
+    },
+    {
+      "title": "instrukcją generowania klucza",
+      "url": "https://pomoc.idobooking.com/dodatkowe-moduly/api"
+    },
+    {
+      "title": "zwiń wszystkie węzły",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=locks&method=add##"
+    },
+    {
+      "title": "zwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=locks&method=add##"
+    },
+    {
+      "title": "instrukcją generowania klucza",
+      "url": "https://pomoc.idobooking.com/dodatkowe-moduly/api"
+    },
+    {
+      "title": "pobierz",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=locks&method=add##"
+    },
+    {
+      "title": "kopiuj",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=locks&method=add##"
+    },
+    {
+      "title": "zwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=locks&method=add##"
+    },
+    {
+      "title": "zwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=locks&method=add##"
+    }
+  ],
+  "php": "\n                    <?php\n\n$address = 'https://client1679.idobooking.com/api/locks/add/36/json';\n\n$request = array();\n$request['authenticate'] = array();\n$request['authenticate']['systemKey'] = sha1(date('Ymd') . sha1('YOUR_KEY'));\n$request['authenticate']['systemLogin'] = \"systemLogin\";\n$request['authenticate']['lang'] = 'eng';\n$request['Locks'] = array();\n$request['Locks'][0] = array();\n$request['Locks'][0]['reservationId'] = 1;\n$request['Locks'][0]['itemId'] = 2;\n$request['Locks'][0]['lockDeviceId'] = \"lockDeviceId\";\n$request['Locks'][0]['lock'] = \"lock\";\n\n$request_json = json_encode($request);\n$headers = array(\n    'Accept: application/json',\n    'Content-Type: application/json;charset=UTF-8'\n);\n\n$curl = curl_init($address);\ncurl_setopt($curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);\ncurl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);\ncurl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);\ncurl_setopt($curl, CURLOPT_FORBID_REUSE, 1);\ncurl_setopt($curl, CURLINFO_HEADER_OUT, 1);\ncurl_setopt($curl, CURLOPT_HEADER, 1);\ncurl_setopt($curl, CURLOPT_POST, 1);\ncurl_setopt($curl, CURLOPT_POSTFIELDS, $request_json);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, $headers);\n\n$response = curl_exec($curl);\n$status = curl_getinfo($curl);\ncurl_close($curl);\n       \n                ",
+  "request": [
+    {
+      "description": "Element służy do uwierzytelniania konta w celu wywołania metody",
+      "name": "authenticate",
+      "path": "authenticate",
+      "required": true,
+      "type": "authenticateType"
+    },
+    {
+      "description": "Klucz wykorzystywany podczas uwierzytelniania. Zapoznaj się z instrukcją generowania klucza",
+      "name": "systemKey",
+      "path": "authenticate.systemKey",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "description": "Login użytkownika panelu IdoSell Booking",
+      "name": "systemLogin",
+      "path": "authenticate.systemLogin",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "description": "Możliwe wartości: (eng, pol, ger)\n\nJęzyk API, możliwe wartości: - eng - angielski - pol - polski - ger - niemiecki",
+      "name": "lang",
+      "path": "authenticate.lang",
+      "required": false,
+      "type": "apiLanguage"
+    },
+    {
+      "description": "Dane dodawanych kodów zamków",
+      "name": "Locks",
+      "path": "Locks",
+      "required": true,
+      "type": "addLocksTypeArray"
+    },
+    {
+      "description": "element typu addLocksType",
+      "name": "addLocksType",
+      "path": "Locks.addLocksType",
+      "required": true,
+      "type": "addLocksType"
+    },
+    {
+      "description": "Identyfikator rezerwacji",
+      "name": "reservationId",
+      "path": "Locks.addLocksType.reservationId",
+      "required": true,
+      "type": "int"
+    },
+    {
+      "description": "Identyfikator egzemplarza",
+      "name": "itemId",
+      "path": "Locks.addLocksType.itemId",
+      "required": true,
+      "type": "int"
+    },
+    {
+      "description": "Identyfikator zamka elektronicznego w systemie",
+      "name": "lockDeviceId",
+      "path": "Locks.addLocksType.lockDeviceId",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "description": "Kod zamka",
+      "name": "lock",
+      "path": "Locks.addLocksType.lock",
+      "required": true,
+      "type": "string"
+    }
+  ],
+  "response": [
+    {
+      "description": "Element zawierający informacje zwrotne z modułu autoryzującego",
+      "name": "authenticate",
+      "path": "authenticate",
+      "required": false,
+      "type": "authenticateType"
+    },
+    {
+      "description": "Klucz wykorzystywany podczas uwierzytelniania. Zapoznaj się z instrukcją generowania klucza",
+      "name": "systemKey",
+      "path": "authenticate.systemKey",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "description": "Login użytkownika panelu IdoSell Booking",
+      "name": "systemLogin",
+      "path": "authenticate.systemLogin",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "description": "Możliwe wartości: (eng, pol, ger)\n\nJęzyk API, możliwe wartości: - eng - angielski - pol - polski - ger - niemiecki",
+      "name": "lang",
+      "path": "authenticate.lang",
+      "required": false,
+      "type": "apiLanguage"
+    },
+    {
+      "description": "Lista kodów błędów",
+      "name": "responseErrors",
+      "path": "responseErrors",
+      "required": false,
+      "type": "gateErrorType"
+    },
+    {
+      "description": "Kod błędu",
+      "name": "faultCode",
+      "path": "responseErrors.faultCode",
+      "required": false,
+      "type": "int"
+    },
+    {
+      "description": "Opis błędu",
+      "name": "faultString",
+      "path": "responseErrors.faultString",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "Wynik dodania kodu",
+      "name": "Locks",
+      "path": "Locks",
+      "required": false,
+      "type": "addLocksResultTypeArray"
+    },
+    {
+      "description": "element typu addLocksResultType",
+      "name": "addLocksResultType",
+      "path": "Locks.addLocksResultType",
+      "required": true,
+      "type": "addLocksResultType"
+    },
+    {
+      "description": "Sukces",
+      "name": "success",
+      "path": "Locks.addLocksResultType.success",
+      "required": true,
+      "type": "boolean"
+    },
+    {
+      "description": "Błąd",
+      "name": "error",
+      "path": "Locks.addLocksResultType.error",
+      "required": false,
+      "type": "errorType"
+    },
+    {
+      "description": "Kod błędu",
+      "name": "faultCode",
+      "path": "Locks.addLocksResultType.error.faultCode",
+      "required": false,
+      "type": "int"
+    },
+    {
+      "description": "Opis błędu",
+      "name": "faultString",
+      "path": "Locks.addLocksResultType.error.faultString",
+      "required": false,
+      "type": "string"
+    }
+  ],
+  "text": "Dokumentacja API Booking   \n            \n          \n        \n            \n        \n            \n                \n                    \n        \n        \nDodaje kod do zamka elektronicznego dla rezerwacji\n\n\n\n            \n                \n        \n            \n                \n                    \n                    Adresy\n                \n        \n              \n                \n                    \n                        Nasłuch\n                    \n                    \n                        https://_domena_booking_.idosell.com/api/locks/add/36/json\n                    \n                    \n                        \n                    \n                \n                    \n                \n            \n        \n         \n            Struktura żądania\n                \n                    \n                        authenticate (authenticateType)\n                        Element służy do uwierzytelniania konta w celu wywołania metody\n                    \n        \n            \n            \n                \n                    \n                        systemKey (string)\n                        Klucz wykorzystywany podczas uwierzytelniania. Zapoznaj się z instrukcją generowania klucza\n                    \n        \n            \n            \n                \n                    \n                        systemLogin (string)\n                        Login użytkownika panelu IdoSell Booking\n                    \n        \n            \n            \n                \n                    \n                        lang (apiLanguage)\n                        \n                    Możliwe wartości:\n                     (eng, pol, ger)Język API, możliwe wartości:\n        - eng - angielski\n        - pol - polski\n        - ger - niemiecki\n                    \n        \n                \n                    \n                        Locks (addLocksTypeArray)\n                        Dane dodawanych kodów zamków\n                    \n        \n            \n            \n                \n                    \n                         (addLocksType)\n                        element typu addLocksType\n                    \n        \n            \n            \n                \n                    \n                        reservationId (int)\n                        Identyfikator rezerwacji\n                    \n        \n            \n            \n                \n                    \n                        itemId (int)\n                        Identyfikator egzemplarza\n                    \n        \n            \n            \n                \n                    \n                        lockDeviceId (string)\n                        Identyfikator zamka elektronicznego w systemie\n                    \n        \n            \n            \n                \n                    \n                        lock (string)\n                        Kod zamka\n                    \n        \n         \n            Struktura odpowiedzi\n                \n                    \n                        authenticate (authenticateType)\n                        Element zawierający informacje zwrotne z modułu autoryzującego\n                    \n        \n            \n            \n                \n                    \n                        systemKey (string)\n                        Klucz wykorzystywany podczas uwierzytelniania. Zapoznaj się z instrukcją generowania klucza\n                    \n        \n            \n            \n                \n                    \n                        systemLogin (string)\n                        Login użytkownika panelu IdoSell Booking\n                    \n        \n            \n            \n                \n                    \n                        lang (apiLanguage)\n                        \n                    Możliwe wartości:\n                     (eng, pol, ger)Język API, możliwe wartości:\n        - eng - angielski\n        - pol - polski\n        - ger - niemiecki\n                    \n        \n                \n                    \n                        responseErrors (gateErrorType)\n                        Lista kodów błędów\n                    \n        \n            \n            \n                \n                    \n                        faultCode (int)\n                        Kod błędu\n                    \n        \n            \n            \n                \n                    \n                        faultString (string)\n                        Opis błędu\n                    \n        \n                \n                    \n                        Locks (addLocksResultTypeArray)\n                        Wynik dodania kodu\n                    \n        \n            \n            \n                \n                    \n                         (addLocksResultType)\n                        element typu addLocksResultType\n                    \n        \n            \n            \n                \n                    \n                        success (boolean)\n                        Sukces\n                    \n        \n            \n            \n                \n                    \n                        error (errorType)\n                        Błąd\n                    \n        \n            \n            \n                \n                    \n                        faultCode (int)\n                        Kod błędu\n                    \n        \n            \n            \n                \n                    \n                        faultString (string)\n                        Opis błędu\n                    \n        \n         \n            Przykład kodu w PHP\n                \n                    <?php\n\n$address = 'https://client1679.idobooking.com/api/locks/add/36/json';\n\n$request = array();\n$request['authenticate'] = array();\n$request['authenticate']['systemKey'] = sha1(date('Ymd') . sha1('YOUR_KEY'));\n$request['authenticate']['systemLogin'] = \"systemLogin\";\n$request['authenticate']['lang'] = 'eng';\n$request['Locks'] = array();\n$request['Locks'][0] = array();\n$request['Locks'][0]['reservationId'] = 1;\n$request['Locks'][0]['itemId'] = 2;\n$request['Locks'][0]['lockDeviceId'] = \"lockDeviceId\";\n$request['Locks'][0]['lock'] = \"lock\";\n\n$request_json = json_encode($request);\n$headers = array(\n    'Accept: application/json',\n    'Content-Type: application/json;charset=UTF-8'\n);\n\n$curl = curl_init($address);\ncurl_setopt($curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);\ncurl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);\ncurl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);\ncurl_setopt($curl, CURLOPT_FORBID_REUSE, 1);\ncurl_setopt($curl, CURLINFO_HEADER_OUT, 1);\ncurl_setopt($curl, CURLOPT_HEADER, 1);\ncurl_setopt($curl, CURLOPT_POST, 1);\ncurl_setopt($curl, CURLOPT_POSTFIELDS, $request_json);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, $headers);\n\n$response = curl_exec($curl);\n$status = curl_getinfo($curl);\ncurl_close($curl);\n       \n                \n            \n        Historia zmianW rozwiniętej historii metody nie wyświetlono wpisów zmian; dostępny był formularz porównywania wersji.",
+  "version": 36,
+  "capturedAt": "2026-10-24T18:02:48.826Z",
+  "endpoint": "https://_domena_booking_.idosell.com/api/locks/add/36/json",
+  "description": "Dodaje kod do zamka elektronicznego dla rezerwacji",
+  "source": {
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=locks&method=add##",
+    "capturedAt": "2026-10-24T18:02:48.826Z",
+    "transport": "authenticated Chrome HTTPS session",
+    "format": "JSON"
+  }
+}

@@ -1,0 +1,387 @@
+{
+  "title": "Bramka Objects/Metoda editMedia",
+  "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editMedia##",
+  "kind": "method",
+  "gateway": "objects",
+  "height": 3716,
+  "html": "<div class=\"content__collapse col-md-9\"> \n          <div class=\"d-flex justify-content-between align-items-center mb-3\">\n            <span class=\"api_title mb-0\">Dokumentacja API Booking</span>   \n            <div class=\"show_list_link\"></div>\n          </div>\n        \n            \n        \n            <div id=\"documentation_background\">\n                <div class=\"content shop api_docs\">\n                    <div class=\"container white_bg\" data-equalizer=\"\">\n        \n        <div class=\"api_content row\" data-equalizer-watch=\"\"><div class=\"col-12 mb-5\"><p class=\"api_short_description\">\nEdytuje pliki multimedialne dodane do przedmiotu rezerwacji umożliwiając ich aktualizację oraz zmianę kolejności ich prezentacji.\n\n\n</p></div><div class=\"apiDesc col-12 mb-5\">\n            <div id=\"format_type\" class=\"tabs\">\n                \n        <div class=\"tabs__content\"><div id=\"tab1\" class=\"tabs__element --shown\">\n            <div id=\"api_method_adresses\" class=\"mb-5\">\n                <div class=\"api_method_header px-3 d-flex align-items-center\">\n                    <i class=\"icon-info-circled\"></i>\n                    <strong>Adresy</strong>\n                </div>\n        \n              <div class=\"api_method_row\">\n                <div class=\"row align-items-center py-3\">\n                    <div class=\"col-3 pl-5\">\n                        <strong>Nasłuch</strong>\n                    </div>\n                    <div class=\"col-9 col-sm-7\">\n                        <a href=\"https://client1679.idosell.com/api/objects/editMedia/36/json\" class=\"api_link\" id=\"copyTarget_0json\">https://_domena_booking_.idosell.com/api/objects/editMedia/36/json</a>\n                    </div>\n                    <div class=\"col-12 col-sm-2 d-flex justify-content-end\">\n                        \n                    </div>\n                \n                    </div>\n                </div>\n            </div>\n        \n        <div id=\"api_method_request_json\" class=\"mb-5\"><div class=\"api_method_header px-3\"><div class=\"api_method_header_left d-flex flex-wrap justify-content-center justify-content-sm-between align-items-center\"><div><i class=\"icon-code\"></i> \n            <strong>Struktura żądania</strong></div></div></div><div id=\"api_method_request_content\" class=\"api_details visible\">\n                <div class=\"api_details_item open\" data-parameter-name=\"authenticate\">\n                    <div class=\"api_details_item_inner level0 toggle\">\n                        <strong class=\"api_required required_after\">authenticate <span>(authenticateType)</span></strong>\n                        <span><p>Element służy do uwierzytelniania konta w celu wywołania metody</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"systemKey\">\n                    <div class=\"api_details_item_inner level1\">\n                        <strong class=\"api_required required_after\">systemKey <span>(string)</span></strong>\n                        <span><p>Klucz wykorzystywany podczas uwierzytelniania. Zapoznaj się z <a href=\"https://pomoc.idobooking.com/dodatkowe-moduly/api\">instrukcją generowania klucza</a></p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"systemLogin\">\n                    <div class=\"api_details_item_inner level1\">\n                        <strong class=\"api_required required_after\">systemLogin <span>(string)</span></strong>\n                        <span><p>Login użytkownika panelu IdoSell Booking</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"lang\">\n                    <div class=\"api_details_item_inner level1\">\n                        <strong class=\"\">lang <span>(apiLanguage)</span></strong>\n                        <span><p>\n                    <span>Możliwe wartości:\n                    </span> (<i>eng, pol, ger</i>)</p><p>Język API</p></span>\n                    </div>\n        </div></div></div>\n                <div class=\"api_details_item open\" data-parameter-name=\"editObjectMedia\">\n                    <div class=\"api_details_item_inner level0 toggle\">\n                        <strong class=\"api_required required_after\">editObjectMedia <span>(editObjectMediaArray)</span></strong>\n                        <span><p>Lista elementów multimedialnych w postaci tablicy elementów typu editObjectMedium</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item open\" data-parameter-name=\"editObjectMedium\">\n                    <div class=\"api_details_item_inner level1 toggle\">\n                        <strong class=\"api_required required_after\"> <span>(editObjectMedium)</span></strong>\n                        <span><p>element typu editObjectMedium</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"id\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"api_required required_after\">id <span>(int)</span></strong>\n                        <span><p>Identyfikator elementu multimedialnego</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"source\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"\">source <span>(sourceType)</span></strong>\n                        <span><p>\n                    <span>Możliwe wartości:\n                    </span> (<i>uri, base64</i>)</p><p>Sposób przekazywania informacji</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"type\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"\">type <span>(typeType)</span></strong>\n                        <span><p>\n                    <span>Możliwe wartości:\n                    </span> (<i>picture, video</i>)</p><p>Rodzaj elementu multimedialnego</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"priority\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"\">priority <span>(int)</span></strong>\n                        <span><p>Priorytet</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"icon\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"\">icon <span>(boolean)</span></strong>\n                        <span><p>Czy element ma zostać ustawiony jako ikona przedmiotu rezerwacji</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"data\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"\">data <span>(string)</span></strong>\n                        <span><p>Element multimedialny</p></span>\n                    </div>\n        </div></div></div></div></div></div></div>\n        <div id=\"api_method_response_json\" class=\"mb-5\"><div class=\"api_method_header px-3\"><div class=\"api_method_header_left d-flex flex-wrap justify-content-center justify-content-sm-between align-items-center\"><div><i class=\"icon-code\"></i> \n            <strong>Struktura odpowiedzi</strong></div></div></div><div id=\"api_method_response_content\" class=\"api_details visible\">\n                <div class=\"api_details_item open\" data-parameter-name=\"authenticate\">\n                    <div class=\"api_details_item_inner level0 toggle\">\n                        <strong class=\"\">authenticate <span>(authenticateType)</span></strong>\n                        <span><p>Element zawierający informacje zwrotne z modułu autoryzującego</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"systemKey\">\n                    <div class=\"api_details_item_inner level1\">\n                        <strong class=\"api_required required_after\">systemKey <span>(string)</span></strong>\n                        <span><p>Klucz wykorzystywany podczas uwierzytelniania. Zapoznaj się z <a href=\"https://pomoc.idobooking.com/dodatkowe-moduly/api\">instrukcją generowania klucza</a></p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"systemLogin\">\n                    <div class=\"api_details_item_inner level1\">\n                        <strong class=\"api_required required_after\">systemLogin <span>(string)</span></strong>\n                        <span><p>Login użytkownika panelu IdoSell Booking</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"lang\">\n                    <div class=\"api_details_item_inner level1\">\n                        <strong class=\"\">lang <span>(apiLanguage)</span></strong>\n                        <span><p>\n                    <span>Możliwe wartości:\n                    </span> (<i>eng, pol, ger</i>)</p><p>Język API</p></span>\n                    </div>\n        </div></div></div>\n                <div class=\"api_details_item open\" data-parameter-name=\"errors\">\n                    <div class=\"api_details_item_inner level0 toggle\">\n                        <strong class=\"\">errors <span>(gateErrorType)</span></strong>\n                        <span><p>Lista kodów błędów</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"faultCode\">\n                    <div class=\"api_details_item_inner level1\">\n                        <strong class=\"\">faultCode <span>(int)</span></strong>\n                        <span><p>Kod błędu</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"faultString\">\n                    <div class=\"api_details_item_inner level1\">\n                        <strong class=\"\">faultString <span>(string)</span></strong>\n                        <span><p>Opis błędu</p></span>\n                    </div>\n        </div></div></div>\n                <div class=\"api_details_item\" data-parameter-name=\"success\">\n                    <div class=\"api_details_item_inner level0\">\n                        <strong class=\"\">success <span>(boolean)</span></strong>\n                        <span><p>Sukces</p></span>\n                    </div>\n        </div>\n                <div class=\"api_details_item open\" data-parameter-name=\"editedObjectsMedia\">\n                    <div class=\"api_details_item_inner level0 toggle\">\n                        <strong class=\"\">editedObjectsMedia <span>(editedObjectsMediaResultArray)</span></strong>\n                        <span><p>Wynik edycji przesłanych elementów multimedialnych w postaci tablicy elementów typu objectMediumResult</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item open\" data-parameter-name=\"objectMediumResult\">\n                    <div class=\"api_details_item_inner level1 toggle\">\n                        <strong class=\"api_required required_after\"> <span>(objectMediumResult)</span></strong>\n                        <span><p>element typu objectMediumResult</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"success\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"\">success <span>(boolean)</span></strong>\n                        <span><p>Sukces</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item open\" data-parameter-name=\"errors\">\n                    <div class=\"api_details_item_inner level2 toggle\">\n                        <strong class=\"\">errors <span>(gateErrorType)</span></strong>\n                        <span><p>Lista kodów błędów</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"faultCode\">\n                    <div class=\"api_details_item_inner level3\">\n                        <strong class=\"\">faultCode <span>(int)</span></strong>\n                        <span><p>Kod błędu</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"faultString\">\n                    <div class=\"api_details_item_inner level3\">\n                        <strong class=\"\">faultString <span>(string)</span></strong>\n                        <span><p>Opis błędu</p></span>\n                    </div>\n        </div></div></div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"id\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"\">id <span>(int)</span></strong>\n                        <span><p>Identyfikator elementu multimedialnego</p></span>\n                    </div>\n        </div></div></div></div></div></div></div>\n        <div id=\"php-example_json\" class=\"code_example mb-5\"><div class=\"api_method_header px-3\"><div class=\"api_method_header_left d-flex flex-wrap justify-content-center justify-content-sm-between align-items-center\"><div><i class=\"icon-file-code\"></i> \n            <strong>Przykład kodu w PHP</strong></div></div></div><div class=\"api_details visible\">\n                <div id=\"php-example_content_json\">\n                    <pre class=\"highlight-code hljs php\"><span class=\"hljs-meta\">&lt;?php</span>\n\n$address = <span class=\"hljs-string\">'https://client1679.idobooking.com/api/objects/editMedia/36/json'</span>;\n\n$request = <span class=\"hljs-keyword\">array</span>();\n$request[<span class=\"hljs-string\">'authenticate'</span>] = <span class=\"hljs-keyword\">array</span>();\n$request[<span class=\"hljs-string\">'authenticate'</span>][<span class=\"hljs-string\">'systemKey'</span>] = sha1(date(<span class=\"hljs-string\">'Ymd'</span>) . sha1(<span class=\"hljs-string\">'YOUR_KEY'</span>));\n$request[<span class=\"hljs-string\">'authenticate'</span>][<span class=\"hljs-string\">'systemLogin'</span>] = <span class=\"hljs-string\">\"systemLogin\"</span>;\n$request[<span class=\"hljs-string\">'authenticate'</span>][<span class=\"hljs-string\">'lang'</span>] = <span class=\"hljs-string\">'eng'</span>;\n$request[<span class=\"hljs-string\">'editObjectMedia'</span>] = <span class=\"hljs-keyword\">array</span>();\n$request[<span class=\"hljs-string\">'editObjectMedia'</span>][<span class=\"hljs-number\">0</span>] = <span class=\"hljs-keyword\">array</span>();\n$request[<span class=\"hljs-string\">'editObjectMedia'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'id'</span>] = <span class=\"hljs-number\">1</span>;\n$request[<span class=\"hljs-string\">'editObjectMedia'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'source'</span>] = <span class=\"hljs-string\">'uri'</span>;\n$request[<span class=\"hljs-string\">'editObjectMedia'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'type'</span>] = <span class=\"hljs-string\">'picture'</span>;\n$request[<span class=\"hljs-string\">'editObjectMedia'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'priority'</span>] = <span class=\"hljs-number\">2</span>;\n$request[<span class=\"hljs-string\">'editObjectMedia'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'icon'</span>] = <span class=\"hljs-keyword\">true</span>;\n$request[<span class=\"hljs-string\">'editObjectMedia'</span>][<span class=\"hljs-number\">0</span>][<span class=\"hljs-string\">'data'</span>] = <span class=\"hljs-string\">\"data\"</span>;\n\n$request_json = json_encode($request);\n$headers = <span class=\"hljs-keyword\">array</span>(\n    <span class=\"hljs-string\">'Accept: application/json'</span>,\n    <span class=\"hljs-string\">'Content-Type: application/json;charset=UTF-8'</span>\n);\n\n$curl = curl_init($address);\ncurl_setopt($curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, <span class=\"hljs-number\">1</span>);\ncurl_setopt($curl, CURLOPT_SSL_VERIFYPEER, <span class=\"hljs-keyword\">false</span>);\ncurl_setopt($curl, CURLOPT_SSL_VERIFYHOST, <span class=\"hljs-keyword\">false</span>);\ncurl_setopt($curl, CURLOPT_FORBID_REUSE, <span class=\"hljs-number\">1</span>);\ncurl_setopt($curl, CURLINFO_HEADER_OUT, <span class=\"hljs-number\">1</span>);\ncurl_setopt($curl, CURLOPT_HEADER, <span class=\"hljs-number\">1</span>);\ncurl_setopt($curl, CURLOPT_POST, <span class=\"hljs-number\">1</span>);\ncurl_setopt($curl, CURLOPT_POSTFIELDS, $request_json);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, $headers);\n\n$response = curl_exec($curl);\n$status = curl_getinfo($curl);\ncurl_close($curl);\n       </pre>\n                </div>\n            </div></div>\n        <div id=\"api_changelog_json\" class=\"mb-5\"><h2>Historia zmian</h2><p>W rozwiniętej historii metody nie wyświetlono wpisów zmian; dostępny był formularz porównywania wersji.</p></div></div></div></div>\n                        </div>\n                    </div>\n                </div>\n            </div>\n        \n            \n        </div></div>",
+  "links": [
+    {
+      "title": "Narzędzia dla Developerów",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "API Admin",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/"
+    },
+    {
+      "title": "Bramka Objects",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=documentation&function=objects"
+    },
+    {
+      "title": "Najlepsze rozwiązania do sprzedaży w internecie\n                        \n                            \n                                    \n                                \n                            \n                            \n                                Narzędzia dla Developerów\n                                IdoBooking",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "Wybierz inną dokumentację",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editMedia#"
+    },
+    {
+      "title": "Dokumentacja API Admin",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/"
+    },
+    {
+      "title": "Dokumentacja API Customer",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "Dokumentacja API Marketplace",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "Dokumentacja API Storefront",
+      "url": "https://api.idobooking.com/pl/developers/storefront-documentation/"
+    },
+    {
+      "title": "Dokumentacja Smarty",
+      "url": "https://api.idobooking.com/pl/developers/smarty-documentation/"
+    },
+    {
+      "title": "sprawdź historię zmian",
+      "url": "https://api.idobooking.com/pl/developers/api/?branch=booking&action=changelog"
+    },
+    {
+      "title": "Objects",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=documentation&function=objects"
+    },
+    {
+      "title": "SOAP",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editMedia#tab0"
+    },
+    {
+      "title": "JSON",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editMedia#tab1"
+    },
+    {
+      "title": "https://_domena_booking_.idosell.com/api/objects/editMedia/36/soap",
+      "url": "https://client1679.idosell.com/api/objects/editMedia/36/soap"
+    },
+    {
+      "title": "kopiuj",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editMedia#copyContentHref"
+    },
+    {
+      "title": "https://_domena_booking_.idosell.com/api/objects/editMedia/36/soap/wsdl/pol",
+      "url": "https://client1679.idosell.com/api/objects/editMedia/36/soap/wsdl/pol"
+    },
+    {
+      "title": "kopiuj",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editMedia#copyContentHref"
+    },
+    {
+      "title": "rozwiń wszystkie węzły",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editMedia##"
+    },
+    {
+      "title": "zwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editMedia##"
+    },
+    {
+      "title": "instrukcją generowania klucza",
+      "url": "https://pomoc.idobooking.com/dodatkowe-moduly/api"
+    },
+    {
+      "title": "rozwiń wszystkie węzły",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editMedia##"
+    },
+    {
+      "title": "zwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editMedia##"
+    },
+    {
+      "title": "instrukcją generowania klucza",
+      "url": "https://pomoc.idobooking.com/dodatkowe-moduly/api"
+    },
+    {
+      "title": "pobierz",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editMedia##"
+    },
+    {
+      "title": "kopiuj",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editMedia##"
+    },
+    {
+      "title": "rozwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editMedia##"
+    },
+    {
+      "title": "pobierz",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editMedia##"
+    },
+    {
+      "title": "kopiuj",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editMedia##"
+    },
+    {
+      "title": "rozwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editMedia##"
+    },
+    {
+      "title": "rozwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editMedia##"
+    },
+    {
+      "title": "https://_domena_booking_.idosell.com/api/objects/editMedia/36/json",
+      "url": "https://client1679.idosell.com/api/objects/editMedia/36/json"
+    },
+    {
+      "title": "kopiuj",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editMedia#copyContentHref"
+    },
+    {
+      "title": "zwiń wszystkie węzły",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editMedia##"
+    },
+    {
+      "title": "zwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editMedia##"
+    },
+    {
+      "title": "instrukcją generowania klucza",
+      "url": "https://pomoc.idobooking.com/dodatkowe-moduly/api"
+    },
+    {
+      "title": "zwiń wszystkie węzły",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editMedia##"
+    },
+    {
+      "title": "zwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editMedia##"
+    },
+    {
+      "title": "instrukcją generowania klucza",
+      "url": "https://pomoc.idobooking.com/dodatkowe-moduly/api"
+    },
+    {
+      "title": "pobierz",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editMedia##"
+    },
+    {
+      "title": "kopiuj",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editMedia##"
+    },
+    {
+      "title": "zwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editMedia##"
+    },
+    {
+      "title": "zwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editMedia##"
+    }
+  ],
+  "php": "\n                    <?php\n\n$address = 'https://client1679.idobooking.com/api/objects/editMedia/36/json';\n\n$request = array();\n$request['authenticate'] = array();\n$request['authenticate']['systemKey'] = sha1(date('Ymd') . sha1('YOUR_KEY'));\n$request['authenticate']['systemLogin'] = \"systemLogin\";\n$request['authenticate']['lang'] = 'eng';\n$request['editObjectMedia'] = array();\n$request['editObjectMedia'][0] = array();\n$request['editObjectMedia'][0]['id'] = 1;\n$request['editObjectMedia'][0]['source'] = 'uri';\n$request['editObjectMedia'][0]['type'] = 'picture';\n$request['editObjectMedia'][0]['priority'] = 2;\n$request['editObjectMedia'][0]['icon'] = true;\n$request['editObjectMedia'][0]['data'] = \"data\";\n\n$request_json = json_encode($request);\n$headers = array(\n    'Accept: application/json',\n    'Content-Type: application/json;charset=UTF-8'\n);\n\n$curl = curl_init($address);\ncurl_setopt($curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);\ncurl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);\ncurl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);\ncurl_setopt($curl, CURLOPT_FORBID_REUSE, 1);\ncurl_setopt($curl, CURLINFO_HEADER_OUT, 1);\ncurl_setopt($curl, CURLOPT_HEADER, 1);\ncurl_setopt($curl, CURLOPT_POST, 1);\ncurl_setopt($curl, CURLOPT_POSTFIELDS, $request_json);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, $headers);\n\n$response = curl_exec($curl);\n$status = curl_getinfo($curl);\ncurl_close($curl);\n       \n                ",
+  "request": [
+    {
+      "description": "Element służy do uwierzytelniania konta w celu wywołania metody",
+      "name": "authenticate",
+      "path": "authenticate",
+      "required": true,
+      "type": "authenticateType"
+    },
+    {
+      "description": "Klucz wykorzystywany podczas uwierzytelniania. Zapoznaj się z instrukcją generowania klucza",
+      "name": "systemKey",
+      "path": "authenticate.systemKey",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "description": "Login użytkownika panelu IdoSell Booking",
+      "name": "systemLogin",
+      "path": "authenticate.systemLogin",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "description": "Możliwe wartości: (eng, pol, ger)\n\nJęzyk API",
+      "name": "lang",
+      "path": "authenticate.lang",
+      "required": false,
+      "type": "apiLanguage"
+    },
+    {
+      "description": "Lista elementów multimedialnych w postaci tablicy elementów typu editObjectMedium",
+      "name": "editObjectMedia",
+      "path": "editObjectMedia",
+      "required": true,
+      "type": "editObjectMediaArray"
+    },
+    {
+      "description": "element typu editObjectMedium",
+      "name": "editObjectMedium",
+      "path": "editObjectMedia.editObjectMedium",
+      "required": true,
+      "type": "editObjectMedium"
+    },
+    {
+      "description": "Identyfikator elementu multimedialnego",
+      "name": "id",
+      "path": "editObjectMedia.editObjectMedium.id",
+      "required": true,
+      "type": "int"
+    },
+    {
+      "description": "Możliwe wartości: (uri, base64)\n\nSposób przekazywania informacji",
+      "name": "source",
+      "path": "editObjectMedia.editObjectMedium.source",
+      "required": false,
+      "type": "sourceType"
+    },
+    {
+      "description": "Możliwe wartości: (picture, video)\n\nRodzaj elementu multimedialnego",
+      "name": "type",
+      "path": "editObjectMedia.editObjectMedium.type",
+      "required": false,
+      "type": "typeType"
+    },
+    {
+      "description": "Priorytet",
+      "name": "priority",
+      "path": "editObjectMedia.editObjectMedium.priority",
+      "required": false,
+      "type": "int"
+    },
+    {
+      "description": "Czy element ma zostać ustawiony jako ikona przedmiotu rezerwacji",
+      "name": "icon",
+      "path": "editObjectMedia.editObjectMedium.icon",
+      "required": false,
+      "type": "boolean"
+    },
+    {
+      "description": "Element multimedialny",
+      "name": "data",
+      "path": "editObjectMedia.editObjectMedium.data",
+      "required": false,
+      "type": "string"
+    }
+  ],
+  "response": [
+    {
+      "description": "Element zawierający informacje zwrotne z modułu autoryzującego",
+      "name": "authenticate",
+      "path": "authenticate",
+      "required": false,
+      "type": "authenticateType"
+    },
+    {
+      "description": "Klucz wykorzystywany podczas uwierzytelniania. Zapoznaj się z instrukcją generowania klucza",
+      "name": "systemKey",
+      "path": "authenticate.systemKey",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "description": "Login użytkownika panelu IdoSell Booking",
+      "name": "systemLogin",
+      "path": "authenticate.systemLogin",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "description": "Możliwe wartości: (eng, pol, ger)\n\nJęzyk API",
+      "name": "lang",
+      "path": "authenticate.lang",
+      "required": false,
+      "type": "apiLanguage"
+    },
+    {
+      "description": "Lista kodów błędów",
+      "name": "errors",
+      "path": "errors",
+      "required": false,
+      "type": "gateErrorType"
+    },
+    {
+      "description": "Kod błędu",
+      "name": "faultCode",
+      "path": "errors.faultCode",
+      "required": false,
+      "type": "int"
+    },
+    {
+      "description": "Opis błędu",
+      "name": "faultString",
+      "path": "errors.faultString",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "Sukces",
+      "name": "success",
+      "path": "success",
+      "required": false,
+      "type": "boolean"
+    },
+    {
+      "description": "Wynik edycji przesłanych elementów multimedialnych w postaci tablicy elementów typu objectMediumResult",
+      "name": "editedObjectsMedia",
+      "path": "editedObjectsMedia",
+      "required": false,
+      "type": "editedObjectsMediaResultArray"
+    },
+    {
+      "description": "element typu objectMediumResult",
+      "name": "objectMediumResult",
+      "path": "editedObjectsMedia.objectMediumResult",
+      "required": true,
+      "type": "objectMediumResult"
+    },
+    {
+      "description": "Sukces",
+      "name": "success",
+      "path": "editedObjectsMedia.objectMediumResult.success",
+      "required": false,
+      "type": "boolean"
+    },
+    {
+      "description": "Lista kodów błędów",
+      "name": "errors",
+      "path": "editedObjectsMedia.objectMediumResult.errors",
+      "required": false,
+      "type": "gateErrorType"
+    },
+    {
+      "description": "Kod błędu",
+      "name": "faultCode",
+      "path": "editedObjectsMedia.objectMediumResult.errors.faultCode",
+      "required": false,
+      "type": "int"
+    },
+    {
+      "description": "Opis błędu",
+      "name": "faultString",
+      "path": "editedObjectsMedia.objectMediumResult.errors.faultString",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "Identyfikator elementu multimedialnego",
+      "name": "id",
+      "path": "editedObjectsMedia.objectMediumResult.id",
+      "required": false,
+      "type": "int"
+    }
+  ],
+  "text": "Dokumentacja API Booking   \n            \n          \n        \n            \n        \n            \n                \n                    \n        \n        \nEdytuje pliki multimedialne dodane do przedmiotu rezerwacji umożliwiając ich aktualizację oraz zmianę kolejności ich prezentacji.\n\n\n\n            \n                \n        \n            \n                \n                    \n                    Adresy\n                \n        \n              \n                \n                    \n                        Nasłuch\n                    \n                    \n                        https://_domena_booking_.idosell.com/api/objects/editMedia/36/json\n                    \n                    \n                        \n                    \n                \n                    \n                \n            \n        \n         \n            Struktura żądania\n                \n                    \n                        authenticate (authenticateType)\n                        Element służy do uwierzytelniania konta w celu wywołania metody\n                    \n        \n            \n            \n                \n                    \n                        systemKey (string)\n                        Klucz wykorzystywany podczas uwierzytelniania. Zapoznaj się z instrukcją generowania klucza\n                    \n        \n            \n            \n                \n                    \n                        systemLogin (string)\n                        Login użytkownika panelu IdoSell Booking\n                    \n        \n            \n            \n                \n                    \n                        lang (apiLanguage)\n                        \n                    Możliwe wartości:\n                     (eng, pol, ger)Język API\n                    \n        \n                \n                    \n                        editObjectMedia (editObjectMediaArray)\n                        Lista elementów multimedialnych w postaci tablicy elementów typu editObjectMedium\n                    \n        \n            \n            \n                \n                    \n                         (editObjectMedium)\n                        element typu editObjectMedium\n                    \n        \n            \n            \n                \n                    \n                        id (int)\n                        Identyfikator elementu multimedialnego\n                    \n        \n            \n            \n                \n                    \n                        source (sourceType)\n                        \n                    Możliwe wartości:\n                     (uri, base64)Sposób przekazywania informacji\n                    \n        \n            \n            \n                \n                    \n                        type (typeType)\n                        \n                    Możliwe wartości:\n                     (picture, video)Rodzaj elementu multimedialnego\n                    \n        \n            \n            \n                \n                    \n                        priority (int)\n                        Priorytet\n                    \n        \n            \n            \n                \n                    \n                        icon (boolean)\n                        Czy element ma zostać ustawiony jako ikona przedmiotu rezerwacji\n                    \n        \n            \n            \n                \n                    \n                        data (string)\n                        Element multimedialny\n                    \n        \n         \n            Struktura odpowiedzi\n                \n                    \n                        authenticate (authenticateType)\n                        Element zawierający informacje zwrotne z modułu autoryzującego\n                    \n        \n            \n            \n                \n                    \n                        systemKey (string)\n                        Klucz wykorzystywany podczas uwierzytelniania. Zapoznaj się z instrukcją generowania klucza\n                    \n        \n            \n            \n                \n                    \n                        systemLogin (string)\n                        Login użytkownika panelu IdoSell Booking\n                    \n        \n            \n            \n                \n                    \n                        lang (apiLanguage)\n                        \n                    Możliwe wartości:\n                     (eng, pol, ger)Język API\n                    \n        \n                \n                    \n                        errors (gateErrorType)\n                        Lista kodów błędów\n                    \n        \n            \n            \n                \n                    \n                        faultCode (int)\n                        Kod błędu\n                    \n        \n            \n            \n                \n                    \n                        faultString (string)\n                        Opis błędu\n                    \n        \n                \n                    \n                        success (boolean)\n                        Sukces\n                    \n        \n                \n                    \n                        editedObjectsMedia (editedObjectsMediaResultArray)\n                        Wynik edycji przesłanych elementów multimedialnych w postaci tablicy elementów typu objectMediumResult\n                    \n        \n            \n            \n                \n                    \n                         (objectMediumResult)\n                        element typu objectMediumResult\n                    \n        \n            \n            \n                \n                    \n                        success (boolean)\n                        Sukces\n                    \n        \n            \n            \n                \n                    \n                        errors (gateErrorType)\n                        Lista kodów błędów\n                    \n        \n            \n            \n                \n                    \n                        faultCode (int)\n                        Kod błędu\n                    \n        \n            \n            \n                \n                    \n                        faultString (string)\n                        Opis błędu\n                    \n        \n            \n            \n                \n                    \n                        id (int)\n                        Identyfikator elementu multimedialnego\n                    \n        \n         \n            Przykład kodu w PHP\n                \n                    <?php\n\n$address = 'https://client1679.idobooking.com/api/objects/editMedia/36/json';\n\n$request = array();\n$request['authenticate'] = array();\n$request['authenticate']['systemKey'] = sha1(date('Ymd') . sha1('YOUR_KEY'));\n$request['authenticate']['systemLogin'] = \"systemLogin\";\n$request['authenticate']['lang'] = 'eng';\n$request['editObjectMedia'] = array();\n$request['editObjectMedia'][0] = array();\n$request['editObjectMedia'][0]['id'] = 1;\n$request['editObjectMedia'][0]['source'] = 'uri';\n$request['editObjectMedia'][0]['type'] = 'picture';\n$request['editObjectMedia'][0]['priority'] = 2;\n$request['editObjectMedia'][0]['icon'] = true;\n$request['editObjectMedia'][0]['data'] = \"data\";\n\n$request_json = json_encode($request);\n$headers = array(\n    'Accept: application/json',\n    'Content-Type: application/json;charset=UTF-8'\n);\n\n$curl = curl_init($address);\ncurl_setopt($curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);\ncurl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);\ncurl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);\ncurl_setopt($curl, CURLOPT_FORBID_REUSE, 1);\ncurl_setopt($curl, CURLINFO_HEADER_OUT, 1);\ncurl_setopt($curl, CURLOPT_HEADER, 1);\ncurl_setopt($curl, CURLOPT_POST, 1);\ncurl_setopt($curl, CURLOPT_POSTFIELDS, $request_json);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, $headers);\n\n$response = curl_exec($curl);\n$status = curl_getinfo($curl);\ncurl_close($curl);\n       \n                \n            \n        Historia zmianW rozwiniętej historii metody nie wyświetlono wpisów zmian; dostępny był formularz porównywania wersji.",
+  "version": 36,
+  "capturedAt": "2026-10-24T18:04:17.765Z",
+  "endpoint": "https://_domena_booking_.idosell.com/api/objects/editMedia/36/json",
+  "description": "Edytuje pliki multimedialne dodane do przedmiotu rezerwacji umożliwiając ich aktualizację oraz zmianę kolejności ich prezentacji.",
+  "source": {
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=editMedia##",
+    "capturedAt": "2026-10-24T18:04:17.765Z",
+    "transport": "authenticated Chrome HTTPS session",
+    "format": "JSON"
+  }
+}

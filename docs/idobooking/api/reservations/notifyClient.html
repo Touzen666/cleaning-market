@@ -1,0 +1,284 @@
+<!doctype html><html lang="pl"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Bramka Reservations/Metoda notifyClient</title><style>body{font:16px/1.65 system-ui,sans-serif;color:#21302d;margin:0;background:#f5f7f5}main{max-width:1120px;margin:30px auto;background:white;padding:36px;border-radius:12px}a{color:#087f5b}h1{line-height:1.2}h2{margin-top:2em}table{width:100%;border-collapse:collapse;font-size:14px}td,th{border:1px solid #d9e2df;padding:10px;text-align:left;vertical-align:top}th{background:#edf5f0}code,pre{font-family:Consolas,monospace}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#eef3f1;padding:20px}img{max-width:100%;height:auto}.meta{padding:14px;background:#edf5f0}.api_details_item_inner{display:grid;grid-template-columns:minmax(190px,40%) 1fr;border-bottom:1px solid #ddd;padding:12px;gap:16px}.api_details_item_sub{margin-left:18px;border-left:2px solid #a9cdbb;padding-left:8px}.api_required.required_after:after{content:' *';color:#b62323}.api_method_header{background:#edf5f0;padding:12px;margin-top:24px}input{padding:12px;font:inherit;width:90%;max-width:700px}.index li{margin:6px 0}.notice{background:#fff5d7;padding:14px}nav{margin-bottom:24px}@media(max-width:700px){main{padding:16px}.api_details_item_inner{display:block}td,th{padding:5px}}</style><main><nav><a href="../../index.html">← Spis dokumentacji</a></nav><h1>Bramka Reservations/Metoda notifyClient</h1><p class="meta">Źródło: <a href="https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&amp;function=reservations&amp;method=notifyClient##">iDoBooking</a> · Kopia: 24.10.2026 · API 36 · JSON · <a href="notifyClient.jpg">Pełny zrzut</a> · <a href="notifyClient.md">Markdown</a></p><div class="content__collapse col-md-9"> 
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <span class="api_title mb-0">Dokumentacja API Booking</span>   
+            <div class="show_list_link"></div>
+          </div>
+        
+            
+        
+            <div id="documentation_background">
+                <div class="content shop api_docs">
+                    <div class="container white_bg" data-equalizer="">
+        
+        <div class="api_content row" data-equalizer-watch=""><div class="col-12 mb-5"><p class="api_short_description">
+Wysyła wiadomość do klienta odnośnie rezerwacji
+
+
+</p></div><div class="apiDesc col-12 mb-5">
+            <div id="format_type" class="tabs">
+                
+        <div class="tabs__content"><div id="tab1" class="tabs__element --shown">
+            <div id="api_method_adresses" class="mb-5">
+                <div class="api_method_header px-3 d-flex align-items-center">
+                    <i class="icon-info-circled"></i>
+                    <strong>Adresy</strong>
+                </div>
+        
+              <div class="api_method_row">
+                <div class="row align-items-center py-3">
+                    <div class="col-3 pl-5">
+                        <strong>Nasłuch</strong>
+                    </div>
+                    <div class="col-9 col-sm-7">
+                        <a href="https://client1679.idosell.com/api/reservations/notifyClient/36/json" class="api_link" id="copyTarget_0json">https://_domena_booking_.idosell.com/api/reservations/notifyClient/36/json</a>
+                    </div>
+                    <div class="col-12 col-sm-2 d-flex justify-content-end">
+                        
+                    </div>
+                
+                    </div>
+                </div>
+            </div>
+        
+        <div id="api_method_request_json" class="mb-5"><div class="api_method_header px-3"><div class="api_method_header_left d-flex flex-wrap justify-content-center justify-content-sm-between align-items-center"><div><i class="icon-code"></i> 
+            <strong>Struktura żądania</strong></div></div></div><div id="api_method_request_content" class="api_details visible">
+                <div class="api_details_item open" data-parameter-name="authenticate">
+                    <div class="api_details_item_inner level0 toggle">
+                        <strong class="api_required required_after">authenticate <span>(authenticateType)</span></strong>
+                        <span><p>Element służy do uwierzytelniania konta w celu wywołania metody</p></span>
+                    </div>
+        
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="systemKey">
+                    <div class="api_details_item_inner level1">
+                        <strong class="api_required required_after">systemKey <span>(string)</span></strong>
+                        <span><p>Klucz wykorzystywany podczas uwierzytelniania. Zapoznaj się z <a href="https://pomoc.idobooking.com/dodatkowe-moduly/api">instrukcją generowania klucza</a></p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="systemLogin">
+                    <div class="api_details_item_inner level1">
+                        <strong class="api_required required_after">systemLogin <span>(string)</span></strong>
+                        <span><p>Login użytkownika panelu IdoSell Booking</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="lang">
+                    <div class="api_details_item_inner level1">
+                        <strong class="">lang <span>(apiLanguage)</span></strong>
+                        <span><p>
+                    <span>Możliwe wartości:
+                    </span> (<i>eng, pol, ger</i>)</p><p>Język API, możliwe wartości:
+                        - eng - angielski
+                        - pol - polski
+                        - ger - niemiecki</p></span>
+                    </div>
+        </div></div></div>
+                <div class="api_details_item open" data-parameter-name="notifications">
+                    <div class="api_details_item_inner level0 toggle">
+                        <strong class="api_required required_after">notifications <span>(notificationsType)</span></strong>
+                        <span><p>Dane notyfikacji</p></span>
+                    </div>
+        
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item open" data-parameter-name="notificationType">
+                    <div class="api_details_item_inner level1 toggle">
+                        <strong class="api_required required_after"> <span>(notificationType)</span></strong>
+                        <span><p>element typu notificationType</p></span>
+                    </div>
+        
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="reservationId">
+                    <div class="api_details_item_inner level2">
+                        <strong class="api_required required_after">reservationId <span>(int)</span></strong>
+                        <span><p>Identyfikator rezerwacji</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="sendMessageWithPaymentRequest">
+                    <div class="api_details_item_inner level2">
+                        <strong class="">sendMessageWithPaymentRequest <span>(sendMessageWithPaymentRequestType)</span></strong>
+                        <span><p>
+                    <span>Możliwe wartości:
+                    </span> (<i>y, n</i>)</p><p>Data i godzina zakończenia</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="sendMessageWithCurrentReservationState">
+                    <div class="api_details_item_inner level2">
+                        <strong class="">sendMessageWithCurrentReservationState <span>(sendMessageWithCurrentReservationStateType)</span></strong>
+                        <span><p>
+                    <span>Możliwe wartości:
+                    </span> (<i>y, n</i>)</p><p>Data i godzina rozpoczęcia</p></span>
+                    </div>
+        </div></div></div></div></div></div></div>
+        <div id="api_method_response_json" class="mb-5"><div class="api_method_header px-3"><div class="api_method_header_left d-flex flex-wrap justify-content-center justify-content-sm-between align-items-center"><div><i class="icon-code"></i> 
+            <strong>Struktura odpowiedzi</strong></div></div></div><div id="api_method_response_content" class="api_details visible">
+                <div class="api_details_item open" data-parameter-name="authenticate">
+                    <div class="api_details_item_inner level0 toggle">
+                        <strong class="">authenticate <span>(authenticateType)</span></strong>
+                        <span><p>Element zawierający informacje zwrotne z modułu autoryzującego</p></span>
+                    </div>
+        
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="systemKey">
+                    <div class="api_details_item_inner level1">
+                        <strong class="api_required required_after">systemKey <span>(string)</span></strong>
+                        <span><p>Klucz wykorzystywany podczas uwierzytelniania. Zapoznaj się z <a href="https://pomoc.idobooking.com/dodatkowe-moduly/api">instrukcją generowania klucza</a></p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="systemLogin">
+                    <div class="api_details_item_inner level1">
+                        <strong class="api_required required_after">systemLogin <span>(string)</span></strong>
+                        <span><p>Login użytkownika panelu IdoSell Booking</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="lang">
+                    <div class="api_details_item_inner level1">
+                        <strong class="">lang <span>(apiLanguage)</span></strong>
+                        <span><p>
+                    <span>Możliwe wartości:
+                    </span> (<i>eng, pol, ger</i>)</p><p>Język API, możliwe wartości:
+                        - eng - angielski
+                        - pol - polski
+                        - ger - niemiecki</p></span>
+                    </div>
+        </div></div></div>
+                <div class="api_details_item open" data-parameter-name="errors">
+                    <div class="api_details_item_inner level0 toggle">
+                        <strong class="">errors <span>(gateErrorType)</span></strong>
+                        <span><p>Lista kodów błędów</p></span>
+                    </div>
+        
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="faultCode">
+                    <div class="api_details_item_inner level1">
+                        <strong class="">faultCode <span>(int)</span></strong>
+                        <span><p>Kod błędu</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="faultString">
+                    <div class="api_details_item_inner level1">
+                        <strong class="">faultString <span>(string)</span></strong>
+                        <span><p>Opis błędu</p></span>
+                    </div>
+        </div></div></div>
+                <div class="api_details_item open" data-parameter-name="notifications">
+                    <div class="api_details_item_inner level0 toggle">
+                        <strong class="">notifications <span>(notificationsResponseType)</span></strong>
+                        <span><p>Dane notyfikacji</p></span>
+                    </div>
+        
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item open" data-parameter-name="notificationResponseType">
+                    <div class="api_details_item_inner level1 toggle">
+                        <strong class="api_required required_after"> <span>(notificationResponseType)</span></strong>
+                        <span><p>element typu notificationResponseType</p></span>
+                    </div>
+        
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="success">
+                    <div class="api_details_item_inner level2">
+                        <strong class="">success <span>(boolean)</span></strong>
+                        <span><p>Sukces</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item open" data-parameter-name="error">
+                    <div class="api_details_item_inner level2 toggle">
+                        <strong class="">error <span>(errorType)</span></strong>
+                        <span><p>Dane błędu</p></span>
+                    </div>
+        
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="faultCode">
+                    <div class="api_details_item_inner level3">
+                        <strong class="">faultCode <span>(int)</span></strong>
+                        <span><p>Kod błędu</p></span>
+                    </div>
+        </div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="faultString">
+                    <div class="api_details_item_inner level3">
+                        <strong class="">faultString <span>(string)</span></strong>
+                        <span><p>Opis błędu</p></span>
+                    </div>
+        </div></div></div></div>
+            <div class="api_details_item_sub">
+            
+                <div class="api_details_item" data-parameter-name="reservationId">
+                    <div class="api_details_item_inner level2">
+                        <strong class="">reservationId <span>(int)</span></strong>
+                        <span><p>Identyfikator rezerwacji</p></span>
+                    </div>
+        </div></div></div></div></div></div></div>
+        <div id="php-example_json" class="code_example mb-5"><div class="api_method_header px-3"><div class="api_method_header_left d-flex flex-wrap justify-content-center justify-content-sm-between align-items-center"><div><i class="icon-file-code"></i> 
+            <strong>Przykład kodu w PHP</strong></div></div></div><div class="api_details visible">
+                <div id="php-example_content_json">
+                    <pre class="highlight-code hljs php"><span class="hljs-meta">&lt;?php</span>
+
+$address = <span class="hljs-string">'https://client1679.idobooking.com/api/reservations/notifyClient/36/json'</span>;
+
+$request = <span class="hljs-keyword">array</span>();
+$request[<span class="hljs-string">'authenticate'</span>] = <span class="hljs-keyword">array</span>();
+$request[<span class="hljs-string">'authenticate'</span>][<span class="hljs-string">'systemKey'</span>] = sha1(date(<span class="hljs-string">'Ymd'</span>) . sha1(<span class="hljs-string">'YOUR_KEY'</span>));
+$request[<span class="hljs-string">'authenticate'</span>][<span class="hljs-string">'systemLogin'</span>] = <span class="hljs-string">"systemLogin"</span>;
+$request[<span class="hljs-string">'authenticate'</span>][<span class="hljs-string">'lang'</span>] = <span class="hljs-string">'eng'</span>;
+$request[<span class="hljs-string">'notifications'</span>] = <span class="hljs-keyword">array</span>();
+$request[<span class="hljs-string">'notifications'</span>][<span class="hljs-number">0</span>] = <span class="hljs-keyword">array</span>();
+$request[<span class="hljs-string">'notifications'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'reservationId'</span>] = <span class="hljs-number">1</span>;
+$request[<span class="hljs-string">'notifications'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'sendMessageWithPaymentRequest'</span>] = <span class="hljs-string">'y'</span>;
+$request[<span class="hljs-string">'notifications'</span>][<span class="hljs-number">0</span>][<span class="hljs-string">'sendMessageWithCurrentReservationState'</span>] = <span class="hljs-string">'y'</span>;
+
+$request_json = json_encode($request);
+$headers = <span class="hljs-keyword">array</span>(
+    <span class="hljs-string">'Accept: application/json'</span>,
+    <span class="hljs-string">'Content-Type: application/json;charset=UTF-8'</span>
+);
+
+$curl = curl_init($address);
+curl_setopt($curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
+curl_setopt($curl, CURLOPT_RETURNTRANSFER, <span class="hljs-number">1</span>);
+curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, <span class="hljs-keyword">false</span>);
+curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, <span class="hljs-keyword">false</span>);
+curl_setopt($curl, CURLOPT_FORBID_REUSE, <span class="hljs-number">1</span>);
+curl_setopt($curl, CURLINFO_HEADER_OUT, <span class="hljs-number">1</span>);
+curl_setopt($curl, CURLOPT_HEADER, <span class="hljs-number">1</span>);
+curl_setopt($curl, CURLOPT_POST, <span class="hljs-number">1</span>);
+curl_setopt($curl, CURLOPT_POSTFIELDS, $request_json);
+curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+
+$response = curl_exec($curl);
+$status = curl_getinfo($curl);
+curl_close($curl);
+       </pre>
+                </div>
+            </div></div>
+        <div id="api_changelog_json" class="mb-5"><h2>Historia zmian</h2><p>W rozwiniętej historii metody nie wyświetlono wpisów zmian; dostępny był formularz porównywania wersji.</p></div></div></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+            
+        </div></div></main></html>

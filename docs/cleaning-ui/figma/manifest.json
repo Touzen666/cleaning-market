@@ -1,0 +1,62 @@
+[
+  {
+    "file": "01-checklist-photos-profile.jpg",
+    "bytes": 262735,
+    "sha256": "52005a746493acd332c07ba3c7c81b1e04462ff9009280178d4a698abe5ddd42",
+    "matchesSource": true
+  },
+  {
+    "file": "02-details-payout-requests.jpg",
+    "bytes": 308030,
+    "sha256": "1deb4ed9285f8ed98d8107c2a36aa03610d924f76f1a195279f22abf1e1c1864",
+    "matchesSource": true
+  },
+  {
+    "file": "03-login-onboarding.jpg",
+    "bytes": 127526,
+    "sha256": "8757ddad83c8f0dbeb07cfbafd2ef2721cecdaf61371523f5416c07d163547ed",
+    "matchesSource": true
+  },
+  {
+    "file": "04-apartment-details-claim.jpg",
+    "bytes": 243154,
+    "sha256": "a13cf30134c4097d92ee43ecdf5b9958d1c2e3b028b63c0e0aeb77908709ec7f",
+    "matchesSource": true
+  },
+  {
+    "file": "05-reserve-start-complete.jpg",
+    "bytes": 219253,
+    "sha256": "04b3b8a7e3531b9f491125e431d940a3a055a5f203e3d5fbd33621dbcff44fde",
+    "matchesSource": true
+  },
+  {
+    "file": "06-extra-checklist.jpg",
+    "bytes": 158310,
+    "sha256": "9396f7583ac3ba94badb1d59d6bbef9c758dcd8ea7cd9b6fa75e8e1c3983e145",
+    "matchesSource": true
+  },
+  {
+    "file": "07-completion-proof.jpg",
+    "bytes": 96280,
+    "sha256": "4225f938c1f5675ed891539259cf31c7047a2e201a464bb69a5d665cb15ba5a0",
+    "matchesSource": true
+  },
+  {
+    "file": "08-profile-history.jpg",
+    "bytes": 284444,
+    "sha256": "624fcb40d4bb41ef0dc713692687a04fe39c4443922624f79f0ac91fde7ea12d",
+    "matchesSource": true
+  },
+  {
+    "file": "09-points-redemption.jpg",
+    "bytes": 215212,
+    "sha256": "3e205de535fbe1452b0f74b84d70fd4ac60c0775df477800b8770f460ff2d686",
+    "matchesSource": true
+  },
+  {
+    "file": "10-profile-edit-request.jpg",
+    "bytes": 188371,
+    "sha256": "528294f92a2bcb09c832797c2544f58ea68dafe649f4649a8dd3475fee2c339f",
+    "matchesSource": true
+  }
+]

@@ -1,189 +1,209 @@
 "use client";
 
-import React, { useState } from "react";
-import { api } from "@/trpc/react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
+import { signOut } from "next-auth/react";
+import { getQueryKey } from "@trpc/react-query";
+import { useQueryClient } from "@tanstack/react-query";
+import { BrushCleaning, LogOut } from "lucide-react";
+import { api } from "@/trpc/react";
+import { CleaningCandidatesPanel } from "./_components/candidates-panel";
+import { WorkforcePanel } from "./_components/workforce-panel";
+import {
+  clientErrorCode,
+  planningError,
+  rangeFrom,
+  todayInWarsaw,
+} from "./_components/view-model";
 
 export default function CleaningHomePage() {
   const router = useRouter();
-  const [search, setSearch] = useState("");
-  const [daysAhead, setDaysAhead] = useState(7);
-  const [tokenReady, setTokenReady] = React.useState<boolean>(false);
+  const queryClient = useQueryClient();
+  const utils = api.useUtils();
+  const [range, setRange] = useState(() => rangeFrom(todayInWarsaw()));
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshError, setRefreshError] = useState<string>();
+  const [leaving, setLeaving] = useState(false);
+  const [managerView, setManagerView] = useState<"reservations" | "workforce">(
+    "reservations",
+  );
+  const [refreshDenied, setRefreshDenied] = useState(false);
+  const refreshSequence = useRef(0);
+  const access = api.cleaning.access.useQuery(undefined, {
+    retry: false,
+    staleTime: 0,
+  });
+  const input = { ...range, includeReviews: true };
+  const candidates = api.cleaning.listOverview.useQuery(input, {
+    enabled: access.data?.canPlan === true && !leaving,
+    retry: false,
+    staleTime: 60000,
+    refetchOnWindowFocus: false,
+    refetchInterval: 12 * 60 * 60 * 1000,
+  });
 
-  React.useEffect(() => {
-    const token =
-      typeof window !== "undefined"
-        ? localStorage.getItem("cleaningAuthToken")
-        : null;
-    if (!token) {
+  useEffect(() => {
+    if (access.error?.data?.code === "UNAUTHORIZED") {
+      localStorage.removeItem("cleaningAuthToken");
+      queryClient.removeQueries({ queryKey: getQueryKey(api.cleaning) });
       router.replace("/cleaningService/login");
-      return;
     }
-    setTokenReady(true);
-  }, [router]);
+  }, [access.error, queryClient, router]);
 
-  const { data, isLoading, error, refetch, isRefetching } =
-    api.cleaning.listJobs.useQuery(
-      { daysAhead, query: search || undefined },
-      { staleTime: 30_000, enabled: tokenReady },
+  async function refresh() {
+    const sequence = ++refreshSequence.current;
+    setRefreshing(true);
+    setRefreshError(undefined);
+    try {
+      await utils.cleaning.listOverview.cancel(input);
+      const latest = await utils.cleaning.listOverview.fetch(
+        { ...input, forceRefresh: true },
+        { staleTime: 0 },
+      );
+      // Keep the explicitly refreshed result under the ordinary query key too.
+      if (sequence === refreshSequence.current) {
+        utils.cleaning.listOverview.setData(input, latest);
+        setRefreshDenied(false);
+      }
+    } catch (error) {
+      const code = clientErrorCode(error);
+      if (code === "UNAUTHORIZED" || code === "FORBIDDEN") {
+        setRefreshDenied(true);
+        queryClient.removeQueries({
+          queryKey: getQueryKey(api.cleaning.listOverview),
+        });
+        void access.refetch();
+      }
+      if (sequence === refreshSequence.current)
+        setRefreshError(planningError(code));
+    } finally {
+      if (sequence === refreshSequence.current) setRefreshing(false);
+    }
+  }
+
+  async function logout() {
+    refreshSequence.current++;
+    setLeaving(true);
+    await queryClient.cancelQueries({ queryKey: getQueryKey(api.cleaning) });
+    localStorage.removeItem("cleaningAuthToken");
+    queryClient.removeQueries({ queryKey: getQueryKey(api.cleaning) });
+    queryClient.removeQueries({ queryKey: getQueryKey(api.cleaningAuth) });
+    if (access.data?.authSource === "session")
+      await signOut({ callbackUrl: "/cleaningService/login" });
+    else router.replace("/cleaningService/login");
+  }
+
+  if (
+    leaving ||
+    access.isPending ||
+    access.error?.data?.code === "UNAUTHORIZED"
+  ) {
+    return (
+      <div
+        role="status"
+        className="mx-auto max-w-[1800px] px-5 py-16 text-sm text-slate-500"
+      >
+        {leaving ? "Wylogowywanie…" : "Sprawdzanie dostępu do panelu…"}
+      </div>
     );
-
-  const jobs = data?.jobs ?? [];
-
-  const empty = !isLoading && jobs.length === 0;
+  }
+  const denied =
+    refreshDenied ||
+    candidates.error?.data?.code === "UNAUTHORIZED" ||
+    candidates.error?.data?.code === "FORBIDDEN";
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-50 to-white px-4 py-6">
-      <div className="mx-auto w-full max-w-3xl">
-        <header className="mb-5 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900">
-              Zadania sprzątania
-            </h1>
-            <p className="text-sm text-slate-500">
-              Nadchodzące wizyty • następne {daysAhead} dni
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <button
-              onClick={() => refetch()}
-              className="rounded-lg bg-slate-900 px-3 py-2 text-sm font-semibold text-white shadow-sm disabled:opacity-50 hover:bg-slate-800"
-              disabled={isRefetching}
-            >
-              {isRefetching ? "Odświeżam..." : "Odśwież"}
-            </button>
-            <SyncNowButton onDone={() => refetch()} />
-          </div>
-        </header>
-
-        <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <div className="sm:col-span-2">
-            <div className="relative">
-              <input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Szukaj po adresie, nazwie, pokoju..."
-                className="w-full rounded-xl border border-slate-200 bg-white/90 px-4 py-2.5 text-sm shadow-sm outline-none ring-2 ring-transparent transition focus:border-slate-300 focus:ring-sky-200"
-              />
+    <div className="min-h-screen bg-[#f6f8fa]" lang="pl">
+      <header className="border-b border-slate-200 bg-white">
+        <div className="mx-auto flex max-w-[1800px] items-center justify-between gap-3 px-4 py-4 sm:px-6">
+          <div className="flex items-center gap-3">
+            <div className="rounded-xl bg-teal-800 p-2.5 text-white">
+              <BrushCleaning className="h-5 w-5" aria-hidden="true" />
+            </div>
+            <div>
+              <span className="block text-base font-bold tracking-tight text-slate-900">
+                Bookmarket <span className="font-normal text-slate-400">/</span>{" "}
+                cleaning
+              </span>
+              <span className="block text-xs text-slate-500">
+                {access.data?.canPlan
+                  ? "Panel koordynatora"
+                  : "Panel pracownika"}
+              </span>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <label className="text-sm text-slate-600">Zakres:</label>
-            <select
-              value={daysAhead}
-              onChange={(e) => setDaysAhead(Number(e.target.value))}
-              className="w-full rounded-xl border border-slate-200 bg-white/90 px-3 py-2 text-sm shadow-sm outline-none ring-2 ring-transparent transition focus:border-slate-300 focus:ring-sky-200"
-            >
-              <option value={3}>3 dni</option>
-              <option value={7}>7 dni</option>
-              <option value={14}>14 dni</option>
-              <option value={30}>30 dni</option>
-            </select>
-          </div>
+          <button
+            onClick={() => void logout()}
+            className="inline-flex min-h-11 items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100"
+          >
+            <LogOut className="h-4 w-4" aria-hidden="true" />
+            Wyloguj
+          </button>
         </div>
-
-        {isLoading ? (
-          <div className="rounded-xl border border-slate-100 bg-white p-8 text-center text-slate-500 shadow-sm">
-            Ładowanie zadań...
+      </header>
+      <div className="mx-auto max-w-[1800px] px-4 py-4 sm:px-6 sm:py-5">
+        {access.error ? (
+          <div
+            role="alert"
+            className="rounded-xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-950"
+          >
+            Nie udało się potwierdzić dostępu.{" "}
+            <button
+              onClick={() => void access.refetch()}
+              className="ml-1 font-semibold underline"
+            >
+              Spróbuj ponownie
+            </button>
           </div>
-        ) : error ? (
-          <div className="rounded-xl border border-rose-100 bg-rose-50 p-4 text-sm text-rose-700">
-            Błąd: {error.message}
-          </div>
-        ) : empty ? (
-          <div className="rounded-xl border border-slate-100 bg-white p-8 text-center text-slate-500 shadow-sm">
-            Brak zadań w wybranym zakresie.
-          </div>
+        ) : !access.data?.canPlan ? (
+          <WorkforcePanel manager={false} />
         ) : (
-          <ul className="space-y-4">
-            {jobs.map((job) => (
-              <li key={job.id}>
-                <div className="group overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm transition hover:shadow-md">
-                  <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="flex min-w-0 flex-1 items-start gap-4">
-                      {job.imageUrl && (
-                        <div className="relative h-16 w-20 flex-shrink-0 overflow-hidden rounded-lg bg-slate-100">
-                          <Image
-                            src={job.imageUrl}
-                            alt={
-                              job.displayApartmentName ??
-                              job.apartmentName ??
-                              "Apartament"
-                            }
-                            fill
-                            sizes="80px"
-                            className="object-cover"
-                            quality={80}
-                          />
-                        </div>
-                      )}
-                      <div className="flex flex-col gap-1">
-                        <span className="rounded-xl bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-800">
-                          Check‑in: {job.checkInLabel}
-                        </span>
-                        <span className="rounded-xl bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
-                          Check‑out: {job.checkOutLabel}
-                        </span>
-                      </div>
-                      <div className="min-w-0">
-                        <div className="mb-0.5 flex flex-wrap items-center gap-2">
-                          <span className="truncate text-base font-semibold text-slate-900">
-                            {job.displayApartmentName ?? job.apartmentName}
-                          </span>
-                        </div>
-                        <div className="text-sm text-slate-600">
-                          {job.address}
-                        </div>
-                        {job.showRoom && (
-                          <div className="mt-1">
-                            <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
-                              Pokój {job.roomCode}
-                            </span>
-                          </div>
-                        )}
-                        {job.guest && (
-                          <div className="mt-1 text-sm text-slate-700">
-                            Gość:{" "}
-                            <span className="font-medium">{job.guest}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="flex shrink-0 items-center gap-2">
-                      <button
-                        onClick={() =>
-                          router.push(`/cleaningService/job/${job.id}`)
-                        }
-                        className="rounded-xl bg-sky-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-500"
-                      >
-                        Szczegóły
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ul>
+          <>
+            <nav
+              aria-label="Obszar koordynatora"
+              className="mb-5 flex w-full gap-2 rounded-xl bg-slate-100 p-1 sm:w-fit"
+            >
+              <button
+                aria-pressed={managerView === "reservations"}
+                onClick={() => setManagerView("reservations")}
+                className={`min-h-11 flex-1 rounded-lg px-4 py-2 text-sm font-semibold ${managerView === "reservations" ? "bg-white text-teal-900 shadow-sm" : "text-slate-500"}`}
+              >
+                Rezerwacje i okna
+              </button>
+              <button
+                aria-pressed={managerView === "workforce"}
+                onClick={() => setManagerView("workforce")}
+                className={`min-h-11 flex-1 rounded-lg px-4 py-2 text-sm font-semibold ${managerView === "workforce" ? "bg-white text-teal-900 shadow-sm" : "text-slate-500"}`}
+              >
+                Sprzątania i zespół
+              </button>
+            </nav>
+            {managerView === "workforce" ? (
+              <WorkforcePanel manager />
+            ) : (
+              <CleaningCandidatesPanel
+                data={denied ? undefined : candidates.data}
+                loading={candidates.isPending}
+                refreshing={refreshing || candidates.isFetching}
+                error={
+                  refreshError ??
+                  (candidates.error
+                    ? planningError(candidates.error.data?.code)
+                    : undefined)
+                }
+                range={range}
+                onRangeChange={(next) => {
+                  refreshSequence.current++;
+                  setRefreshing(false);
+                  setRefreshError(undefined);
+                  setRange(next);
+                }}
+                onRefresh={() => void refresh()}
+              />
+            )}
+          </>
         )}
       </div>
     </div>
-  );
-}
-
-function SyncNowButton({ onDone }: { onDone: () => void }) {
-  const syncMutation = api.cleaning.syncNow.useMutation({
-    onSuccess: () => onDone(),
-  });
-  return (
-    <button
-      onClick={() => syncMutation.mutate({})}
-      disabled={syncMutation.isPending}
-      className="rounded-lg bg-sky-700 px-3 py-2 text-sm font-semibold text-white shadow-sm disabled:opacity-50 hover:bg-sky-600"
-      title="Synchronizuj rezerwacje i odśwież listę"
-    >
-      {syncMutation.isPending ? "Synchronizuję..." : "Synchronizuj + odśwież"}
-    </button>
   );
 }

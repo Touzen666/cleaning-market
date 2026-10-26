@@ -1,0 +1,324 @@
+<!doctype html><html lang="pl"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Strona special-offer.tpl w szablonach Wizytówki</title><style>body{font:16px/1.65 system-ui,sans-serif;color:#21302d;margin:0;background:#f5f7f5}main{max-width:1120px;margin:30px auto;background:white;padding:36px;border-radius:12px}a{color:#087f5b}h1{line-height:1.2}h2{margin-top:2em}table{width:100%;border-collapse:collapse;font-size:14px}td,th{border:1px solid #d9e2df;padding:10px;text-align:left;vertical-align:top}th{background:#edf5f0}code,pre{font-family:Consolas,monospace}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#eef3f1;padding:20px}img{max-width:100%;height:auto}.meta{padding:14px;background:#edf5f0}.api_details_item_inner{display:grid;grid-template-columns:minmax(190px,40%) 1fr;border-bottom:1px solid #ddd;padding:12px;gap:16px}.api_details_item_sub{margin-left:18px;border-left:2px solid #a9cdbb;padding-left:8px}.api_required.required_after:after{content:' *';color:#b62323}.api_method_header{background:#edf5f0;padding:12px;margin-top:24px}input{padding:12px;font:inherit;width:90%;max-width:700px}.index li{margin:6px 0}.notice{background:#fff5d7;padding:14px}nav{margin-bottom:24px}@media(max-width:700px){main{padding:16px}.api_details_item_inner{display:block}td,th{padding:5px}}</style><main><nav><a href="../index.html">← Spis dokumentacji</a></nav><h1>Strona special-offer.tpl w szablonach Wizytówki</h1><p class="meta">Źródło: <a href="https://api.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/strona-special-offer-tpl-w-szablonach-wizytowki/">iDoBooking</a> · Kopia: 24.10.2026 · <a href="strona-special-offer-tpl-w-szablonach-wizytowki.jpg">Pełny zrzut</a> · <a href="strona-special-offer-tpl-w-szablonach-wizytowki.md">Markdown</a></p><div class="content__collapse col-md-9"> 
+<h3 id="toc6683" class="old_wiki"> <b>$offer</b> - zestaw</h3>
+
+
+<table class="responsive">
+    <tbody><tr class="simple-table-row">
+        <th class="simple-table-head"><b>Zmienna</b></th>
+        <th class="simple-table-head"><b>Opis</b></th>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offer['id']</td>
+        <td class="simple-table-body">Identyfikator zestawu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offer['date_from']</td>
+        <td class="simple-table-body">Data rozpoczęcia zestawu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offer['date_to']</td>
+        <td class="simple-table-body">Data zakończenia zestawu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offer['vat']</td>
+        <td class="simple-table-body">Stawka VAT zestawu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offer['reservation_start_week_day']</td>
+        <td class="simple-table-body">Dzień rozpoczęcia zestawu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offer['visible_at_site']</td>
+        <td class="simple-table-body">Zwraca czy zestaw jest widoczny na stronie wizytówce</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offer['priority']</td>
+        <td class="simple-table-body">Priorytet zestawu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offer['name']</td>
+        <td class="simple-table-body">Nazwa zestawu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offer['maxCapacity']</td>
+        <td class="simple-table-body">Maksymalna ilość osób w rezerwacji</td>
+    </tr>
+</tbody></table>
+
+
+<h3 id="toc6684" class="old_wiki"> <b>$offer['pictures'][picture_id]</b> - galeria zestawu</h3>
+
+
+<table class="responsive">
+    <tbody><tr class="simple-table-row">
+        <th class="simple-table-head"><b>Zmienna</b></th>
+        <th class="simple-table-head"><b>Opis</b></th>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offer['pictures'][picture_id]['miniature']</td>
+        <td class="simple-table-body">Miniatura elementu galerii zestawu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offer['pictures'][picture_id]['url']</td>
+        <td class="simple-table-body">Adres do elementu galerii zestawu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offer['pictures'][picture_id]['type']</td>
+        <td class="simple-table-body">Typ elementu galerii zestawu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offer['pictures'][picture_id]['thumbnail']</td>
+        <td class="simple-table-body">Miniatura dla elementu galerii typu video zestawu</td>
+    </tr>
+</tbody></table>
+
+
+<h3 id="toc6685" class="old_wiki"> <b>$offer['seasons']</b> - sezony z dostępnymi zestawami</h3>
+
+
+<table class="responsive">
+    <tbody><tr class="simple-table-row">
+        <th class="simple-table-head"><b>Zmienna</b></th>
+        <th class="simple-table-head"><b>Opis</b></th>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offer['seasons'][season_id]['id']</td>
+        <td class="simple-table-body">Identyfikator sezonu w jakim zestaw jest dostępny</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offer['seasons'][season_id]['formatted_from']</td>
+        <td class="simple-table-body">Sformatowana data rozpoczęcia sezonu w zestawie</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offer['seasons'][season_id]['formatted_to']</td>
+        <td class="simple-table-body">Sformatowana data zakończenia sezonu w zestawie</td>
+    </tr>
+</tbody></table>
+
+
+<h3 id="toc6686" class="old_wiki"> <b>$offerObjects</b> - przedmioty rezerwacji w zestawie</h3>
+
+
+<table class="responsive">
+    <tbody><tr class="simple-table-row">
+        <th class="simple-table-head"><b>Zmienna</b></th>
+        <th class="simple-table-head"><b>Opis</b></th>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offerObjects[object_id]['id']</td>
+        <td class="simple-table-body">Identyfikator przedmiotu rezerwacji w zestawie</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offerObjects[object_id]['pkwiu']</td>
+        <td class="simple-table-body">PKWIU przedmiotu rezerwacji w zestawie</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offerObjects[object_id]['object_type_id']</td>
+        <td class="simple-table-body">Identyfikator typu obiektu w zestawie</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offerObjects[object_id]['visible_at_site']</td>
+        <td class="simple-table-body">Zwraca czy obiekt jest widoczny na stronie wizytówce</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offerObjects[object_id]['priority']</td>
+        <td class="simple-table-body">Priorytet przedmiotu rezerwacji w zestawie</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offerObjects[object_id]['vat']</td>
+        <td class="simple-table-body">Stawka VAT przedmiotu rezerwacji w zestawie</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offerObjects[object_id]['currency_id']</td>
+        <td class="simple-table-body">Identyfikator waluty przedmiotu rezerwacji w zestawie</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offerObjects[object_id]['capacity']</td>
+        <td class="simple-table-body">Maksymalna ilość osób dla przedmiotu rezerwacji w zestawie</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offerObjects[object_id]['roll_away_beds']</td>
+        <td class="simple-table-body">Ilość dostawek dla przedmiotu rezerwacji w zestawie</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offerObjects[object_id]['name']</td>
+        <td class="simple-table-body">Nazwę przedmiotu rezerwacji w zestawie</td>
+    </tr>
+</tbody></table>
+
+
+<h3 id="toc6687" class="old_wiki"> <b>$offerObjects[object_id]['descriptions']</b> - opisy przedmiotów rezerwacji w zestawie</h3>
+
+
+<table class="responsive">
+    <tbody><tr class="simple-table-row">
+        <th class="simple-table-head"><b>Zmienna</b></th>
+        <th class="simple-table-head"><b>Opis</b></th>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offerObjects[object_id]['descriptions'][id]</td>
+        <td class="simple-table-body">Opis przedmiotu rezerwacji w zestawie</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offerObjects[object_id]['descriptions'][id]['object_id']</td>
+        <td class="simple-table-body">Identyfikator opisu przedmiotu rezerwacji w zestawie</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offerObjects[object_id]['descriptions'][id]['language_id']</td>
+        <td class="simple-table-body">Identyfikator języka przedmiotu rezerwacji w zestawie</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offerObjects[object_id]['descriptions'][id]['name']</td>
+        <td class="simple-table-body">Nazwa przedmiotu rezerwacji w zestawie</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offerObjects[object_id]['descriptions'][id]['short_description']</td>
+        <td class="simple-table-body">Krótki opis przedmiotu rezerwacji w zestawie</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offerObjects[object_id]['descriptions'][id]['long_description']</td>
+        <td class="simple-table-body">Długi opis przedmiotu rezerwacji w zestawie</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offerObjects[object_id]['descriptions'][id]['meta_title']</td>
+        <td class="simple-table-body">Tytuł META dla przedmiotu rezerwacji w zestawie</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offerObjects[object_id]['descriptions'][id]['meta_description']</td>
+        <td class="simple-table-body">Opis META dla przedmiotu rezerwacji w zestawie</td>
+    </tr>
+</tbody></table>
+
+
+<h3 id="toc6688" class="old_wiki"> <b>$offer['freeAddons']</b> - lista dodatków wliczonych w cenę dla przedmiotu rezerwacji</h3>
+
+
+<table class="responsive">
+    <tbody><tr class="simple-table-row">
+        <th class="simple-table-head"><b>Zmienna</b></th>
+        <th class="simple-table-head"><b>Opis</b></th>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offer['freeAddons'][key]['name']</td>
+        <td class="simple-table-body">Nazwa dodatku wliczonego w cenę</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offer['freeAddons'][key]['price']</td>
+        <td class="simple-table-body">Cena dodatku wliczonego w cenę</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offer['freeAddons'][key]['txt_ChargePerDescription']</td>
+        <td class="simple-table-body">Dodatkowy opis np. płatne za dobę</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offer['freeAddons'][key]['selectionMode']</td>
+        <td class="simple-table-body">1- dodatek wielowartościowy, 0- dodatek jednowartościowy</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offer['freeAddons'][key]['amenitiesToPresentation']</td>
+        <td class="simple-table-body">Udogodnienia przypisane do dodatku. W przypadku dodatku  jednowartościowego zwracana jest  tablica nazw udogodnień. W przypadku dodatku  wielowartościowego zwracana jest tablica, w której name - nazwa elementu wielowartościowego; amenities - tablica nazw udogodnień</td>
+    </tr>
+</tbody></table>
+
+
+<h3 id="toc6689" class="old_wiki"> <b>$offer['afterArrival']</b> - lista dodatków płatnych po przyjeździe dla przedmiotu rezerwacji</h3>
+
+
+<table class="responsive">
+    <tbody><tr class="simple-table-row">
+        <th class="simple-table-head"><b>Zmienna</b></th>
+        <th class="simple-table-head"><b>Opis</b></th>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offer['afterArrival'][key]['name']</td>
+        <td class="simple-table-body">Nazwa dodatku wliczonego w cenę</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offer['afterArrival'][key]['price']</td>
+        <td class="simple-table-body">Cena dodatku wliczonego w cenę</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offer['afterArrival'][key]['txt_ChargePerDescription']</td>
+        <td class="simple-table-body">Dodatkowy opis np. płatne za dobę</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offer['afterArrival'][key]['selectionMode']</td>
+        <td class="simple-table-body">1- dodatek wielowartościowy, 0- dodatek jednowartościowy</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offer['afterArrival'][key]['amenitiesToPresentation']</td>
+        <td class="simple-table-body">Udogodnienia przypisane do dodatku. W przypadku dodatku  jednowartościowego zwracana jest  tablica nazw udogodnień. W przypadku dodatku  wielowartościowego zwracana jest tablica, w której name - nazwa elementu wielowartościowego; amenities - tablica nazw udogodnień</td>
+    </tr>
+</tbody></table>
+
+
+<h3 id="toc6690" class="old_wiki"> <b>$object['widget']</b> - lista dodatków płatnych dodatkowo podczas rezerwacji dla przedmiotu rezerwacji</h3>
+
+
+<table class="responsive">
+    <tbody><tr class="simple-table-row">
+        <th class="simple-table-head"><b>Zmienna</b></th>
+        <th class="simple-table-head"><b>Opis</b></th>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offer['widget'][key]['name']</td>
+        <td class="simple-table-body">Nazwa dodatku wliczonego w cenę</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offer['widget'][key]['price']</td>
+        <td class="simple-table-body">Cena dodatku wliczonego w cenę</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offer['widget'][key]['txt_ChargePerDescription']</td>
+        <td class="simple-table-body">Dodatkowy opis np. płatne za dobę</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offer['widget'][key]['selectionMode']</td>
+        <td class="simple-table-body">1- dodatek wielowartościowy, 0- dodatek jednowartościowy</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offer['widget'][key]['amenitiesToPresentation']</td>
+        <td class="simple-table-body">Udogodnienia przypisane do dodatku. W przypadku dodatku  jednowartościowego zwracana jest  tablica nazw udogodnień. W przypadku dodatku  wielowartościowego zwracana jest tablica, w której name - nazwa elementu wielowartościowego; amenities - tablica nazw udogodnień</td>
+    </tr>
+</tbody></table>
+
+
+<h3 id="toc6691" class="old_wiki"> <b>Pozostałe zmienne</b></h3>
+
+
+<table class="responsive">
+    <tbody><tr class="simple-table-row">
+        <th class="simple-table-head"><b>Zmienna</b></th>
+        <th class="simple-table-head"><b>Opis</b></th>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offer['longDescription']</td>
+        <td class="simple-table-body">Opis długi dla zestawu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offer['addonsCount']</td>
+        <td class="simple-table-body">Liczba dodatków zestawu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offer['notFreeAddonsCount']</td>
+        <td class="simple-table-body">Liczba płatnych dodatków zestawu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offer['freeAddonsCount']</td>
+        <td class="simple-table-body">Liczba darmowych dodatków zestawu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offer['currencyId']</td>
+        <td class="simple-table-body">Identyfikator waluty zestawu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offer['priceMinInFormat’]</td>
+        <td class="simple-table-body">Minimalna cena zestawu, po której jest możliwy do rezerwacji w okresie najbliższych 3 miesięcy</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offer ['objectFinalPricesPerDays’]</td>
+        <td class="simple-table-body">Cena zestawu</td>
+    </tr>
+</tbody></table>
+
+</div></main></html>

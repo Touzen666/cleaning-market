@@ -1,0 +1,121 @@
+{
+  "schemaVersion": 1,
+  "from": "2026-10-26",
+  "to": "2026-10-27",
+  "timeZone": "Europe/Warsaw",
+  "policy": {
+    "version": "cleaning-candidates-v3-pending-60min",
+    "timeZone": "Europe/Warsaw",
+    "workingHours": {
+      "start": "10:00",
+      "end": "15:00"
+    },
+    "defaultCleaningMinutes": 60,
+    "arrivalBufferMinutes": 0,
+    "preferredMaxJobsPerCleanerPerDay": 3,
+    "hardMaxJobsPerCleanerPerDay": 4
+  },
+  "candidates": [
+    {
+      "id": "checkout:example-account:1001:701",
+      "kind": "checkout_cleaning",
+      "taskState": "candidate",
+      "certainty": "accepted",
+      "eligibleForPlanning": true,
+      "serviceDate": "2026-10-26",
+      "unit": {
+        "unitId": 701,
+        "objectId": 71,
+        "apartmentId": null,
+        "code": "A",
+        "label": "Przykładowy lokal A",
+        "address": "Adres przykładowy A",
+        "mapping": "source-id",
+        "identitySource": "idobooking",
+        "locationStatus": "known",
+        "locationId": 401
+      },
+      "afterReservation": {
+        "id": 1001,
+        "sourceStatus": "accepted",
+        "checkoutLocal": "2026-10-26T10:00"
+      },
+      "beforeReservation": {
+        "id": 1002,
+        "sourceStatus": "waitingForPayment",
+        "checkinLocal": "2026-10-26T15:00"
+      },
+      "nextArrivalKnownThrough": "2026-10-27T00:00:00+01:00",
+      "windows": [
+        {
+          "start": "2026-10-26T10:00:00+01:00",
+          "end": "2026-10-26T15:00:00+01:00",
+          "availableMinutes": 300
+        }
+      ],
+      "duration": {
+        "estimatedMinutes": 60,
+        "estimateSource": "policy_default"
+      },
+      "reviewReasons": [],
+      "entryRequiresConfirmation": true,
+      "candidateRevision": "bfd72586002a47bb6b547c20838fac87b8653136d85974effd4b355448d69bce"
+    },
+    {
+      "id": "checkout:example-account:1003:702",
+      "kind": "checkout_cleaning",
+      "taskState": "candidate",
+      "certainty": "provisional",
+      "eligibleForPlanning": true,
+      "serviceDate": "2026-10-26",
+      "unit": {
+        "unitId": 702,
+        "objectId": 72,
+        "apartmentId": null,
+        "code": "B",
+        "label": "Przykładowy lokal B",
+        "address": null,
+        "mapping": "source-id",
+        "identitySource": "idobooking",
+        "locationStatus": "missing",
+        "locationId": null
+      },
+      "afterReservation": {
+        "id": 1003,
+        "sourceStatus": "waitingForPayment",
+        "checkoutLocal": "2026-10-26T10:00"
+      },
+      "beforeReservation": null,
+      "nextArrivalKnownThrough": "2026-10-27T00:00:00+01:00",
+      "windows": [
+        {
+          "start": "2026-10-26T10:00:00+01:00",
+          "end": "2026-10-26T15:00:00+01:00",
+          "availableMinutes": 300
+        }
+      ],
+      "duration": {
+        "estimatedMinutes": 60,
+        "estimateSource": "policy_default"
+      },
+      "reviewReasons": [],
+      "entryRequiresConfirmation": true,
+      "candidateRevision": "b23a43af213c30661180d3f42bd08c0e3d87deaf7dfe816685ab8b2c1d91807b"
+    }
+  ],
+  "reviews": [],
+  "excluded": [],
+  "counts": {
+    "acceptedCandidates": 1,
+    "provisionalCandidates": 1,
+    "reviews": 0,
+    "excluded": 0
+  },
+  "source": {
+    "apiVersion": "36",
+    "reservationsComplete": true,
+    "availabilityLocksComplete": true
+  },
+  "revision": "dd39ca6857003f8b22685e6789a88e6a82351f4fd46b50b7ee18554579fb79e9",
+  "fetchedAt": "2026-10-26T07:00:00Z"
+}

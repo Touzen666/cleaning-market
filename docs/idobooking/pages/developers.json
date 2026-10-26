@@ -1,0 +1,35 @@
+{
+  "title": "Dział developerów tworzących programy współpracujące z IdoBooking",
+  "url": "https://api.idobooking.com/pl/developers/",
+  "kind": "page",
+  "height": 1562,
+  "html": "<div class=\"content__collapse col-md-9\"> <p class=\"old_wiki\"><img src=\"../assets/36ed8807815fddae-file-gate.png\" alt=\"\"></p>\n\n\n<h3 id=\"toc0\" class=\"old_wiki\"> API Panelu administracyjnego</h3>\n<p class=\"old_wiki\"><img src=\"../assets/daad713d164bcdb8-file-gate.png\" alt=\"Icon\"><br>\nZastanawiasz się nad możliwością integracji z poziomu funkcji dostępnych w panelu administracyjnym? IdoBooking udostępnia <a href=\"../api/index.html\" title=\"API Panelu administracyjnego IdoBooking\" class=\"old_wiki \">API Panelu administracyjnego</a>, które pozwala m.in. na kontrolę rezerwacji, przedmiotów rezerwacji oraz klientów, dzięki czemu możesz bez problemu zintegrować dowolny zewnętrzny system.<br>\n</p>\n\n<p class=\"old_wiki\"></p><div><a href=\"../api/index.html\" title=\"Przejdź do dokumentacji API Panelu administracyjnego\" class=\"old_wiki button small icon-button icon-right-open-big small-only-expand\">Przejdź do dokumentacji API Panelu administracyjnego</a> </div><p></p>\n\n\n<h3 id=\"toc1\" class=\"old_wiki\"> Szablony własne Wizytówki IdoBooking w Smarty</h3>\n<p class=\"old_wiki\"><img src=\"../assets/83f077be61793df5-file-gate.png\" alt=\"Icon\"><br>\nDzięki udostępnieniu możliwości tworzenie Wizytówek w Smarty, możesz zmieniać szablony przygotowane przez nasz dział graficzny i dostosowywać je do wymagań własnych, bądź Twoich klientów. <br>\n</p>\n\n<p class=\"old_wiki\"></p><div><a href=\"szablony-wlasne-wizytowki-idobooking-w-smarty.html\" title=\"Przejdź do Szablony własne Wizytówki IdoBooking w Smarty\" class=\"old_wiki button small icon-button icon-right-open-big small-only-expand\">Przejdź do Szablony własne Wizytówki IdoBooking w Smarty</a></div><p></p>\n\n</div>",
+  "links": [
+    {
+      "title": "Najlepsze rozwiązania do sprzedaży w internecie\n                        \n                            \n                                    \n                                \n                            \n                            \n                                Narzędzia dla Developerów\n                                IdoBooking",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "API Panelu administracyjnego",
+      "url": "https://www.idobooking.com/pl/developers/api/administration-panel-api/"
+    },
+    {
+      "title": "Przejdź do dokumentacji API Panelu administracyjnego",
+      "url": "https://www.idobooking.com/pl/developers/api/administration-panel-api/"
+    },
+    {
+      "title": "Przejdź do Szablony własne Wizytówki IdoBooking w Smarty",
+      "url": "https://www.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/"
+    }
+  ],
+  "text": "API Panelu administracyjnego\n\nZastanawiasz się nad możliwością integracji z poziomu funkcji dostępnych w panelu administracyjnym? IdoBooking udostępnia API Panelu administracyjnego, które pozwala m.in. na kontrolę rezerwacji, przedmiotów rezerwacji oraz klientów, dzięki czemu możesz bez problemu zintegrować dowolny zewnętrzny system.\n\n\nPrzejdź do dokumentacji API Panelu administracyjnego \n\n\n Szablony własne Wizytówki IdoBooking w Smarty\n\nDzięki udostępnieniu możliwości tworzenie Wizytówek w Smarty, możesz zmieniać szablony przygotowane przez nasz dział graficzny i dostosowywać je do wymagań własnych, bądź Twoich klientów. \n\n\nPrzejdź do Szablony własne Wizytówki IdoBooking w Smarty",
+  "capturedAt": "2026-10-24T18:09:47.291Z",
+  "version": null,
+  "description": "",
+  "source": {
+    "url": "https://api.idobooking.com/pl/developers/",
+    "capturedAt": "2026-10-24T18:09:47.291Z",
+    "transport": "authenticated Chrome HTTPS session",
+    "format": null
+  }
+}

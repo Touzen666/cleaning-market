@@ -1,0 +1,315 @@
+{
+  "title": "Bramka Public/Metoda offer",
+  "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=public&method=offer##",
+  "kind": "method",
+  "gateway": "public",
+  "height": 3146,
+  "html": "<div class=\"content__collapse col-md-9\"> \n          <div class=\"d-flex justify-content-between align-items-center mb-3\">\n            <span class=\"api_title mb-0\">Dokumentacja API Booking</span>   \n            <div class=\"show_list_link\"></div>\n          </div>\n        \n            \n        \n            <div id=\"documentation_background\">\n                <div class=\"content shop api_docs\">\n                    <div class=\"container white_bg\" data-equalizer=\"\">\n        \n        <div class=\"api_content row\" data-equalizer-watch=\"\"><div class=\"col-12 mb-5\"><p class=\"api_short_description\">\nZwraca informacje o przedmiotach rezerwacji\n\n\n</p></div><div class=\"apiDesc col-12 mb-5\">\n            <div id=\"format_type\" class=\"tabs\">\n                \n        <div class=\"tabs__content\"><div id=\"tab1\" class=\"tabs__element --shown\">\n            <div id=\"api_method_adresses\" class=\"mb-5\">\n                <div class=\"api_method_header px-3 d-flex align-items-center\">\n                    <i class=\"icon-info-circled\"></i>\n                    <strong>Adresy</strong>\n                </div>\n        \n              <div class=\"api_method_row\">\n                <div class=\"row align-items-center py-3\">\n                    <div class=\"col-3 pl-5\">\n                        <strong>Nasłuch</strong>\n                    </div>\n                    <div class=\"col-9 col-sm-7\">\n                        <a href=\"https://client1679.idosell.com/api/public/offer/36/json\" class=\"api_link\" id=\"copyTarget_0json\">https://_domena_booking_.idosell.com/api/public/offer/36/json</a>\n                    </div>\n                    <div class=\"col-12 col-sm-2 d-flex justify-content-end\">\n                        \n                    </div>\n                \n                    </div>\n                </div>\n            </div>\n        \n        <div id=\"api_method_request_json\" class=\"mb-5\"><div class=\"api_method_header px-3\"><div class=\"api_method_header_left d-flex flex-wrap justify-content-center justify-content-sm-between align-items-center\"><div><i class=\"icon-code\"></i> \n            <strong>Struktura żądania</strong></div></div></div><div id=\"api_method_request_content\" class=\"api_details visible\">\n                <div class=\"api_details_item\" data-parameter-name=\"offerId\">\n                    <div class=\"api_details_item_inner level0\">\n                        <strong class=\"api_required required_after\">offerId <span>(int)</span></strong>\n                        <span><p>Identyfikator zestawu</p></span>\n                    </div>\n        </div>\n                <div class=\"api_details_item\" data-parameter-name=\"language\">\n                    <div class=\"api_details_item_inner level0\">\n                        <strong class=\"\">language <span>(string)</span></strong>\n                        <span><p>Język API, możliwe wartości:\n                        - eng - angielski\n                        - pol - polski\n                        - ger - niemiecki</p></span>\n                    </div>\n        </div>\n                <div class=\"api_details_item\" data-parameter-name=\"currency\">\n                    <div class=\"api_details_item_inner level0\">\n                        <strong class=\"\">currency <span>(string)</span></strong>\n                        <span><p>Waluta</p></span>\n                    </div>\n        </div></div></div>\n        <div id=\"api_method_response_json\" class=\"mb-5\"><div class=\"api_method_header px-3\"><div class=\"api_method_header_left d-flex flex-wrap justify-content-center justify-content-sm-between align-items-center\"><div><i class=\"icon-code\"></i> \n            <strong>Struktura odpowiedzi</strong></div></div></div><div id=\"api_method_response_content\" class=\"api_details visible\">\n                <div class=\"api_details_item\" data-parameter-name=\"name\">\n                    <div class=\"api_details_item_inner level0\">\n                        <strong class=\"\">name <span>(string)</span></strong>\n                        <span><p>Nazwa obiektu</p></span>\n                    </div>\n        </div>\n                <div class=\"api_details_item\" data-parameter-name=\"description\">\n                    <div class=\"api_details_item_inner level0\">\n                        <strong class=\"\">description <span>(string)</span></strong>\n                        <span><p>Opis</p></span>\n                    </div>\n        </div>\n                <div class=\"api_details_item\" data-parameter-name=\"language\">\n                    <div class=\"api_details_item_inner level0\">\n                        <strong class=\"\">language <span>(string)</span></strong>\n                        <span><p>Język</p></span>\n                    </div>\n        </div>\n                <div class=\"api_details_item\" data-parameter-name=\"minimalPrice\">\n                    <div class=\"api_details_item_inner level0\">\n                        <strong class=\"\">minimalPrice <span>(string)</span></strong>\n                        <span><p>Cena minimalna</p></span>\n                    </div>\n        </div>\n                <div class=\"api_details_item\" data-parameter-name=\"currency\">\n                    <div class=\"api_details_item_inner level0\">\n                        <strong class=\"\">currency <span>(string)</span></strong>\n                        <span><p>Waluta</p></span>\n                    </div>\n        </div>\n                <div class=\"api_details_item open\" data-parameter-name=\"videos\">\n                    <div class=\"api_details_item_inner level0 toggle\">\n                        <strong class=\"\">videos <span>(galleryItemArrayVideosType)</span></strong>\n                        <span><p>Lista filmów</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item open\" data-parameter-name=\"galleryItemType\">\n                    <div class=\"api_details_item_inner level1 toggle\">\n                        <strong class=\"api_required required_after\"> <span>(galleryItemType)</span></strong>\n                        <span><p>element typu galleryItemType<br><br><i>Adres elementu galerii</i></p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"url\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"\">url <span>(string)</span></strong>\n                        <span><p>Adres elementu galerii</p></span>\n                    </div>\n        </div></div></div></div></div>\n                <div class=\"api_details_item open\" data-parameter-name=\"images\">\n                    <div class=\"api_details_item_inner level0 toggle\">\n                        <strong class=\"\">images <span>(galleryItemArrayImagesType)</span></strong>\n                        <span><p>Lista zdjęć</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item open\" data-parameter-name=\"galleryItemType\">\n                    <div class=\"api_details_item_inner level1 toggle\">\n                        <strong class=\"api_required required_after\"> <span>(galleryItemType)</span></strong>\n                        <span><p>element typu galleryItemType<br><br><i>Adres elementu galerii</i></p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"url\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"\">url <span>(string)</span></strong>\n                        <span><p>Adres elementu galerii</p></span>\n                    </div>\n        </div></div></div></div></div>\n                <div class=\"api_details_item\" data-parameter-name=\"widgetUrl\">\n                    <div class=\"api_details_item_inner level0\">\n                        <strong class=\"\">widgetUrl <span>(string)</span></strong>\n                        <span><p>Adres Widgetu</p></span>\n                    </div>\n        </div>\n                <div class=\"api_details_item\" data-parameter-name=\"area\">\n                    <div class=\"api_details_item_inner level0\">\n                        <strong class=\"\">area <span>(string)</span></strong>\n                        <span><p>Powierzchnia w metrach kwadratowych</p></span>\n                    </div>\n        </div>\n                <div class=\"api_details_item open\" data-parameter-name=\"errors\">\n                    <div class=\"api_details_item_inner level0 toggle\">\n                        <strong class=\"\">errors <span>(gateErrorType)</span></strong>\n                        <span><p>Lista kodów błędów</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"faultCode\">\n                    <div class=\"api_details_item_inner level1\">\n                        <strong class=\"\">faultCode <span>(int)</span></strong>\n                        <span><p>Kod błędu</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"faultString\">\n                    <div class=\"api_details_item_inner level1\">\n                        <strong class=\"\">faultString <span>(string)</span></strong>\n                        <span><p>Opis błędu</p></span>\n                    </div>\n        </div></div></div></div></div>\n        <div id=\"php-example_json\" class=\"code_example mb-5\"><div class=\"api_method_header px-3\"><div class=\"api_method_header_left d-flex flex-wrap justify-content-center justify-content-sm-between align-items-center\"><div><i class=\"icon-file-code\"></i> \n            <strong>Przykład kodu w PHP</strong></div></div></div><div class=\"api_details visible\">\n                <div id=\"php-example_content_json\">\n                    <pre class=\"highlight-code hljs php\"><span class=\"hljs-meta\">&lt;?php</span>\n\n$address = <span class=\"hljs-string\">'https://client1679.idobooking.com/api/public/offer/36/json'</span>;\n\n$request = <span class=\"hljs-keyword\">array</span>();\n$request[<span class=\"hljs-string\">'offerId'</span>] = <span class=\"hljs-number\">1</span>;\n$request[<span class=\"hljs-string\">'language'</span>] = <span class=\"hljs-string\">\"language\"</span>;\n$request[<span class=\"hljs-string\">'currency'</span>] = <span class=\"hljs-string\">\"currency\"</span>;\n\n$request_json = json_encode($request);\n$headers = <span class=\"hljs-keyword\">array</span>(\n    <span class=\"hljs-string\">'Accept: application/json'</span>,\n    <span class=\"hljs-string\">'Content-Type: application/json;charset=UTF-8'</span>\n);\n\n$curl = curl_init($address);\ncurl_setopt($curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, <span class=\"hljs-number\">1</span>);\ncurl_setopt($curl, CURLOPT_SSL_VERIFYPEER, <span class=\"hljs-keyword\">false</span>);\ncurl_setopt($curl, CURLOPT_SSL_VERIFYHOST, <span class=\"hljs-keyword\">false</span>);\ncurl_setopt($curl, CURLOPT_FORBID_REUSE, <span class=\"hljs-number\">1</span>);\ncurl_setopt($curl, CURLINFO_HEADER_OUT, <span class=\"hljs-number\">1</span>);\ncurl_setopt($curl, CURLOPT_HEADER, <span class=\"hljs-number\">1</span>);\ncurl_setopt($curl, CURLOPT_POST, <span class=\"hljs-number\">1</span>);\ncurl_setopt($curl, CURLOPT_POSTFIELDS, $request_json);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, $headers);\n\n$response = curl_exec($curl);\n$status = curl_getinfo($curl);\ncurl_close($curl);\n       </pre>\n                </div>\n            </div></div>\n        <div id=\"api_changelog_json\" class=\"mb-5\"><h2>Historia zmian</h2><p>W rozwiniętej historii metody nie wyświetlono wpisów zmian; dostępny był formularz porównywania wersji.</p></div></div></div></div>\n                        </div>\n                    </div>\n                </div>\n            </div>\n        \n            \n        </div></div>",
+  "links": [
+    {
+      "title": "Narzędzia dla Developerów",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "API Admin",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/"
+    },
+    {
+      "title": "Bramka Public",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=documentation&function=public"
+    },
+    {
+      "title": "Najlepsze rozwiązania do sprzedaży w internecie\n                        \n                            \n                                    \n                                \n                            \n                            \n                                Narzędzia dla Developerów\n                                IdoBooking",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "Wybierz inną dokumentację",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=public&method=offer#"
+    },
+    {
+      "title": "Dokumentacja API Admin",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/"
+    },
+    {
+      "title": "Dokumentacja API Customer",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "Dokumentacja API Marketplace",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "Dokumentacja API Storefront",
+      "url": "https://api.idobooking.com/pl/developers/storefront-documentation/"
+    },
+    {
+      "title": "Dokumentacja Smarty",
+      "url": "https://api.idobooking.com/pl/developers/smarty-documentation/"
+    },
+    {
+      "title": "sprawdź historię zmian",
+      "url": "https://api.idobooking.com/pl/developers/api/?branch=booking&action=changelog"
+    },
+    {
+      "title": "Public",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=documentation&function=public"
+    },
+    {
+      "title": "SOAP",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=public&method=offer#tab0"
+    },
+    {
+      "title": "JSON",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=public&method=offer#tab1"
+    },
+    {
+      "title": "https://_domena_booking_.idosell.com/api/public/offer/36/soap",
+      "url": "https://client1679.idosell.com/api/public/offer/36/soap"
+    },
+    {
+      "title": "kopiuj",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=public&method=offer#copyContentHref"
+    },
+    {
+      "title": "https://_domena_booking_.idosell.com/api/public/offer/36/soap/wsdl/pol",
+      "url": "https://client1679.idosell.com/api/public/offer/36/soap/wsdl/pol"
+    },
+    {
+      "title": "kopiuj",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=public&method=offer#copyContentHref"
+    },
+    {
+      "title": "rozwiń wszystkie węzły",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=public&method=offer##"
+    },
+    {
+      "title": "zwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=public&method=offer##"
+    },
+    {
+      "title": "rozwiń wszystkie węzły",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=public&method=offer##"
+    },
+    {
+      "title": "zwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=public&method=offer##"
+    },
+    {
+      "title": "pobierz",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=public&method=offer##"
+    },
+    {
+      "title": "kopiuj",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=public&method=offer##"
+    },
+    {
+      "title": "rozwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=public&method=offer##"
+    },
+    {
+      "title": "pobierz",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=public&method=offer##"
+    },
+    {
+      "title": "kopiuj",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=public&method=offer##"
+    },
+    {
+      "title": "rozwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=public&method=offer##"
+    },
+    {
+      "title": "rozwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=public&method=offer##"
+    },
+    {
+      "title": "https://_domena_booking_.idosell.com/api/public/offer/36/json",
+      "url": "https://client1679.idosell.com/api/public/offer/36/json"
+    },
+    {
+      "title": "kopiuj",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=public&method=offer#copyContentHref"
+    },
+    {
+      "title": "zwiń wszystkie węzły",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=public&method=offer##"
+    },
+    {
+      "title": "zwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=public&method=offer##"
+    },
+    {
+      "title": "zwiń wszystkie węzły",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=public&method=offer##"
+    },
+    {
+      "title": "zwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=public&method=offer##"
+    },
+    {
+      "title": "pobierz",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=public&method=offer##"
+    },
+    {
+      "title": "kopiuj",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=public&method=offer##"
+    },
+    {
+      "title": "zwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=public&method=offer##"
+    },
+    {
+      "title": "zwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=public&method=offer##"
+    }
+  ],
+  "php": "\n                    <?php\n\n$address = 'https://client1679.idobooking.com/api/public/offer/36/json';\n\n$request = array();\n$request['offerId'] = 1;\n$request['language'] = \"language\";\n$request['currency'] = \"currency\";\n\n$request_json = json_encode($request);\n$headers = array(\n    'Accept: application/json',\n    'Content-Type: application/json;charset=UTF-8'\n);\n\n$curl = curl_init($address);\ncurl_setopt($curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);\ncurl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);\ncurl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);\ncurl_setopt($curl, CURLOPT_FORBID_REUSE, 1);\ncurl_setopt($curl, CURLINFO_HEADER_OUT, 1);\ncurl_setopt($curl, CURLOPT_HEADER, 1);\ncurl_setopt($curl, CURLOPT_POST, 1);\ncurl_setopt($curl, CURLOPT_POSTFIELDS, $request_json);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, $headers);\n\n$response = curl_exec($curl);\n$status = curl_getinfo($curl);\ncurl_close($curl);\n       \n                ",
+  "request": [
+    {
+      "description": "Identyfikator zestawu",
+      "name": "offerId",
+      "path": "offerId",
+      "required": true,
+      "type": "int"
+    },
+    {
+      "description": "Język API, możliwe wartości: - eng - angielski - pol - polski - ger - niemiecki",
+      "name": "language",
+      "path": "language",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "Waluta",
+      "name": "currency",
+      "path": "currency",
+      "required": false,
+      "type": "string"
+    }
+  ],
+  "response": [
+    {
+      "description": "Nazwa obiektu",
+      "name": "name",
+      "path": "name",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "Opis",
+      "name": "description",
+      "path": "description",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "Język",
+      "name": "language",
+      "path": "language",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "Cena minimalna",
+      "name": "minimalPrice",
+      "path": "minimalPrice",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "Waluta",
+      "name": "currency",
+      "path": "currency",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "Lista filmów",
+      "name": "videos",
+      "path": "videos",
+      "required": false,
+      "type": "galleryItemArrayVideosType"
+    },
+    {
+      "description": "element typu galleryItemType\n\nAdres elementu galerii",
+      "name": "galleryItemType",
+      "path": "videos.galleryItemType",
+      "required": true,
+      "type": "galleryItemType"
+    },
+    {
+      "description": "Adres elementu galerii",
+      "name": "url",
+      "path": "videos.galleryItemType.url",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "Lista zdjęć",
+      "name": "images",
+      "path": "images",
+      "required": false,
+      "type": "galleryItemArrayImagesType"
+    },
+    {
+      "description": "element typu galleryItemType\n\nAdres elementu galerii",
+      "name": "galleryItemType",
+      "path": "images.galleryItemType",
+      "required": true,
+      "type": "galleryItemType"
+    },
+    {
+      "description": "Adres elementu galerii",
+      "name": "url",
+      "path": "images.galleryItemType.url",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "Adres Widgetu",
+      "name": "widgetUrl",
+      "path": "widgetUrl",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "Powierzchnia w metrach kwadratowych",
+      "name": "area",
+      "path": "area",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "Lista kodów błędów",
+      "name": "errors",
+      "path": "errors",
+      "required": false,
+      "type": "gateErrorType"
+    },
+    {
+      "description": "Kod błędu",
+      "name": "faultCode",
+      "path": "errors.faultCode",
+      "required": false,
+      "type": "int"
+    },
+    {
+      "description": "Opis błędu",
+      "name": "faultString",
+      "path": "errors.faultString",
+      "required": false,
+      "type": "string"
+    }
+  ],
+  "text": "Dokumentacja API Booking   \n            \n          \n        \n            \n        \n            \n                \n                    \n        \n        \nZwraca informacje o przedmiotach rezerwacji\n\n\n\n            \n                \n        \n            \n                \n                    \n                    Adresy\n                \n        \n              \n                \n                    \n                        Nasłuch\n                    \n                    \n                        https://_domena_booking_.idosell.com/api/public/offer/36/json\n                    \n                    \n                        \n                    \n                \n                    \n                \n            \n        \n         \n            Struktura żądania\n                \n                    \n                        offerId (int)\n                        Identyfikator zestawu\n                    \n        \n                \n                    \n                        language (string)\n                        Język API, możliwe wartości:\n                        - eng - angielski\n                        - pol - polski\n                        - ger - niemiecki\n                    \n        \n                \n                    \n                        currency (string)\n                        Waluta\n                    \n        \n         \n            Struktura odpowiedzi\n                \n                    \n                        name (string)\n                        Nazwa obiektu\n                    \n        \n                \n                    \n                        description (string)\n                        Opis\n                    \n        \n                \n                    \n                        language (string)\n                        Język\n                    \n        \n                \n                    \n                        minimalPrice (string)\n                        Cena minimalna\n                    \n        \n                \n                    \n                        currency (string)\n                        Waluta\n                    \n        \n                \n                    \n                        videos (galleryItemArrayVideosType)\n                        Lista filmów\n                    \n        \n            \n            \n                \n                    \n                         (galleryItemType)\n                        element typu galleryItemTypeAdres elementu galerii\n                    \n        \n            \n            \n                \n                    \n                        url (string)\n                        Adres elementu galerii\n                    \n        \n                \n                    \n                        images (galleryItemArrayImagesType)\n                        Lista zdjęć\n                    \n        \n            \n            \n                \n                    \n                         (galleryItemType)\n                        element typu galleryItemTypeAdres elementu galerii\n                    \n        \n            \n            \n                \n                    \n                        url (string)\n                        Adres elementu galerii\n                    \n        \n                \n                    \n                        widgetUrl (string)\n                        Adres Widgetu\n                    \n        \n                \n                    \n                        area (string)\n                        Powierzchnia w metrach kwadratowych\n                    \n        \n                \n                    \n                        errors (gateErrorType)\n                        Lista kodów błędów\n                    \n        \n            \n            \n                \n                    \n                        faultCode (int)\n                        Kod błędu\n                    \n        \n            \n            \n                \n                    \n                        faultString (string)\n                        Opis błędu\n                    \n        \n         \n            Przykład kodu w PHP\n                \n                    <?php\n\n$address = 'https://client1679.idobooking.com/api/public/offer/36/json';\n\n$request = array();\n$request['offerId'] = 1;\n$request['language'] = \"language\";\n$request['currency'] = \"currency\";\n\n$request_json = json_encode($request);\n$headers = array(\n    'Accept: application/json',\n    'Content-Type: application/json;charset=UTF-8'\n);\n\n$curl = curl_init($address);\ncurl_setopt($curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);\ncurl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);\ncurl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);\ncurl_setopt($curl, CURLOPT_FORBID_REUSE, 1);\ncurl_setopt($curl, CURLINFO_HEADER_OUT, 1);\ncurl_setopt($curl, CURLOPT_HEADER, 1);\ncurl_setopt($curl, CURLOPT_POST, 1);\ncurl_setopt($curl, CURLOPT_POSTFIELDS, $request_json);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, $headers);\n\n$response = curl_exec($curl);\n$status = curl_getinfo($curl);\ncurl_close($curl);\n       \n                \n            \n        Historia zmianW rozwiniętej historii metody nie wyświetlono wpisów zmian; dostępny był formularz porównywania wersji.",
+  "version": 36,
+  "capturedAt": "2026-10-24T18:07:17.533Z",
+  "endpoint": "https://_domena_booking_.idosell.com/api/public/offer/36/json",
+  "description": "Zwraca informacje o przedmiotach rezerwacji",
+  "source": {
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=public&method=offer##",
+    "capturedAt": "2026-10-24T18:07:17.533Z",
+    "transport": "authenticated Chrome HTTPS session",
+    "format": "JSON"
+  }
+}

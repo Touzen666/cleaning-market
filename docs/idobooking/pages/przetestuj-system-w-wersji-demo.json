@@ -1,0 +1,263 @@
+{
+  "title": "Dostęp do demo",
+  "url": "https://api.idobooking.com/pl/demo/przetestuj-system-w-wersji-demo/",
+  "kind": "page",
+  "height": 2379,
+  "html": "<div class=\"layout d-flex flex-column\">\n            <div class=\"container mb-5\">\n                <div class=\"row content align-items-start\">\n                    \n                    <div class=\"col-md-12\">\n<div class=\"container mb-5 form_container --mode_2\">\n<br>\n    <section class=\"section_margin px-3 animate-items --fade_in --visible\" id=\"headline\"><div class=\"headline --borderless  \"><div class=\"headline__description --gradient --orange\">NAJLEPSZE ROZWIĄZANIA DO ZARZĄDZANIA REZERWACJAMI</div>\n            <div class=\"headline__core\">\n                <h1 class=\"headline__text pl-0\">Jak zacząć? Przetestuj nas w akcji!</h1>\n            </div>\n        </div>\n       <div class=\"text__description mb-5 \">Możesz skorzystać z darmowego DEMO lub zamówić od razu system na własny użytek z okresem próbnym:</div></section>\n    <section class=\"section_margin px-3 animate-items --fade_in --visible\" id=\"templates\"><div class=\"row animate-items --slide_sides --fade_in --visible\"><div class=\"col-12 col-md-6 mb-5\"><div class=\"headline --borderless --center \">\n            <div class=\"headline__core\">\n                <h3 class=\"headline__text pl-0\"><strong class=\"--black\">DEMO</strong><br> <div class=\"headline__description --gradient --green\"></div></h3>\n            </div>\n        </div>\n                <div class=\"text__description mb-5 --center\"><strong class=\"--black\">Darmowy dostęp bez zobowiązań</strong><br>\n                    <strong class=\"--black\">7 dni testów</strong>(z opcją przedłużenia dostępu)<br>\n                    <strong class=\"--black\">bez pełnego dostępu do Channel Managera</strong><br>\n                    sprawdź, jak wygląda system IdoBooking uzupełniony o przykładowe treści<br><br>\n</div></div>           \n            <div class=\"col-12 col-md-6 mb-5\"><div class=\"headline --borderless --center \">\n            <div class=\"headline__core\">\n                <h3 class=\"headline__text pl-0\"><strong class=\"--black\">Wersja pełna</strong><br> <div class=\"headline__description --gradient --orange\"></div></h3>\n            </div>\n        </div>\n                <div class=\"text__description mb-5 --center\"><strong class=\"--black\"><a href=\"https://www.idobooking.com/pl/cennik-idobooking/\" title=\"\" class=\"old_wiki \">Już od 99 zł za rok</a></strong><br>\n                    <strong class=\"--black\">30-dniowy okres próbny</strong> (z możliwością zwrotu kosztów)<br>\n                    <strong class=\"--black\">pełen dostęp do <a href=\"https://www.idobooking.com/pl/mozliwosci-systemu-rezerwacji-idobooking/channel-manager-prezentacja-oferty-w-roznych-systemach-rezerwacji/\" title=\"Channel Manager – prezentacja oferty w różnych systemach rezerwacji\" class=\"old_wiki \">Channel Managera</a></strong><br>\n                    zachowaj konfigurację Twojego obiektu i przetestuj Channel Manager<br><br>\n</div></div></div></section>\n\n\n<section class=\"section_margin col-12 animate-items --fade_in --visible\" id=\"questions\">\n\n    <div class=\"message_container\"></div>\n\n\n    <div class=\"animate-items  --fade_in questions --visible\">\n        <div class=\"container\">\n            <div class=\"row justify-content-center\">\n                <div class=\"col-12 col-md-8\">\n                    <div class=\"background_box animate-items --fade_in --visible\">\n                        \n                    </div>\n                </div>\n            </div>\n        </div>\n    </div>\n</section>\n\n\n\n    <section class=\"section_margin px-3 animate-items --fade_in --visible\" id=\"tools_and_integrations\"><div class=\"row align-items-center animate-items --slide_sides --fade_in --visible\"><div class=\"col-12 col-sm-5 col-md-7 pr-md-0 mb-5 mb-sm-0\"><div class=\"bg_stripe --green \"><picture>\n            \n            \n            <img loading=\"lazy\" src=\"../assets/f235755efbe30e5c-file-gate.jpg\" alt=\"Wersja DEMO Twojego systemu rezerwacji bez Channel Managera\">\n        </picture></div></div>\n            <div class=\"col-12 col-sm-7 col-md-5\"><div class=\"headline --borderless  \">\n            <div class=\"headline__core\">\n                <h1 class=\"headline__text pl-0\"><div class=\"headline__description --gradient --green\"></div>                \n                    Kiedy wybrać wersję DEMO?</h1>\n            </div>\n        </div>\n                <div class=\"text__description mb-5 \"><strong class=\"--black\">Wybierz tę opcję, jeżeli</strong> chcesz zobaczyć, jak wygląda system IdoBooking uzupełniony o przykładowe treści. Nie musisz tracić czasu na wprowadzenie własnej konfiguracji, a my automatycznie po zakończeniu Twoich testów bezpiecznie wykasujemy wszystkie dane. Demo jest dostępne bezpłatnie na 7 dni. Istnieje możliwość samodzielnego przedłużenia tego okresu.\n<br><br>\n<strong class=\"--black\">Korzystanie z DEMO nie pociąga za sobą żadnych kosztów i obowiązków zamówienia systemu rezerwacji.</strong></div></div></div></section>\n\n<section class=\"section_margin px-3  animate-items --fade_in\" id=\"tools_and_integrations\"><div class=\"row  align-items-center animate-items --slide_sides --fade_in\"><div class=\"col-12 col-sm-7 col-md-5 order-2 order-sm-1\"><div class=\"headline --borderless  \">\n            <div class=\"headline__core\">\n                <h1 class=\"headline__text pl-0\"><div class=\"headline__description --gradient --orange\"></div>\n                    Kiedy zamówić od razu pełną wersję systemu?</h1>\n            </div>\n        </div>\n                <div class=\"text__description mb-5 \"><strong class=\"--black\">Wybierz tę opcję, jeżeli</strong> chcesz od razu zachować konfigurację Twojego obiektu i przetestować połączenie z Channel Managerem. Na start oferujemy 30-dniowy okres próbny. W tym czasie nie ponosisz kosztów obsługi rezerwacji i możesz przetestować dowolną liczbę integracji z Channel Managerem. W przypadku rezygnacji w okresie testowym gwarantujemy zwrot kosztu opłaty abonamentowej pobranej przy aktywacji. Jeżeli zostaniesz z nami, wszystkie Twoje ustawienia z okresu próbnego zostaną zachowane.</div></div>\n            <div class=\"col-12 col-sm-5 col-md-6 offset-md-1 pl-md-0 mb-5 mb-sm-0 order-1 order-sm-2\"><div class=\"bg_stripe --orange \"><picture>\n            \n            \n            <img loading=\"lazy\" src=\"../assets/c3128bc436203937-file-gate.png\" alt=\"Pełna wersja systemu rezerwacji\">\n        </picture></div></div></div></section>\n</div>\n\n\n\n\n</div></div>\n                </div>\n            </div>\n            <!--koniec footer-->\n            \n            \n            \n            \n        \n        ",
+  "links": [
+    {
+      "title": "",
+      "url": "https://api.idobooking.com/pl/"
+    },
+    {
+      "title": "Konto użytkownika",
+      "url": "https://api.idobooking.com/pl/demo/przetestuj-system-w-wersji-demo/#"
+    },
+    {
+      "title": "Panel IdoBooking",
+      "url": "https://client47056.idosell.com/panel/user/login"
+    },
+    {
+      "title": "Biuro Obsługi Klienta",
+      "url": "https://api.idobooking.com/pl/csc/?action=bok&type=shop&panel=47056"
+    },
+    {
+      "title": "Wyloguj",
+      "url": "https://api.idobooking.com/pl/demo/przetestuj-system-w-wersji-demo/?action=logout"
+    },
+    {
+      "title": "O nas",
+      "url": "https://www.idobooking.com/o-nas/"
+    },
+    {
+      "title": "Opinie i wdrożenia",
+      "url": "https://www.idobooking.com/case-study/"
+    },
+    {
+      "title": "Projekt edukacyjny",
+      "url": "https://www.idobooking.com/projekt-edukacyjny/"
+    },
+    {
+      "title": "Bezpieczna obsługa rezerwacji",
+      "url": "https://www.idobooking.com/bezpieczna-obsluga-rezerwacji/"
+    },
+    {
+      "title": "Polityka prywatności",
+      "url": "https://www.idobooking.com/polityka-prywatnosci/"
+    },
+    {
+      "title": "DSA",
+      "url": "https://www.idobooking.com/dsa/"
+    },
+    {
+      "title": "Możliwości",
+      "url": "https://www.idobooking.com/system-rezerwacji/"
+    },
+    {
+      "title": "Channel Manager",
+      "url": "https://www.idobooking.com/system-rezerwacji/channel-manager/"
+    },
+    {
+      "title": "Booking Engine",
+      "url": "https://www.idobooking.com/system-rezerwacji/system-booking-engine/"
+    },
+    {
+      "title": "System obsługi rezerwacji",
+      "url": "https://www.idobooking.com/system-rezerwacji/system-obslugi-rezerwacji/"
+    },
+    {
+      "title": "Aplikacja mobilna",
+      "url": "https://www.idobooking.com/system-rezerwacji/aplikacja-mobilna"
+    },
+    {
+      "title": "Własna strona WWW",
+      "url": "https://www.idobooking.com/system-rezerwacji/strona-www/"
+    },
+    {
+      "title": "Raporty i analizy",
+      "url": "https://www.idobooking.com/system-rezerwacji/analizy-raporty/"
+    },
+    {
+      "title": "Płatności online",
+      "url": "https://www.idobooking.com/system-rezerwacji/platnosci-online/"
+    },
+    {
+      "title": "Zamki elektroniczne",
+      "url": "https://www.idobooking.com/system-rezerwacji/bezobslugowe-zameldowanie/"
+    },
+    {
+      "title": "Marketing",
+      "url": "https://www.idobooking.com/system-rezerwacji/marketing/"
+    },
+    {
+      "title": "Panel właściciela",
+      "url": "https://www.idobooking.com/system-rezerwacji/panel-wlasciciela/"
+    },
+    {
+      "title": "Moduł sprzątania",
+      "url": "https://www.idobooking.com/system-rezerwacji/modul-sprzatania/"
+    },
+    {
+      "title": "Centrum komunikacji",
+      "url": "https://www.idobooking.com/system-rezerwacji/centrum-komunikacji/"
+    },
+    {
+      "title": "Edukacja",
+      "url": "https://pomoc.idobooking.com/"
+    },
+    {
+      "title": "Baza Wiedzy",
+      "url": "https://pomoc.idobooking.com/"
+    },
+    {
+      "title": "Webinary",
+      "url": "https://www.idobooking.com/webinar/"
+    },
+    {
+      "title": "Szkolenia dla klientów",
+      "url": "https://www.idobooking.com/szkolenia/"
+    },
+    {
+      "title": "Blog edu",
+      "url": "https://www.idobooking.com/pl/blog/edu"
+    },
+    {
+      "title": "Dla developerów",
+      "url": "https://www.idobooking.com/pl/developers/developers/"
+    },
+    {
+      "title": "Cennik",
+      "url": "https://www.idobooking.com/cennik/"
+    },
+    {
+      "title": "Zamów",
+      "url": "https://www.idobooking.com/pl/order/"
+    },
+    {
+      "title": "ZAMÓW SYSTEM",
+      "url": "https://www.idobooking.com/pl/order/"
+    },
+    {
+      "title": "DEMO",
+      "url": "https://www.idobooking.com/demo/"
+    },
+    {
+      "title": "Umowa i Regulamin",
+      "url": "https://www.idobooking.com/cennik/umowa-i-regulamin/"
+    },
+    {
+      "title": "Blog",
+      "url": "https://www.idobooking.com/pl/blog/"
+    },
+    {
+      "title": "Blog edu",
+      "url": "https://www.idobooking.com/pl/blog/edu"
+    },
+    {
+      "title": "Blog produktowy",
+      "url": "https://www.idobooking.com/pl/blog/info"
+    },
+    {
+      "title": "KONTAKT",
+      "url": "https://www.idobooking.com/kontakt/"
+    },
+    {
+      "title": "ZAMÓW DEMO",
+      "url": "https://api.idobooking.com/pl/demo/przetestuj-system-w-wersji-demo/#questions"
+    },
+    {
+      "title": "Już od 99 zł za rok",
+      "url": "https://www.idobooking.com/pl/cennik-idobooking/"
+    },
+    {
+      "title": "Channel Managera",
+      "url": "https://www.idobooking.com/pl/mozliwosci-systemu-rezerwacji-idobooking/channel-manager-prezentacja-oferty-w-roznych-systemach-rezerwacji/"
+    },
+    {
+      "title": "Zamów system rezerwacji",
+      "url": "https://api.idobooking.com/pl/booking/order/"
+    },
+    {
+      "title": "regulamin",
+      "url": "https://api.idobooking.com/pl/corp/demoterms/regulamin-swiadczenia-i-korzystania-z-uslugi-demo-idosell-shop-i-booking/"
+    },
+    {
+      "title": "O NAS",
+      "url": "https://www.idobooking.com/o-nas/"
+    },
+    {
+      "title": "MOŻLIWOŚCI",
+      "url": "https://www.idobooking.com/system-rezerwacji/"
+    },
+    {
+      "title": "EDUKACJA",
+      "url": "https://pomoc.idobooking.com/"
+    },
+    {
+      "title": "CENNIK",
+      "url": "https://www.idobooking.com/cennik/"
+    },
+    {
+      "title": "ZAMÓW",
+      "url": "https://www.idobooking.com/pl/order/"
+    },
+    {
+      "title": "BLOG",
+      "url": "https://www.idobooking.com/pl/blog/"
+    },
+    {
+      "title": "KONTAKT",
+      "url": "https://www.idobooking.com/kontakt/"
+    },
+    {
+      "title": "",
+      "url": "https://www.facebook.com/IdoBooking"
+    },
+    {
+      "title": "",
+      "url": "https://www.youtube.com/channel/UCDDvM5rbzPSysP_0-qa8ONQ"
+    },
+    {
+      "title": "",
+      "url": "https://pl.linkedin.com/showcase/idobooking"
+    },
+    {
+      "title": "Wyloguj",
+      "url": "https://api.idobooking.com/pl/demo/przetestuj-system-w-wersji-demo/?action=logout"
+    },
+    {
+      "title": "Polityka prywatności",
+      "url": "https://www.idobooking.com/pl/oferta-systemu-rezerwacji-idobooking/polityka-prywatnosci-i-bezpieczenstwa/polityka-prywatnosci-serwisow-internetowych-idobooking/"
+    },
+    {
+      "title": "PL",
+      "url": "https://api.idobooking.com/pl/demo/przetestuj-system-w-wersji-demo/#"
+    },
+    {
+      "title": "EN/€",
+      "url": "https://api.idobooking.com/en/demo/przetestuj-system-w-wersji-demo/?currency=eur"
+    },
+    {
+      "title": "EN/£",
+      "url": "https://api.idobooking.com/en/demo/przetestuj-system-w-wersji-demo/?currency=gbp"
+    },
+    {
+      "title": "EN/$",
+      "url": "https://api.idobooking.com/en/demo/przetestuj-system-w-wersji-demo/?currency=usd"
+    },
+    {
+      "title": "EN/ZŁ",
+      "url": "https://api.idobooking.com/en/demo/przetestuj-system-w-wersji-demo/?currency=pln"
+    }
+  ],
+  "text": "NAJLEPSZE ROZWIĄZANIA DO ZARZĄDZANIA REZERWACJAMI\n            \n                Jak zacząć? Przetestuj nas w akcji!\n            \n        \n       Możesz skorzystać z darmowego DEMO lub zamówić od razu system na własny użytek z okresem próbnym:\n    \n            \n                DEMO \n            \n        \n                Darmowy dostęp bez zobowiązań\n                    7 dni testów(z opcją przedłużenia dostępu)\n                    bez pełnego dostępu do Channel Managera\n                    sprawdź, jak wygląda system IdoBooking uzupełniony o przykładowe treści\n           \n            \n            \n                Wersja pełna \n            \n        \n                Już od 99 zł za rok\n                    30-dniowy okres próbny (z możliwością zwrotu kosztów)\n                    pełen dostęp do Channel Managera\n                    zachowaj konfigurację Twojego obiektu i przetestuj Channel Manager\n\n\n\n\n\n    \n\n\n    \n        \n            \n                \n                    \n                        \n                    \n                \n            \n        \n    \n\n\n\n\n    \n            \n            \n            \n        \n            \n            \n                                \n                    Kiedy wybrać wersję DEMO?\n            \n        \n                Wybierz tę opcję, jeżeli chcesz zobaczyć, jak wygląda system IdoBooking uzupełniony o przykładowe treści. Nie musisz tracić czasu na wprowadzenie własnej konfiguracji, a my automatycznie po zakończeniu Twoich testów bezpiecznie wykasujemy wszystkie dane. Demo jest dostępne bezpłatnie na 7 dni. Istnieje możliwość samodzielnego przedłużenia tego okresu.\n\nKorzystanie z DEMO nie pociąga za sobą żadnych kosztów i obowiązków zamówienia systemu rezerwacji.\n\n\n            \n                \n                    Kiedy zamówić od razu pełną wersję systemu?\n            \n        \n                Wybierz tę opcję, jeżeli chcesz od razu zachować konfigurację Twojego obiektu i przetestować połączenie z Channel Managerem. Na start oferujemy 30-dniowy okres próbny. W tym czasie nie ponosisz kosztów obsługi rezerwacji i możesz przetestować dowolną liczbę integracji z Channel Managerem. W przypadku rezygnacji w okresie testowym gwarantujemy zwrot kosztu opłaty abonamentowej pobranej przy aktywacji. Jeżeli zostaniesz z nami, wszystkie Twoje ustawienia z okresu próbnego zostaną zachowane.",
+  "capturedAt": "2026-10-24T18:10:15.463Z",
+  "version": null,
+  "description": "",
+  "source": {
+    "url": "https://api.idobooking.com/pl/demo/przetestuj-system-w-wersji-demo/",
+    "capturedAt": "2026-10-24T18:10:15.463Z",
+    "transport": "authenticated Chrome HTTPS session",
+    "format": null
+  }
+}

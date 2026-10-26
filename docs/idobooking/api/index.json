@@ -1,0 +1,122 @@
+{
+  "kind": "index",
+  "height": 2213,
+  "html": "<div class=\"content__collapse col-md-9\"> \n          <div class=\"d-flex justify-content-between align-items-center mb-3\">\n            <span class=\"api_title mb-0\">Dokumentacja API Booking</span>   \n            <div class=\"show_list_link\"></div>\n          </div>\n        \n            \n        \n            <div id=\"documentation_background\">\n                <div class=\"content shop api_docs\">\n                    <div class=\"container white_bg\" data-equalizer=\"\">\n        \n        <div class=\"api_content row\" data-equalizer-watch=\"\"><div class=\"apiDesc col-12\">\n                        <h3 class=\"section__title\">Dostępne bramki:</h3>\n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"allotments/index.html\"><span>Allotment</span></a>\n                    <span><p class=\"old_wiki\">Bramka służy do ustawiania dostępności sprzedaży\n\n\n                </p></span></div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"amenities/index.html\"><span>Amenities</span></a>\n                    <span><p class=\"old_wiki\">Umożliwia pobranie listy udogodnień możliwych do przypisania w przedmiotach rezerwacji oraz w dodatkach.\n\n\n                </p></span></div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"availabilitylocks/index.html\"><span>Availability Locks</span></a>\n                    <span><p class=\"old_wiki\">Bramka służy do pobierania informacji o blokadach dostępności.\n\n\n                </p></span></div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"clients/index.html\"><span>Clients</span></a>\n                    <span><p class=\"old_wiki\">Umożliwia dowolne zarządzanie bazą klientów i przypisanych do nich gości, co pozwala także m.in. na integrację z zewnętrznymi narzędziami CRM, czy systemami marketingowymi.\n\n\n                </p></span></div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"locks/index.html\"><span>Locks</span></a>\n                    <span><p class=\"old_wiki\">Umożliwia zarządzanie kodami zamków elektronicznych\n\n\n                </p></span></div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"objects/index.html\"><span>Objects</span></a>\n                    <span><p class=\"old_wiki\">Umożliwia zarządzanie bazą przedmiotów rezerwacji oraz ich właściwościami.\n\n\n                </p></span></div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"offer/index.html\"><span>Offer</span></a>\n                    <span><p class=\"old_wiki\">Umożliwia pobieranie informacji na temat cen i dostępności dla przedmiotów rezerwacji na każdy dzień\n\n\n                </p></span></div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"payments/index.html\"><span>Payments</span></a>\n                    <span><p class=\"old_wiki\">Umożliwia zarządzanie płatnościami w rezerwacjach\n\n\n                </p></span></div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"prices/index.html\"><span>Prices</span></a>\n                    <span><p class=\"old_wiki\">Umożliwia zarządzanie cenami w poszczególnych kanałach sprzedaży.\n\n\n                </p></span></div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"public/index.html\"><span>Public</span></a>\n                    <span><p class=\"old_wiki\">Bramka publiczna, niewymagająca danych do logowania.\n\n\n                </p></span></div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"reservations/index.html\"><span>Reservations</span></a>\n                    <span><p class=\"old_wiki\">Bramka służy do pobierania informacji o złożonych rezerwacjach.\n\n\n                </p></span></div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"reservationsdocuments/index.html\"><span>Reservations Documents</span></a>\n                    <span><p class=\"old_wiki\">Umożliwia zarządzanie dokumentami do rezerwacji\n\n\n                </p></span></div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"restrictions/index.html\"><span>Restrictions</span></a>\n                    <span><p class=\"old_wiki\">Bramka służy do zarządzania wyjątkami od restrykcji pobytu\n\n\n                </p></span></div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"users/index.html\"><span>Users</span></a>\n                    <span><p class=\"old_wiki\">Umożliwia zarządzanie bazą użytkowników oraz nadawanie im uprawnień do panelu, powiadomień e-mail oraz komunikatów.\n\n\n                </p></span></div>\n            </div>\n        </div>\n                        </div>\n                    </div>\n                </div>\n            </div>\n        \n            \n        </div>",
+  "links": [
+    {
+      "title": "Narzędzia dla Developerów",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "API Admin",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/"
+    },
+    {
+      "title": "API IdoBooking",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=documentation&function="
+    },
+    {
+      "title": "Najlepsze rozwiązania do sprzedaży w internecie\n                        \n                            \n                                    \n                                \n                            \n                            \n                                Narzędzia dla Developerów\n                                IdoBooking",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "Wybierz inną dokumentację",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/#"
+    },
+    {
+      "title": "Dokumentacja API Admin",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/"
+    },
+    {
+      "title": "Dokumentacja API Customer",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "Dokumentacja API Marketplace",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "Dokumentacja API Storefront",
+      "url": "https://api.idobooking.com/pl/developers/storefront-documentation/"
+    },
+    {
+      "title": "Dokumentacja Smarty",
+      "url": "https://api.idobooking.com/pl/developers/smarty-documentation/"
+    },
+    {
+      "title": "sprawdź historię zmian",
+      "url": "https://api.idobooking.com/pl/developers/api/?branch=booking&action=changelog"
+    },
+    {
+      "title": "Allotment",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=documentation&function=allotments"
+    },
+    {
+      "title": "Amenities",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=documentation&function=amenities"
+    },
+    {
+      "title": "Availability Locks",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=documentation&function=availabilitylocks"
+    },
+    {
+      "title": "Clients",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=documentation&function=clients"
+    },
+    {
+      "title": "Locks",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=documentation&function=locks"
+    },
+    {
+      "title": "Objects",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=documentation&function=objects"
+    },
+    {
+      "title": "Offer",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=documentation&function=offer"
+    },
+    {
+      "title": "Payments",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=documentation&function=payments"
+    },
+    {
+      "title": "Prices",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=documentation&function=prices"
+    },
+    {
+      "title": "Public",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=documentation&function=public"
+    },
+    {
+      "title": "Reservations",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=documentation&function=reservations"
+    },
+    {
+      "title": "Reservations Documents",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=documentation&function=reservationsdocuments"
+    },
+    {
+      "title": "Restrictions",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=documentation&function=restrictions"
+    },
+    {
+      "title": "Users",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=documentation&function=users"
+    }
+  ],
+  "php": "",
+  "request": [],
+  "response": [],
+  "text": "Dokumentacja API Booking   \n            \n          \n        \n            \n        \n            \n                \n                    \n        \n        \n                        Dostępne bramki:\n            \n                \n                    Allotment\n                    Bramka służy do ustawiania dostępności sprzedaży\n\n\n                \n            \n        \n            \n                \n                    Amenities\n                    Umożliwia pobranie listy udogodnień możliwych do przypisania w przedmiotach rezerwacji oraz w dodatkach.\n\n\n                \n            \n        \n            \n                \n                    Availability Locks\n                    Bramka służy do pobierania informacji o blokadach dostępności.\n\n\n                \n            \n        \n            \n                \n                    Clients\n                    Umożliwia dowolne zarządzanie bazą klientów i przypisanych do nich gości, co pozwala także m.in. na integrację z zewnętrznymi narzędziami CRM, czy systemami marketingowymi.\n\n\n                \n            \n        \n            \n                \n                    Locks\n                    Umożliwia zarządzanie kodami zamków elektronicznych\n\n\n                \n            \n        \n            \n                \n                    Objects\n                    Umożliwia zarządzanie bazą przedmiotów rezerwacji oraz ich właściwościami.\n\n\n                \n            \n        \n            \n                \n                    Offer\n                    Umożliwia pobieranie informacji na temat cen i dostępności dla przedmiotów rezerwacji na każdy dzień\n\n\n                \n            \n        \n            \n                \n                    Payments\n                    Umożliwia zarządzanie płatnościami w rezerwacjach\n\n\n                \n            \n        \n            \n                \n                    Prices\n                    Umożliwia zarządzanie cenami w poszczególnych kanałach sprzedaży.\n\n\n                \n            \n        \n            \n                \n                    Public\n                    Bramka publiczna, niewymagająca danych do logowania.\n\n\n                \n            \n        \n            \n                \n                    Reservations\n                    Bramka służy do pobierania informacji o złożonych rezerwacjach.\n\n\n                \n            \n        \n            \n                \n                    Reservations Documents\n                    Umożliwia zarządzanie dokumentami do rezerwacji\n\n\n                \n            \n        \n            \n                \n                    Restrictions\n                    Bramka służy do zarządzania wyjątkami od restrykcji pobytu\n\n\n                \n            \n        \n            \n                \n                    Users\n                    Umożliwia zarządzanie bazą użytkowników oraz nadawanie im uprawnień do panelu, powiadomień e-mail oraz komunikatów.",
+  "title": "API IdoBooking",
+  "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/",
+  "capturedAt": "2026-10-24T18:00:47.094Z",
+  "version": null,
+  "description": "Bramka służy do ustawiania dostępności sprzedaży",
+  "source": {
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/",
+    "capturedAt": "2026-10-24T18:00:47.094Z",
+    "transport": "authenticated Chrome HTTPS session",
+    "format": null
+  }
+}

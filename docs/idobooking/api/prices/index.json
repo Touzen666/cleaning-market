@@ -1,0 +1,82 @@
+{
+  "title": "Bramka Prices",
+  "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=documentation&function=prices",
+  "kind": "gateway",
+  "height": 1666,
+  "html": "<div class=\"content__collapse col-md-9\"> <p class=\"old_wiki\">.</p>\n\n\n          <div class=\"d-flex justify-content-between align-items-center mb-3\">\n            <span class=\"api_title mb-0\">Dokumentacja API Booking</span>   \n            <div class=\"show_list_link\"></div>\n          </div>\n        \n            \n        \n            <div id=\"documentation_background\">\n                <div class=\"content shop api_docs\">\n                    <div class=\"container white_bg\" data-equalizer=\"\">\n        \n        <div class=\"api_content row\" data-equalizer-watch=\"\">\n            <div class=\"col-12 mb-5\">\n              <p class=\"api_short_description\"></p><p class=\"old_wiki\">Umożliwia zarządzanie cenami w poszczególnych kanałach sprzedaży.\n\n</p>\n            </div>\n            <div class=\"apiDesc cms col-12 mb-5\">\n                <h3 class=\"section__title\">Dostępne metody:</h3>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"deleteExceptions.html\"><span>deleteExceptions</span></a>\n                    <span>Usuwa nadpisaną cenę i przywraca cenę sprzed modyfikacji.</span>\n                </div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"getExceptions.html\"><span>getExceptions</span></a>\n                    <span>Pobiera listę nadpisanych cen w podanych źródłach rezerwacji, we wskazanych przedmiotach rezerwacji.</span>\n                </div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"setExceptions.html\"><span>setExceptions</span></a>\n                    <span>Nadpisuje dotychczasową cenę nową wartością.</span>\n                </div>\n            </div>\n        \n            </div>\n        \n                        </div>\n                    </div>\n                </div>\n            </div>\n        \n            \n        </div>",
+  "links": [
+    {
+      "title": "Narzędzia dla Developerów",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "API Admin",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/"
+    },
+    {
+      "title": "Bramka Prices",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=documentation&function=prices"
+    },
+    {
+      "title": "Najlepsze rozwiązania do sprzedaży w internecie\n                        \n                            \n                                    \n                                \n                            \n                            \n                                Narzędzia dla Developerów\n                                IdoBooking",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "Wybierz inną dokumentację",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=documentation&function=prices#"
+    },
+    {
+      "title": "Dokumentacja API Admin",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/"
+    },
+    {
+      "title": "Dokumentacja API Customer",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "Dokumentacja API Marketplace",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "Dokumentacja API Storefront",
+      "url": "https://api.idobooking.com/pl/developers/storefront-documentation/"
+    },
+    {
+      "title": "Dokumentacja Smarty",
+      "url": "https://api.idobooking.com/pl/developers/smarty-documentation/"
+    },
+    {
+      "title": "sprawdź historię zmian",
+      "url": "https://api.idobooking.com/pl/developers/api/?branch=booking&action=changelog"
+    },
+    {
+      "title": "Prices",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=documentation&function=prices"
+    },
+    {
+      "title": "deleteExceptions",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=prices&method=deleteExceptions"
+    },
+    {
+      "title": "getExceptions",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=prices&method=getExceptions"
+    },
+    {
+      "title": "setExceptions",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=prices&method=setExceptions"
+    }
+  ],
+  "php": "",
+  "request": [],
+  "response": [],
+  "text": ".\n\n\n          \n            Dokumentacja API Booking   \n            \n          \n        \n            \n        \n            \n                \n                    \n        \n        \n            \n              Umożliwia zarządzanie cenami w poszczególnych kanałach sprzedaży.\n\n\n            \n            \n                Dostępne metody:\n        \n            \n                \n                    deleteExceptions\n                    Usuwa nadpisaną cenę i przywraca cenę sprzed modyfikacji.\n                \n            \n        \n            \n                \n                    getExceptions\n                    Pobiera listę nadpisanych cen w podanych źródłach rezerwacji, we wskazanych przedmiotach rezerwacji.\n                \n            \n        \n            \n                \n                    setExceptions\n                    Nadpisuje dotychczasową cenę nową wartością.",
+  "capturedAt": "2026-10-24T18:01:04.517Z",
+  "version": null,
+  "description": "",
+  "source": {
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=documentation&function=prices",
+    "capturedAt": "2026-10-24T18:01:04.517Z",
+    "transport": "authenticated Chrome HTTPS session",
+    "format": null
+  }
+}

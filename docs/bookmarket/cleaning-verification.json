@@ -1,0 +1,32 @@
+{
+  "verifiedAt": "2026-10-25T11:49:22.7384857Z",
+  "project": "C:\\React Workspace\\book-market",
+  "scope": "cleaning.listCandidates backend only",
+  "tests": {
+    "status": "passed",
+    "testFiles": 9,
+    "productionDatabase": false,
+    "realNetwork": false,
+    "tests": 56,
+    "command": "node node_modules\\vitest\\vitest.mjs run src/server/cleaning src/server/idobooking"
+  },
+  "typescript": {
+    "command": "node node_modules\\typescript\\bin\\tsc --noEmit --incremental false",
+    "status": "passed"
+  },
+  "eslint": {
+    "command": "node node_modules\\eslint\\bin\\eslint.js src/server/cleaning src/server/api/routers/cleaning-candidates.ts",
+    "status": "passed"
+  },
+  "diffCheck": "passed",
+  "preserved": [
+    "src/app/admin",
+    "src/app/cleaningService",
+    "src/app/api/operations",
+    "src/server/idobooking",
+    "prisma",
+    "src/server/api/routers/cleaning-auth.ts"
+  ],
+  "frontendConnected": false,
+  "deployed": false
+}

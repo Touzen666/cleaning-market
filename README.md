@@ -639,3 +639,15 @@ export const createNewEmailTemplate = (data: any) => {
 **Book Market** to kompleksowe rozwiązanie dla zarządzania krótkookresowym wynajmem, łączące nowoczesne technologie z intuicyjnym interfejsem użytkownika. System zapewnia pełną kontrolę nad procesami biznesowymi, automatyzuje rutynowe zadania, dostarcza szczegółowych analiz finansowych oraz oferuje profesjonalny system komunikacji email z właścicielami apartamentów.
 
 **Technologie:** Next.js 15, TypeScript, tRPC, Prisma, PostgreSQL, Tailwind CSS, NextAuth.js, Nodemailer, T3App Stack
+
+
+## Dokumentacja integracji z iDoBooking
+
+Aktualny opis lokalnego kodu i archiwum dokumentacji dostawcy z 24.10.2026:
+
+- [Spis dokumentacji projektu](docs/README.md)
+- [Panel cleaning: niezależny backend, UI i weryfikacja](docs/bookmarket/cleaning-ui-etap-2.md)
+- [Jak działa Bookmarket](docs/bookmarket/architektura.md)
+- [Używane endpointy iDoBooking i przepływ danych](docs/bookmarket/integracja-idobooking.md)
+- [Dokumentacja iDoBooking offline: JSON, pola, PHP i pełne zrzuty](docs/idobooking/index.html)
+- [Raport kompletności archiwum](docs/idobooking/coverage.json)

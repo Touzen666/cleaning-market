@@ -1,0 +1,428 @@
+{
+  "title": "Bramka Payments/Metoda get",
+  "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=payments&method=get##",
+  "kind": "method",
+  "gateway": "payments",
+  "height": 4094,
+  "html": "<div class=\"content__collapse col-md-9\"> \n          <div class=\"d-flex justify-content-between align-items-center mb-3\">\n            <span class=\"api_title mb-0\">Dokumentacja API Booking</span>   \n            <div class=\"show_list_link\"></div>\n          </div>\n        \n            \n        \n            <div id=\"documentation_background\">\n                <div class=\"content shop api_docs\">\n                    <div class=\"container white_bg\" data-equalizer=\"\">\n        \n        <div class=\"api_content row\" data-equalizer-watch=\"\"><div class=\"col-12 mb-5\"><p class=\"api_short_description\">\nMetoda pozwala na pobieranie wpłat dla rezerwacji\n\n\n</p></div><div class=\"apiDesc col-12 mb-5\">\n            <div id=\"format_type\" class=\"tabs\">\n                \n        <div class=\"tabs__content\"><div id=\"tab1\" class=\"tabs__element --shown\">\n            <div id=\"api_method_adresses\" class=\"mb-5\">\n                <div class=\"api_method_header px-3 d-flex align-items-center\">\n                    <i class=\"icon-info-circled\"></i>\n                    <strong>Adresy</strong>\n                </div>\n        \n              <div class=\"api_method_row\">\n                <div class=\"row align-items-center py-3\">\n                    <div class=\"col-3 pl-5\">\n                        <strong>Nasłuch</strong>\n                    </div>\n                    <div class=\"col-9 col-sm-7\">\n                        <a href=\"https://client1679.idosell.com/api/payments/get/36/json\" class=\"api_link\" id=\"copyTarget_0json\">https://_domena_booking_.idosell.com/api/payments/get/36/json</a>\n                    </div>\n                    <div class=\"col-12 col-sm-2 d-flex justify-content-end\">\n                        \n                    </div>\n                \n                    </div>\n                </div>\n            </div>\n        \n        <div id=\"api_method_request_json\" class=\"mb-5\"><div class=\"api_method_header px-3\"><div class=\"api_method_header_left d-flex flex-wrap justify-content-center justify-content-sm-between align-items-center\"><div><i class=\"icon-code\"></i> \n            <strong>Struktura żądania</strong></div></div></div><div id=\"api_method_request_content\" class=\"api_details visible\">\n                <div class=\"api_details_item open\" data-parameter-name=\"authenticate\">\n                    <div class=\"api_details_item_inner level0 toggle\">\n                        <strong class=\"api_required required_after\">authenticate <span>(authenticateType)</span></strong>\n                        <span><p>Element służy do uwierzytelniania konta w celu wywołania metody</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"systemKey\">\n                    <div class=\"api_details_item_inner level1\">\n                        <strong class=\"api_required required_after\">systemKey <span>(string)</span></strong>\n                        <span><p>Klucz wykorzystywany podczas uwierzytelniania. Zapoznaj się z <a href=\"https://pomoc.idobooking.com/dodatkowe-moduly/api\">instrukcją generowania klucza</a></p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"systemLogin\">\n                    <div class=\"api_details_item_inner level1\">\n                        <strong class=\"api_required required_after\">systemLogin <span>(string)</span></strong>\n                        <span><p>Login użytkownika panelu IdoSell Booking</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"lang\">\n                    <div class=\"api_details_item_inner level1\">\n                        <strong class=\"\">lang <span>(apiLanguage)</span></strong>\n                        <span><p>\n                    <span>Możliwe wartości:\n                    </span> (<i>eng, pol, ger</i>)</p><p>Język API</p></span>\n                    </div>\n        </div></div></div>\n                <div class=\"api_details_item open\" data-parameter-name=\"settings\">\n                    <div class=\"api_details_item_inner level0 toggle\">\n                        <strong class=\"\">settings <span>(settingsType)</span></strong>\n                        <span><p>Ustawienia</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"page\">\n                    <div class=\"api_details_item_inner level1\">\n                        <strong class=\"\">page <span>(int)</span></strong>\n                        <span><p>Numer strony z wynikami. Numeracja rozpoczyna się od 1</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"number\">\n                    <div class=\"api_details_item_inner level1\">\n                        <strong class=\"\">number <span>(int)</span></strong>\n                        <span><p>Liczba wyników na stronie. Wartości od 1 do 100</p></span>\n                    </div>\n        </div></div></div>\n                <div class=\"api_details_item open\" data-parameter-name=\"params\">\n                    <div class=\"api_details_item_inner level0 toggle\">\n                        <strong class=\"\">params <span>(paramsType)</span></strong>\n                        <span><p>Parametry przekazywane do metody</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item open\" data-parameter-name=\"reservationIds\">\n                    <div class=\"api_details_item_inner level1 toggle\">\n                        <strong class=\"\">reservationIds <span>(intArray)</span></strong>\n                        <span><p>Identyfikatory rezerwacji<br><br><i>element typu int</i></p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"int\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"api_required required_after\"> <span>(int)</span></strong>\n                        <span><p>element typu int</p></span>\n                    </div>\n        </div></div></div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item open\" data-parameter-name=\"paymentIds\">\n                    <div class=\"api_details_item_inner level1 toggle\">\n                        <strong class=\"\">paymentIds <span>(intArray)</span></strong>\n                        <span><p>Identyfikatory płatności<br><br><i>element typu int</i></p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"int\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"api_required required_after\"> <span>(int)</span></strong>\n                        <span><p>element typu int</p></span>\n                    </div>\n        </div></div></div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item open\" data-parameter-name=\"statuses\">\n                    <div class=\"api_details_item_inner level1 toggle\">\n                        <strong class=\"\">statuses <span>(statusTypeArray)</span></strong>\n                        <span><p>Statusy płatności</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"statusType\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"api_required required_after\"> <span>(statusType)</span></strong>\n                        <span><p>\n                    <span>Możliwe wartości:\n                    </span> (<i>pending, processed, cancelled</i>)</p><p>element typu statusType</p></span>\n                    </div>\n        </div></div></div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item open\" data-parameter-name=\"paymentTypes\">\n                    <div class=\"api_details_item_inner level1 toggle\">\n                        <strong class=\"\">paymentTypes <span>(paymentTypeTypeArray)</span></strong>\n                        <span><p>Typy transakcji:\n        \"payment\" - wpłata,\n        \"advance\" - zaliczka,\n        \"repayment\" - zwrot</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"paymentTypeType\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"api_required required_after\"> <span>(paymentTypeType)</span></strong>\n                        <span><p>\n                    <span>Możliwe wartości:\n                    </span> (<i>payment, advance, repayment</i>)</p><p>element typu paymentTypeType</p></span>\n                    </div>\n        </div></div></div></div></div></div></div>\n        <div id=\"api_method_response_json\" class=\"mb-5\"><div class=\"api_method_header px-3\"><div class=\"api_method_header_left d-flex flex-wrap justify-content-center justify-content-sm-between align-items-center\"><div><i class=\"icon-code\"></i> \n            <strong>Struktura odpowiedzi</strong></div></div></div><div id=\"api_method_response_content\" class=\"api_details visible\">\n                <div class=\"api_details_item open\" data-parameter-name=\"errors\">\n                    <div class=\"api_details_item_inner level0 toggle\">\n                        <strong class=\"\">errors <span>(gateErrorType)</span></strong>\n                        <span><p>Błąd</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"faultCode\">\n                    <div class=\"api_details_item_inner level1\">\n                        <strong class=\"\">faultCode <span>(int)</span></strong>\n                        <span><p>Kod błędu</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"faultString\">\n                    <div class=\"api_details_item_inner level1\">\n                        <strong class=\"\">faultString <span>(string)</span></strong>\n                        <span><p>Opis błędu</p></span>\n                    </div>\n        </div></div></div>\n                <div class=\"api_details_item open\" data-parameter-name=\"results\">\n                    <div class=\"api_details_item_inner level0 toggle\">\n                        <strong class=\"\">results <span>(resultsType)</span></strong>\n                        <span><p>Wynik wykonanej operacji</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item open\" data-parameter-name=\"resultType\">\n                    <div class=\"api_details_item_inner level1 toggle\">\n                        <strong class=\"api_required required_after\"> <span>(resultType)</span></strong>\n                        <span><p>element typu resultType</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"id\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"api_required required_after\">id <span>(int)</span></strong>\n                        <span><p>Identyfikator płatności</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"reservationId\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"api_required required_after\">reservationId <span>(int)</span></strong>\n                        <span><p>Identyfikator rezerwacji</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"value\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"api_required required_after\">value <span>(float)</span></strong>\n                        <span><p>Kwota wpłaty</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"type\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"api_required required_after\">type <span>(paymentTypeType)</span></strong>\n                        <span><p>\n                    <span>Możliwe wartości:\n                    </span> (<i>payment, advance, repayment</i>)</p><p>Typ transakcji:\n        \"payment\" - wpłata,\n        \"advance\" - zaliczka,\n        \"repayment\" - zwrot</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"status\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"api_required required_after\">status <span>(statusType)</span></strong>\n                        <span><p>\n                    <span>Możliwe wartości:\n                    </span> (<i>pending, processed, cancelled</i>)</p><p>Status płatności</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"paymentSystem\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"api_required required_after\">paymentSystem <span>(string)</span></strong>\n                        <span><p>System płatności</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"externalPaymentId\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"\">externalPaymentId <span>(string)</span></strong>\n                        <span><p>ID transakcji w serwisie zewnętrznym</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"accountingDate\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"\">accountingDate <span>(string)</span></strong>\n                        <span><p>Data zaksięgowania</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"currency\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"\">currency <span>(string)</span></strong>\n                        <span><p>Kod waluty zgodny z ISO 4217 Przykład: PLN, EUR</p></span>\n                    </div>\n        </div></div></div></div></div>\n                <div class=\"api_details_item\" data-parameter-name=\"page\">\n                    <div class=\"api_details_item_inner level0\">\n                        <strong class=\"\">page <span>(int)</span></strong>\n                        <span><p>Numer strony z wynikami. Numeracja rozpoczyna się od 1</p></span>\n                    </div>\n        </div>\n                <div class=\"api_details_item\" data-parameter-name=\"countOnPage\">\n                    <div class=\"api_details_item_inner level0\">\n                        <strong class=\"\">countOnPage <span>(int)</span></strong>\n                        <span><p>Ilość wyników na stronie</p></span>\n                    </div>\n        </div>\n                <div class=\"api_details_item\" data-parameter-name=\"pageAll\">\n                    <div class=\"api_details_item_inner level0\">\n                        <strong class=\"\">pageAll <span>(int)</span></strong>\n                        <span><p>Suma stron</p></span>\n                    </div>\n        </div>\n                <div class=\"api_details_item\" data-parameter-name=\"countAll\">\n                    <div class=\"api_details_item_inner level0\">\n                        <strong class=\"\">countAll <span>(int)</span></strong>\n                        <span><p>Suma wszystkich wyników</p></span>\n                    </div>\n        </div></div></div>\n        <div id=\"php-example_json\" class=\"code_example mb-5\"><div class=\"api_method_header px-3\"><div class=\"api_method_header_left d-flex flex-wrap justify-content-center justify-content-sm-between align-items-center\"><div><i class=\"icon-file-code\"></i> \n            <strong>Przykład kodu w PHP</strong></div></div></div><div class=\"api_details visible\">\n                <div id=\"php-example_content_json\">\n                    <pre class=\"highlight-code hljs php\"><span class=\"hljs-meta\">&lt;?php</span>\n\n$address = <span class=\"hljs-string\">'https://client1679.idobooking.com/api/payments/get/36/json'</span>;\n\n$request = <span class=\"hljs-keyword\">array</span>();\n$request[<span class=\"hljs-string\">'authenticate'</span>] = <span class=\"hljs-keyword\">array</span>();\n$request[<span class=\"hljs-string\">'authenticate'</span>][<span class=\"hljs-string\">'systemKey'</span>] = sha1(date(<span class=\"hljs-string\">'Ymd'</span>) . sha1(<span class=\"hljs-string\">'YOUR_KEY'</span>));\n$request[<span class=\"hljs-string\">'authenticate'</span>][<span class=\"hljs-string\">'systemLogin'</span>] = <span class=\"hljs-string\">\"systemLogin\"</span>;\n$request[<span class=\"hljs-string\">'authenticate'</span>][<span class=\"hljs-string\">'lang'</span>] = <span class=\"hljs-string\">'eng'</span>;\n$request[<span class=\"hljs-string\">'settings'</span>] = <span class=\"hljs-keyword\">array</span>();\n$request[<span class=\"hljs-string\">'settings'</span>][<span class=\"hljs-string\">'page'</span>] = <span class=\"hljs-number\">1</span>;\n$request[<span class=\"hljs-string\">'settings'</span>][<span class=\"hljs-string\">'number'</span>] = <span class=\"hljs-number\">2</span>;\n$request[<span class=\"hljs-string\">'params'</span>] = <span class=\"hljs-keyword\">array</span>();\n$request[<span class=\"hljs-string\">'params'</span>][<span class=\"hljs-string\">'reservationIds'</span>] = <span class=\"hljs-keyword\">array</span>();\n$request[<span class=\"hljs-string\">'params'</span>][<span class=\"hljs-string\">'reservationIds'</span>][<span class=\"hljs-number\">0</span>] = <span class=\"hljs-number\">3</span>;\n$request[<span class=\"hljs-string\">'params'</span>][<span class=\"hljs-string\">'paymentIds'</span>] = <span class=\"hljs-keyword\">array</span>();\n$request[<span class=\"hljs-string\">'params'</span>][<span class=\"hljs-string\">'paymentIds'</span>][<span class=\"hljs-number\">0</span>] = <span class=\"hljs-number\">4</span>;\n$request[<span class=\"hljs-string\">'params'</span>][<span class=\"hljs-string\">'statuses'</span>] = <span class=\"hljs-keyword\">array</span>();\n$request[<span class=\"hljs-string\">'params'</span>][<span class=\"hljs-string\">'statuses'</span>][<span class=\"hljs-number\">0</span>] = <span class=\"hljs-string\">'pending'</span>;\n$request[<span class=\"hljs-string\">'params'</span>][<span class=\"hljs-string\">'paymentTypes'</span>] = <span class=\"hljs-keyword\">array</span>();\n$request[<span class=\"hljs-string\">'params'</span>][<span class=\"hljs-string\">'paymentTypes'</span>][<span class=\"hljs-number\">0</span>] = <span class=\"hljs-string\">'payment'</span>;\n\n$request_json = json_encode($request);\n$headers = <span class=\"hljs-keyword\">array</span>(\n    <span class=\"hljs-string\">'Accept: application/json'</span>,\n    <span class=\"hljs-string\">'Content-Type: application/json;charset=UTF-8'</span>\n);\n\n$curl = curl_init($address);\ncurl_setopt($curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, <span class=\"hljs-number\">1</span>);\ncurl_setopt($curl, CURLOPT_SSL_VERIFYPEER, <span class=\"hljs-keyword\">false</span>);\ncurl_setopt($curl, CURLOPT_SSL_VERIFYHOST, <span class=\"hljs-keyword\">false</span>);\ncurl_setopt($curl, CURLOPT_FORBID_REUSE, <span class=\"hljs-number\">1</span>);\ncurl_setopt($curl, CURLINFO_HEADER_OUT, <span class=\"hljs-number\">1</span>);\ncurl_setopt($curl, CURLOPT_HEADER, <span class=\"hljs-number\">1</span>);\ncurl_setopt($curl, CURLOPT_POST, <span class=\"hljs-number\">1</span>);\ncurl_setopt($curl, CURLOPT_POSTFIELDS, $request_json);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, $headers);\n\n$response = curl_exec($curl);\n$status = curl_getinfo($curl);\ncurl_close($curl);\n       </pre>\n                </div>\n            </div></div>\n        <div id=\"api_changelog_json\" class=\"mb-5\"><h2>Historia zmian</h2><p>W rozwiniętej historii metody nie wyświetlono wpisów zmian; dostępny był formularz porównywania wersji.</p></div></div></div></div>\n                        </div>\n                    </div>\n                </div>\n            </div>\n        \n            \n        </div></div>",
+  "links": [
+    {
+      "title": "Narzędzia dla Developerów",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "API Admin",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/"
+    },
+    {
+      "title": "Bramka Payments",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=documentation&function=payments"
+    },
+    {
+      "title": "Najlepsze rozwiązania do sprzedaży w internecie\n                        \n                            \n                                    \n                                \n                            \n                            \n                                Narzędzia dla Developerów\n                                IdoBooking",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "Wybierz inną dokumentację",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=payments&method=get#"
+    },
+    {
+      "title": "Dokumentacja API Admin",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/"
+    },
+    {
+      "title": "Dokumentacja API Customer",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "Dokumentacja API Marketplace",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "Dokumentacja API Storefront",
+      "url": "https://api.idobooking.com/pl/developers/storefront-documentation/"
+    },
+    {
+      "title": "Dokumentacja Smarty",
+      "url": "https://api.idobooking.com/pl/developers/smarty-documentation/"
+    },
+    {
+      "title": "sprawdź historię zmian",
+      "url": "https://api.idobooking.com/pl/developers/api/?branch=booking&action=changelog"
+    },
+    {
+      "title": "Payments",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=documentation&function=payments"
+    },
+    {
+      "title": "SOAP",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=payments&method=get#tab0"
+    },
+    {
+      "title": "JSON",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=payments&method=get#tab1"
+    },
+    {
+      "title": "https://_domena_booking_.idosell.com/api/payments/get/36/soap",
+      "url": "https://client1679.idosell.com/api/payments/get/36/soap"
+    },
+    {
+      "title": "kopiuj",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=payments&method=get#copyContentHref"
+    },
+    {
+      "title": "https://_domena_booking_.idosell.com/api/payments/get/36/soap/wsdl/pol",
+      "url": "https://client1679.idosell.com/api/payments/get/36/soap/wsdl/pol"
+    },
+    {
+      "title": "kopiuj",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=payments&method=get#copyContentHref"
+    },
+    {
+      "title": "rozwiń wszystkie węzły",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=payments&method=get##"
+    },
+    {
+      "title": "zwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=payments&method=get##"
+    },
+    {
+      "title": "instrukcją generowania klucza",
+      "url": "https://pomoc.idobooking.com/dodatkowe-moduly/api"
+    },
+    {
+      "title": "rozwiń wszystkie węzły",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=payments&method=get##"
+    },
+    {
+      "title": "zwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=payments&method=get##"
+    },
+    {
+      "title": "pobierz",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=payments&method=get##"
+    },
+    {
+      "title": "kopiuj",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=payments&method=get##"
+    },
+    {
+      "title": "rozwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=payments&method=get##"
+    },
+    {
+      "title": "pobierz",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=payments&method=get##"
+    },
+    {
+      "title": "kopiuj",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=payments&method=get##"
+    },
+    {
+      "title": "rozwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=payments&method=get##"
+    },
+    {
+      "title": "rozwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=payments&method=get##"
+    },
+    {
+      "title": "https://_domena_booking_.idosell.com/api/payments/get/36/json",
+      "url": "https://client1679.idosell.com/api/payments/get/36/json"
+    },
+    {
+      "title": "kopiuj",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=payments&method=get#copyContentHref"
+    },
+    {
+      "title": "zwiń wszystkie węzły",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=payments&method=get##"
+    },
+    {
+      "title": "zwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=payments&method=get##"
+    },
+    {
+      "title": "instrukcją generowania klucza",
+      "url": "https://pomoc.idobooking.com/dodatkowe-moduly/api"
+    },
+    {
+      "title": "zwiń wszystkie węzły",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=payments&method=get##"
+    },
+    {
+      "title": "zwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=payments&method=get##"
+    },
+    {
+      "title": "pobierz",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=payments&method=get##"
+    },
+    {
+      "title": "kopiuj",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=payments&method=get##"
+    },
+    {
+      "title": "zwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=payments&method=get##"
+    },
+    {
+      "title": "zwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=payments&method=get##"
+    }
+  ],
+  "php": "\n                    <?php\n\n$address = 'https://client1679.idobooking.com/api/payments/get/36/json';\n\n$request = array();\n$request['authenticate'] = array();\n$request['authenticate']['systemKey'] = sha1(date('Ymd') . sha1('YOUR_KEY'));\n$request['authenticate']['systemLogin'] = \"systemLogin\";\n$request['authenticate']['lang'] = 'eng';\n$request['settings'] = array();\n$request['settings']['page'] = 1;\n$request['settings']['number'] = 2;\n$request['params'] = array();\n$request['params']['reservationIds'] = array();\n$request['params']['reservationIds'][0] = 3;\n$request['params']['paymentIds'] = array();\n$request['params']['paymentIds'][0] = 4;\n$request['params']['statuses'] = array();\n$request['params']['statuses'][0] = 'pending';\n$request['params']['paymentTypes'] = array();\n$request['params']['paymentTypes'][0] = 'payment';\n\n$request_json = json_encode($request);\n$headers = array(\n    'Accept: application/json',\n    'Content-Type: application/json;charset=UTF-8'\n);\n\n$curl = curl_init($address);\ncurl_setopt($curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);\ncurl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);\ncurl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);\ncurl_setopt($curl, CURLOPT_FORBID_REUSE, 1);\ncurl_setopt($curl, CURLINFO_HEADER_OUT, 1);\ncurl_setopt($curl, CURLOPT_HEADER, 1);\ncurl_setopt($curl, CURLOPT_POST, 1);\ncurl_setopt($curl, CURLOPT_POSTFIELDS, $request_json);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, $headers);\n\n$response = curl_exec($curl);\n$status = curl_getinfo($curl);\ncurl_close($curl);\n       \n                ",
+  "request": [
+    {
+      "description": "Element służy do uwierzytelniania konta w celu wywołania metody",
+      "name": "authenticate",
+      "path": "authenticate",
+      "required": true,
+      "type": "authenticateType"
+    },
+    {
+      "description": "Klucz wykorzystywany podczas uwierzytelniania. Zapoznaj się z instrukcją generowania klucza",
+      "name": "systemKey",
+      "path": "authenticate.systemKey",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "description": "Login użytkownika panelu IdoSell Booking",
+      "name": "systemLogin",
+      "path": "authenticate.systemLogin",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "description": "Możliwe wartości: (eng, pol, ger)\n\nJęzyk API",
+      "name": "lang",
+      "path": "authenticate.lang",
+      "required": false,
+      "type": "apiLanguage"
+    },
+    {
+      "description": "Ustawienia",
+      "name": "settings",
+      "path": "settings",
+      "required": false,
+      "type": "settingsType"
+    },
+    {
+      "description": "Numer strony z wynikami. Numeracja rozpoczyna się od 1",
+      "name": "page",
+      "path": "settings.page",
+      "required": false,
+      "type": "int"
+    },
+    {
+      "description": "Liczba wyników na stronie. Wartości od 1 do 100",
+      "name": "number",
+      "path": "settings.number",
+      "required": false,
+      "type": "int"
+    },
+    {
+      "description": "Parametry przekazywane do metody",
+      "name": "params",
+      "path": "params",
+      "required": false,
+      "type": "paramsType"
+    },
+    {
+      "description": "Identyfikatory rezerwacji\n\nelement typu int",
+      "name": "reservationIds",
+      "path": "params.reservationIds",
+      "required": false,
+      "type": "intArray"
+    },
+    {
+      "description": "element typu int",
+      "name": "int",
+      "path": "params.reservationIds.int",
+      "required": true,
+      "type": "int"
+    },
+    {
+      "description": "Identyfikatory płatności\n\nelement typu int",
+      "name": "paymentIds",
+      "path": "params.paymentIds",
+      "required": false,
+      "type": "intArray"
+    },
+    {
+      "description": "element typu int",
+      "name": "int",
+      "path": "params.paymentIds.int",
+      "required": true,
+      "type": "int"
+    },
+    {
+      "description": "Statusy płatności",
+      "name": "statuses",
+      "path": "params.statuses",
+      "required": false,
+      "type": "statusTypeArray"
+    },
+    {
+      "description": "Możliwe wartości: (pending, processed, cancelled)\n\nelement typu statusType",
+      "name": "statusType",
+      "path": "params.statuses.statusType",
+      "required": true,
+      "type": "statusType"
+    },
+    {
+      "description": "Typy transakcji: \"payment\" - wpłata, \"advance\" - zaliczka, \"repayment\" - zwrot",
+      "name": "paymentTypes",
+      "path": "params.paymentTypes",
+      "required": false,
+      "type": "paymentTypeTypeArray"
+    },
+    {
+      "description": "Możliwe wartości: (payment, advance, repayment)\n\nelement typu paymentTypeType",
+      "name": "paymentTypeType",
+      "path": "params.paymentTypes.paymentTypeType",
+      "required": true,
+      "type": "paymentTypeType"
+    }
+  ],
+  "response": [
+    {
+      "description": "Błąd",
+      "name": "errors",
+      "path": "errors",
+      "required": false,
+      "type": "gateErrorType"
+    },
+    {
+      "description": "Kod błędu",
+      "name": "faultCode",
+      "path": "errors.faultCode",
+      "required": false,
+      "type": "int"
+    },
+    {
+      "description": "Opis błędu",
+      "name": "faultString",
+      "path": "errors.faultString",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "Wynik wykonanej operacji",
+      "name": "results",
+      "path": "results",
+      "required": false,
+      "type": "resultsType"
+    },
+    {
+      "description": "element typu resultType",
+      "name": "resultType",
+      "path": "results.resultType",
+      "required": true,
+      "type": "resultType"
+    },
+    {
+      "description": "Identyfikator płatności",
+      "name": "id",
+      "path": "results.resultType.id",
+      "required": true,
+      "type": "int"
+    },
+    {
+      "description": "Identyfikator rezerwacji",
+      "name": "reservationId",
+      "path": "results.resultType.reservationId",
+      "required": true,
+      "type": "int"
+    },
+    {
+      "description": "Kwota wpłaty",
+      "name": "value",
+      "path": "results.resultType.value",
+      "required": true,
+      "type": "float"
+    },
+    {
+      "description": "Możliwe wartości: (payment, advance, repayment)\n\nTyp transakcji: \"payment\" - wpłata, \"advance\" - zaliczka, \"repayment\" - zwrot",
+      "name": "type",
+      "path": "results.resultType.type",
+      "required": true,
+      "type": "paymentTypeType"
+    },
+    {
+      "description": "Możliwe wartości: (pending, processed, cancelled)\n\nStatus płatności",
+      "name": "status",
+      "path": "results.resultType.status",
+      "required": true,
+      "type": "statusType"
+    },
+    {
+      "description": "System płatności",
+      "name": "paymentSystem",
+      "path": "results.resultType.paymentSystem",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "description": "ID transakcji w serwisie zewnętrznym",
+      "name": "externalPaymentId",
+      "path": "results.resultType.externalPaymentId",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "Data zaksięgowania",
+      "name": "accountingDate",
+      "path": "results.resultType.accountingDate",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "Kod waluty zgodny z ISO 4217 Przykład: PLN, EUR",
+      "name": "currency",
+      "path": "results.resultType.currency",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "Numer strony z wynikami. Numeracja rozpoczyna się od 1",
+      "name": "page",
+      "path": "page",
+      "required": false,
+      "type": "int"
+    },
+    {
+      "description": "Ilość wyników na stronie",
+      "name": "countOnPage",
+      "path": "countOnPage",
+      "required": false,
+      "type": "int"
+    },
+    {
+      "description": "Suma stron",
+      "name": "pageAll",
+      "path": "pageAll",
+      "required": false,
+      "type": "int"
+    },
+    {
+      "description": "Suma wszystkich wyników",
+      "name": "countAll",
+      "path": "countAll",
+      "required": false,
+      "type": "int"
+    }
+  ],
+  "text": "Dokumentacja API Booking   \n            \n          \n        \n            \n        \n            \n                \n                    \n        \n        \nMetoda pozwala na pobieranie wpłat dla rezerwacji\n\n\n\n            \n                \n        \n            \n                \n                    \n                    Adresy\n                \n        \n              \n                \n                    \n                        Nasłuch\n                    \n                    \n                        https://_domena_booking_.idosell.com/api/payments/get/36/json\n                    \n                    \n                        \n                    \n                \n                    \n                \n            \n        \n         \n            Struktura żądania\n                \n                    \n                        authenticate (authenticateType)\n                        Element służy do uwierzytelniania konta w celu wywołania metody\n                    \n        \n            \n            \n                \n                    \n                        systemKey (string)\n                        Klucz wykorzystywany podczas uwierzytelniania. Zapoznaj się z instrukcją generowania klucza\n                    \n        \n            \n            \n                \n                    \n                        systemLogin (string)\n                        Login użytkownika panelu IdoSell Booking\n                    \n        \n            \n            \n                \n                    \n                        lang (apiLanguage)\n                        \n                    Możliwe wartości:\n                     (eng, pol, ger)Język API\n                    \n        \n                \n                    \n                        settings (settingsType)\n                        Ustawienia\n                    \n        \n            \n            \n                \n                    \n                        page (int)\n                        Numer strony z wynikami. Numeracja rozpoczyna się od 1\n                    \n        \n            \n            \n                \n                    \n                        number (int)\n                        Liczba wyników na stronie. Wartości od 1 do 100\n                    \n        \n                \n                    \n                        params (paramsType)\n                        Parametry przekazywane do metody\n                    \n        \n            \n            \n                \n                    \n                        reservationIds (intArray)\n                        Identyfikatory rezerwacjielement typu int\n                    \n        \n            \n            \n                \n                    \n                         (int)\n                        element typu int\n                    \n        \n            \n            \n                \n                    \n                        paymentIds (intArray)\n                        Identyfikatory płatnościelement typu int\n                    \n        \n            \n            \n                \n                    \n                         (int)\n                        element typu int\n                    \n        \n            \n            \n                \n                    \n                        statuses (statusTypeArray)\n                        Statusy płatności\n                    \n        \n            \n            \n                \n                    \n                         (statusType)\n                        \n                    Możliwe wartości:\n                     (pending, processed, cancelled)element typu statusType\n                    \n        \n            \n            \n                \n                    \n                        paymentTypes (paymentTypeTypeArray)\n                        Typy transakcji:\n        \"payment\" - wpłata,\n        \"advance\" - zaliczka,\n        \"repayment\" - zwrot\n                    \n        \n            \n            \n                \n                    \n                         (paymentTypeType)\n                        \n                    Możliwe wartości:\n                     (payment, advance, repayment)element typu paymentTypeType\n                    \n        \n         \n            Struktura odpowiedzi\n                \n                    \n                        errors (gateErrorType)\n                        Błąd\n                    \n        \n            \n            \n                \n                    \n                        faultCode (int)\n                        Kod błędu\n                    \n        \n            \n            \n                \n                    \n                        faultString (string)\n                        Opis błędu\n                    \n        \n                \n                    \n                        results (resultsType)\n                        Wynik wykonanej operacji\n                    \n        \n            \n            \n                \n                    \n                         (resultType)\n                        element typu resultType\n                    \n        \n            \n            \n                \n                    \n                        id (int)\n                        Identyfikator płatności\n                    \n        \n            \n            \n                \n                    \n                        reservationId (int)\n                        Identyfikator rezerwacji\n                    \n        \n            \n            \n                \n                    \n                        value (float)\n                        Kwota wpłaty\n                    \n        \n            \n            \n                \n                    \n                        type (paymentTypeType)\n                        \n                    Możliwe wartości:\n                     (payment, advance, repayment)Typ transakcji:\n        \"payment\" - wpłata,\n        \"advance\" - zaliczka,\n        \"repayment\" - zwrot\n                    \n        \n            \n            \n                \n                    \n                        status (statusType)\n                        \n                    Możliwe wartości:\n                     (pending, processed, cancelled)Status płatności\n                    \n        \n            \n            \n                \n                    \n                        paymentSystem (string)\n                        System płatności\n                    \n        \n            \n            \n                \n                    \n                        externalPaymentId (string)\n                        ID transakcji w serwisie zewnętrznym\n                    \n        \n            \n            \n                \n                    \n                        accountingDate (string)\n                        Data zaksięgowania\n                    \n        \n            \n            \n                \n                    \n                        currency (string)\n                        Kod waluty zgodny z ISO 4217 Przykład: PLN, EUR\n                    \n        \n                \n                    \n                        page (int)\n                        Numer strony z wynikami. Numeracja rozpoczyna się od 1\n                    \n        \n                \n                    \n                        countOnPage (int)\n                        Ilość wyników na stronie\n                    \n        \n                \n                    \n                        pageAll (int)\n                        Suma stron\n                    \n        \n                \n                    \n                        countAll (int)\n                        Suma wszystkich wyników\n                    \n        \n         \n            Przykład kodu w PHP\n                \n                    <?php\n\n$address = 'https://client1679.idobooking.com/api/payments/get/36/json';\n\n$request = array();\n$request['authenticate'] = array();\n$request['authenticate']['systemKey'] = sha1(date('Ymd') . sha1('YOUR_KEY'));\n$request['authenticate']['systemLogin'] = \"systemLogin\";\n$request['authenticate']['lang'] = 'eng';\n$request['settings'] = array();\n$request['settings']['page'] = 1;\n$request['settings']['number'] = 2;\n$request['params'] = array();\n$request['params']['reservationIds'] = array();\n$request['params']['reservationIds'][0] = 3;\n$request['params']['paymentIds'] = array();\n$request['params']['paymentIds'][0] = 4;\n$request['params']['statuses'] = array();\n$request['params']['statuses'][0] = 'pending';\n$request['params']['paymentTypes'] = array();\n$request['params']['paymentTypes'][0] = 'payment';\n\n$request_json = json_encode($request);\n$headers = array(\n    'Accept: application/json',\n    'Content-Type: application/json;charset=UTF-8'\n);\n\n$curl = curl_init($address);\ncurl_setopt($curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);\ncurl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);\ncurl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);\ncurl_setopt($curl, CURLOPT_FORBID_REUSE, 1);\ncurl_setopt($curl, CURLINFO_HEADER_OUT, 1);\ncurl_setopt($curl, CURLOPT_HEADER, 1);\ncurl_setopt($curl, CURLOPT_POST, 1);\ncurl_setopt($curl, CURLOPT_POSTFIELDS, $request_json);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, $headers);\n\n$response = curl_exec($curl);\n$status = curl_getinfo($curl);\ncurl_close($curl);\n       \n                \n            \n        Historia zmianW rozwiniętej historii metody nie wyświetlono wpisów zmian; dostępny był formularz porównywania wersji.",
+  "version": 36,
+  "capturedAt": "2026-10-24T18:06:31.694Z",
+  "endpoint": "https://_domena_booking_.idosell.com/api/payments/get/36/json",
+  "description": "Metoda pozwala na pobieranie wpłat dla rezerwacji",
+  "source": {
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=payments&method=get##",
+    "capturedAt": "2026-10-24T18:06:31.694Z",
+    "transport": "authenticated Chrome HTTPS session",
+    "format": "JSON"
+  }
+}

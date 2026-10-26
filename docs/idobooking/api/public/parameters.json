@@ -1,0 +1,424 @@
+{
+  "title": "Bramka Public/Metoda parameters",
+  "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=public&method=parameters##",
+  "kind": "method",
+  "gateway": "public",
+  "height": 3677,
+  "html": "<div class=\"content__collapse col-md-9\"> \n          <div class=\"d-flex justify-content-between align-items-center mb-3\">\n            <span class=\"api_title mb-0\">Dokumentacja API Booking</span>   \n            <div class=\"show_list_link\"></div>\n          </div>\n        \n            \n        \n            <div id=\"documentation_background\">\n                <div class=\"content shop api_docs\">\n                    <div class=\"container white_bg\" data-equalizer=\"\">\n        \n        <div class=\"api_content row\" data-equalizer-watch=\"\"><div class=\"col-12 mb-5\"><p class=\"api_short_description\">\nZwraca informacje o dostępnych parametrach\n\n\n</p></div><div class=\"apiDesc col-12 mb-5\">\n            <div id=\"format_type\" class=\"tabs\">\n                \n        <div class=\"tabs__content\"><div id=\"tab1\" class=\"tabs__element --shown\">\n            <div id=\"api_method_adresses\" class=\"mb-5\">\n                <div class=\"api_method_header px-3 d-flex align-items-center\">\n                    <i class=\"icon-info-circled\"></i>\n                    <strong>Adresy</strong>\n                </div>\n        \n              <div class=\"api_method_row\">\n                <div class=\"row align-items-center py-3\">\n                    <div class=\"col-3 pl-5\">\n                        <strong>Nasłuch</strong>\n                    </div>\n                    <div class=\"col-9 col-sm-7\">\n                        <a href=\"https://client1679.idosell.com/api/public/parameters/36/json\" class=\"api_link\" id=\"copyTarget_0json\">https://_domena_booking_.idosell.com/api/public/parameters/36/json</a>\n                    </div>\n                    <div class=\"col-12 col-sm-2 d-flex justify-content-end\">\n                        \n                    </div>\n                \n                    </div>\n                </div>\n            </div>\n        \n        <div id=\"api_method_response_json\" class=\"mb-5\"><div class=\"api_method_header px-3\"><div class=\"api_method_header_left d-flex flex-wrap justify-content-center justify-content-sm-between align-items-center\"><div><i class=\"icon-code\"></i> \n            <strong>Struktura odpowiedzi</strong></div></div></div><div id=\"api_method_response_content\" class=\"api_details visible\">\n                <div class=\"api_details_item open\" data-parameter-name=\"roomTypes\">\n                    <div class=\"api_details_item_inner level0 toggle\">\n                        <strong class=\"api_required required_after\">roomTypes <span>(roomTypeItemArray)</span></strong>\n                        <span><p>Dane pokoju</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item open\" data-parameter-name=\"roomTypeItem\">\n                    <div class=\"api_details_item_inner level1 toggle\">\n                        <strong class=\"api_required required_after\"> <span>(roomTypeItem)</span></strong>\n                        <span><p>element typu roomTypeItem</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"id\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"api_required required_after\">id <span>(int)</span></strong>\n                        <span><p></p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"name\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"api_required required_after\">name <span>(string)</span></strong>\n                        <span><p></p></span>\n                    </div>\n        </div></div></div></div></div>\n                <div class=\"api_details_item open\" data-parameter-name=\"currencies\">\n                    <div class=\"api_details_item_inner level0 toggle\">\n                        <strong class=\"api_required required_after\">currencies <span>(currencyItemArray)</span></strong>\n                        <span><p>Dane walut</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item open\" data-parameter-name=\"currencyItem\">\n                    <div class=\"api_details_item_inner level1 toggle\">\n                        <strong class=\"api_required required_after\"> <span>(currencyItem)</span></strong>\n                        <span><p>element typu currencyItem</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"id\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"api_required required_after\">id <span>(int)</span></strong>\n                        <span><p></p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"name\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"api_required required_after\">name <span>(string)</span></strong>\n                        <span><p></p></span>\n                    </div>\n        </div></div></div></div></div>\n                <div class=\"api_details_item open\" data-parameter-name=\"languages\">\n                    <div class=\"api_details_item_inner level0 toggle\">\n                        <strong class=\"api_required required_after\">languages <span>(languageItemArray)</span></strong>\n                        <span><p>Dane języków</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item open\" data-parameter-name=\"languageItem\">\n                    <div class=\"api_details_item_inner level1 toggle\">\n                        <strong class=\"api_required required_after\"> <span>(languageItem)</span></strong>\n                        <span><p>element typu languageItem</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"id\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"api_required required_after\">id <span>(int)</span></strong>\n                        <span><p></p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"name\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"api_required required_after\">name <span>(string)</span></strong>\n                        <span><p></p></span>\n                    </div>\n        </div></div></div></div></div>\n                <div class=\"api_details_item open\" data-parameter-name=\"locations\">\n                    <div class=\"api_details_item_inner level0 toggle\">\n                        <strong class=\"api_required required_after\">locations <span>(localizationItemArray)</span></strong>\n                        <span><p>Dane lokacji</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item open\" data-parameter-name=\"localizationItem\">\n                    <div class=\"api_details_item_inner level1 toggle\">\n                        <strong class=\"api_required required_after\"> <span>(localizationItem)</span></strong>\n                        <span><p>element typu localizationItem</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"id\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"api_required required_after\">id <span>(int)</span></strong>\n                        <span><p></p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"name\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"api_required required_after\">name <span>(string)</span></strong>\n                        <span><p></p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"street\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"api_required required_after\">street <span>(string)</span></strong>\n                        <span><p></p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"zipcode\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"api_required required_after\">zipcode <span>(string)</span></strong>\n                        <span><p></p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"city\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"api_required required_after\">city <span>(string)</span></strong>\n                        <span><p></p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"country\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"api_required required_after\">country <span>(string)</span></strong>\n                        <span><p></p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"geolocation_lat\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"api_required required_after\">geolocation_lat <span>(float)</span></strong>\n                        <span><p></p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"geolocation_lng\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"api_required required_after\">geolocation_lng <span>(float)</span></strong>\n                        <span><p></p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item open\" data-parameter-name=\"phones\">\n                    <div class=\"api_details_item_inner level2 toggle\">\n                        <strong class=\"api_required required_after\">phones <span>(phonesArray)</span></strong>\n                        <span><p></p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"phoneType\">\n                    <div class=\"api_details_item_inner level3\">\n                        <strong class=\"api_required required_after\"> <span>(phoneType)</span></strong>\n                        <span><p>element typu phoneType</p></span>\n                    </div>\n        </div></div></div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"email\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"api_required required_after\">email <span>(string)</span></strong>\n                        <span><p></p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"reception_info\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"api_required required_after\">reception_info <span>(string)</span></strong>\n                        <span><p></p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"directions_info\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"api_required required_after\">directions_info <span>(string)</span></strong>\n                        <span><p></p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"directions_info_plain_text\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"api_required required_after\">directions_info_plain_text <span>(string)</span></strong>\n                        <span><p></p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item open\" data-parameter-name=\"checkin_hours\">\n                    <div class=\"api_details_item_inner level2 toggle\">\n                        <strong class=\"api_required required_after\">checkin_hours <span>(checkInHoursRange)</span></strong>\n                        <span><p></p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"from\">\n                    <div class=\"api_details_item_inner level3\">\n                        <strong class=\"api_required required_after\">from <span>(string)</span></strong>\n                        <span><p></p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"to\">\n                    <div class=\"api_details_item_inner level3\">\n                        <strong class=\"api_required required_after\">to <span>(string)</span></strong>\n                        <span><p></p></span>\n                    </div>\n        </div></div></div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item open\" data-parameter-name=\"checkout_hours\">\n                    <div class=\"api_details_item_inner level2 toggle\">\n                        <strong class=\"api_required required_after\">checkout_hours <span>(checkOutHoursRange)</span></strong>\n                        <span><p></p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"from\">\n                    <div class=\"api_details_item_inner level3\">\n                        <strong class=\"api_required required_after\">from <span>(string)</span></strong>\n                        <span><p></p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"to\">\n                    <div class=\"api_details_item_inner level3\">\n                        <strong class=\"api_required required_after\">to <span>(string)</span></strong>\n                        <span><p></p></span>\n                    </div>\n        </div></div></div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item open\" data-parameter-name=\"reception_hours\">\n                    <div class=\"api_details_item_inner level2 toggle\">\n                        <strong class=\"api_required required_after\">reception_hours <span>(receptionsHoursRange)</span></strong>\n                        <span><p></p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"from\">\n                    <div class=\"api_details_item_inner level3\">\n                        <strong class=\"api_required required_after\">from <span>(string)</span></strong>\n                        <span><p></p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"to\">\n                    <div class=\"api_details_item_inner level3\">\n                        <strong class=\"api_required required_after\">to <span>(string)</span></strong>\n                        <span><p></p></span>\n                    </div>\n        </div></div></div></div></div></div></div></div></div>\n        <div id=\"php-example_json\" class=\"code_example mb-5\"><div class=\"api_method_header px-3\"><div class=\"api_method_header_left d-flex flex-wrap justify-content-center justify-content-sm-between align-items-center\"><div><i class=\"icon-file-code\"></i> \n            <strong>Przykład kodu w PHP</strong></div></div></div><div class=\"api_details visible\">\n                <div id=\"php-example_content_json\">\n                    <pre class=\"highlight-code hljs php\"><span class=\"hljs-meta\">&lt;?php</span>\n\n$address = <span class=\"hljs-string\">'https://client1679.idobooking.com/api/public/parameters/36/json'</span>;\n\n$request = <span class=\"hljs-keyword\">array</span>();\n\n$request_json = json_encode($request);\n$headers = <span class=\"hljs-keyword\">array</span>(\n    <span class=\"hljs-string\">'Accept: application/json'</span>,\n    <span class=\"hljs-string\">'Content-Type: application/json;charset=UTF-8'</span>\n);\n\n$curl = curl_init($address);\ncurl_setopt($curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, <span class=\"hljs-number\">1</span>);\ncurl_setopt($curl, CURLOPT_SSL_VERIFYPEER, <span class=\"hljs-keyword\">false</span>);\ncurl_setopt($curl, CURLOPT_SSL_VERIFYHOST, <span class=\"hljs-keyword\">false</span>);\ncurl_setopt($curl, CURLOPT_FORBID_REUSE, <span class=\"hljs-number\">1</span>);\ncurl_setopt($curl, CURLINFO_HEADER_OUT, <span class=\"hljs-number\">1</span>);\ncurl_setopt($curl, CURLOPT_HEADER, <span class=\"hljs-number\">1</span>);\ncurl_setopt($curl, CURLOPT_POST, <span class=\"hljs-number\">1</span>);\ncurl_setopt($curl, CURLOPT_POSTFIELDS, $request_json);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, $headers);\n\n$response = curl_exec($curl);\n$status = curl_getinfo($curl);\ncurl_close($curl);\n       </pre>\n                </div>\n            </div></div>\n        <div id=\"api_changelog_json\" class=\"mb-5\"><h2>Historia zmian</h2><p>W rozwiniętej historii metody nie wyświetlono wpisów zmian; dostępny był formularz porównywania wersji.</p></div></div></div></div>\n                        </div>\n                    </div>\n                </div>\n            </div>\n        \n            \n        </div></div>",
+  "links": [
+    {
+      "title": "Narzędzia dla Developerów",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "API Admin",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/"
+    },
+    {
+      "title": "Bramka Public",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=documentation&function=public"
+    },
+    {
+      "title": "Najlepsze rozwiązania do sprzedaży w internecie\n                        \n                            \n                                    \n                                \n                            \n                            \n                                Narzędzia dla Developerów\n                                IdoBooking",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "Wybierz inną dokumentację",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=public&method=parameters#"
+    },
+    {
+      "title": "Dokumentacja API Admin",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/"
+    },
+    {
+      "title": "Dokumentacja API Customer",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "Dokumentacja API Marketplace",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "Dokumentacja API Storefront",
+      "url": "https://api.idobooking.com/pl/developers/storefront-documentation/"
+    },
+    {
+      "title": "Dokumentacja Smarty",
+      "url": "https://api.idobooking.com/pl/developers/smarty-documentation/"
+    },
+    {
+      "title": "sprawdź historię zmian",
+      "url": "https://api.idobooking.com/pl/developers/api/?branch=booking&action=changelog"
+    },
+    {
+      "title": "Public",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=documentation&function=public"
+    },
+    {
+      "title": "SOAP",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=public&method=parameters#tab0"
+    },
+    {
+      "title": "JSON",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=public&method=parameters#tab1"
+    },
+    {
+      "title": "https://_domena_booking_.idosell.com/api/public/parameters/36/soap",
+      "url": "https://client1679.idosell.com/api/public/parameters/36/soap"
+    },
+    {
+      "title": "kopiuj",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=public&method=parameters#copyContentHref"
+    },
+    {
+      "title": "https://_domena_booking_.idosell.com/api/public/parameters/36/soap/wsdl/pol",
+      "url": "https://client1679.idosell.com/api/public/parameters/36/soap/wsdl/pol"
+    },
+    {
+      "title": "kopiuj",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=public&method=parameters#copyContentHref"
+    },
+    {
+      "title": "rozwiń wszystkie węzły",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=public&method=parameters##"
+    },
+    {
+      "title": "zwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=public&method=parameters##"
+    },
+    {
+      "title": "pobierz",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=public&method=parameters##"
+    },
+    {
+      "title": "kopiuj",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=public&method=parameters##"
+    },
+    {
+      "title": "rozwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=public&method=parameters##"
+    },
+    {
+      "title": "pobierz",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=public&method=parameters##"
+    },
+    {
+      "title": "kopiuj",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=public&method=parameters##"
+    },
+    {
+      "title": "rozwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=public&method=parameters##"
+    },
+    {
+      "title": "rozwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=public&method=parameters##"
+    },
+    {
+      "title": "https://_domena_booking_.idosell.com/api/public/parameters/36/json",
+      "url": "https://client1679.idosell.com/api/public/parameters/36/json"
+    },
+    {
+      "title": "kopiuj",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=public&method=parameters#copyContentHref"
+    },
+    {
+      "title": "zwiń wszystkie węzły",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=public&method=parameters##"
+    },
+    {
+      "title": "zwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=public&method=parameters##"
+    },
+    {
+      "title": "pobierz",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=public&method=parameters##"
+    },
+    {
+      "title": "kopiuj",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=public&method=parameters##"
+    },
+    {
+      "title": "zwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=public&method=parameters##"
+    },
+    {
+      "title": "zwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=public&method=parameters##"
+    }
+  ],
+  "php": "\n                    <?php\n\n$address = 'https://client1679.idobooking.com/api/public/parameters/36/json';\n\n$request = array();\n\n$request_json = json_encode($request);\n$headers = array(\n    'Accept: application/json',\n    'Content-Type: application/json;charset=UTF-8'\n);\n\n$curl = curl_init($address);\ncurl_setopt($curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);\ncurl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);\ncurl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);\ncurl_setopt($curl, CURLOPT_FORBID_REUSE, 1);\ncurl_setopt($curl, CURLINFO_HEADER_OUT, 1);\ncurl_setopt($curl, CURLOPT_HEADER, 1);\ncurl_setopt($curl, CURLOPT_POST, 1);\ncurl_setopt($curl, CURLOPT_POSTFIELDS, $request_json);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, $headers);\n\n$response = curl_exec($curl);\n$status = curl_getinfo($curl);\ncurl_close($curl);\n       \n                ",
+  "request": [],
+  "response": [
+    {
+      "description": "Dane pokoju",
+      "name": "roomTypes",
+      "path": "roomTypes",
+      "required": true,
+      "type": "roomTypeItemArray"
+    },
+    {
+      "description": "element typu roomTypeItem",
+      "name": "roomTypeItem",
+      "path": "roomTypes.roomTypeItem",
+      "required": true,
+      "type": "roomTypeItem"
+    },
+    {
+      "description": "",
+      "name": "id",
+      "path": "roomTypes.roomTypeItem.id",
+      "required": true,
+      "type": "int"
+    },
+    {
+      "description": "",
+      "name": "name",
+      "path": "roomTypes.roomTypeItem.name",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "description": "Dane walut",
+      "name": "currencies",
+      "path": "currencies",
+      "required": true,
+      "type": "currencyItemArray"
+    },
+    {
+      "description": "element typu currencyItem",
+      "name": "currencyItem",
+      "path": "currencies.currencyItem",
+      "required": true,
+      "type": "currencyItem"
+    },
+    {
+      "description": "",
+      "name": "id",
+      "path": "currencies.currencyItem.id",
+      "required": true,
+      "type": "int"
+    },
+    {
+      "description": "",
+      "name": "name",
+      "path": "currencies.currencyItem.name",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "description": "Dane języków",
+      "name": "languages",
+      "path": "languages",
+      "required": true,
+      "type": "languageItemArray"
+    },
+    {
+      "description": "element typu languageItem",
+      "name": "languageItem",
+      "path": "languages.languageItem",
+      "required": true,
+      "type": "languageItem"
+    },
+    {
+      "description": "",
+      "name": "id",
+      "path": "languages.languageItem.id",
+      "required": true,
+      "type": "int"
+    },
+    {
+      "description": "",
+      "name": "name",
+      "path": "languages.languageItem.name",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "description": "Dane lokacji",
+      "name": "locations",
+      "path": "locations",
+      "required": true,
+      "type": "localizationItemArray"
+    },
+    {
+      "description": "element typu localizationItem",
+      "name": "localizationItem",
+      "path": "locations.localizationItem",
+      "required": true,
+      "type": "localizationItem"
+    },
+    {
+      "description": "",
+      "name": "id",
+      "path": "locations.localizationItem.id",
+      "required": true,
+      "type": "int"
+    },
+    {
+      "description": "",
+      "name": "name",
+      "path": "locations.localizationItem.name",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "description": "",
+      "name": "street",
+      "path": "locations.localizationItem.street",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "description": "",
+      "name": "zipcode",
+      "path": "locations.localizationItem.zipcode",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "description": "",
+      "name": "city",
+      "path": "locations.localizationItem.city",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "description": "",
+      "name": "country",
+      "path": "locations.localizationItem.country",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "description": "",
+      "name": "geolocation_lat",
+      "path": "locations.localizationItem.geolocation_lat",
+      "required": true,
+      "type": "float"
+    },
+    {
+      "description": "",
+      "name": "geolocation_lng",
+      "path": "locations.localizationItem.geolocation_lng",
+      "required": true,
+      "type": "float"
+    },
+    {
+      "description": "",
+      "name": "phones",
+      "path": "locations.localizationItem.phones",
+      "required": true,
+      "type": "phonesArray"
+    },
+    {
+      "description": "element typu phoneType",
+      "name": "phoneType",
+      "path": "locations.localizationItem.phones.phoneType",
+      "required": true,
+      "type": "phoneType"
+    },
+    {
+      "description": "",
+      "name": "email",
+      "path": "locations.localizationItem.email",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "description": "",
+      "name": "reception_info",
+      "path": "locations.localizationItem.reception_info",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "description": "",
+      "name": "directions_info",
+      "path": "locations.localizationItem.directions_info",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "description": "",
+      "name": "directions_info_plain_text",
+      "path": "locations.localizationItem.directions_info_plain_text",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "description": "",
+      "name": "checkin_hours",
+      "path": "locations.localizationItem.checkin_hours",
+      "required": true,
+      "type": "checkInHoursRange"
+    },
+    {
+      "description": "",
+      "name": "from",
+      "path": "locations.localizationItem.checkin_hours.from",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "description": "",
+      "name": "to",
+      "path": "locations.localizationItem.checkin_hours.to",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "description": "",
+      "name": "checkout_hours",
+      "path": "locations.localizationItem.checkout_hours",
+      "required": true,
+      "type": "checkOutHoursRange"
+    },
+    {
+      "description": "",
+      "name": "from",
+      "path": "locations.localizationItem.checkout_hours.from",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "description": "",
+      "name": "to",
+      "path": "locations.localizationItem.checkout_hours.to",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "description": "",
+      "name": "reception_hours",
+      "path": "locations.localizationItem.reception_hours",
+      "required": true,
+      "type": "receptionsHoursRange"
+    },
+    {
+      "description": "",
+      "name": "from",
+      "path": "locations.localizationItem.reception_hours.from",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "description": "",
+      "name": "to",
+      "path": "locations.localizationItem.reception_hours.to",
+      "required": true,
+      "type": "string"
+    }
+  ],
+  "text": "Dokumentacja API Booking   \n            \n          \n        \n            \n        \n            \n                \n                    \n        \n        \nZwraca informacje o dostępnych parametrach\n\n\n\n            \n                \n        \n            \n                \n                    \n                    Adresy\n                \n        \n              \n                \n                    \n                        Nasłuch\n                    \n                    \n                        https://_domena_booking_.idosell.com/api/public/parameters/36/json\n                    \n                    \n                        \n                    \n                \n                    \n                \n            \n        \n         \n            Struktura odpowiedzi\n                \n                    \n                        roomTypes (roomTypeItemArray)\n                        Dane pokoju\n                    \n        \n            \n            \n                \n                    \n                         (roomTypeItem)\n                        element typu roomTypeItem\n                    \n        \n            \n            \n                \n                    \n                        id (int)\n                        \n                    \n        \n            \n            \n                \n                    \n                        name (string)\n                        \n                    \n        \n                \n                    \n                        currencies (currencyItemArray)\n                        Dane walut\n                    \n        \n            \n            \n                \n                    \n                         (currencyItem)\n                        element typu currencyItem\n                    \n        \n            \n            \n                \n                    \n                        id (int)\n                        \n                    \n        \n            \n            \n                \n                    \n                        name (string)\n                        \n                    \n        \n                \n                    \n                        languages (languageItemArray)\n                        Dane języków\n                    \n        \n            \n            \n                \n                    \n                         (languageItem)\n                        element typu languageItem\n                    \n        \n            \n            \n                \n                    \n                        id (int)\n                        \n                    \n        \n            \n            \n                \n                    \n                        name (string)\n                        \n                    \n        \n                \n                    \n                        locations (localizationItemArray)\n                        Dane lokacji\n                    \n        \n            \n            \n                \n                    \n                         (localizationItem)\n                        element typu localizationItem\n                    \n        \n            \n            \n                \n                    \n                        id (int)\n                        \n                    \n        \n            \n            \n                \n                    \n                        name (string)\n                        \n                    \n        \n            \n            \n                \n                    \n                        street (string)\n                        \n                    \n        \n            \n            \n                \n                    \n                        zipcode (string)\n                        \n                    \n        \n            \n            \n                \n                    \n                        city (string)\n                        \n                    \n        \n            \n            \n                \n                    \n                        country (string)\n                        \n                    \n        \n            \n            \n                \n                    \n                        geolocation_lat (float)\n                        \n                    \n        \n            \n            \n                \n                    \n                        geolocation_lng (float)\n                        \n                    \n        \n            \n            \n                \n                    \n                        phones (phonesArray)\n                        \n                    \n        \n            \n            \n                \n                    \n                         (phoneType)\n                        element typu phoneType\n                    \n        \n            \n            \n                \n                    \n                        email (string)\n                        \n                    \n        \n            \n            \n                \n                    \n                        reception_info (string)\n                        \n                    \n        \n            \n            \n                \n                    \n                        directions_info (string)\n                        \n                    \n        \n            \n            \n                \n                    \n                        directions_info_plain_text (string)\n                        \n                    \n        \n            \n            \n                \n                    \n                        checkin_hours (checkInHoursRange)\n                        \n                    \n        \n            \n            \n                \n                    \n                        from (string)\n                        \n                    \n        \n            \n            \n                \n                    \n                        to (string)\n                        \n                    \n        \n            \n            \n                \n                    \n                        checkout_hours (checkOutHoursRange)\n                        \n                    \n        \n            \n            \n                \n                    \n                        from (string)\n                        \n                    \n        \n            \n            \n                \n                    \n                        to (string)\n                        \n                    \n        \n            \n            \n                \n                    \n                        reception_hours (receptionsHoursRange)\n                        \n                    \n        \n            \n            \n                \n                    \n                        from (string)\n                        \n                    \n        \n            \n            \n                \n                    \n                        to (string)\n                        \n                    \n        \n         \n            Przykład kodu w PHP\n                \n                    <?php\n\n$address = 'https://client1679.idobooking.com/api/public/parameters/36/json';\n\n$request = array();\n\n$request_json = json_encode($request);\n$headers = array(\n    'Accept: application/json',\n    'Content-Type: application/json;charset=UTF-8'\n);\n\n$curl = curl_init($address);\ncurl_setopt($curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);\ncurl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);\ncurl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);\ncurl_setopt($curl, CURLOPT_FORBID_REUSE, 1);\ncurl_setopt($curl, CURLINFO_HEADER_OUT, 1);\ncurl_setopt($curl, CURLOPT_HEADER, 1);\ncurl_setopt($curl, CURLOPT_POST, 1);\ncurl_setopt($curl, CURLOPT_POSTFIELDS, $request_json);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, $headers);\n\n$response = curl_exec($curl);\n$status = curl_getinfo($curl);\ncurl_close($curl);\n       \n                \n            \n        Historia zmianW rozwiniętej historii metody nie wyświetlono wpisów zmian; dostępny był formularz porównywania wersji.",
+  "version": 36,
+  "capturedAt": "2026-10-24T18:07:22.502Z",
+  "endpoint": "https://_domena_booking_.idosell.com/api/public/parameters/36/json",
+  "description": "Zwraca informacje o dostępnych parametrach",
+  "source": {
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=public&method=parameters##",
+    "capturedAt": "2026-10-24T18:07:22.502Z",
+    "transport": "authenticated Chrome HTTPS session",
+    "format": "JSON"
+  }
+}

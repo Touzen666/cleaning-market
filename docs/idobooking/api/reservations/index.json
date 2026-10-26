@@ -1,0 +1,106 @@
+{
+  "title": "Bramka Reservations",
+  "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=documentation&function=reservations",
+  "kind": "gateway",
+  "height": 1666,
+  "html": "<div class=\"content__collapse col-md-9\"> \n          <div class=\"d-flex justify-content-between align-items-center mb-3\">\n            <span class=\"api_title mb-0\">Dokumentacja API Booking</span>   \n            <div class=\"show_list_link\"></div>\n          </div>\n        \n            \n        \n            <div id=\"documentation_background\">\n                <div class=\"content shop api_docs\">\n                    <div class=\"container white_bg\" data-equalizer=\"\">\n        \n        <div class=\"api_content row\" data-equalizer-watch=\"\">\n            <div class=\"col-12 mb-5\">\n              <p class=\"api_short_description\"></p><p class=\"old_wiki\">Bramka służy do pobierania informacji o złożonych rezerwacjach.\n\n</p>\n            </div>\n            <div class=\"apiDesc cms col-12 mb-5\">\n                <h3 class=\"section__title\">Dostępne metody:</h3>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"add.html\"><span>add</span></a>\n                    <span>Dodaje rezerwacje.</span>\n                </div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"changeCurrency.html\"><span>changeCurrency</span></a>\n                    <span>Pozwala na zmianę waluty w rezerwacji.</span>\n                </div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"edit.html\"><span>edit</span></a>\n                    <span>Edytuje rezerwacje.</span>\n                </div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"editStatus.html\"><span>editStatus</span></a>\n                    <span>Edytuje status rezerwacji.</span>\n                </div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"get.html\"><span>get</span></a>\n                    <span>Zwraca informację o rezerwacjach.</span>\n                </div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"getSources.html\"><span>getSources</span></a>\n                    <span>Zwraca źródła rezerwacji.</span>\n                </div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"notifyClient.html\"><span>notifyClient</span></a>\n                    <span>Wysyła wiadomość do klienta odnośnie rezerwacji.</span>\n                </div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"notifyExternalService.html\"><span>notifyExternalService</span></a>\n                    <span>Wysyła informację do serwisu zewnętrznego.</span>\n                </div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"setDiscount.html\"><span>setDiscount</span></a>\n                    <span>Pozwala na ustawienie rabatu dla rezerwacji.</span>\n                </div>\n            </div>\n        \n            </div>\n        \n                        </div>\n                    </div>\n                </div>\n            </div>\n        \n            \n        </div>",
+  "links": [
+    {
+      "title": "Narzędzia dla Developerów",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "API Admin",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/"
+    },
+    {
+      "title": "Bramka Reservations",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=documentation&function=reservations"
+    },
+    {
+      "title": "Najlepsze rozwiązania do sprzedaży w internecie\n                        \n                            \n                                    \n                                \n                            \n                            \n                                Narzędzia dla Developerów\n                                IdoBooking",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "Wybierz inną dokumentację",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=documentation&function=reservations#"
+    },
+    {
+      "title": "Dokumentacja API Admin",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/"
+    },
+    {
+      "title": "Dokumentacja API Customer",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "Dokumentacja API Marketplace",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "Dokumentacja API Storefront",
+      "url": "https://api.idobooking.com/pl/developers/storefront-documentation/"
+    },
+    {
+      "title": "Dokumentacja Smarty",
+      "url": "https://api.idobooking.com/pl/developers/smarty-documentation/"
+    },
+    {
+      "title": "sprawdź historię zmian",
+      "url": "https://api.idobooking.com/pl/developers/api/?branch=booking&action=changelog"
+    },
+    {
+      "title": "Reservations",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=documentation&function=reservations"
+    },
+    {
+      "title": "add",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=reservations&method=add"
+    },
+    {
+      "title": "changeCurrency",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=reservations&method=changeCurrency"
+    },
+    {
+      "title": "edit",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=reservations&method=edit"
+    },
+    {
+      "title": "editStatus",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=reservations&method=editStatus"
+    },
+    {
+      "title": "get",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=reservations&method=get"
+    },
+    {
+      "title": "getSources",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=reservations&method=getSources"
+    },
+    {
+      "title": "notifyClient",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=reservations&method=notifyClient"
+    },
+    {
+      "title": "notifyExternalService",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=reservations&method=notifyExternalService"
+    },
+    {
+      "title": "setDiscount",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=reservations&method=setDiscount"
+    }
+  ],
+  "php": "",
+  "request": [],
+  "response": [],
+  "text": "Dokumentacja API Booking   \n            \n          \n        \n            \n        \n            \n                \n                    \n        \n        \n            \n              Bramka służy do pobierania informacji o złożonych rezerwacjach.\n\n\n            \n            \n                Dostępne metody:\n        \n            \n                \n                    add\n                    Dodaje rezerwacje.\n                \n            \n        \n            \n                \n                    changeCurrency\n                    Pozwala na zmianę waluty w rezerwacji.\n                \n            \n        \n            \n                \n                    edit\n                    Edytuje rezerwacje.\n                \n            \n        \n            \n                \n                    editStatus\n                    Edytuje status rezerwacji.\n                \n            \n        \n            \n                \n                    get\n                    Zwraca informację o rezerwacjach.\n                \n            \n        \n            \n                \n                    getSources\n                    Zwraca źródła rezerwacji.\n                \n            \n        \n            \n                \n                    notifyClient\n                    Wysyła wiadomość do klienta odnośnie rezerwacji.\n                \n            \n        \n            \n                \n                    notifyExternalService\n                    Wysyła informację do serwisu zewnętrznego.\n                \n            \n        \n            \n                \n                    setDiscount\n                    Pozwala na ustawienie rabatu dla rezerwacji.",
+  "capturedAt": "2026-10-24T18:01:06.720Z",
+  "version": null,
+  "description": "",
+  "source": {
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=documentation&function=reservations",
+    "capturedAt": "2026-10-24T18:01:06.720Z",
+    "transport": "authenticated Chrome HTTPS session",
+    "format": null
+  }
+}

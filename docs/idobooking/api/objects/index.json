@@ -1,0 +1,158 @@
+{
+  "title": "Bramka Objects",
+  "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=documentation&function=objects",
+  "kind": "gateway",
+  "height": 2096,
+  "html": "<div class=\"content__collapse col-md-9\"> \n          <div class=\"d-flex justify-content-between align-items-center mb-3\">\n            <span class=\"api_title mb-0\">Dokumentacja API Booking</span>   \n            <div class=\"show_list_link\"></div>\n          </div>\n        \n            \n        \n            <div id=\"documentation_background\">\n                <div class=\"content shop api_docs\">\n                    <div class=\"container white_bg\" data-equalizer=\"\">\n        \n        <div class=\"api_content row\" data-equalizer-watch=\"\">\n            <div class=\"col-12 mb-5\">\n              <p class=\"api_short_description\"></p><p class=\"old_wiki\">Umożliwia zarządzanie bazą przedmiotów rezerwacji oraz ich właściwościami.\n\n</p>\n            </div>\n            <div class=\"apiDesc cms col-12 mb-5\">\n                <h3 class=\"section__title\">Dostępne metody:</h3>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"addAmenities.html\"><span>addAmenities</span></a>\n                    <span>Przypisuje wybrane udogodnienia do przedmiotu rezerwacji.</span>\n                </div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"addItems.html\"><span>addItems</span></a>\n                    <span>Dodaje egzemplarze do przedmiotu rezerwacji.</span>\n                </div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"addMedia.html\"><span>addMedia</span></a>\n                    <span>Dodaje pliki multimedialne do przedmiotów rezerwacji.</span>\n                </div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"deleteAmenities.html\"><span>deleteAmenities</span></a>\n                    <span>Usuwa wybrane udogodnienia z przedmiotu rezerwacji.</span>\n                </div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"deleteItems.html\"><span>deleteItems</span></a>\n                    <span>Usuwa egzemplarze przedmiotu rezerwacji.</span>\n                </div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"deleteMedia.html\"><span>deleteMedia</span></a>\n                    <span>Usuwa wskazane pliki multimedialne.</span>\n                </div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"editDescriptions.html\"><span>editDescriptions</span></a>\n                    <span>Zmienia opisy i meta opisy w przedmiocie rezerwacji.</span>\n                </div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"editItems.html\"><span>editItems</span></a>\n                    <span>Edytuje egzemplarze przedmiotu rezerwacji.</span>\n                </div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"editLengthSetup.html\"><span>editLengthSetup</span></a>\n                    <span>Zmienia ustawienia dotyczące długości pobytu oraz możliwych dni rozpoczęcia i zakończenia rezerwacji w przedmiocie rezerwacji.</span>\n                </div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"editLocation.html\"><span>editLocation</span></a>\n                    <span>Zmienia lokalizację przedmiotu rezerwacji.</span>\n                </div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"editMedia.html\"><span>editMedia</span></a>\n                    <span>Edytuje pliki multimedialne dodane do przedmiotu rezerwacji umożliwiając ich aktualizację oraz zmianę kolejności ich prezentacji.</span>\n                </div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"editType.html\"><span>editType</span></a>\n                    <span>Zmienia typ przypisany do przedmiotu rezerwacji.</span>\n                </div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"getAll.html\"><span>getAll</span></a>\n                    <span>Zwraca informacje o wszystkich przedmiotach rezerwacji.</span>\n                </div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"getAmenities.html\"><span>getAmenities</span></a>\n                    <span>Pobiera udogodnienia jakie są przypisane do przedmiotu rezerwacji.</span>\n                </div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"getAvailabilityByDateRange.html\"><span>getAvailabilityByDateRange</span></a>\n                    <span>Zwraca dostępność przedmiotów rezerwacji w wybranym okresie.</span>\n                </div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"getDescriptions.html\"><span>getDescriptions</span></a>\n                    <span>Pobiera informacje opisujące przedmiot rezerwacji m.in jego nazwę oraz opis krótki i długi.</span>\n                </div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"getFilters.html\"><span>getFilters</span></a>\n                    <span>Zwraca informacje o ustawieniach filtrów Booking Engine.</span>\n                </div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"getItems.html\"><span>getItems</span></a>\n                    <span>Pobiera egzemplarze przedmiotu rezerwacji.</span>\n                </div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"getLengthSetup.html\"><span>getLengthSetup</span></a>\n                    <span>Zwraca informacje o długości pobytu oraz możliwych dniach rozpoczęcia i zakończenia rezerwacji w przedmiocie rezerwacji.</span>\n                </div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"getLocation.html\"><span>getLocation</span></a>\n                    <span>Pobiera informacje o lokalizacji przedmiotu rezerwacji.</span>\n                </div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"getMedia.html\"><span>getMedia</span></a>\n                    <span>Pobiera pliki multimedialne przypisane do przedmiotu rezerwacji.</span>\n                </div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"getType.html\"><span>getType</span></a>\n                    <span>Pobiera informacje na temat typu przypisanego do przedmiotu rezerwacji.</span>\n                </div>\n            </div>\n        \n            </div>\n        \n                        </div>\n                    </div>\n                </div>\n            </div>\n        \n            \n        </div>",
+  "links": [
+    {
+      "title": "Narzędzia dla Developerów",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "API Admin",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/"
+    },
+    {
+      "title": "Bramka Objects",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=documentation&function=objects"
+    },
+    {
+      "title": "Najlepsze rozwiązania do sprzedaży w internecie\n                        \n                            \n                                    \n                                \n                            \n                            \n                                Narzędzia dla Developerów\n                                IdoBooking",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "Wybierz inną dokumentację",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=documentation&function=objects#"
+    },
+    {
+      "title": "Dokumentacja API Admin",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/"
+    },
+    {
+      "title": "Dokumentacja API Customer",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "Dokumentacja API Marketplace",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "Dokumentacja API Storefront",
+      "url": "https://api.idobooking.com/pl/developers/storefront-documentation/"
+    },
+    {
+      "title": "Dokumentacja Smarty",
+      "url": "https://api.idobooking.com/pl/developers/smarty-documentation/"
+    },
+    {
+      "title": "sprawdź historię zmian",
+      "url": "https://api.idobooking.com/pl/developers/api/?branch=booking&action=changelog"
+    },
+    {
+      "title": "Objects",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=documentation&function=objects"
+    },
+    {
+      "title": "addAmenities",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=objects&method=addAmenities"
+    },
+    {
+      "title": "addItems",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=objects&method=addItems"
+    },
+    {
+      "title": "addMedia",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=objects&method=addMedia"
+    },
+    {
+      "title": "deleteAmenities",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=objects&method=deleteAmenities"
+    },
+    {
+      "title": "deleteItems",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=objects&method=deleteItems"
+    },
+    {
+      "title": "deleteMedia",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=objects&method=deleteMedia"
+    },
+    {
+      "title": "editDescriptions",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=objects&method=editDescriptions"
+    },
+    {
+      "title": "editItems",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=objects&method=editItems"
+    },
+    {
+      "title": "editLengthSetup",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=objects&method=editLengthSetup"
+    },
+    {
+      "title": "editLocation",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=objects&method=editLocation"
+    },
+    {
+      "title": "editMedia",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=objects&method=editMedia"
+    },
+    {
+      "title": "editType",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=objects&method=editType"
+    },
+    {
+      "title": "getAll",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=objects&method=getAll"
+    },
+    {
+      "title": "getAmenities",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=objects&method=getAmenities"
+    },
+    {
+      "title": "getAvailabilityByDateRange",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=objects&method=getAvailabilityByDateRange"
+    },
+    {
+      "title": "getDescriptions",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=objects&method=getDescriptions"
+    },
+    {
+      "title": "getFilters",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=objects&method=getFilters"
+    },
+    {
+      "title": "getItems",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=objects&method=getItems"
+    },
+    {
+      "title": "getLengthSetup",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=objects&method=getLengthSetup"
+    },
+    {
+      "title": "getLocation",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=objects&method=getLocation"
+    },
+    {
+      "title": "getMedia",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=objects&method=getMedia"
+    },
+    {
+      "title": "getType",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=objects&method=getType"
+    }
+  ],
+  "php": "",
+  "request": [],
+  "response": [],
+  "text": "Dokumentacja API Booking   \n            \n          \n        \n            \n        \n            \n                \n                    \n        \n        \n            \n              Umożliwia zarządzanie bazą przedmiotów rezerwacji oraz ich właściwościami.\n\n\n            \n            \n                Dostępne metody:\n        \n            \n                \n                    addAmenities\n                    Przypisuje wybrane udogodnienia do przedmiotu rezerwacji.\n                \n            \n        \n            \n                \n                    addItems\n                    Dodaje egzemplarze do przedmiotu rezerwacji.\n                \n            \n        \n            \n                \n                    addMedia\n                    Dodaje pliki multimedialne do przedmiotów rezerwacji.\n                \n            \n        \n            \n                \n                    deleteAmenities\n                    Usuwa wybrane udogodnienia z przedmiotu rezerwacji.\n                \n            \n        \n            \n                \n                    deleteItems\n                    Usuwa egzemplarze przedmiotu rezerwacji.\n                \n            \n        \n            \n                \n                    deleteMedia\n                    Usuwa wskazane pliki multimedialne.\n                \n            \n        \n            \n                \n                    editDescriptions\n                    Zmienia opisy i meta opisy w przedmiocie rezerwacji.\n                \n            \n        \n            \n                \n                    editItems\n                    Edytuje egzemplarze przedmiotu rezerwacji.\n                \n            \n        \n            \n                \n                    editLengthSetup\n                    Zmienia ustawienia dotyczące długości pobytu oraz możliwych dni rozpoczęcia i zakończenia rezerwacji w przedmiocie rezerwacji.\n                \n            \n        \n            \n                \n                    editLocation\n                    Zmienia lokalizację przedmiotu rezerwacji.\n                \n            \n        \n            \n                \n                    editMedia\n                    Edytuje pliki multimedialne dodane do przedmiotu rezerwacji umożliwiając ich aktualizację oraz zmianę kolejności ich prezentacji.\n                \n            \n        \n            \n                \n                    editType\n                    Zmienia typ przypisany do przedmiotu rezerwacji.\n                \n            \n        \n            \n                \n                    getAll\n                    Zwraca informacje o wszystkich przedmiotach rezerwacji.\n                \n            \n        \n            \n                \n                    getAmenities\n                    Pobiera udogodnienia jakie są przypisane do przedmiotu rezerwacji.\n                \n            \n        \n            \n                \n                    getAvailabilityByDateRange\n                    Zwraca dostępność przedmiotów rezerwacji w wybranym okresie.\n                \n            \n        \n            \n                \n                    getDescriptions\n                    Pobiera informacje opisujące przedmiot rezerwacji m.in jego nazwę oraz opis krótki i długi.\n                \n            \n        \n            \n                \n                    getFilters\n                    Zwraca informacje o ustawieniach filtrów Booking Engine.\n                \n            \n        \n            \n                \n                    getItems\n                    Pobiera egzemplarze przedmiotu rezerwacji.\n                \n            \n        \n            \n                \n                    getLengthSetup\n                    Zwraca informacje o długości pobytu oraz możliwych dniach rozpoczęcia i zakończenia rezerwacji w przedmiocie rezerwacji.\n                \n            \n        \n            \n                \n                    getLocation\n                    Pobiera informacje o lokalizacji przedmiotu rezerwacji.\n                \n            \n        \n            \n                \n                    getMedia\n                    Pobiera pliki multimedialne przypisane do przedmiotu rezerwacji.\n                \n            \n        \n            \n                \n                    getType\n                    Pobiera informacje na temat typu przypisanego do przedmiotu rezerwacji.",
+  "capturedAt": "2026-10-24T18:00:53.942Z",
+  "version": null,
+  "description": "",
+  "source": {
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=documentation&function=objects",
+    "capturedAt": "2026-10-24T18:00:53.942Z",
+    "transport": "authenticated Chrome HTTPS session",
+    "format": null
+  }
+}

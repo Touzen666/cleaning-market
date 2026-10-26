@@ -1,0 +1,99 @@
+{
+  "title": "Lista dostępnych szablonów Wizytówki w Smarty",
+  "url": "https://api.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/",
+  "kind": "page",
+  "height": 1561,
+  "html": "<div class=\"content__collapse col-md-9\"> \n<h2 id=\"toc6744\" class=\"old_wiki\"> Przy tworzeniu własnej Wizytówki wykorzystaj zmienne Smarty </h2>\n<p class=\"old_wiki\">W IdoBooking dajemy Ci możliwość przeprojektowania każdej z dostępnych stron Wizytówki. By ułatwić Ci pracę, poniżej znajdziesz zmienne, które z pewnością pomogą Ci ulepszyć wygląd Twojej Wizytówki.</p>\n\n\n<h2 id=\"toc6745\" class=\"old_wiki\"> Zestaw stron, umożliwiający kompleksowe projektowanie Wizytówki</h2>\n<ul class=\"old_wiki\">\n    <li><b><a href=\"zmienne-obowiazujace-globalnie.html\" title=\"\" class=\"old_wiki \">zmienne globalne</a></b> - zmienne dostępne we wszystkich szablonach</li>\n    <li><b><a href=\"strona-index-tpl-w-szablonach-wizytowki.html\" title=\"Strona index.tpl w szablonach Wizytówki\" class=\"old_wiki \">index.tpl</a></b> - szablon strony głównej</li>\n    <li><b><a href=\"strona-contact-tpl-w-szablonach-wizytowki.html\" title=\"Strona contact.tpl w szablonach Wizytówki\" class=\"old_wiki \">contact.tpl</a></b> - szablon strony kontaktowej</li>\n    <li><b><a href=\"strona-txt-tpl-w-szablonach-wizytowki.html\" title=\"Strona txt.tpl w szablonach Wizytówki\" class=\"old_wiki \">txt.tpl</a></b> - szablon własnej podstrony</li>\n    <li><b><a href=\"strona-offers-tpl-w-szablonach-wizytowki.html\" title=\"Strona offers.tpl w szablonach Wizytówki\" class=\"old_wiki \">offers.tpl</a></b> - szablon listy przedmiotów rezerwacji (lista wszystkich dostępnych)</li>\n    <li><b><a href=\"strona-promotions-tpl-w-szablonach-wizytowki.html\" title=\"Strona promotions.tpl w szablonach Wizytówki\" class=\"old_wiki \">promotions.tpl</a></b> - szablon listy promocji (lista wszystkich dostępnych)</li>\n    <li><b><a href=\"strona-special-offer-tpl-w-szablonach-wizytowki.html\" title=\"Strona special-offer.tpl w szablonach Wizytówki\" class=\"old_wiki \">special-offer.tpl</a></b> - szablon strony zestawu</li>\n    <li><b><a href=\"strona-facebook-tpl-w-szablonach-wizytowki.html\" title=\"Strona facebook.tpl w szablonach Wizytówki\" class=\"old_wiki \">facebook.tpl</a></b> - szablon strony facebook`a</li>\n    <li><b><a href=\"strona-news-tpl-w-szablonach-wizytowki.html\" title=\"Strona news.tpl w szablonach Wizytówki\" class=\"old_wiki \">news.tpl</a></b> - szablon strony aktualności</li>\n    <li><b><a href=\"strona-offer-tpl-w-szablonach-wizytowki.html\" title=\"Strona offer.tpl w szablonach Wizytówki\" class=\"old_wiki \">offer.tpl</a></b> - szablon szczegółów przedmiotu rezerwacji (jeden pokój)</li>\n    <li><b><a href=\"strona-about-tpl-w-szablonach-wizytowki.html\" title=\"Strona about.tpl w szablonach Wizytówki\" class=\"old_wiki \">about.tpl</a></b> - szablon strony \"o nas\"</li>\n    <li><b><a href=\"strona-analytics-tpl-w-szablonach-wizytowki.html\" title=\"Strona analytics.tpl w szablonach Wizytówki\" class=\"old_wiki \">analytics.tpl</a></b> - szablon dla wtyczki Google Analytics</li>\n    <li><b><a href=\"strona-facebook-comments-tpl-w-szablonach-wizytowki.html\" title=\"Strona facebook-comments.tpl w szablonach Wizytówki\" class=\"old_wiki \">facebook-comments.tpl</a></b> - szablon dla wtyczki komentarzy Facebook</li>\n    <li><b><a href=\"strona-footer-tpl-w-szablonach-wizytowki.html\" title=\"Strona footer.tpl w szablonach Wizytówki\" class=\"old_wiki \">footer.tpl</a></b> - szablon dla strony stopka</li>\n    <li><b><a href=\"strona-header-tpl-w-szablonach-wizytowki.html\" title=\"Strona header.tpl w szablonach Wizytówki\" class=\"old_wiki \">header.tpl</a></b> - szablon dla strony nagłówek</li>\n    <li><b><a href=\"https://www.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/strona-menu-tpl-w-szablonach-wizytowki/\" title=\"Strona menu.tpl w szablonach Wizytówki\" class=\"old_wiki \">menu.tpl</a></b> - szablon dla menu głównego</li>\n    <li><b><a href=\"strona-opinions-tpl-w-szablonach-wizytowki.html\" title=\"Strona opinions.tpl w szablonach Wizytówki\" class=\"old_wiki \">opinions.tpl</a></b> - szablon dla strony opinii</li>\n</ul>\n\n</div>",
+  "links": [
+    {
+      "title": "Dział dla developerów",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "Szablony własne Wizytówki w Smarty",
+      "url": "https://api.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/"
+    },
+    {
+      "title": "Najlepsze rozwiązania do sprzedaży w internecie\n                        \n                            \n                                    \n                                \n                            \n                            \n                                Narzędzia dla Developerów\n                                IdoBooking",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "zmienne globalne",
+      "url": "https://www.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/zmienne-obowiazujace-globalnie/"
+    },
+    {
+      "title": "index.tpl",
+      "url": "https://www.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/strona-index-tpl-w-szablonach-wizytowki/"
+    },
+    {
+      "title": "contact.tpl",
+      "url": "https://www.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/strona-contact-tpl-w-szablonach-wizytowki/"
+    },
+    {
+      "title": "txt.tpl",
+      "url": "https://www.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/strona-txt-tpl-w-szablonach-wizytowki/"
+    },
+    {
+      "title": "offers.tpl",
+      "url": "https://www.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/strona-offers-tpl-w-szablonach-wizytowki/"
+    },
+    {
+      "title": "promotions.tpl",
+      "url": "https://www.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/strona-promotions-tpl-w-szablonach-wizytowki/"
+    },
+    {
+      "title": "special-offer.tpl",
+      "url": "https://www.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/strona-special-offer-tpl-w-szablonach-wizytowki/"
+    },
+    {
+      "title": "facebook.tpl",
+      "url": "https://www.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/strona-facebook-tpl-w-szablonach-wizytowki/"
+    },
+    {
+      "title": "news.tpl",
+      "url": "https://www.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/strona-news-tpl-w-szablonach-wizytowki/"
+    },
+    {
+      "title": "offer.tpl",
+      "url": "https://www.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/strona-offer-tpl-w-szablonach-wizytowki/"
+    },
+    {
+      "title": "about.tpl",
+      "url": "https://www.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/strona-about-tpl-w-szablonach-wizytowki/"
+    },
+    {
+      "title": "analytics.tpl",
+      "url": "https://www.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/strona-analytics-tpl-w-szablonach-wizytowki/"
+    },
+    {
+      "title": "facebook-comments.tpl",
+      "url": "https://www.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/strona-facebook-comments-tpl-w-szablonach-wizytowki/"
+    },
+    {
+      "title": "footer.tpl",
+      "url": "https://www.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/strona-footer-tpl-w-szablonach-wizytowki/"
+    },
+    {
+      "title": "header.tpl",
+      "url": "https://www.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/strona-header-tpl-w-szablonach-wizytowki/"
+    },
+    {
+      "title": "menu.tpl",
+      "url": "https://www.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/strona-menu-tpl-w-szablonach-wizytowki/"
+    },
+    {
+      "title": "opinions.tpl",
+      "url": "https://www.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/strona-opinions-tpl-w-szablonach-wizytowki/"
+    }
+  ],
+  "text": "Przy tworzeniu własnej Wizytówki wykorzystaj zmienne Smarty \nW IdoBooking dajemy Ci możliwość przeprojektowania każdej z dostępnych stron Wizytówki. By ułatwić Ci pracę, poniżej znajdziesz zmienne, które z pewnością pomogą Ci ulepszyć wygląd Twojej Wizytówki.\n\n\n Zestaw stron, umożliwiający kompleksowe projektowanie Wizytówki\n\n    zmienne globalne - zmienne dostępne we wszystkich szablonach\n    index.tpl - szablon strony głównej\n    contact.tpl - szablon strony kontaktowej\n    txt.tpl - szablon własnej podstrony\n    offers.tpl - szablon listy przedmiotów rezerwacji (lista wszystkich dostępnych)\n    promotions.tpl - szablon listy promocji (lista wszystkich dostępnych)\n    special-offer.tpl - szablon strony zestawu\n    facebook.tpl - szablon strony facebook`a\n    news.tpl - szablon strony aktualności\n    offer.tpl - szablon szczegółów przedmiotu rezerwacji (jeden pokój)\n    about.tpl - szablon strony \"o nas\"\n    analytics.tpl - szablon dla wtyczki Google Analytics\n    facebook-comments.tpl - szablon dla wtyczki komentarzy Facebook\n    footer.tpl - szablon dla strony stopka\n    header.tpl - szablon dla strony nagłówek\n    menu.tpl - szablon dla menu głównego\n    opinions.tpl - szablon dla strony opinii",
+  "capturedAt": "2026-10-24T18:11:25.384Z",
+  "version": null,
+  "description": "",
+  "source": {
+    "url": "https://api.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/",
+    "capturedAt": "2026-10-24T18:11:25.384Z",
+    "transport": "authenticated Chrome HTTPS session",
+    "format": null
+  }
+}

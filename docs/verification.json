@@ -1,0 +1,623 @@
+{
+  "verifiedAt": "2026-10-26T16:40:40.149Z",
+  "status": "passed",
+  "files": 656,
+  "localLinks": 1596,
+  "sha256Files": 570,
+  "screenshots": 122,
+  "currentMethods": 80,
+  "gateways": 14,
+  "failures": [],
+  "screenshotDimensions": [
+    {
+      "file": "api/allotments/sources.jpg",
+      "height": 4133,
+      "width": 3317
+    },
+    {
+      "file": "api/index.jpg",
+      "height": 2951,
+      "width": 3317
+    },
+    {
+      "file": "api/allotments/index.jpg",
+      "height": 2221,
+      "width": 3317
+    },
+    {
+      "file": "api/amenities/index.jpg",
+      "height": 2221,
+      "width": 3317
+    },
+    {
+      "file": "api/availabilitylocks/index.jpg",
+      "height": 2221,
+      "width": 3317
+    },
+    {
+      "file": "api/clients/index.jpg",
+      "height": 2221,
+      "width": 3317
+    },
+    {
+      "file": "api/locks/index.jpg",
+      "height": 2221,
+      "width": 3317
+    },
+    {
+      "file": "api/objects/index.jpg",
+      "height": 2795,
+      "width": 3317
+    },
+    {
+      "file": "api/offer/index.jpg",
+      "height": 2221,
+      "width": 3317
+    },
+    {
+      "file": "api/payments/index.jpg",
+      "height": 2221,
+      "width": 3317
+    },
+    {
+      "file": "api/prices/index.jpg",
+      "height": 2221,
+      "width": 3317
+    },
+    {
+      "file": "api/public/index.jpg",
+      "height": 2221,
+      "width": 3317
+    },
+    {
+      "file": "api/reservations/index.jpg",
+      "height": 2221,
+      "width": 3317
+    },
+    {
+      "file": "api/reservationsdocuments/index.jpg",
+      "height": 2221,
+      "width": 3317
+    },
+    {
+      "file": "api/restrictions/index.jpg",
+      "height": 2221,
+      "width": 3317
+    },
+    {
+      "file": "api/users/index.jpg",
+      "height": 2221,
+      "width": 3317
+    },
+    {
+      "file": "api/allotments/deleteExceptions.jpg",
+      "height": 4981,
+      "width": 3317
+    },
+    {
+      "file": "api/allotments/getExceptions.jpg",
+      "height": 4897,
+      "width": 3317
+    },
+    {
+      "file": "api/allotments/setExceptions.jpg",
+      "height": 4575,
+      "width": 3317
+    },
+    {
+      "file": "api/amenities/getForAddons.jpg",
+      "height": 4841,
+      "width": 3317
+    },
+    {
+      "file": "api/amenities/getForObjects.jpg",
+      "height": 4839,
+      "width": 3317
+    },
+    {
+      "file": "api/availabilitylocks/add.jpg",
+      "height": 4773,
+      "width": 3317
+    },
+    {
+      "file": "api/availabilitylocks/delete.jpg",
+      "height": 4628,
+      "width": 3317
+    },
+    {
+      "file": "api/availabilitylocks/edit.jpg",
+      "height": 4840,
+      "width": 3317
+    },
+    {
+      "file": "api/availabilitylocks/get.jpg",
+      "height": 5115,
+      "width": 3317
+    },
+    {
+      "file": "api/clients/add.jpg",
+      "height": 7435,
+      "width": 3317
+    },
+    {
+      "file": "api/clients/delete.jpg",
+      "height": 4584,
+      "width": 3317
+    },
+    {
+      "file": "api/clients/edit.jpg",
+      "height": 7472,
+      "width": 3317
+    },
+    {
+      "file": "api/clients/get.jpg",
+      "height": 7784,
+      "width": 3317
+    },
+    {
+      "file": "api/clients/history.jpg",
+      "height": 4064,
+      "width": 3317
+    },
+    {
+      "file": "api/locks/add.jpg",
+      "height": 4569,
+      "width": 3317
+    },
+    {
+      "file": "api/locks/delete.jpg",
+      "height": 4491,
+      "width": 3317
+    },
+    {
+      "file": "api/locks/edit.jpg",
+      "height": 4559,
+      "width": 3317
+    },
+    {
+      "file": "api/locks/get.jpg",
+      "height": 4631,
+      "width": 3317
+    },
+    {
+      "file": "api/locks/getDevices.jpg",
+      "height": 4029,
+      "width": 3317
+    },
+    {
+      "file": "api/objects/addAmenities.jpg",
+      "height": 4599,
+      "width": 3317
+    },
+    {
+      "file": "api/objects/addItems.jpg",
+      "height": 4867,
+      "width": 3317
+    },
+    {
+      "file": "api/objects/addMedia.jpg",
+      "height": 5013,
+      "width": 3317
+    },
+    {
+      "file": "api/objects/deleteAmenities.jpg",
+      "height": 4567,
+      "width": 3317
+    },
+    {
+      "file": "api/objects/deleteItems.jpg",
+      "height": 4663,
+      "width": 3317
+    },
+    {
+      "file": "api/objects/deleteMedia.jpg",
+      "height": 4515,
+      "width": 3317
+    },
+    {
+      "file": "api/objects/editDescriptions.jpg",
+      "height": 5249,
+      "width": 3317
+    },
+    {
+      "file": "api/objects/editItems.jpg",
+      "height": 4935,
+      "width": 3317
+    },
+    {
+      "file": "api/objects/editLengthSetup.jpg",
+      "height": 7493,
+      "width": 3317
+    },
+    {
+      "file": "api/objects/editLocation.jpg",
+      "height": 4363,
+      "width": 3317
+    },
+    {
+      "file": "api/objects/editMedia.jpg",
+      "height": 4955,
+      "width": 3317
+    },
+    {
+      "file": "api/objects/editType.jpg",
+      "height": 4169,
+      "width": 3317
+    },
+    {
+      "file": "api/objects/getAll.jpg",
+      "height": 7909,
+      "width": 3317
+    },
+    {
+      "file": "api/objects/getAmenities.jpg",
+      "height": 4163,
+      "width": 3317
+    },
+    {
+      "file": "api/objects/getAvailabilityByDateRange.jpg",
+      "height": 5099,
+      "width": 3317
+    },
+    {
+      "file": "api/objects/getDescriptions.jpg",
+      "height": 4609,
+      "width": 3317
+    },
+    {
+      "file": "api/objects/getFilters.jpg",
+      "height": 4980,
+      "width": 3317
+    },
+    {
+      "file": "api/objects/getItems.jpg",
+      "height": 4472,
+      "width": 3317
+    },
+    {
+      "file": "api/objects/getLengthSetup.jpg",
+      "height": 5432,
+      "width": 3317
+    },
+    {
+      "file": "api/objects/getLocation.jpg",
+      "height": 4451,
+      "width": 3317
+    },
+    {
+      "file": "api/objects/getMedia.jpg",
+      "height": 4408,
+      "width": 3317
+    },
+    {
+      "file": "api/objects/getType.jpg",
+      "height": 4103,
+      "width": 3317
+    },
+    {
+      "file": "api/offer/getAvailabilityAndPricesForDays.jpg",
+      "height": 5605,
+      "width": 3317
+    },
+    {
+      "file": "api/offer/getAvailabilityForDays.jpg",
+      "height": 5196,
+      "width": 3317
+    },
+    {
+      "file": "api/offer/getChildrenInformation.jpg",
+      "height": 4303,
+      "width": 3317
+    },
+    {
+      "file": "api/offer/getPricesForDays.jpg",
+      "height": 5333,
+      "width": 3317
+    },
+    {
+      "file": "api/offer/getPricesForDaysForObject.jpg",
+      "height": 5036,
+      "width": 3317
+    },
+    {
+      "file": "api/payments/add.jpg",
+      "height": 4589,
+      "width": 3317
+    },
+    {
+      "file": "api/payments/cancel.jpg",
+      "height": 4076,
+      "width": 3317
+    },
+    {
+      "file": "api/payments/confirm.jpg",
+      "height": 4076,
+      "width": 3317
+    },
+    {
+      "file": "api/payments/edit.jpg",
+      "height": 4259,
+      "width": 3317
+    },
+    {
+      "file": "api/payments/get.jpg",
+      "height": 5459,
+      "width": 3317
+    },
+    {
+      "file": "api/payments/getPaymentForms.jpg",
+      "height": 3615,
+      "width": 3317
+    },
+    {
+      "file": "api/prices/deleteExceptions.jpg",
+      "height": 4929,
+      "width": 3317
+    },
+    {
+      "file": "api/prices/getExceptions.jpg",
+      "height": 5380,
+      "width": 3317
+    },
+    {
+      "file": "api/prices/setExceptions.jpg",
+      "height": 4743,
+      "width": 3317
+    },
+    {
+      "file": "api/public/availability.jpg",
+      "height": 3865,
+      "width": 3317
+    },
+    {
+      "file": "api/public/filters.jpg",
+      "height": 4105,
+      "width": 3317
+    },
+    {
+      "file": "api/public/offer.jpg",
+      "height": 4195,
+      "width": 3317
+    },
+    {
+      "file": "api/public/parameters.jpg",
+      "height": 4903,
+      "width": 3317
+    },
+    {
+      "file": "api/public/pricingOffers.jpg",
+      "height": 4467,
+      "width": 3317
+    },
+    {
+      "file": "api/public/specialOffer.jpg",
+      "height": 4159,
+      "width": 3317
+    },
+    {
+      "file": "api/reservations/add.jpg",
+      "height": 10129,
+      "width": 3317
+    },
+    {
+      "file": "api/reservations/changeCurrency.jpg",
+      "height": 4432,
+      "width": 3317
+    },
+    {
+      "file": "api/reservations/edit.jpg",
+      "height": 6061,
+      "width": 3317
+    },
+    {
+      "file": "api/reservations/editStatus.jpg",
+      "height": 4783,
+      "width": 3317
+    },
+    {
+      "file": "api/reservations/get.jpg",
+      "height": 13513,
+      "width": 3317
+    },
+    {
+      "file": "api/reservations/getSources.jpg",
+      "height": 4311,
+      "width": 3317
+    },
+    {
+      "file": "api/reservations/notifyClient.jpg",
+      "height": 4631,
+      "width": 3317
+    },
+    {
+      "file": "api/reservations/notifyExternalService.jpg",
+      "height": 4631,
+      "width": 3317
+    },
+    {
+      "file": "api/reservations/setDiscount.jpg",
+      "height": 4296,
+      "width": 3317
+    },
+    {
+      "file": "api/reservationsdocuments/cancelDocuments.jpg",
+      "height": 4668,
+      "width": 3317
+    },
+    {
+      "file": "api/reservationsdocuments/createDocuments.jpg",
+      "height": 5025,
+      "width": 3317
+    },
+    {
+      "file": "api/reservationsdocuments/editDocuments.jpg",
+      "height": 5079,
+      "width": 3317
+    },
+    {
+      "file": "api/reservationsdocuments/getDocuments.jpg",
+      "height": 4789,
+      "width": 3317
+    },
+    {
+      "file": "api/restrictions/deleteExceptions.jpg",
+      "height": 4761,
+      "width": 3317
+    },
+    {
+      "file": "api/restrictions/getExceptions.jpg",
+      "height": 5001,
+      "width": 3317
+    },
+    {
+      "file": "api/restrictions/setExceptions.jpg",
+      "height": 4709,
+      "width": 3317
+    },
+    {
+      "file": "api/users/get.jpg",
+      "height": 6825,
+      "width": 3317
+    },
+    {
+      "file": "api/users/getLogs.jpg",
+      "height": 4496,
+      "width": 3317
+    },
+    {
+      "file": "pages/developers.jpg",
+      "height": 2081,
+      "width": 3317
+    },
+    {
+      "file": "pages/szablony-wlasne-wizytowki-idobooking-w-smarty.jpg",
+      "height": 2081,
+      "width": 3317
+    },
+    {
+      "file": "pages/lista-dostepnych-szablonow-wizytowki-w-smarty.jpg",
+      "height": 2081,
+      "width": 3317
+    },
+    {
+      "file": "pages/zmienne-obowiazujace-globalnie.jpg",
+      "height": 8036,
+      "width": 3317
+    },
+    {
+      "file": "pages/strona-index-tpl-w-szablonach-wizytowki.jpg",
+      "height": 2679,
+      "width": 3317
+    },
+    {
+      "file": "pages/strona-contact-tpl-w-szablonach-wizytowki.jpg",
+      "height": 3272,
+      "width": 3317
+    },
+    {
+      "file": "pages/strona-txt-tpl-w-szablonach-wizytowki.jpg",
+      "height": 2283,
+      "width": 3317
+    },
+    {
+      "file": "pages/strona-offers-tpl-w-szablonach-wizytowki.jpg",
+      "height": 3767,
+      "width": 3317
+    },
+    {
+      "file": "pages/strona-special-offer-tpl-w-szablonach-wizytowki.jpg",
+      "height": 5531,
+      "width": 3317
+    },
+    {
+      "file": "pages/strona-promotions-tpl-w-szablonach-wizytowki.jpg",
+      "height": 2081,
+      "width": 3317
+    },
+    {
+      "file": "pages/strona-facebook-tpl-w-szablonach-wizytowki.jpg",
+      "height": 2081,
+      "width": 3317
+    },
+    {
+      "file": "pages/strona-news-tpl-w-szablonach-wizytowki.jpg",
+      "height": 2081,
+      "width": 3317
+    },
+    {
+      "file": "pages/strona-offer-tpl-w-szablonach-wizytowki.jpg",
+      "height": 5807,
+      "width": 3317
+    },
+    {
+      "file": "pages/strona-about-tpl-w-szablonach-wizytowki.jpg",
+      "height": 2081,
+      "width": 3317
+    },
+    {
+      "file": "pages/strona-analytics-tpl-w-szablonach-wizytowki.jpg",
+      "height": 2081,
+      "width": 3317
+    },
+    {
+      "file": "pages/strona-facebook-comments-tpl-w-szablonach-wizytowki.jpg",
+      "height": 2081,
+      "width": 3317
+    },
+    {
+      "file": "pages/strona-footer-tpl-w-szablonach-wizytowki.jpg",
+      "height": 2081,
+      "width": 3317
+    },
+    {
+      "file": "pages/strona-header-tpl-w-szablonach-wizytowki.jpg",
+      "height": 2081,
+      "width": 3317
+    },
+    {
+      "file": "pages/strona-opinions-tpl-w-szablonach-wizytowki.jpg",
+      "height": 2081,
+      "width": 3317
+    },
+    {
+      "file": "pages/przetestuj-system-w-wersji-demo.jpg",
+      "height": 3352,
+      "width": 3317
+    },
+    {
+      "file": "pages/zapis-zadan-i-odpowiedzi-do-api.jpg",
+      "height": 2684,
+      "width": 3317
+    },
+    {
+      "file": "pages/statystyki-api.jpg",
+      "height": 3568,
+      "width": 3317
+    },
+    {
+      "file": "pages/kontakt-dla-developerow.jpg",
+      "height": 2081,
+      "width": 3317
+    },
+    {
+      "file": "pages/strona-menu-tpl-w-szablonach-wizytowki.jpg",
+      "height": 2081,
+      "width": 3317
+    },
+    {
+      "file": "api-v34/reservations/get.jpg",
+      "height": 13513,
+      "width": 3317
+    },
+    {
+      "file": "api-v34/reservations/getSources.jpg",
+      "height": 4311,
+      "width": 3317
+    },
+    {
+      "file": "pages/poradnik-edycji-wizytowki.jpg",
+      "height": 3755,
+      "width": 1866
+    }
+  ]
+}

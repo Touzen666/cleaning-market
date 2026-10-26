@@ -1,0 +1,209 @@
+{
+  "date": "2026-10-25",
+  "verification": "static source inspection; cleaning flow additionally verified read-only against live iDoBooking through local UI",
+  "distinctMethods": 5,
+  "versionedAddresses": 6,
+  "endpoints": [
+    {
+      "id": "sync-reservations-v34",
+      "method": "POST",
+      "origin": "https://zlote-wynajmy.pl",
+      "path": "/api/reservations/get/34/json",
+      "version": 34,
+      "operation": "read",
+      "purpose": "Synchronizacja rezerwacji do lokalnej bazy",
+      "source": {
+        "file": "src/server/api/routers/idobooking.ts",
+        "line": 304
+      },
+      "entry": "getReservations",
+      "authentication": "getAuth() — konfiguracja w kodzie; wartości nie są kopiowane",
+      "request": {
+        "authenticate": "systemLogin/systemKey/lang",
+        "paramsSearch": {
+          "fromDateRange": {
+            "startDate": "ISO-8601; domyślnie -18 miesięcy",
+            "endDate": "ISO-8601; domyślnie 2100-01-01"
+          }
+        },
+        "result": {
+          "page": "1..pageAll",
+          "number": 100
+        }
+      },
+      "response": [
+        "result.reservations",
+        "result.result.pageAll",
+        "result.result.countAll",
+        "result.errors"
+      ],
+      "localWrites": true,
+      "documentation": "../idobooking/api-v34/reservations/get.md"
+    },
+    {
+      "id": "sync-sources-v34",
+      "method": "POST",
+      "origin": "https://zlote-wynajmy.pl",
+      "path": "/api/reservations/getSources/34/json",
+      "version": 34,
+      "operation": "read",
+      "purpose": "Katalog kanałów rezerwacji",
+      "source": {
+        "file": "src/server/api/routers/idobooking.ts",
+        "line": 948
+      },
+      "entry": "getSources",
+      "authentication": "getAuth()",
+      "request": {
+        "authenticate": "systemLogin/systemKey/lang",
+        "result": {
+          "page": 1,
+          "number": 100
+        }
+      },
+      "response": [
+        "result.sources",
+        "result.errors"
+      ],
+      "localWrites": false,
+      "pagination": "Jedno żądanie w aktualnym kodzie",
+      "documentation": "../idobooking/api-v34/reservations/getSources.md"
+    },
+    {
+      "id": "operations-objects",
+      "method": "POST",
+      "origin": "IDOBOOKING_BASE_URL ?? https://zlote-wynajmy.pl",
+      "path": "/api/objects/getAll/{IDOBOOKING_API_VERSION}/json",
+      "defaultVersion": 36,
+      "operation": "read",
+      "purpose": "Katalog obiektów i rezerwowalnych jednostek",
+      "source": {
+        "file": "src/server/idobooking/operations.ts",
+        "line": 79
+      },
+      "entry": "readClient().units() → pages(\"objects\")",
+      "authentication": "IDOBOOKING_LOGIN/IDOBOOKING_PASSWORD; klucz dnia w IDOBOOKING_TIME_ZONE",
+      "request": {
+        "authenticate": "systemLogin/systemKey/lang",
+        "result": {
+          "page": "1..pageAll",
+          "number": 100
+        }
+      },
+      "response": [
+        "objects",
+        "result.countAll",
+        "result.pageAll",
+        "errors"
+      ],
+      "localWrites": false,
+      "pagination": "Pełna, walidowana; maksymalnie 500 stron",
+      "documentation": "../idobooking/api/objects/getAll.md"
+    },
+    {
+      "id": "operations-reservations",
+      "method": "POST",
+      "origin": "IDOBOOKING_BASE_URL ?? https://zlote-wynajmy.pl",
+      "path": "/api/reservations/get/{IDOBOOKING_API_VERSION}/json",
+      "defaultVersion": 36,
+      "operation": "read",
+      "purpose": "Pobyty do planowania; osobno jawny odczyt notatek",
+      "source": {
+        "file": "src/server/idobooking/operations.ts",
+        "line": 79
+      },
+      "entry": "readClient().stays()/reservationNotes() → pages(\"reservations\")",
+      "authentication": "IDOBOOKING_LOGIN/IDOBOOKING_PASSWORD; klucz dnia w IDOBOOKING_TIME_ZONE",
+      "request": {
+        "authenticate": "systemLogin/systemKey/lang",
+        "paramsSearch": {
+          "betweenDateRange": {
+            "startDate": "from + 00:00",
+            "endDate": "to + 00:00"
+          }
+        },
+        "result": {
+          "page": "1..pageAll",
+          "number": 100,
+          "returnElements": [
+            "reservationDetails",
+            "items"
+          ]
+        }
+      },
+      "response": [
+        "reservations",
+        "result.countAll",
+        "result.pageAll",
+        "errors"
+      ],
+      "localWrites": false,
+      "pagination": "Pełna, walidowana; maksymalnie 500 stron",
+      "documentation": "../idobooking/api/reservations/get.md"
+    },
+    {
+      "id": "operations-locks",
+      "method": "POST",
+      "origin": "IDOBOOKING_BASE_URL ?? https://zlote-wynajmy.pl",
+      "path": "/api/availabilitylocks/get/{IDOBOOKING_API_VERSION}/json",
+      "defaultVersion": 36,
+      "operation": "read",
+      "purpose": "Blokady dostępności i notatki blokad",
+      "source": {
+        "file": "src/server/idobooking/operations.ts",
+        "line": 127
+      },
+      "entry": "readClient().availabilityLocks()",
+      "authentication": "IDOBOOKING_LOGIN/IDOBOOKING_PASSWORD; klucz dnia w IDOBOOKING_TIME_ZONE",
+      "request": {
+        "authenticate": "systemLogin/systemKey/lang",
+        "result": {
+          "page": "od 1 do pustej strony",
+          "number": 100
+        }
+      },
+      "response": [
+        "availabilityLocks",
+        "errors"
+      ],
+      "localWrites": false,
+      "pagination": "Do pustej strony, maksymalnie 500; filtr dat lokalnie",
+      "documentation": "../idobooking/api/availabilitylocks/get.md"
+    },
+    {
+      "id": "cleaning-locations",
+      "method": "POST",
+      "origin": "IDOBOOKING_BASE_URL",
+      "path": "/api/objects/getLocation/{IDOBOOKING_API_VERSION}/json",
+      "defaultVersion": 36,
+      "operation": "read",
+      "purpose": "Niezależny katalog adresów cleaning według źródłowego objectId",
+      "source": {
+        "file": "src/server/cleaning/locations.ts",
+        "line": 59
+      },
+      "entry": "enrichCleaningLocations() -> getCleaningSnapshot() -> cleaning.listCandidates",
+      "authentication": "IDOBOOKING_LOGIN/IDOBOOKING_PASSWORD; systemKey w Europe/Warsaw",
+      "request": {
+        "paramsSearchObjectLocation": {
+          "objects": [
+            {
+              "id": "objectId; unikalne identyfikatory w partiach do 100"
+            }
+          ]
+        },
+        "authenticate": "systemLogin/systemKey/lang"
+      },
+      "response": [
+        "objectLocations[].objectId",
+        "objectLocations[].locationId",
+        "objectLocations[].address",
+        "errors",
+        "success"
+      ],
+      "localWrites": false,
+      "pagination": "Brak paginacji w kontrakcie; partie unikalnych objectId",
+      "documentation": "../idobooking/api/objects/getLocation.md"
+    }
+  ]
+}

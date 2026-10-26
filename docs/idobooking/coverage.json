@@ -1,0 +1,4170 @@
+{
+  "date": "2026-10-24",
+  "scope": "sidebar developer documentation; JSON v36; two used v34 methods; approved linked tutorial",
+  "gateways": [
+    {
+      "name": "allotments",
+      "expected": 4,
+      "archived": 4
+    },
+    {
+      "name": "amenities",
+      "expected": 2,
+      "archived": 2
+    },
+    {
+      "name": "availabilitylocks",
+      "expected": 4,
+      "archived": 4
+    },
+    {
+      "name": "clients",
+      "expected": 5,
+      "archived": 5
+    },
+    {
+      "name": "locks",
+      "expected": 5,
+      "archived": 5
+    },
+    {
+      "name": "objects",
+      "expected": 22,
+      "archived": 22
+    },
+    {
+      "name": "offer",
+      "expected": 5,
+      "archived": 5
+    },
+    {
+      "name": "payments",
+      "expected": 6,
+      "archived": 6
+    },
+    {
+      "name": "prices",
+      "expected": 3,
+      "archived": 3
+    },
+    {
+      "name": "public",
+      "expected": 6,
+      "archived": 6
+    },
+    {
+      "name": "reservations",
+      "expected": 9,
+      "archived": 9
+    },
+    {
+      "name": "reservationsdocuments",
+      "expected": 4,
+      "archived": 4
+    },
+    {
+      "name": "restrictions",
+      "expected": 3,
+      "archived": 3
+    },
+    {
+      "name": "users",
+      "expected": 2,
+      "archived": 2
+    }
+  ],
+  "currentMethods": 80,
+  "legacyMethods": 2,
+  "uniqueCapturedPaths": 122,
+  "screenshots": 122,
+  "requestFields": 933,
+  "responseFields": 1419,
+  "phpExamples": 82,
+  "assets": 16,
+  "issues": [],
+  "sourceCaveats": [
+    {
+      "page": "menu.tpl",
+      "status": "redirect-to-template-index",
+      "description": "Linked menu.tpl has no independent content; target template index was archived."
+    },
+    {
+      "page": "Smarty tutorial",
+      "status": "redirect-to-current-help-article",
+      "description": "The approved legacy tutorial redirects to Konfiguracja strony głównej."
+    }
+  ],
+  "files": [
+    {
+      "stem": "api/allotments/sources",
+      "kind": "method",
+      "title": "Allotments/Metoda sources",
+      "version": 36,
+      "requestFields": 4,
+      "responseFields": 13,
+      "files": [
+        {
+          "path": "api/allotments/sources.md",
+          "bytes": 3649,
+          "sha256": "b1e16b3d62fbcc217a99c0a485772ad1f8aae78028bf894bbce6927141eccf9e"
+        },
+        {
+          "path": "api/allotments/sources.html",
+          "bytes": 14721,
+          "sha256": "0222933b54b3af3ce93924ee733c41c3cb08ae8a02d7f76bd070e2650397d6f3"
+        },
+        {
+          "path": "api/allotments/sources.json",
+          "bytes": 32133,
+          "sha256": "0b6bffe1d88dca9cbaf95f85ab0a0e3146fe808731e7295482046b8c96ec2e33"
+        },
+        {
+          "path": "api/allotments/sources.php",
+          "bytes": 1104,
+          "sha256": "dd960d15edd8bf4498ae5e36289938147228abdb7a1df07d4747e54e4b9512d8"
+        },
+        {
+          "path": "api/allotments/sources.jpg",
+          "bytes": 338824,
+          "sha256": "f3b5ba35616eb133ac2dae92a45d74481549731956790506bd44bf910c699b9c"
+        }
+      ]
+    },
+    {
+      "stem": "api/index",
+      "kind": "index",
+      "title": "API IdoBooking",
+      "version": null,
+      "requestFields": 0,
+      "responseFields": 0,
+      "files": [
+        {
+          "path": "api/index.md",
+          "bytes": 1986,
+          "sha256": "39f2c2b6c54ac68209e868b2520db0de6954b4ef50ccd4a06e7fa4c903cef3e8"
+        },
+        {
+          "path": "api/index.html",
+          "bytes": 7665,
+          "sha256": "5692709495bbc2724376483fe3a0beac403bd362af0eaa98ff6637a27a147154"
+        },
+        {
+          "path": "api/index.json",
+          "bytes": 13822,
+          "sha256": "10e6009500f3b34161cd851d7c2c819423d5e153dd47e93ad8b582c071cd5ee5"
+        },
+        {
+          "path": "api/index.jpg",
+          "bytes": 241155,
+          "sha256": "58a082d13e10cd774114c6cc543fe8e58744319f238d7c744fcfb21620cc640f"
+        }
+      ]
+    },
+    {
+      "stem": "api/allotments/index",
+      "kind": "gateway",
+      "title": "Allotments",
+      "version": null,
+      "requestFields": 0,
+      "responseFields": 0,
+      "files": [
+        {
+          "path": "api/allotments/index.md",
+          "bytes": 709,
+          "sha256": "70b721180df5e328c548d5996f109646355b368f4841f66959c06a0bb02cf484"
+        },
+        {
+          "path": "api/allotments/index.html",
+          "bytes": 3984,
+          "sha256": "b0bd0105ba8c88d4acec20ee2a422492193db62c19654abe3702164f5bfae897"
+        },
+        {
+          "path": "api/allotments/index.json",
+          "bytes": 6659,
+          "sha256": "4929f402bb673eac27cc583ae2764ec856b09786544e6a7b5e3da7b99b536f54"
+        },
+        {
+          "path": "api/allotments/index.jpg",
+          "bytes": 161532,
+          "sha256": "6ee86d59a9fc1027c4458fabfb1bd55cf39e56ee29423f16be793cebd40d9efb"
+        }
+      ]
+    },
+    {
+      "stem": "api/amenities/index",
+      "kind": "gateway",
+      "title": "Bramka Amenities",
+      "version": null,
+      "requestFields": 0,
+      "responseFields": 0,
+      "files": [
+        {
+          "path": "api/amenities/index.md",
+          "bytes": 809,
+          "sha256": "e25066d36cc93bd93c1584f684cc62edcb5b76defbbf8b22d2809fd6f99cdde8"
+        },
+        {
+          "path": "api/amenities/index.html",
+          "bytes": 3642,
+          "sha256": "cad032a68e0fd2f7921952d667d32621de8c7bd4577e5a2c37e9dcfd28dc5da3"
+        },
+        {
+          "path": "api/amenities/index.json",
+          "bytes": 5883,
+          "sha256": "502673481d78e12e18f6a615dedef37eb9410e845a0ff065d6fc97d2af6167b5"
+        },
+        {
+          "path": "api/amenities/index.jpg",
+          "bytes": 168521,
+          "sha256": "7490f9f30a976da7013d975ccb825658a7dccbae5ad2a16360f97ed762c3a09e"
+        }
+      ]
+    },
+    {
+      "stem": "api/availabilitylocks/index",
+      "kind": "gateway",
+      "title": "Availability Locks",
+      "version": null,
+      "requestFields": 0,
+      "responseFields": 0,
+      "files": [
+        {
+          "path": "api/availabilitylocks/index.md",
+          "bytes": 607,
+          "sha256": "05705ee668850e04f81601e3b359945b4d196e9467302288255e70e59aab8b5d"
+        },
+        {
+          "path": "api/availabilitylocks/index.html",
+          "bytes": 3890,
+          "sha256": "ef4a22de5b1edcd59aa76e7a5fc209e940cdfc005ffa8653be16a221a25be6b0"
+        },
+        {
+          "path": "api/availabilitylocks/index.json",
+          "bytes": 6478,
+          "sha256": "f82bae82ec0b8d519cf9162b812a28c3d271942f37408db690b359e43a3663bf"
+        },
+        {
+          "path": "api/availabilitylocks/index.jpg",
+          "bytes": 157762,
+          "sha256": "70cb25c239619cda11634acec3786d4e7712af794498c4302b541fe2860e044d"
+        }
+      ]
+    },
+    {
+      "stem": "api/clients/index",
+      "kind": "gateway",
+      "title": "Bramka Clients",
+      "version": null,
+      "requestFields": 0,
+      "responseFields": 0,
+      "files": [
+        {
+          "path": "api/clients/index.md",
+          "bytes": 855,
+          "sha256": "5bbc3c4f244dc22f5cb34989ce9618c2ae8f45e17bbfd52e45ce4eb8a4c1b349"
+        },
+        {
+          "path": "api/clients/index.html",
+          "bytes": 4358,
+          "sha256": "58ab55a039d1d7c3a7d136a933f3249587bc3e63e3125b743ffa7a023b66abdd"
+        },
+        {
+          "path": "api/clients/index.json",
+          "bytes": 7371,
+          "sha256": "9f86d6d4e8a5e5bb2f50bd21d4f4f8045e90954f966819878a3c2d3488be3ffc"
+        },
+        {
+          "path": "api/clients/index.jpg",
+          "bytes": 173365,
+          "sha256": "81cc9dfb5df4f63a7c2f06487ecff1a643782cee1379d06cb35b4814ab670db4"
+        }
+      ]
+    },
+    {
+      "stem": "api/locks/index",
+      "kind": "gateway",
+      "title": "Bramka Locks",
+      "version": null,
+      "requestFields": 0,
+      "responseFields": 0,
+      "files": [
+        {
+          "path": "api/locks/index.md",
+          "bytes": 759,
+          "sha256": "f616150a848eb19c2f1c99ea78d1f94730d3210b9643385e3e6da48edb14712f"
+        },
+        {
+          "path": "api/locks/index.html",
+          "bytes": 4260,
+          "sha256": "3dca3269436efcf55ae855bc463ae638735f1f8a286b558cd8205931e195dd76"
+        },
+        {
+          "path": "api/locks/index.json",
+          "bytes": 7164,
+          "sha256": "f368269db6d0c157cfdc54c841f85606cd95734d6f2c547a88ee1768f8395655"
+        },
+        {
+          "path": "api/locks/index.jpg",
+          "bytes": 165859,
+          "sha256": "10663f0ab1232bdeb046dfe4c71240e71b3aca2b799812556e6128244a2e1981"
+        }
+      ]
+    },
+    {
+      "stem": "api/objects/index",
+      "kind": "gateway",
+      "title": "Bramka Objects",
+      "version": null,
+      "requestFields": 0,
+      "responseFields": 0,
+      "files": [
+        {
+          "path": "api/objects/index.md",
+          "bytes": 2699,
+          "sha256": "d56a6da4cd756bbc4ae07b8d5b67a8a49c9e68424537c25e896dcd56735ff2e0"
+        },
+        {
+          "path": "api/objects/index.html",
+          "bytes": 10010,
+          "sha256": "a097292c494f2f500664ff3bc5187e588538cb8c6a4a46a78165a2fc85a56161"
+        },
+        {
+          "path": "api/objects/index.json",
+          "bytes": 19277,
+          "sha256": "5be0a4b0a458502f99328260716e67204fd0713ed731fb16e8442b6e411cf02c"
+        },
+        {
+          "path": "api/objects/index.jpg",
+          "bytes": 276925,
+          "sha256": "56e06740b2d44aeddebe7ed6051812dab14e71fdffc1f8ca35de14ddc43d5b42"
+        }
+      ]
+    },
+    {
+      "stem": "api/offer/index",
+      "kind": "gateway",
+      "title": "Bramka Offer",
+      "version": null,
+      "requestFields": 0,
+      "responseFields": 0,
+      "files": [
+        {
+          "path": "api/offer/index.md",
+          "bytes": 1056,
+          "sha256": "e3803ffa1bf87e850e4c53f0756a50b59125da32259fcbd273f537e73717b0fd"
+        },
+        {
+          "path": "api/offer/index.html",
+          "bytes": 4557,
+          "sha256": "721090bdfbd619cd3ca7f67eef3ec78120eac6e9bedee3e3336626247cbed432"
+        },
+        {
+          "path": "api/offer/index.json",
+          "bytes": 7848,
+          "sha256": "ddf7371e4a24847971ee387b09656137a8e62e2f98bf70709e87907528e42c6f"
+        },
+        {
+          "path": "api/offer/index.jpg",
+          "bytes": 177472,
+          "sha256": "37798fc6012dea11438568ceed2257e9e159beb2c92071c46b997d7d5b91ac8c"
+        }
+      ]
+    },
+    {
+      "stem": "api/payments/index",
+      "kind": "gateway",
+      "title": "Bramka Payments",
+      "version": null,
+      "requestFields": 0,
+      "responseFields": 0,
+      "files": [
+        {
+          "path": "api/payments/index.md",
+          "bytes": 858,
+          "sha256": "f4eaff8aa71dc14e4b5174a9d9c94994fe179967addcfc6d149d87957ba27fca"
+        },
+        {
+          "path": "api/payments/index.html",
+          "bytes": 4586,
+          "sha256": "025c81c6edbbc9ad0bce26f768e0007007626f35637eb6fa0878ee1e72a4d525"
+        },
+        {
+          "path": "api/payments/index.json",
+          "bytes": 7872,
+          "sha256": "afacb754ba52d23e818ad4537651fffab51e102c6b017065571b033ea5aeb2dd"
+        },
+        {
+          "path": "api/payments/index.jpg",
+          "bytes": 171706,
+          "sha256": "a85099c51651194d7282f04632b4fd29bf86864e5b285c3f9c169f64e287c53e"
+        }
+      ]
+    },
+    {
+      "stem": "api/prices/index",
+      "kind": "gateway",
+      "title": "Bramka Prices",
+      "version": null,
+      "requestFields": 0,
+      "responseFields": 0,
+      "files": [
+        {
+          "path": "api/prices/index.md",
+          "bytes": 698,
+          "sha256": "3bda3f92dda31142b7380fcbba6379577590c4952ea02a814b38bef585b0eafc"
+        },
+        {
+          "path": "api/prices/index.html",
+          "bytes": 3774,
+          "sha256": "eb081ee2369a75830f03731080a1373149504d4ce33190575bb5d2626384e75d"
+        },
+        {
+          "path": "api/prices/index.json",
+          "bytes": 6181,
+          "sha256": "0f8956c46b18af8ccb8262e61795ba221dbfb48c850e83c5cdc959079a19b4b2"
+        },
+        {
+          "path": "api/prices/index.jpg",
+          "bytes": 162156,
+          "sha256": "59564625b3b5836787ce864e2661ce5b9ed0ebab1745c88e76ca9a87c2b4c176"
+        }
+      ]
+    },
+    {
+      "stem": "api/public/index",
+      "kind": "gateway",
+      "title": "Bramka Public",
+      "version": null,
+      "requestFields": 0,
+      "responseFields": 0,
+      "files": [
+        {
+          "path": "api/public/index.md",
+          "bytes": 821,
+          "sha256": "2ae849f8dbf623a61048fa854e5f169f9aad90b088969602f4b190998170286a"
+        },
+        {
+          "path": "api/public/index.html",
+          "bytes": 4547,
+          "sha256": "e985158beb070548f10bf55e42d8d25a999bcf838dd738f85b472367082c8194"
+        },
+        {
+          "path": "api/public/index.json",
+          "bytes": 7799,
+          "sha256": "7838aa581dbe524d7968625ef674b8bf4d4febfeb8b34553a396f7beaee3cec5"
+        },
+        {
+          "path": "api/public/index.jpg",
+          "bytes": 167597,
+          "sha256": "cd4c63735bc544c0b2d44072ac96efdcd5f36d166643b9d02c5fbc23ccb538a1"
+        }
+      ]
+    },
+    {
+      "stem": "api/reservations/index",
+      "kind": "gateway",
+      "title": "Bramka Reservations",
+      "version": null,
+      "requestFields": 0,
+      "responseFields": 0,
+      "files": [
+        {
+          "path": "api/reservations/index.md",
+          "bytes": 1000,
+          "sha256": "de33d896d2a21deb4c3fb29ca22fd192250f95bc50110624260772ca52b088ac"
+        },
+        {
+          "path": "api/reservations/index.html",
+          "bytes": 5404,
+          "sha256": "71c129cf7884637dc819dcea70c064c841ea1c999c7b129d8ece57a8e34b6df3"
+        },
+        {
+          "path": "api/reservations/index.json",
+          "bytes": 9671,
+          "sha256": "d25f0f4ddd305112ae6c41fe6c82d0c5c7db7ce3a3752583727a4e8118ed34db"
+        },
+        {
+          "path": "api/reservations/index.jpg",
+          "bytes": 174893,
+          "sha256": "f22c9301c3d4ab773d290ce63be40c316ca7f45a5cf6b7f1a9257bff6ac4b56c"
+        }
+      ]
+    },
+    {
+      "stem": "api/reservationsdocuments/index",
+      "kind": "gateway",
+      "title": "Bramka Reservations Documents",
+      "version": null,
+      "requestFields": 0,
+      "responseFields": 0,
+      "files": [
+        {
+          "path": "api/reservationsdocuments/index.md",
+          "bytes": 806,
+          "sha256": "b9b0ff00488ff9285b95d682a39fb68a121d18124f5dd39d9d63968722ae0dd0"
+        },
+        {
+          "path": "api/reservationsdocuments/index.html",
+          "bytes": 4100,
+          "sha256": "200eb32c49325187b1d16f7badac042ef15eef1a58cf6017319b195b45c83592"
+        },
+        {
+          "path": "api/reservationsdocuments/index.json",
+          "bytes": 6947,
+          "sha256": "be0383ed0797e80f07142a35e6784de8631f10d99a994bbd3c3aa0c92d1d1d53"
+        },
+        {
+          "path": "api/reservationsdocuments/index.jpg",
+          "bytes": 167308,
+          "sha256": "54285dd4f95e67e7b750bdad6bd07f69d3889c01c7614a136679b3fab8aecae2"
+        }
+      ]
+    },
+    {
+      "stem": "api/restrictions/index",
+      "kind": "gateway",
+      "title": "Restrictions",
+      "version": null,
+      "requestFields": 0,
+      "responseFields": 0,
+      "files": [
+        {
+          "path": "api/restrictions/index.md",
+          "bytes": 621,
+          "sha256": "a96641f88dc28cbd2dfffb590a16951a6d47a42215c834ca6b30e92384bb3982"
+        },
+        {
+          "path": "api/restrictions/index.html",
+          "bytes": 3674,
+          "sha256": "1c1fa49fbc0037e972f8170c707f9c155528bfcd246b3e8b4c383fa8ac91d4fd"
+        },
+        {
+          "path": "api/restrictions/index.json",
+          "bytes": 6017,
+          "sha256": "e6c5e3dbe06b449ee4baf6de39b0816cd1336a5146dc1e96f1204550ff3b6953"
+        },
+        {
+          "path": "api/restrictions/index.jpg",
+          "bytes": 156893,
+          "sha256": "fddcbd1579fbdb911146867fb70d4a0597e5e4beb6e89906a1e63c0be598f5d3"
+        }
+      ]
+    },
+    {
+      "stem": "api/users/index",
+      "kind": "gateway",
+      "title": "Bramka Users",
+      "version": null,
+      "requestFields": 0,
+      "responseFields": 0,
+      "files": [
+        {
+          "path": "api/users/index.md",
+          "bytes": 551,
+          "sha256": "8429e400b5a499daa03f6f162271754a873930bf1becc25b88e2064f329ebb44"
+        },
+        {
+          "path": "api/users/index.html",
+          "bytes": 3380,
+          "sha256": "80f4f24fcb33ebe4a15f18eca992cd48eb0bdcdb6b6b0c1c86803ed197c0e00f"
+        },
+        {
+          "path": "api/users/index.json",
+          "bytes": 5328,
+          "sha256": "d7d845ad2cd83d96d84475fc23658ea41e73228c0ddebedc7a94912fe7af7bd9"
+        },
+        {
+          "path": "api/users/index.jpg",
+          "bytes": 155709,
+          "sha256": "07e3ceb8c97bd985940fcb52cfcb9391b918db68022155c035ac1b7b9b44bbe6"
+        }
+      ]
+    },
+    {
+      "stem": "api/allotments/deleteExceptions",
+      "kind": "method",
+      "title": "Allotments/Metoda deleteExceptions",
+      "version": 36,
+      "requestFields": 13,
+      "responseFields": 14,
+      "files": [
+        {
+          "path": "api/allotments/deleteExceptions.md",
+          "bytes": 5734,
+          "sha256": "1de19ec55340293e2f5e706f96bd1a0de84294530b164a43c36405b3c261bab4"
+        },
+        {
+          "path": "api/allotments/deleteExceptions.html",
+          "bytes": 20898,
+          "sha256": "0ce6fc9ac807e7307dfad0ffbbc02ebeb54c45d3e08adb6ef422d6700b53c930"
+        },
+        {
+          "path": "api/allotments/deleteExceptions.json",
+          "bytes": 44699,
+          "sha256": "ecdd7678c7d2ca8e3d9e6d75e8a4487478a0da1d299d92a43d5c1f7824e40244"
+        },
+        {
+          "path": "api/allotments/deleteExceptions.php",
+          "bytes": 1735,
+          "sha256": "f6e7a692860ac34543de4cddb1e2482db75a7198637cc9368ad4c751db377430"
+        },
+        {
+          "path": "api/allotments/deleteExceptions.jpg",
+          "bytes": 418891,
+          "sha256": "01e27d2e327b0770e8dc840b326be6e5de5e9324bb546fa5d9b7001302e2458c"
+        }
+      ]
+    },
+    {
+      "stem": "api/allotments/getExceptions",
+      "kind": "method",
+      "title": "Allotments/Metoda getExceptions",
+      "version": 36,
+      "requestFields": 12,
+      "responseFields": 15,
+      "files": [
+        {
+          "path": "api/allotments/getExceptions.md",
+          "bytes": 5342,
+          "sha256": "b81060897818ce34457c5bdbe6abc2f3043abd3483ab3cf922f0c48c988a851a"
+        },
+        {
+          "path": "api/allotments/getExceptions.html",
+          "bytes": 20436,
+          "sha256": "56b69eee7e21d85fd4333d1a951159ffec8fb6b57fbec7e60ad3f1c013b78524"
+        },
+        {
+          "path": "api/allotments/getExceptions.json",
+          "bytes": 43639,
+          "sha256": "7a4af128b448bc1bf2318481f196e5c04f85e4f558e7ac7dffd325215a53b47c"
+        },
+        {
+          "path": "api/allotments/getExceptions.php",
+          "bytes": 1627,
+          "sha256": "207be6048b3ccdb8a130a355f520fd7baee3d1f4a34a2b759d6b52c9234a149e"
+        },
+        {
+          "path": "api/allotments/getExceptions.jpg",
+          "bytes": 408199,
+          "sha256": "67b9cce48eb37f5ddd718a98a6ca8b03b2f590e4893152ced63a6b717e8fdfa1"
+        }
+      ]
+    },
+    {
+      "stem": "api/allotments/setExceptions",
+      "kind": "method",
+      "title": "Allotments/Metoda setExceptions",
+      "version": 36,
+      "requestFields": 14,
+      "responseFields": 8,
+      "files": [
+        {
+          "path": "api/allotments/setExceptions.md",
+          "bytes": 4993,
+          "sha256": "1b99fd1d2588fe0a9e19fa8764541b5315970727e9722f5578fc989c53f792dd"
+        },
+        {
+          "path": "api/allotments/setExceptions.html",
+          "bytes": 18958,
+          "sha256": "a6eb3a3fa936ca13f86774ed3c8881960f7581a08b0cc4a9b5b4bf7599127f25"
+        },
+        {
+          "path": "api/allotments/setExceptions.json",
+          "bytes": 40316,
+          "sha256": "e6977723ca3495ee89d0d3798a375c1061866e2a285c2900dcdf2bb3ed45e437"
+        },
+        {
+          "path": "api/allotments/setExceptions.php",
+          "bytes": 1771,
+          "sha256": "e4482e0def747e6593dea7d5ddcaacbde992bb4a112561da95b2359097c33460"
+        },
+        {
+          "path": "api/allotments/setExceptions.jpg",
+          "bytes": 375838,
+          "sha256": "a83b555977d15c221db79dab9180dfa7e5363cba8762f1e060863fdb63c60146"
+        }
+      ]
+    },
+    {
+      "stem": "api/amenities/getForAddons",
+      "kind": "method",
+      "title": "Bramka Amenities/Metoda getForAddons",
+      "version": 36,
+      "requestFields": 6,
+      "responseFields": 20,
+      "files": [
+        {
+          "path": "api/amenities/getForAddons.md",
+          "bytes": 5028,
+          "sha256": "b490cb508f64af7fc4e43dd728a3a4f9464ef5777b6bf5bae4bdbddb648138f3"
+        },
+        {
+          "path": "api/amenities/getForAddons.html",
+          "bytes": 19074,
+          "sha256": "b5012f9e845e26bd7b0e5bf6c7181395b967c99e268dcf874da7fa68d1c0b545"
+        },
+        {
+          "path": "api/amenities/getForAddons.json",
+          "bytes": 41118,
+          "sha256": "540b51f7152df35e3470c8a8d033dd73c6864632ef21d0f515d13a0671fda0fc"
+        },
+        {
+          "path": "api/amenities/getForAddons.php",
+          "bytes": 1179,
+          "sha256": "0a6658ecb8a6715788883a41c46acd59338505dde7e65e3cb3f144364b5155cd"
+        },
+        {
+          "path": "api/amenities/getForAddons.jpg",
+          "bytes": 399181,
+          "sha256": "08b2982e3634b089952771682c08f432b95c6f851939249f64176228d34c30f6"
+        }
+      ]
+    },
+    {
+      "stem": "api/amenities/getForObjects",
+      "kind": "method",
+      "title": "Bramka Amenities/Metoda getForObjects",
+      "version": 36,
+      "requestFields": 6,
+      "responseFields": 19,
+      "files": [
+        {
+          "path": "api/amenities/getForObjects.md",
+          "bytes": 5279,
+          "sha256": "1b3e205ea3e64522674973d3a7f243c7a5b626ab5bd54f2d52e575640f6563f8"
+        },
+        {
+          "path": "api/amenities/getForObjects.html",
+          "bytes": 18874,
+          "sha256": "9a9cf813218978c8dc01ba3b35b0f0277f1903943ecbaf8667c47f39852074fd"
+        },
+        {
+          "path": "api/amenities/getForObjects.json",
+          "bytes": 41100,
+          "sha256": "854dc428764766d808442c9aa3464243691152cb1e2682e74772e28837cea496"
+        },
+        {
+          "path": "api/amenities/getForObjects.php",
+          "bytes": 1182,
+          "sha256": "f8a40351db8e91b01387b4784caae866d5389da8462cffbcef368876f9a51959"
+        },
+        {
+          "path": "api/amenities/getForObjects.jpg",
+          "bytes": 405463,
+          "sha256": "70b65471b6e17f279c2be4e6cd1feca7d64b91b971421f39346bda77daa2b403"
+        }
+      ]
+    },
+    {
+      "stem": "api/availabilitylocks/add",
+      "kind": "method",
+      "title": "Availability Locks/Metoda add",
+      "version": 36,
+      "requestFields": 12,
+      "responseFields": 14,
+      "files": [
+        {
+          "path": "api/availabilitylocks/add.md",
+          "bytes": 5197,
+          "sha256": "6a9d486d71ac2285add8ae0f369ef71ab35463113c01163fac2924ad660413e6"
+        },
+        {
+          "path": "api/availabilitylocks/add.html",
+          "bytes": 19930,
+          "sha256": "5f83b1357646823c2989fb17b78b98c3775dcec9346ca49d8eef25f9c555c103"
+        },
+        {
+          "path": "api/availabilitylocks/add.json",
+          "bytes": 42461,
+          "sha256": "ba33695e94250c8418484511a4ac499b01b6249c1b0d32f7248adb3087cbd5e9"
+        },
+        {
+          "path": "api/availabilitylocks/add.php",
+          "bytes": 1519,
+          "sha256": "578b0511bd427daef2ab94822cf41b7dac0009366802e6d0afe159fc3509d04a"
+        },
+        {
+          "path": "api/availabilitylocks/add.jpg",
+          "bytes": 387086,
+          "sha256": "6623609641a5c3bae3211d7e7cd65e3a9cfbce41c303b24df32ade2ee4f8a719"
+        }
+      ]
+    },
+    {
+      "stem": "api/availabilitylocks/delete",
+      "kind": "method",
+      "title": "Availability Locks/Metoda delete",
+      "version": 36,
+      "requestFields": 11,
+      "responseFields": 13,
+      "files": [
+        {
+          "path": "api/availabilitylocks/delete.md",
+          "bytes": 4998,
+          "sha256": "0973584108f8bad1dff8e14bf02e61f5eee41838023a82e4f3845d3432a61a97"
+        },
+        {
+          "path": "api/availabilitylocks/delete.html",
+          "bytes": 18972,
+          "sha256": "cf0e49618c366901a13350465c1663305557c8b1e405b0b6381e7af8fe18a318"
+        },
+        {
+          "path": "api/availabilitylocks/delete.json",
+          "bytes": 40717,
+          "sha256": "d31bdf4b2dde2e5909860eebf507f0a53d6e78f6f7ee9a8cc149ed3a63b34089"
+        },
+        {
+          "path": "api/availabilitylocks/delete.php",
+          "bytes": 1460,
+          "sha256": "1f60085096e9b324fbe7c02c32d2a2a6fd650672b3cb10af1df71f9cf04d1d31"
+        },
+        {
+          "path": "api/availabilitylocks/delete.jpg",
+          "bytes": 380561,
+          "sha256": "6c55be28e655d20e6fc8a7efb98e99dd46c5a9df3303ccd1d0ac287e56dc91b0"
+        }
+      ]
+    },
+    {
+      "stem": "api/availabilitylocks/edit",
+      "kind": "method",
+      "title": "Availability Locks/Metoda edit",
+      "version": 36,
+      "requestFields": 13,
+      "responseFields": 14,
+      "files": [
+        {
+          "path": "api/availabilitylocks/edit.md",
+          "bytes": 5270,
+          "sha256": "49d930acad3faf1f06a8009dc7081f591fbea7383dd166ab224fec5c4f855496"
+        },
+        {
+          "path": "api/availabilitylocks/edit.html",
+          "bytes": 20343,
+          "sha256": "b5e4e6fd208fda1f293a90564cefa0cb07c2ee62e665f87963c43f03f9280d12"
+        },
+        {
+          "path": "api/availabilitylocks/edit.json",
+          "bytes": 43298,
+          "sha256": "6835ccfc88dac11253d52b05165ab8c26b40111822f4423c57e9dfe85523f7c1"
+        },
+        {
+          "path": "api/availabilitylocks/edit.php",
+          "bytes": 1498,
+          "sha256": "c5073064314545aa49e023751a11c527067f8adbdfcdf44b8745fe84ddce9a9c"
+        },
+        {
+          "path": "api/availabilitylocks/edit.jpg",
+          "bytes": 395014,
+          "sha256": "2a07a92f0bc5685f4b23d79a6db92bb2975e56880ca408a4ba8a61ff0c3cbb8e"
+        }
+      ]
+    },
+    {
+      "stem": "api/availabilitylocks/get",
+      "kind": "method",
+      "title": "Availability Locks/Metoda get",
+      "version": 36,
+      "requestFields": 14,
+      "responseFields": 17,
+      "files": [
+        {
+          "path": "api/availabilitylocks/get.md",
+          "bytes": 5391,
+          "sha256": "f0c525d88e5b4a688e148331e658ba9bbcd08d36c369dea958ae7fe375de13b5"
+        },
+        {
+          "path": "api/availabilitylocks/get.html",
+          "bytes": 21933,
+          "sha256": "e46383e6d2b534456d8b87ca112c621de0d1e9dcc8e88f52857f34353edee7aa"
+        },
+        {
+          "path": "api/availabilitylocks/get.json",
+          "bytes": 46191,
+          "sha256": "8633711cc9bd09d0b93aac19c6bdb72a9f68b01a739497775d738644acfff068"
+        },
+        {
+          "path": "api/availabilitylocks/get.php",
+          "bytes": 1508,
+          "sha256": "0da88c3c4b8b840c84f981e42b31948aaf14147d506eac8d909c7262fb7c0de8"
+        },
+        {
+          "path": "api/availabilitylocks/get.jpg",
+          "bytes": 414347,
+          "sha256": "0089e0d36d610a38a1a08fe643b8a64765798b2bed56f7e310a0236b175bbb6b"
+        }
+      ]
+    },
+    {
+      "stem": "api/clients/add",
+      "kind": "method",
+      "title": "Bramka Clients/Metoda add",
+      "version": 36,
+      "requestFields": 47,
+      "responseFields": 15,
+      "files": [
+        {
+          "path": "api/clients/add.md",
+          "bytes": 10584,
+          "sha256": "1fade948e93126b16e8e53644f5be1b07fbe8cdda1f35ad2642ebea5d4ceb058"
+        },
+        {
+          "path": "api/clients/add.html",
+          "bytes": 44005,
+          "sha256": "8d08d9180f71e4d93c0ca3183cc553d786a9418a44c27692a36b010d9b8f5f16"
+        },
+        {
+          "path": "api/clients/add.json",
+          "bytes": 85965,
+          "sha256": "c5baabc557c488ad64bd3c3755d947d2720606bb169743082a2b333ba2aa3237"
+        },
+        {
+          "path": "api/clients/add.php",
+          "bytes": 3780,
+          "sha256": "47f5f6b321f40c16e23d54b6bcc514535f09a60586c78486dffbdeb51585e62a"
+        },
+        {
+          "path": "api/clients/add.jpg",
+          "bytes": 584866,
+          "sha256": "6bb6a2bd7a25bdbfde89320538a8fed5837a2865c3a610655878690825e43bff"
+        }
+      ]
+    },
+    {
+      "stem": "api/clients/delete",
+      "kind": "method",
+      "title": "Bramka Clients/Metoda delete",
+      "version": 36,
+      "requestFields": 9,
+      "responseFields": 15,
+      "files": [
+        {
+          "path": "api/clients/delete.md",
+          "bytes": 4217,
+          "sha256": "fece43098abc78546e7f2744777b8275ff65e225ac8f1f24e656385a6e8d6aeb"
+        },
+        {
+          "path": "api/clients/delete.html",
+          "bytes": 18164,
+          "sha256": "adbd8eeb60e9224a53b56eb8620abc13f21c6f98e33a7322e8901a9386e5ad03"
+        },
+        {
+          "path": "api/clients/delete.json",
+          "bytes": 38214,
+          "sha256": "10298f21b47135bb19890f7372418f1c75cfd98a3e635b8fe9e9fa99cf73f557"
+        },
+        {
+          "path": "api/clients/delete.php",
+          "bytes": 1318,
+          "sha256": "06f3234cb61e3fcae2f14b704ee42783b987269a36581acb9c6c886a7bbd7514"
+        },
+        {
+          "path": "api/clients/delete.jpg",
+          "bytes": 363041,
+          "sha256": "dae3ec53c0de0645f568cca06617fb45ee9dbaf1415d44373e21108874a0481d"
+        }
+      ]
+    },
+    {
+      "stem": "api/clients/edit",
+      "kind": "method",
+      "title": "Bramka Clients/Metoda edit",
+      "version": 36,
+      "requestFields": 48,
+      "responseFields": 15,
+      "files": [
+        {
+          "path": "api/clients/edit.md",
+          "bytes": 10758,
+          "sha256": "72a7a5eed5e6412f825ac413c0ab9a11a4eaef4f43d57401ac01b7e16c3fa3c6"
+        },
+        {
+          "path": "api/clients/edit.html",
+          "bytes": 44188,
+          "sha256": "c2981f6988f04505e690193909deb83e4dbddb3cd15d45af9c08ee1a2d5cc564"
+        },
+        {
+          "path": "api/clients/edit.json",
+          "bytes": 86530,
+          "sha256": "c5c0a85fc6f2a4094b1ed46e43730d0eeb6d9055396617282c85f2904450cb9f"
+        },
+        {
+          "path": "api/clients/edit.php",
+          "bytes": 3825,
+          "sha256": "5768e508c0ab2e3fbd5171fe25cb4269f0022234ee673e858c31854b98c45bef"
+        },
+        {
+          "path": "api/clients/edit.jpg",
+          "bytes": 575858,
+          "sha256": "6f82dc0d45ec2e9d8fdc41bd3a5bebee59f824f5ed6ee0e5bae2ff1325fca6b4"
+        }
+      ]
+    },
+    {
+      "stem": "api/clients/get",
+      "kind": "method",
+      "title": "Bramka Clients/Metoda get",
+      "version": 36,
+      "requestFields": 13,
+      "responseFields": 55,
+      "files": [
+        {
+          "path": "api/clients/get.md",
+          "bytes": 8589,
+          "sha256": "675c4a24512d06b4f753c7750f3d2f195e21ab8e02acfda20ca2d38ca792fea4"
+        },
+        {
+          "path": "api/clients/get.html",
+          "bytes": 37231,
+          "sha256": "fd12a5c107a987291a9732fc0c3506598c80815d3a462e35dd34c14babe2fa1c"
+        },
+        {
+          "path": "api/clients/get.json",
+          "bytes": 75862,
+          "sha256": "3c74d37ec5a629dcbfa24a43ce99f28bf1a08dcc199aceff3822f53c2e1f2c12"
+        },
+        {
+          "path": "api/clients/get.php",
+          "bytes": 1429,
+          "sha256": "579ae8872472bd616a163173a274575ff8805b6a266ed4e9968230b469eec745"
+        },
+        {
+          "path": "api/clients/get.jpg",
+          "bytes": 583930,
+          "sha256": "cbcbecfbb769b35be0dc2c1b341612b3406fd10a120dece5402290f26a497ef9"
+        }
+      ]
+    },
+    {
+      "stem": "api/clients/history",
+      "kind": "method",
+      "title": "Bramka Clients/Metoda history",
+      "version": 36,
+      "requestFields": 7,
+      "responseFields": 9,
+      "files": [
+        {
+          "path": "api/clients/history.md",
+          "bytes": 3535,
+          "sha256": "4a621087291df291fcc98997d0191f44e6bf52538c60b6070fe99abd68f86f81"
+        },
+        {
+          "path": "api/clients/history.html",
+          "bytes": 14453,
+          "sha256": "c5411b9435920aeb3ba203a2f4bb9486832fad3b364d009b1dec6c30fb3b007e"
+        },
+        {
+          "path": "api/clients/history.json",
+          "bytes": 31334,
+          "sha256": "cdb54526172675a78d1ba018fd1beb3c5fd1b5f4709c6c65c54a1d5b3880cd46"
+        },
+        {
+          "path": "api/clients/history.php",
+          "bytes": 1206,
+          "sha256": "9df97e6b68d83bafb0c94f3f37595feea85e49a6309dc22716b8cdfc5eb86d9c"
+        },
+        {
+          "path": "api/clients/history.jpg",
+          "bytes": 326227,
+          "sha256": "e899e7e495180aa00983217a8f136ee9c24b9f2d55fabf563b825e0c8bcc493f"
+        }
+      ]
+    },
+    {
+      "stem": "api/locks/add",
+      "kind": "method",
+      "title": "Bramka Locks/Metoda add",
+      "version": 36,
+      "requestFields": 10,
+      "responseFields": 13,
+      "files": [
+        {
+          "path": "api/locks/add.md",
+          "bytes": 4343,
+          "sha256": "5ce83ca120a43fcd0aba4ac11fea2575074f837dfbb86b9c6b5baeba7d522db8"
+        },
+        {
+          "path": "api/locks/add.html",
+          "bytes": 18126,
+          "sha256": "6f8492a3e1230a6e5297bb7576c892a0d05c509f8f5c12d98bbfa4399bb5b3e7"
+        },
+        {
+          "path": "api/locks/add.json",
+          "bytes": 38174,
+          "sha256": "809d76b79c1de399204bb00c56fd97d31fda3464d55b157ea42dc5fdea026e95"
+        },
+        {
+          "path": "api/locks/add.php",
+          "bytes": 1329,
+          "sha256": "c15f878541b47ffe5640270792b9660da4fc19122596248944c93094e2774a81"
+        },
+        {
+          "path": "api/locks/add.jpg",
+          "bytes": 363194,
+          "sha256": "45cdd5aff9b68019c48e2dad56cb508a8253ab15a3aba85c9f72886c06807903"
+        }
+      ]
+    },
+    {
+      "stem": "api/locks/delete",
+      "kind": "method",
+      "title": "Bramka Locks/Metoda delete",
+      "version": 36,
+      "requestFields": 9,
+      "responseFields": 13,
+      "files": [
+        {
+          "path": "api/locks/delete.md",
+          "bytes": 4248,
+          "sha256": "63ddd25f74c9fb870fe10e3d7dfed698443f4f65727834d53db18036a3b04855"
+        },
+        {
+          "path": "api/locks/delete.html",
+          "bytes": 17581,
+          "sha256": "ac184a32dbe35dcd7abdee38d78a5d9b2da27a5e3f91e395b0184d3b81301a52"
+        },
+        {
+          "path": "api/locks/delete.json",
+          "bytes": 37254,
+          "sha256": "f625337ec39ca4411353684f20d7fea92e1a2e39df5e137b47ac99208c27ef76"
+        },
+        {
+          "path": "api/locks/delete.php",
+          "bytes": 1293,
+          "sha256": "5f325640f92ea0d29f9a00a3a5bca26891884cee6b27dce5d9d3d6c973321389"
+        },
+        {
+          "path": "api/locks/delete.jpg",
+          "bytes": 363357,
+          "sha256": "1249ead28167b0a18fc69cfcc21700f32de325640b2701767ef8aecef4e39634"
+        }
+      ]
+    },
+    {
+      "stem": "api/locks/edit",
+      "kind": "method",
+      "title": "Bramka Locks/Metoda edit",
+      "version": 36,
+      "requestFields": 10,
+      "responseFields": 13,
+      "files": [
+        {
+          "path": "api/locks/edit.md",
+          "bytes": 4404,
+          "sha256": "75978c84bb23d3e4ab8bad1b3d3ae0b73add3cdbfdea9738560ad3c5c543de19"
+        },
+        {
+          "path": "api/locks/edit.html",
+          "bytes": 18181,
+          "sha256": "31ebc718055a11cda246fcbd86901d830a4ea8d47b82c7b74e17dff9d391e8db"
+        },
+        {
+          "path": "api/locks/edit.json",
+          "bytes": 38345,
+          "sha256": "d5ec24bad3e17c2a90b40d026e86fa94ec6ef44bb45245b17d2743822c17db10"
+        },
+        {
+          "path": "api/locks/edit.php",
+          "bytes": 1330,
+          "sha256": "faec89ff2087edb30014f1cba8896f4068e4d08e7effa19772ba148b8db130c1"
+        },
+        {
+          "path": "api/locks/edit.jpg",
+          "bytes": 364511,
+          "sha256": "cf90c50806cbc6690fd4754acff52871639bf9104f605ac52ed3ba944f521045"
+        }
+      ]
+    },
+    {
+      "stem": "api/locks/get",
+      "kind": "method",
+      "title": "Bramka Locks/Metoda get",
+      "version": 36,
+      "requestFields": 10,
+      "responseFields": 14,
+      "files": [
+        {
+          "path": "api/locks/get.md",
+          "bytes": 4364,
+          "sha256": "2b2f17c98dce773d3bd3c0da3c1748149916281a3560d499c196aaa98ef10384"
+        },
+        {
+          "path": "api/locks/get.html",
+          "bytes": 18474,
+          "sha256": "26a584ccd2c08a67e8a7ba55af162cc88da4dd1f4a28778c9971452975c299e6"
+        },
+        {
+          "path": "api/locks/get.json",
+          "bytes": 38876,
+          "sha256": "3dc66569c0f403faf07e551af80a71cf845c8c8d78cd3e24b883dbb9f4b3af1a"
+        },
+        {
+          "path": "api/locks/get.php",
+          "bytes": 1314,
+          "sha256": "a1f65da67a040c2e30615ced0d761081cbe8cac305768ef32bd70067ba459f95"
+        },
+        {
+          "path": "api/locks/get.jpg",
+          "bytes": 368521,
+          "sha256": "6776f72b034d5a19ff5ea77206064c1519327be903224f7f7668356fe228ab03"
+        }
+      ]
+    },
+    {
+      "stem": "api/locks/getDevices",
+      "kind": "method",
+      "title": "Bramka Locks/Metoda getDevices",
+      "version": 36,
+      "requestFields": 4,
+      "responseFields": 11,
+      "files": [
+        {
+          "path": "api/locks/getDevices.md",
+          "bytes": 3603,
+          "sha256": "b150fcc0dcb4a12c4f45975a503bee550ebce9b28bbbc48d2e466dbc206ae4a2"
+        },
+        {
+          "path": "api/locks/getDevices.html",
+          "bytes": 14225,
+          "sha256": "c74af2ba0137781c8fb602b90810be5e1fee8291b9946003e705ba0d3d5df696"
+        },
+        {
+          "path": "api/locks/getDevices.json",
+          "bytes": 31099,
+          "sha256": "b5cbc349105e537b8eced59a4ad648529e57dc61ca009329aac6a4278fd9fd71"
+        },
+        {
+          "path": "api/locks/getDevices.php",
+          "bytes": 1102,
+          "sha256": "4e7fdd6f2edd5d65fc44a93de5be73341f0a95b37e0e8af4de20828f596ef07a"
+        },
+        {
+          "path": "api/locks/getDevices.jpg",
+          "bytes": 331223,
+          "sha256": "720c4bb2c9b1908ce91a9c91048864b6862631071ffb4c799763dd2a9fdd5c1d"
+        }
+      ]
+    },
+    {
+      "stem": "api/objects/addAmenities",
+      "kind": "method",
+      "title": "Bramka Objects/Metoda addAmenities",
+      "version": 36,
+      "requestFields": 8,
+      "responseFields": 16,
+      "files": [
+        {
+          "path": "api/objects/addAmenities.md",
+          "bytes": 4456,
+          "sha256": "0597954f5fffca9adad841531b2e469b395422e6f3aadcf19f222da5f6fddeb9"
+        },
+        {
+          "path": "api/objects/addAmenities.html",
+          "bytes": 18073,
+          "sha256": "1f33de8c0d022d8eb1f40db510e7efd870fff07959636877167d8e15777f60b3"
+        },
+        {
+          "path": "api/objects/addAmenities.json",
+          "bytes": 38571,
+          "sha256": "d0fcee544d4021b6b7cfa065db006e6163cf5211decc093cb5dcffec1d94d67a"
+        },
+        {
+          "path": "api/objects/addAmenities.php",
+          "bytes": 1277,
+          "sha256": "30fc2b1b4ba81e8a8dc0fbeec7bfd0c0bb09467d9817142fe3cb3119cf18144f"
+        },
+        {
+          "path": "api/objects/addAmenities.jpg",
+          "bytes": 369142,
+          "sha256": "17d904989d525c239f0d13e5905e3999ef3fa53a6ddc30492f454d3074942daf"
+        }
+      ]
+    },
+    {
+      "stem": "api/objects/addItems",
+      "kind": "method",
+      "title": "Bramka Objects/Metoda addItems",
+      "version": 36,
+      "requestFields": 9,
+      "responseFields": 18,
+      "files": [
+        {
+          "path": "api/objects/addItems.md",
+          "bytes": 5060,
+          "sha256": "fd434387bc8878e036b849542a5671ae29b17cdc7be66a69ddfc31ad66170131"
+        },
+        {
+          "path": "api/objects/addItems.html",
+          "bytes": 19803,
+          "sha256": "b93f3e6a6b9444ba9ca1ffb1bff0bfacd4b4e67a6ef4902bbe7d11e7be0b7edd"
+        },
+        {
+          "path": "api/objects/addItems.json",
+          "bytes": 42171,
+          "sha256": "6df2aa1de00bcb27f0fc4762eaa2bef4d134fc0355460e9b053fdfc3f8eaaa53"
+        },
+        {
+          "path": "api/objects/addItems.php",
+          "bytes": 1380,
+          "sha256": "4d003539cfd0a3524f5e1d15a153a057127230827c28dceddd0fe7a207c62c15"
+        },
+        {
+          "path": "api/objects/addItems.jpg",
+          "bytes": 401520,
+          "sha256": "76bf1b84cdc60173e4c1c4d5fc469557f7fbdfca28e4b5e14a41cd070e11f682"
+        }
+      ]
+    },
+    {
+      "stem": "api/objects/addMedia",
+      "kind": "method",
+      "title": "Bramka Objects/Metoda addMedia",
+      "version": 36,
+      "requestFields": 12,
+      "responseFields": 16,
+      "files": [
+        {
+          "path": "api/objects/addMedia.md",
+          "bytes": 5223,
+          "sha256": "57ed65f7ffac5ac2b6b4f3ec7b1aa660e00e174826e5cd285fdc867a3abcfcd5"
+        },
+        {
+          "path": "api/objects/addMedia.html",
+          "bytes": 20750,
+          "sha256": "96432f39c2508d25d8da35b6d473d42dc9bb1e8c773fb93f582570aefe4aeebb"
+        },
+        {
+          "path": "api/objects/addMedia.json",
+          "bytes": 43692,
+          "sha256": "6da7570e3489f4222ec74b37976ce162c3866e6cd2d8d7dcca74ba9a036428ed"
+        },
+        {
+          "path": "api/objects/addMedia.php",
+          "bytes": 1469,
+          "sha256": "aae7cd8735dd7c7f1b2b8e75ed8b52d9b315234c3657d31f3c2492fa68bdb066"
+        },
+        {
+          "path": "api/objects/addMedia.jpg",
+          "bytes": 403613,
+          "sha256": "006212d3e0bf1e48304dc6d3e191e20c192fa97716b7a7708d7dcaebb9a4c831"
+        }
+      ]
+    },
+    {
+      "stem": "api/objects/deleteAmenities",
+      "kind": "method",
+      "title": "Bramka Objects/Metoda deleteAmenities",
+      "version": 36,
+      "requestFields": 8,
+      "responseFields": 15,
+      "files": [
+        {
+          "path": "api/objects/deleteAmenities.md",
+          "bytes": 4513,
+          "sha256": "8d204bfd578331629f1ee03580f6b124ab1b1ad0cf735a324c24ee071e7a2dfd"
+        },
+        {
+          "path": "api/objects/deleteAmenities.html",
+          "bytes": 17778,
+          "sha256": "ae4d2e44b3ca55434b53721d8ec2841a980854d0f303185cf03274c62e1ce33e"
+        },
+        {
+          "path": "api/objects/deleteAmenities.json",
+          "bytes": 38207,
+          "sha256": "7d8d0ecb37711d1f5dea80cf60e486805bb22f00161ae48c2b8c9da4dbd084cb"
+        },
+        {
+          "path": "api/objects/deleteAmenities.php",
+          "bytes": 1280,
+          "sha256": "82073d79c8579b843d9eecaa3ec3249f7b1079a43386111507037b4fb1bf5a4b"
+        },
+        {
+          "path": "api/objects/deleteAmenities.jpg",
+          "bytes": 367190,
+          "sha256": "268c2eb4b79c6390b2beb2f54f41994733a9673211b1a6b50ce355d9040f4d5d"
+        }
+      ]
+    },
+    {
+      "stem": "api/objects/deleteItems",
+      "kind": "method",
+      "title": "Bramka Objects/Metoda deleteItems",
+      "version": 36,
+      "requestFields": 8,
+      "responseFields": 16,
+      "files": [
+        {
+          "path": "api/objects/deleteItems.md",
+          "bytes": 4800,
+          "sha256": "c6bcfbc05266aef4c7f677e93c1d5d2aaae7856e74fda474a40a5fa37db69c25"
+        },
+        {
+          "path": "api/objects/deleteItems.html",
+          "bytes": 18350,
+          "sha256": "10cec428a4a64480ab7ae2a030ee3b9b7ee9304f8aec9c2bd5e76410d8aaaa0f"
+        },
+        {
+          "path": "api/objects/deleteItems.json",
+          "bytes": 39513,
+          "sha256": "29496d20faf90830d8ff3ad48dae82fe22c6f194b451494ee657e5f7f9139892"
+        },
+        {
+          "path": "api/objects/deleteItems.php",
+          "bytes": 1331,
+          "sha256": "04b168987268fa0af00773dc8274ff14c4d517afa3f7328a58eb52735b5d997c"
+        },
+        {
+          "path": "api/objects/deleteItems.jpg",
+          "bytes": 377794,
+          "sha256": "a9333fc4bf861d79655d41e19695593f9543b57bb3b9e4c52141abf64f040942"
+        }
+      ]
+    },
+    {
+      "stem": "api/objects/deleteMedia",
+      "kind": "method",
+      "title": "Bramka Objects/Metoda deleteMedia",
+      "version": 36,
+      "requestFields": 8,
+      "responseFields": 15,
+      "files": [
+        {
+          "path": "api/objects/deleteMedia.md",
+          "bytes": 4415,
+          "sha256": "e5a573f8524481bc6147764e961a1a9052af9824e28ebb8059a36cc54eaea83f"
+        },
+        {
+          "path": "api/objects/deleteMedia.html",
+          "bytes": 17647,
+          "sha256": "548f61bb116a1445130af0b73bf16f5f6d080bdeb4f74b89db80cc0aaf1a5537"
+        },
+        {
+          "path": "api/objects/deleteMedia.json",
+          "bytes": 37790,
+          "sha256": "ff2de40a4d5ce1a0b5c8743d784a74ae99bdc18e5e3fe00e54b298b4e1decd9b"
+        },
+        {
+          "path": "api/objects/deleteMedia.php",
+          "bytes": 1284,
+          "sha256": "bb4ba480367fff77229d4877cae5d1e480c1fcc881083918cbdf5a93d3cc19e3"
+        },
+        {
+          "path": "api/objects/deleteMedia.jpg",
+          "bytes": 365844,
+          "sha256": "6dd5182adb77e1fe0abc893c5d91f72f6d941eaf1a086007e56cbaa3945b6e26"
+        }
+      ]
+    },
+    {
+      "stem": "api/objects/editDescriptions",
+      "kind": "method",
+      "title": "Bramka Objects/Metoda editDescriptions",
+      "version": 36,
+      "requestFields": 13,
+      "responseFields": 20,
+      "files": [
+        {
+          "path": "api/objects/editDescriptions.md",
+          "bytes": 5936,
+          "sha256": "a45d4ce1f0e8b971a0d02c7f4c27663f52fe3deb774af6b79bea07a3a8e7b5f1"
+        },
+        {
+          "path": "api/objects/editDescriptions.html",
+          "bytes": 22829,
+          "sha256": "299dd1433da6801aac641341f0199477be6cbdef314bb5b14377019c5f96b2b6"
+        },
+        {
+          "path": "api/objects/editDescriptions.json",
+          "bytes": 48271,
+          "sha256": "5162a0a146175300f19648a4a64d8e686d62b6553cf3d9370f867b920f129adb"
+        },
+        {
+          "path": "api/objects/editDescriptions.php",
+          "bytes": 1646,
+          "sha256": "1c18c328da5697421a92e0b603a63b36f9b8a831f8df8cdd20e2c9a90007fe81"
+        },
+        {
+          "path": "api/objects/editDescriptions.jpg",
+          "bytes": 426637,
+          "sha256": "afcc241f9dba456a17834f5aab421b3a104aadb8ea7b7bc2b8d352d398fe9352"
+        }
+      ]
+    },
+    {
+      "stem": "api/objects/editItems",
+      "kind": "method",
+      "title": "Bramka Objects/Metoda editItems",
+      "version": 36,
+      "requestFields": 10,
+      "responseFields": 18,
+      "files": [
+        {
+          "path": "api/objects/editItems.md",
+          "bytes": 5272,
+          "sha256": "ebca77d6f81a9be2c5eeef9e0acb5829e86af390fc44fbf945f7654b38de4841"
+        },
+        {
+          "path": "api/objects/editItems.html",
+          "bytes": 20406,
+          "sha256": "ab72cf15a60fce852c5fdaa6b746d200e0223bada7d1d979eecbd2cda74a9723"
+        },
+        {
+          "path": "api/objects/editItems.json",
+          "bytes": 43413,
+          "sha256": "51a4604388487d71deae12a71180566cbb536b08f611265effc7913fce5b7495"
+        },
+        {
+          "path": "api/objects/editItems.php",
+          "bytes": 1438,
+          "sha256": "9743c6b06e5a050a9dc615d1edfd3af0dbe333248d97508e25437be96c8b4a18"
+        },
+        {
+          "path": "api/objects/editItems.jpg",
+          "bytes": 406693,
+          "sha256": "1afb0f8a895e8e39505443c3bc6be3e4d3dbdef625334eac19f11f54b46ec2e4"
+        }
+      ]
+    },
+    {
+      "stem": "api/objects/editLengthSetup",
+      "kind": "method",
+      "title": "Bramka Objects/Metoda editLengthSetup",
+      "version": 36,
+      "requestFields": 22,
+      "responseFields": 29,
+      "files": [
+        {
+          "path": "api/objects/editLengthSetup.md",
+          "bytes": 12011,
+          "sha256": "a477b93fd9519fc045cc513bb0cdc38712ee416e8fa1ef2102de6ed40cfe2908"
+        },
+        {
+          "path": "api/objects/editLengthSetup.html",
+          "bytes": 36553,
+          "sha256": "9557a92ddbe25e1d489081988ee1c4a1a011590b5c5e27d3bd4168d70a5dd807"
+        },
+        {
+          "path": "api/objects/editLengthSetup.json",
+          "bytes": 77827,
+          "sha256": "f33e92b4c8ccaa92f9702cc3730add825b4193877e6573d2c424beaf60b5d79a"
+        },
+        {
+          "path": "api/objects/editLengthSetup.php",
+          "bytes": 2529,
+          "sha256": "056df9449550cb1e95b429f269440f338bf4bd72dc25633d5492fb47502e27a9"
+        },
+        {
+          "path": "api/objects/editLengthSetup.jpg",
+          "bytes": 703499,
+          "sha256": "957e007dd2eefaabb3a9eb96f359ac499d046ffa89a401c451eb9eb3377edb8a"
+        }
+      ]
+    },
+    {
+      "stem": "api/objects/editLocation",
+      "kind": "method",
+      "title": "Bramka Objects/Metoda editLocation",
+      "version": 36,
+      "requestFields": 8,
+      "responseFields": 12,
+      "files": [
+        {
+          "path": "api/objects/editLocation.md",
+          "bytes": 4297,
+          "sha256": "9f083161b1a41bbbff887d15995d51bd1b9de754dba5bc2950c77671d91150d2"
+        },
+        {
+          "path": "api/objects/editLocation.html",
+          "bytes": 16792,
+          "sha256": "74970df3623917153e6e71ddd8a5cc488e1834424991d171df5002b7a9672ac6"
+        },
+        {
+          "path": "api/objects/editLocation.json",
+          "bytes": 36196,
+          "sha256": "9b1abaa87dd98631d5dfee70d3c398bf0ec9cf6be0c5b78a65cf2d6fc4c0266e"
+        },
+        {
+          "path": "api/objects/editLocation.php",
+          "bytes": 1289,
+          "sha256": "6237ffa0b0c44f5c80b32154f2eb7f74b4e777f8d464b45d0787a0cdff23088c"
+        },
+        {
+          "path": "api/objects/editLocation.jpg",
+          "bytes": 368736,
+          "sha256": "8a0c0ac8a3d2facffd742d9ea62f4a787516708c0286363dbc2f96a2042e7558"
+        }
+      ]
+    },
+    {
+      "stem": "api/objects/editMedia",
+      "kind": "method",
+      "title": "Bramka Objects/Metoda editMedia",
+      "version": 36,
+      "requestFields": 12,
+      "responseFields": 15,
+      "files": [
+        {
+          "path": "api/objects/editMedia.md",
+          "bytes": 5280,
+          "sha256": "0b87cf99f49f264f9db0a36362c2afe83b36eca25303e52e791450c1e16b2350"
+        },
+        {
+          "path": "api/objects/editMedia.html",
+          "bytes": 20309,
+          "sha256": "87f7f470e17026eb289828160b9a5d3b8fdd5a0088063ce7f304191b2f1e711d"
+        },
+        {
+          "path": "api/objects/editMedia.json",
+          "bytes": 43074,
+          "sha256": "a312d610a6d573931e6df12c485e7181021e049a16cc34f3fe4e83a75d4598ef"
+        },
+        {
+          "path": "api/objects/editMedia.php",
+          "bytes": 1472,
+          "sha256": "c13d025b36b7862dd304d22eb9b4df39ae167b5aa319a5ddcf2cafe1acdee59a"
+        },
+        {
+          "path": "api/objects/editMedia.jpg",
+          "bytes": 399358,
+          "sha256": "8bfb9fe81dafc2dbb9d0fa59259de7cd9875434ffd9a35fc7ff67180e7332215"
+        }
+      ]
+    },
+    {
+      "stem": "api/objects/editType",
+      "kind": "method",
+      "title": "Bramka Objects/Metoda editType",
+      "version": 36,
+      "requestFields": 6,
+      "responseFields": 12,
+      "files": [
+        {
+          "path": "api/objects/editType.md",
+          "bytes": 3605,
+          "sha256": "07b91eda4d0e44b7913dd41b17b87f81eaed05f54fa4427a1565c8c159a835f2"
+        },
+        {
+          "path": "api/objects/editType.html",
+          "bytes": 14952,
+          "sha256": "aa05c22113594559420ed59d23c080eb4cf61acf7b9345f4f8c6288310cf66a8"
+        },
+        {
+          "path": "api/objects/editType.json",
+          "bytes": 32427,
+          "sha256": "fcce98ba2d27e2a3cc00c2debed45171878456e880728322a2de98c520c5e0e6"
+        },
+        {
+          "path": "api/objects/editType.php",
+          "bytes": 1158,
+          "sha256": "0d5822d3189c50490eecc6274d7ac456a0b4de49b98db3b4ffbafd00be99be54"
+        },
+        {
+          "path": "api/objects/editType.jpg",
+          "bytes": 339044,
+          "sha256": "bd9043969f9e844f23e9b84146fb4807b4edc8051d10b2f36e46f12290fe108f"
+        }
+      ]
+    },
+    {
+      "stem": "api/objects/getAll",
+      "kind": "method",
+      "title": "Bramka Objects/Metoda getAll",
+      "version": 36,
+      "requestFields": 7,
+      "responseFields": 62,
+      "files": [
+        {
+          "path": "api/objects/getAll.md",
+          "bytes": 9059,
+          "sha256": "3a5623d3e2af5df4c50b1e3e5c089d4b104e797fe22a3a5da720d33f2a6f408f"
+        },
+        {
+          "path": "api/objects/getAll.html",
+          "bytes": 37346,
+          "sha256": "2888d9779d088d500cfb01dbab85c84e5e0ded10aa18f1c18fc1214ecc404c48"
+        },
+        {
+          "path": "api/objects/getAll.json",
+          "bytes": 76865,
+          "sha256": "e00ad1e8f3e28d272bdc22a4dfd56ea8e77581845ba06cfe8b9ef904b87ba7f2"
+        },
+        {
+          "path": "api/objects/getAll.php",
+          "bytes": 1196,
+          "sha256": "ce05a55b3c2cd05be86fa1037e25916ddc88ec03085dfbc372da77cc24f81c62"
+        },
+        {
+          "path": "api/objects/getAll.jpg",
+          "bytes": 602385,
+          "sha256": "5e0bb5da81b58ffb0e00a5e2bcb957584b685b743da27b611c010eea20af772f"
+        }
+      ]
+    },
+    {
+      "stem": "api/objects/getAmenities",
+      "kind": "method",
+      "title": "Bramka Objects/Metoda getAmenities",
+      "version": 36,
+      "requestFields": 5,
+      "responseFields": 13,
+      "files": [
+        {
+          "path": "api/objects/getAmenities.md",
+          "bytes": 3639,
+          "sha256": "04bcc9adefc5d9a7110e3e6bb214f145aadc1f88970fff2f77e687da62057a5c"
+        },
+        {
+          "path": "api/objects/getAmenities.html",
+          "bytes": 14924,
+          "sha256": "b5892106f7e314b464e3f23d4513cb1b728c1b1f2c844caa1866659c03a89326"
+        },
+        {
+          "path": "api/objects/getAmenities.json",
+          "bytes": 32479,
+          "sha256": "b2b0338be4f68137449efe1d3f7fa38bb2edca084478843c7fb04648aa11a962"
+        },
+        {
+          "path": "api/objects/getAmenities.php",
+          "bytes": 1132,
+          "sha256": "44d52ff162eb473822be5a8e89a71c6a743b020fe9b2e9e593d4dcc8a0f28d27"
+        },
+        {
+          "path": "api/objects/getAmenities.jpg",
+          "bytes": 336693,
+          "sha256": "fcfaa731b8c24344a1c56a3f81aea41972065f2204838b68337ca8cb0474944a"
+        }
+      ]
+    },
+    {
+      "stem": "api/objects/getAvailabilityByDateRange",
+      "kind": "method",
+      "title": "Bramka Objects/Metoda getAvailabilityByDateRange",
+      "version": 36,
+      "requestFields": 9,
+      "responseFields": 22,
+      "files": [
+        {
+          "path": "api/objects/getAvailabilityByDateRange.md",
+          "bytes": 5402,
+          "sha256": "0103da54e4f3651541a6f4d394d38ee97ed30d34bb69bfe32b2f1a3e936ab046"
+        },
+        {
+          "path": "api/objects/getAvailabilityByDateRange.html",
+          "bytes": 21290,
+          "sha256": "928f0a8f0060043b5824bf8e98484cc3e423bf79e9ae09bfe530885e18678935"
+        },
+        {
+          "path": "api/objects/getAvailabilityByDateRange.json",
+          "bytes": 45646,
+          "sha256": "6491b688608fe672f480ba8d96b374b433d10b2dfd8f5d04711e27465f9b7fae"
+        },
+        {
+          "path": "api/objects/getAvailabilityByDateRange.php",
+          "bytes": 1282,
+          "sha256": "1ea89010065e8a9e79e0e68af65544ea0c52ee16d18f56a4a26ed4cdf954ea9f"
+        },
+        {
+          "path": "api/objects/getAvailabilityByDateRange.jpg",
+          "bytes": 420665,
+          "sha256": "ec239c10e39b0eb088c507e4fb7b577921d22265733b2197f77acbabcfb27227"
+        }
+      ]
+    },
+    {
+      "stem": "api/objects/getDescriptions",
+      "kind": "method",
+      "title": "Bramka Objects/Metoda getDescriptions",
+      "version": 36,
+      "requestFields": 7,
+      "responseFields": 17,
+      "files": [
+        {
+          "path": "api/objects/getDescriptions.md",
+          "bytes": 4478,
+          "sha256": "d8663d1d915c9168c0360899de2cac98baab762d678367a860e5145a41fab78e"
+        },
+        {
+          "path": "api/objects/getDescriptions.html",
+          "bytes": 18074,
+          "sha256": "8477281c6c23d3ba9e80ce20a5d2c99841166fc06ab7da7425bcf536979c4388"
+        },
+        {
+          "path": "api/objects/getDescriptions.json",
+          "bytes": 38797,
+          "sha256": "5564686df8002e3496ddfbf405a8ac9f696c4f525efebe63d67d49e86ab61d04"
+        },
+        {
+          "path": "api/objects/getDescriptions.php",
+          "bytes": 1238,
+          "sha256": "cdcf7fcdbb92dcb7b481d819481e554fb87431e9cf589e7ca6cfa78ed141ace4"
+        },
+        {
+          "path": "api/objects/getDescriptions.jpg",
+          "bytes": 370625,
+          "sha256": "e2c80ecbdae8e20f50f834cf25cd83645442d7fd474ef3b07510281df75fb583"
+        }
+      ]
+    },
+    {
+      "stem": "api/objects/getFilters",
+      "kind": "method",
+      "title": "Bramka Objects/Metoda getFilters",
+      "version": 36,
+      "requestFields": 4,
+      "responseFields": 25,
+      "files": [
+        {
+          "path": "api/objects/getFilters.md",
+          "bytes": 4741,
+          "sha256": "e87a3b4873673fbdc001cab153d6d1e42e3bb05572cc1a7b8edd83becce04f4d"
+        },
+        {
+          "path": "api/objects/getFilters.html",
+          "bytes": 20015,
+          "sha256": "8a7694676ebb6f96ee9df0646d7b541c261572a0980494878075131f107c4370"
+        },
+        {
+          "path": "api/objects/getFilters.json",
+          "bytes": 42355,
+          "sha256": "2ee9193916f6a9db074b04d114d05ef85bac42c42288f1c12b99f8120bf37dec"
+        },
+        {
+          "path": "api/objects/getFilters.php",
+          "bytes": 1104,
+          "sha256": "edb25eb9616a76a01479981b1887e64e3ba612e2886f45af7ff6acff591cecb6"
+        },
+        {
+          "path": "api/objects/getFilters.jpg",
+          "bytes": 394248,
+          "sha256": "e9a64f7c9843e5675242630e9ad76fe55d4f1325512010d3463748743861f3df"
+        }
+      ]
+    },
+    {
+      "stem": "api/objects/getItems",
+      "kind": "method",
+      "title": "Bramka Objects/Metoda getItems",
+      "version": 36,
+      "requestFields": 8,
+      "responseFields": 14,
+      "files": [
+        {
+          "path": "api/objects/getItems.md",
+          "bytes": 4353,
+          "sha256": "b62b8536dcdd8983658ce024faf7ccf9a1f78454ce4a210c30de52e062f39581"
+        },
+        {
+          "path": "api/objects/getItems.html",
+          "bytes": 17395,
+          "sha256": "de23150597519124459416296a108c8be0ec84495b6bff0cd43a1369109d6540"
+        },
+        {
+          "path": "api/objects/getItems.json",
+          "bytes": 37334,
+          "sha256": "4925702563207356b8c9a45008cfc0b0acac2846bb3d4faddfe0ecf4802e095a"
+        },
+        {
+          "path": "api/objects/getItems.php",
+          "bytes": 1305,
+          "sha256": "52ed2865a8858b5809883b9ff84a8fb80ba23a05361ed4b0a6130d16b4dc5582"
+        },
+        {
+          "path": "api/objects/getItems.jpg",
+          "bytes": 368918,
+          "sha256": "d3dc9573392a030463271995027369b2683c02faafa16bede35d94cf29bcf621"
+        }
+      ]
+    },
+    {
+      "stem": "api/objects/getLengthSetup",
+      "kind": "method",
+      "title": "Bramka Objects/Metoda getLengthSetup",
+      "version": 36,
+      "requestFields": 5,
+      "responseFields": 25,
+      "files": [
+        {
+          "path": "api/objects/getLengthSetup.md",
+          "bytes": 6084,
+          "sha256": "8fa90367bbc07ec832e531c29ee29103aec9fa9e13dcac1587ad03136f623d6f"
+        },
+        {
+          "path": "api/objects/getLengthSetup.html",
+          "bytes": 21745,
+          "sha256": "4541d3d1b8a46cd41832e8fc7fa122530dd8dcb1d2c70d4f615e97f926587d73"
+        },
+        {
+          "path": "api/objects/getLengthSetup.json",
+          "bytes": 47150,
+          "sha256": "5364372824c4538979af6774a82148886e66134582ec2b0b540e7cdc6e9a84df"
+        },
+        {
+          "path": "api/objects/getLengthSetup.php",
+          "bytes": 1134,
+          "sha256": "1d0fc41132d43d1a0d941c8368733f1c56ffa4c1c76f2aaaea81c67feb91fab0"
+        },
+        {
+          "path": "api/objects/getLengthSetup.jpg",
+          "bytes": 470116,
+          "sha256": "5530abd61badd75bbd7b12376af03109bd1726089e690bba306ba5e37509f7b6"
+        }
+      ]
+    },
+    {
+      "stem": "api/objects/getLocation",
+      "kind": "method",
+      "title": "Bramka Objects/Metoda getLocation",
+      "version": 36,
+      "requestFields": 8,
+      "responseFields": 13,
+      "files": [
+        {
+          "path": "api/objects/getLocation.md",
+          "bytes": 4249,
+          "sha256": "c5c6f614cea1ef27be39925ea2c15c628ed56983699d83526d96a0f335608270"
+        },
+        {
+          "path": "api/objects/getLocation.html",
+          "bytes": 17109,
+          "sha256": "a923b6c1c99bf4ba57c20e8cbb4a6d785578d4f05f6c22ba07f4d693956d3fe8"
+        },
+        {
+          "path": "api/objects/getLocation.json",
+          "bytes": 36634,
+          "sha256": "51055c0062e9e2aa3786d3465e59c323856c3f18625f0e3bc049ba837ca0e282"
+        },
+        {
+          "path": "api/objects/getLocation.php",
+          "bytes": 1344,
+          "sha256": "f7e302305d4b7bde3060de661ec22330b924a15f03d60186e41fb3e34356f4be"
+        },
+        {
+          "path": "api/objects/getLocation.jpg",
+          "bytes": 363328,
+          "sha256": "4c12cfb17c3ae901e8fabe0b0fc611588ca07e29e96c1075d75170e3152f4efa"
+        }
+      ]
+    },
+    {
+      "stem": "api/objects/getMedia",
+      "kind": "method",
+      "title": "Bramka Objects/Metoda getMedia",
+      "version": 36,
+      "requestFields": 5,
+      "responseFields": 16,
+      "files": [
+        {
+          "path": "api/objects/getMedia.md",
+          "bytes": 3886,
+          "sha256": "d0c7f25d9c60557c1aba54e0c590c244b1b020c70119ec7eb274ced9320f1637"
+        },
+        {
+          "path": "api/objects/getMedia.html",
+          "bytes": 16306,
+          "sha256": "dd278a7aec3f66f087e7d89e90af9d2d85dd94547820d4c1a36ea051947aa89e"
+        },
+        {
+          "path": "api/objects/getMedia.json",
+          "bytes": 35032,
+          "sha256": "981234645cc85b269f0b5ae889ba1e4000e2f9a5bdecdb92352dd01949e85100"
+        },
+        {
+          "path": "api/objects/getMedia.php",
+          "bytes": 1128,
+          "sha256": "be3de9155872c98adf455d1bd59a7eba0a7304e9e73f7bed8bb657f2ec4fe7fb"
+        },
+        {
+          "path": "api/objects/getMedia.jpg",
+          "bytes": 349866,
+          "sha256": "2b6d5c6cbe30d85246f0cb1ac36c27a6f470b987986cf259f015ec21975dc9c8"
+        }
+      ]
+    },
+    {
+      "stem": "api/objects/getType",
+      "kind": "method",
+      "title": "Bramka Objects/Metoda getType",
+      "version": 36,
+      "requestFields": 5,
+      "responseFields": 12,
+      "files": [
+        {
+          "path": "api/objects/getType.md",
+          "bytes": 3509,
+          "sha256": "b7dbe573c243cfd8b3d9fbe5832eaff6de35c778bad8afef5d655b15060fc29f"
+        },
+        {
+          "path": "api/objects/getType.html",
+          "bytes": 14516,
+          "sha256": "1738a891a68a180482b53bb6362ced70feead8529281a462e03ebec2fbed610e"
+        },
+        {
+          "path": "api/objects/getType.json",
+          "bytes": 31558,
+          "sha256": "ba8d48b1430750a866549fd700438ab455fa4079bbc3c1fb5cdcf445219f9acc"
+        },
+        {
+          "path": "api/objects/getType.php",
+          "bytes": 1127,
+          "sha256": "4fc2aa384663721f1efa639831b7e34d7cb5c20e80e7b87ef2044e4bda029d35"
+        },
+        {
+          "path": "api/objects/getType.jpg",
+          "bytes": 334888,
+          "sha256": "6b4d6ef2741f6c215d6e1ffbabd518a4e430e70c067ea05e2d027e035e90e9d3"
+        }
+      ]
+    },
+    {
+      "stem": "api/offer/getAvailabilityAndPricesForDays",
+      "kind": "method",
+      "title": "Bramka Offer/Metoda getAvailabilityAndPricesForDays",
+      "version": 36,
+      "requestFields": 14,
+      "responseFields": 25,
+      "files": [
+        {
+          "path": "api/offer/getAvailabilityAndPricesForDays.md",
+          "bytes": 6143,
+          "sha256": "6ea54b1444a4a2e1327913def8cee72854657810521c6809044f7f11722b401f"
+        },
+        {
+          "path": "api/offer/getAvailabilityAndPricesForDays.html",
+          "bytes": 25510,
+          "sha256": "a96e632ef34fb38718f249f2953dc8fa9c2d4ee1414631254b95acbd06d231f2"
+        },
+        {
+          "path": "api/offer/getAvailabilityAndPricesForDays.json",
+          "bytes": 53373,
+          "sha256": "9262bc4218254fb26b8a466cbeb2071d8204f4c7b026561a4b9b527accf41680"
+        },
+        {
+          "path": "api/offer/getAvailabilityAndPricesForDays.php",
+          "bytes": 1549,
+          "sha256": "1a8b4686fbe8f90fc92c8eb3d30f58c86ad467bff178673a5332e469a5b6c1d4"
+        },
+        {
+          "path": "api/offer/getAvailabilityAndPricesForDays.jpg",
+          "bytes": 459734,
+          "sha256": "de5e2181227e38ffc8d4c38f7c4b28628b75421d81d36972b953985a3e5cb3b4"
+        }
+      ]
+    },
+    {
+      "stem": "api/offer/getAvailabilityForDays",
+      "kind": "method",
+      "title": "Bramka Offer/Metoda getAvailabilityForDays",
+      "version": 36,
+      "requestFields": 12,
+      "responseFields": 21,
+      "files": [
+        {
+          "path": "api/offer/getAvailabilityForDays.md",
+          "bytes": 5429,
+          "sha256": "60cae5f16e838cc3759c5921e9bd3e7f373e8986eb8f6f3d7553444b558b0ad8"
+        },
+        {
+          "path": "api/offer/getAvailabilityForDays.html",
+          "bytes": 22537,
+          "sha256": "1c9ba95d7cbf2079b81600e5c4b23950640201d5e07f08402365cd9965929642"
+        },
+        {
+          "path": "api/offer/getAvailabilityForDays.json",
+          "bytes": 47412,
+          "sha256": "a0d1a5c893bf0eec9ea134be3efe470f3c769a55ff668099a2b7c8e15b8e7c0c"
+        },
+        {
+          "path": "api/offer/getAvailabilityForDays.php",
+          "bytes": 1442,
+          "sha256": "197b4cadd21ba5e45ff85c1b720706fc59fdc428513b127296e095dd70a7498a"
+        },
+        {
+          "path": "api/offer/getAvailabilityForDays.jpg",
+          "bytes": 418012,
+          "sha256": "5e79d8fd7d360957c1a9f2fd6672b6c664044995a5bc77f3b8f67bc3614d498f"
+        }
+      ]
+    },
+    {
+      "stem": "api/offer/getChildrenInformation",
+      "kind": "method",
+      "title": "Bramka Offer/Metoda getChildrenInformation",
+      "version": 36,
+      "requestFields": 4,
+      "responseFields": 16,
+      "files": [
+        {
+          "path": "api/offer/getChildrenInformation.md",
+          "bytes": 4064,
+          "sha256": "011768474b374b4beea147ed53285bd2fa9326c116f87d637360e8b928954b6f"
+        },
+        {
+          "path": "api/offer/getChildrenInformation.html",
+          "bytes": 16096,
+          "sha256": "b682257f2dc782860f3b5ec88ebfe35128c963d26384578d1cd6614eed4f46f8"
+        },
+        {
+          "path": "api/offer/getChildrenInformation.json",
+          "bytes": 35114,
+          "sha256": "71fb30d4797e036fe2b0d659af7522b716d10001bbf20ee21a723f57e9e42f51"
+        },
+        {
+          "path": "api/offer/getChildrenInformation.php",
+          "bytes": 1114,
+          "sha256": "c8d7765db2aafc58dd3f8ee29e77dc1c5062e8b2269a61169a8e443d8edadc10"
+        },
+        {
+          "path": "api/offer/getChildrenInformation.jpg",
+          "bytes": 353676,
+          "sha256": "ace0ba2dd083059ada3b5e22c9d0c3792bbcf20a77ad75b0d3517afb45dffe10"
+        }
+      ]
+    },
+    {
+      "stem": "api/offer/getPricesForDays",
+      "kind": "method",
+      "title": "Bramka Offer/Metoda getPricesForDays",
+      "version": 36,
+      "requestFields": 14,
+      "responseFields": 21,
+      "files": [
+        {
+          "path": "api/offer/getPricesForDays.md",
+          "bytes": 5560,
+          "sha256": "d2276846d9d86476ad9969c3e1d8fa5f7ee8677775aaee30ea5a5ca2dc76e263"
+        },
+        {
+          "path": "api/offer/getPricesForDays.html",
+          "bytes": 23583,
+          "sha256": "17793dfef66adac67c37fccd4d2eb891e26f3f448070edcbe18dad866ccb9b33"
+        },
+        {
+          "path": "api/offer/getPricesForDays.json",
+          "bytes": 49123,
+          "sha256": "22eda7ba0fcd5dc22280696ee5a9fdbb59b10bbfec774bdf2b038036168204aa"
+        },
+        {
+          "path": "api/offer/getPricesForDays.php",
+          "bytes": 1534,
+          "sha256": "441328ad7a432d7befa49520176538f783f5adc45389385701579ed2a406fc67"
+        },
+        {
+          "path": "api/offer/getPricesForDays.jpg",
+          "bytes": 426280,
+          "sha256": "a9bb17ed1d0e0a7a7b6819976cf6f593a3e9c1c4701f9f8fb49e0f4c254bd5c0"
+        }
+      ]
+    },
+    {
+      "stem": "api/offer/getPricesForDaysForObject",
+      "kind": "method",
+      "title": "Bramka Offer/Metoda getPricesForDaysForObject",
+      "version": 36,
+      "requestFields": 11,
+      "responseFields": 19,
+      "files": [
+        {
+          "path": "api/offer/getPricesForDaysForObject.md",
+          "bytes": 5397,
+          "sha256": "cee585bd3ec5143c6868946cba4f642ed5aa61fd2d81f29f60d398b7b3a6ef92"
+        },
+        {
+          "path": "api/offer/getPricesForDaysForObject.html",
+          "bytes": 21601,
+          "sha256": "5f13836b15cc522701fa56afb74a963812992329b1f403698967dc9c7cbb8fbd"
+        },
+        {
+          "path": "api/offer/getPricesForDaysForObject.json",
+          "bytes": 45758,
+          "sha256": "c3f728a13940c61ac478cf42d97c944fae894f74734db185e503c05728f773f5"
+        },
+        {
+          "path": "api/offer/getPricesForDaysForObject.php",
+          "bytes": 1444,
+          "sha256": "308a250e5baf9003504e6db53eee301f7934636e2c58f3c56453eb6ab115a50f"
+        },
+        {
+          "path": "api/offer/getPricesForDaysForObject.jpg",
+          "bytes": 407469,
+          "sha256": "f6e39eb4d73d2ed833cb94c58d0208a613a6580dd04b2f531f3d934c3945ce62"
+        }
+      ]
+    },
+    {
+      "stem": "api/payments/add",
+      "kind": "method",
+      "title": "Bramka Payments/Metoda add",
+      "version": 36,
+      "requestFields": 13,
+      "responseFields": 11,
+      "files": [
+        {
+          "path": "api/payments/add.md",
+          "bytes": 4595,
+          "sha256": "122b16fafc7afa594977b0b22a450692c3ec7c188b9fcdfaf3796e0a04bb379d"
+        },
+        {
+          "path": "api/payments/add.html",
+          "bytes": 19255,
+          "sha256": "401a81bc66f2408703a712b84c84ec2f7196a2091b120cb3f5eaf798170c4b7f"
+        },
+        {
+          "path": "api/payments/add.json",
+          "bytes": 39909,
+          "sha256": "73a66fb42fcd1c7ed9fb9a3b8a02df11b38be29729092740c262152795f3077b"
+        },
+        {
+          "path": "api/payments/add.php",
+          "bytes": 1579,
+          "sha256": "0ebfee90e79e90e934afa06d60a34e8d122ea07c07c5d3b38400a39a9628f488"
+        },
+        {
+          "path": "api/payments/add.jpg",
+          "bytes": 365833,
+          "sha256": "b2b723205a74f7b8ff2bd04194d74e92ec30c5d7b12b92704d87a9ee09bb1a8a"
+        }
+      ]
+    },
+    {
+      "stem": "api/payments/cancel",
+      "kind": "method",
+      "title": "Bramka Payments/Metoda cancel",
+      "version": 36,
+      "requestFields": 8,
+      "responseFields": 9,
+      "files": [
+        {
+          "path": "api/payments/cancel.md",
+          "bytes": 3489,
+          "sha256": "9b7d342e2ba7d5f7c3ecc3b53130592641a925877d917cf73cd7c72657773553"
+        },
+        {
+          "path": "api/payments/cancel.html",
+          "bytes": 14855,
+          "sha256": "7f7084a4f8c314f20e6177817d82953eef535798f286b1543f564017dcee18dc"
+        },
+        {
+          "path": "api/payments/cancel.json",
+          "bytes": 31546,
+          "sha256": "cd9cb7c62ea423d28d3716d40bc958900858acaad7a199d5934783a3c13d5e4a"
+        },
+        {
+          "path": "api/payments/cancel.php",
+          "bytes": 1263,
+          "sha256": "27a9d7891618fc1c4b087896e1352b351c892ef647fe6455d8a60b7c3a0d7961"
+        },
+        {
+          "path": "api/payments/cancel.jpg",
+          "bytes": 317021,
+          "sha256": "45c74e0d08437087da2f6e88598692eb039d6958b33f7f5299ad73183cbf6e2a"
+        }
+      ]
+    },
+    {
+      "stem": "api/payments/confirm",
+      "kind": "method",
+      "title": "Bramka Payments/Metoda confirm",
+      "version": 36,
+      "requestFields": 8,
+      "responseFields": 9,
+      "files": [
+        {
+          "path": "api/payments/confirm.md",
+          "bytes": 3498,
+          "sha256": "19dbaaaf41138b7b9156cafe802f644865608d5b4a1e3c8f9cb8adbbf439a253"
+        },
+        {
+          "path": "api/payments/confirm.html",
+          "bytes": 14866,
+          "sha256": "890e32c4166ab19f7c0c48055ad99e55888404a67682273d8eb64697d20c2e51"
+        },
+        {
+          "path": "api/payments/confirm.json",
+          "bytes": 31596,
+          "sha256": "c1d7b0d998989b9a1e2c1b3a9fa54f26a3bfc546625f62e14669d4ab24d168be"
+        },
+        {
+          "path": "api/payments/confirm.php",
+          "bytes": 1264,
+          "sha256": "24be94856b59f03b2fec8059fd3a33e7a459e486f956c49400d51c88ea537bd8"
+        },
+        {
+          "path": "api/payments/confirm.jpg",
+          "bytes": 317837,
+          "sha256": "d6ff377c429a1d65f4a34d9c7440c0925f8a7171102f2fab83b786f655b1e581"
+        }
+      ]
+    },
+    {
+      "stem": "api/payments/edit",
+      "kind": "method",
+      "title": "Bramka Payments/Metoda edit",
+      "version": 36,
+      "requestFields": 11,
+      "responseFields": 9,
+      "files": [
+        {
+          "path": "api/payments/edit.md",
+          "bytes": 3965,
+          "sha256": "69716c94823953954bc80ceac150919e0ab6f694dfdfcb9cb11e2fd4d6f71bc9"
+        },
+        {
+          "path": "api/payments/edit.html",
+          "bytes": 16796,
+          "sha256": "6103981ad0266625e1ff431f22619e908bbc54f6d4262354e9bc639159bd0246"
+        },
+        {
+          "path": "api/payments/edit.json",
+          "bytes": 35129,
+          "sha256": "5f6c72c049c903560e0388b846ef759fefc6cb7b29d667b39e1dbcc31dcbda77"
+        },
+        {
+          "path": "api/payments/edit.php",
+          "bytes": 1436,
+          "sha256": "3ef81a002358be0b11a7f0bec12b75bd89543120e9dcb866a044c16330805ac6"
+        },
+        {
+          "path": "api/payments/edit.jpg",
+          "bytes": 334468,
+          "sha256": "8cbcaad4ca8273ecbc18ab9dbc57860ebd531d27dc129fd1076e9665078c8a13"
+        }
+      ]
+    },
+    {
+      "stem": "api/payments/get",
+      "kind": "method",
+      "title": "Bramka Payments/Metoda get",
+      "version": 36,
+      "requestFields": 16,
+      "responseFields": 18,
+      "files": [
+        {
+          "path": "api/payments/get.md",
+          "bytes": 5536,
+          "sha256": "0fbc6b085712752d9fe223d73dc9d282876c96759fcb7d0852698f6fd3484dad"
+        },
+        {
+          "path": "api/payments/get.html",
+          "bytes": 23425,
+          "sha256": "32f496b6f0fdff72cd9adbf2be00d323fec610988655d37628c86bc7501f3b93"
+        },
+        {
+          "path": "api/payments/get.json",
+          "bytes": 48325,
+          "sha256": "002bd69a6477fc91be9fa211326d77f601cb0671d0abadb7afc572978078b3a4"
+        },
+        {
+          "path": "api/payments/get.php",
+          "bytes": 1594,
+          "sha256": "7f4754c16f24309f287e855ad9e793eac153e2e4090c6361a57eff2fc4c92e3b"
+        },
+        {
+          "path": "api/payments/get.jpg",
+          "bytes": 429100,
+          "sha256": "3a2ad3d76b3e145d2b277606dfcb98e53f52a0b30203c7f6eb82b7bdca0a33fc"
+        }
+      ]
+    },
+    {
+      "stem": "api/payments/getPaymentForms",
+      "kind": "method",
+      "title": "Bramka Payments/Metoda getPaymentForms",
+      "version": 36,
+      "requestFields": 4,
+      "responseFields": 7,
+      "files": [
+        {
+          "path": "api/payments/getPaymentForms.md",
+          "bytes": 2944,
+          "sha256": "337d0fcabc4912e3700f13d7be1b55037fdedb0c07592c65bd13305053073234"
+        },
+        {
+          "path": "api/payments/getPaymentForms.html",
+          "bytes": 11910,
+          "sha256": "a2b39003c7cf507bd106b4eb4f2e3e1f3618b867e7886472308f39a109e6f2a6"
+        },
+        {
+          "path": "api/payments/getPaymentForms.json",
+          "bytes": 26336,
+          "sha256": "5c74b0285ce287d866eb92c85158791ea781a6e094708a0549cfde4a66693e90"
+        },
+        {
+          "path": "api/payments/getPaymentForms.php",
+          "bytes": 1110,
+          "sha256": "3012af75d63232ac4d857b0856dac7d536002e6a83adba404917f118dd78963e"
+        },
+        {
+          "path": "api/payments/getPaymentForms.jpg",
+          "bytes": 292226,
+          "sha256": "b259b6234fa6b38087c1d5203ebb14f0f0173c84d447f67c568335689a9e826b"
+        }
+      ]
+    },
+    {
+      "stem": "api/prices/deleteExceptions",
+      "kind": "method",
+      "title": "Bramka Prices/Metoda deleteExceptions",
+      "version": 36,
+      "requestFields": 13,
+      "responseFields": 14,
+      "files": [
+        {
+          "path": "api/prices/deleteExceptions.md",
+          "bytes": 5649,
+          "sha256": "6884882da575959c7b537712ac79a867d0b065a97f8a328b1de3ffec32125f40"
+        },
+        {
+          "path": "api/prices/deleteExceptions.html",
+          "bytes": 20758,
+          "sha256": "17524578096e605b493902ecccb9fdc6f6757225445aee8d5207693e8368980a"
+        },
+        {
+          "path": "api/prices/deleteExceptions.json",
+          "bytes": 44324,
+          "sha256": "02e5944a47cad628ab201516365283fb3076c7059213b30903097bb3a8a063a9"
+        },
+        {
+          "path": "api/prices/deleteExceptions.php",
+          "bytes": 1644,
+          "sha256": "f67d2aab74a45bb7edfaf87fea78a22ac7428028fa48f8a7bd9e58228c655a8a"
+        },
+        {
+          "path": "api/prices/deleteExceptions.jpg",
+          "bytes": 414788,
+          "sha256": "e91dca898ac347cf69581931034bca3066c74928b48f6f31133273befe28993f"
+        }
+      ]
+    },
+    {
+      "stem": "api/prices/getExceptions",
+      "kind": "method",
+      "title": "Bramka Prices/Metoda getExceptions",
+      "version": 36,
+      "requestFields": 12,
+      "responseFields": 22,
+      "files": [
+        {
+          "path": "api/prices/getExceptions.md",
+          "bytes": 5903,
+          "sha256": "96a9fdff8136e6deff1de26fee5835b0dca7d3d1a27dbe349c2639a144fc7779"
+        },
+        {
+          "path": "api/prices/getExceptions.html",
+          "bytes": 22987,
+          "sha256": "aec578532f2959d7e0e3ec02e2f9734fb97621c5fa69a46e6108613e0382c68e"
+        },
+        {
+          "path": "api/prices/getExceptions.json",
+          "bytes": 48667,
+          "sha256": "57bbfd6052cd544d42ee7b06f8bd31da32380a09668a5c602160282bf8cc3a9d"
+        },
+        {
+          "path": "api/prices/getExceptions.php",
+          "bytes": 1540,
+          "sha256": "34e10e11a15828f47a7ab4059363de19b0d81770d7d448252ecedf13f15f6eae"
+        },
+        {
+          "path": "api/prices/getExceptions.jpg",
+          "bytes": 435117,
+          "sha256": "cc8de14bc3a83e3c38fbb622b7f563d987476ec070d42abbd8bb6852966ff3ef"
+        }
+      ]
+    },
+    {
+      "stem": "api/prices/setExceptions",
+      "kind": "method",
+      "title": "Bramka Prices/Metoda setExceptions",
+      "version": 36,
+      "requestFields": 16,
+      "responseFields": 8,
+      "files": [
+        {
+          "path": "api/prices/setExceptions.md",
+          "bytes": 5173,
+          "sha256": "0543bbcf09219e7b89b7b6914be4524f9542041598227a1944794c53faf1c2b3"
+        },
+        {
+          "path": "api/prices/setExceptions.html",
+          "bytes": 20158,
+          "sha256": "f1929424262fdaca29d6e22762e7f7d467323b38d5e8c60b1710b2d0efbdc14b"
+        },
+        {
+          "path": "api/prices/setExceptions.json",
+          "bytes": 42275,
+          "sha256": "f7b9b93045711677f45bf6d06bc7a1f5ad82d0c4cd796abcc218c64b8d83885c"
+        },
+        {
+          "path": "api/prices/setExceptions.php",
+          "bytes": 1825,
+          "sha256": "20d55eda45c4b43cefec0f6d6b35bfce7a246e2e25f07e8fe3241188bbc85e1e"
+        },
+        {
+          "path": "api/prices/setExceptions.jpg",
+          "bytes": 392891,
+          "sha256": "04a9c6314719de27ea6d841dfbe72955d72fcf58ba9a323f0939dae9fc7697bc"
+        }
+      ]
+    },
+    {
+      "stem": "api/public/availability",
+      "kind": "method",
+      "title": "Bramka Public/Metoda availability",
+      "version": 36,
+      "requestFields": 4,
+      "responseFields": 12,
+      "files": [
+        {
+          "path": "api/public/availability.md",
+          "bytes": 3065,
+          "sha256": "60f72c9ccbc269888d2267d5bf3b1016df548b69ad00e629316bb303498730a0"
+        },
+        {
+          "path": "api/public/availability.html",
+          "bytes": 13001,
+          "sha256": "16354f372335b28e0971ca0df48ff8572b890f3e390e6ada56dccda59479be23"
+        },
+        {
+          "path": "api/public/availability.json",
+          "bytes": 28219,
+          "sha256": "07a5ccbfc8e7f0f10e55e111cf915249b2a72c40265d7b4be2bb8980cbd26af3"
+        },
+        {
+          "path": "api/public/availability.php",
+          "bytes": 1010,
+          "sha256": "5c2622f995f20e4f0cdb22d121fe878382a18ab5fcf9782e7337ab8314634e02"
+        },
+        {
+          "path": "api/public/availability.jpg",
+          "bytes": 295104,
+          "sha256": "222b6fc138321f45d7cbb2f4fd160274fe299708a2570b9258edbfcfe3e109a0"
+        }
+      ]
+    },
+    {
+      "stem": "api/public/filters",
+      "kind": "method",
+      "title": "Bramka Public/Metoda filters",
+      "version": 36,
+      "requestFields": 0,
+      "responseFields": 21,
+      "files": [
+        {
+          "path": "api/public/filters.md",
+          "bytes": 3380,
+          "sha256": "2ffeafce65c8535ce94a630fbe6c419b4df5abb0d5cc0d71dcf7942a84dfa932"
+        },
+        {
+          "path": "api/public/filters.html",
+          "bytes": 14834,
+          "sha256": "d88cc9f2a9376f34108cfa07c081d7670a4a299b4b13cec3c8fc7d29439675b6"
+        },
+        {
+          "path": "api/public/filters.json",
+          "bytes": 31059,
+          "sha256": "ba344fe3cb6d3aa795af49e9f34e2acb8df5f9c5bbca33e09e730a3800c1be22"
+        },
+        {
+          "path": "api/public/filters.php",
+          "bytes": 887,
+          "sha256": "00000fc8091ce133c7958076c7b45b31a6f5b7715a860d3138ba6db2ec6c093f"
+        },
+        {
+          "path": "api/public/filters.jpg",
+          "bytes": 312706,
+          "sha256": "0b67c10b9e09837733d1b1f2611bf58543866d764f39707949dff130aafbc869"
+        }
+      ]
+    },
+    {
+      "stem": "api/public/offer",
+      "kind": "method",
+      "title": "Bramka Public/Metoda offer",
+      "version": 36,
+      "requestFields": 3,
+      "responseFields": 16,
+      "files": [
+        {
+          "path": "api/public/offer.md",
+          "bytes": 3138,
+          "sha256": "1d0f2e0e1ff087f51ad33339c8550cce7727ccb711e7883475c26285dc1e314a"
+        },
+        {
+          "path": "api/public/offer.html",
+          "bytes": 13767,
+          "sha256": "92b394da5fe97a7a8dacd22a1fc0cd8ae440712570677b2d197017d78eee06d5"
+        },
+        {
+          "path": "api/public/offer.json",
+          "bytes": 29628,
+          "sha256": "6ff8636077cc2f093e8bbc80d12d7d15c31bf595a902673b95bfa98d67abf2fe"
+        },
+        {
+          "path": "api/public/offer.php",
+          "bytes": 980,
+          "sha256": "620e37d2241193ef36b8cdfb1e1f0350ef8868f91b93cdc5e8ce18782d5d32c9"
+        },
+        {
+          "path": "api/public/offer.jpg",
+          "bytes": 314551,
+          "sha256": "60d27f0b5ae0c60a55d25f1c89b663c9c1df9169b8743978fd4f9641ef316fd6"
+        }
+      ]
+    },
+    {
+      "stem": "api/public/parameters",
+      "kind": "method",
+      "title": "Bramka Public/Metoda parameters",
+      "version": 36,
+      "requestFields": 0,
+      "responseFields": 37,
+      "files": [
+        {
+          "path": "api/public/parameters.md",
+          "bytes": 4065,
+          "sha256": "2034cfaa89a1b1c08c1705789a3badfd5f88b6e5fa98a5affbecbb5ad031b883"
+        },
+        {
+          "path": "api/public/parameters.html",
+          "bytes": 21172,
+          "sha256": "22a7101aef6ec37c1cd442dc8dd32f60cde329152e539dbdaf35c6b6e6288309"
+        },
+        {
+          "path": "api/public/parameters.json",
+          "bytes": 42622,
+          "sha256": "737cc7508f6ede52ef53ad82108c524d87fde2e6c88af5a2df4d83488bad699e"
+        },
+        {
+          "path": "api/public/parameters.php",
+          "bytes": 890,
+          "sha256": "c87fd31b4095a27a5f3ac223299b909a2e0a776eb5255b139b012cc528947b24"
+        },
+        {
+          "path": "api/public/parameters.jpg",
+          "bytes": 353548,
+          "sha256": "0adac9c1e2f1e39abbfa986f56b2db609e4fc457e5b5ad8b4660e3748ce99529"
+        }
+      ]
+    },
+    {
+      "stem": "api/public/pricingOffers",
+      "kind": "method",
+      "title": "Bramka Public/Metoda pricingOffers",
+      "version": 36,
+      "requestFields": 8,
+      "responseFields": 16,
+      "files": [
+        {
+          "path": "api/public/pricingOffers.md",
+          "bytes": 3995,
+          "sha256": "0e498b43e860baf6156d731df71b13446511a0f80c1cf64c38e842b16cb39af3"
+        },
+        {
+          "path": "api/public/pricingOffers.html",
+          "bytes": 17026,
+          "sha256": "ab6dea388f1509b19ee9996f65389c1269ffc19241bc2db680aec2ba55c61792"
+        },
+        {
+          "path": "api/public/pricingOffers.json",
+          "bytes": 35952,
+          "sha256": "49d2a1cb2f2b26ed1e356106417799d2ac0789900dfe8a74240887041683aeec"
+        },
+        {
+          "path": "api/public/pricingOffers.php",
+          "bytes": 1156,
+          "sha256": "03068712fc83c6b5a2b9f79e6d08fca4fe1bc9a8cc3507776ced70f9dabd08dd"
+        },
+        {
+          "path": "api/public/pricingOffers.jpg",
+          "bytes": 337847,
+          "sha256": "975a0ede90cb5239080bf72cc1cb595ab30b0c52edfb6e28550d7c558d3895b1"
+        }
+      ]
+    },
+    {
+      "stem": "api/public/specialOffer",
+      "kind": "method",
+      "title": "Bramka Public/Metoda specialOffer",
+      "version": 36,
+      "requestFields": 3,
+      "responseFields": 16,
+      "files": [
+        {
+          "path": "api/public/specialOffer.md",
+          "bytes": 3011,
+          "sha256": "5b3cd70ea88cf4f0ed24d6edbff0827149a809f2aacf7d4c0c12b5a376924582"
+        },
+        {
+          "path": "api/public/specialOffer.html",
+          "bytes": 13628,
+          "sha256": "9159d68624fd8db878309583a9f7bef377afd956a6405f8bc58c9e5da29c2fc2"
+        },
+        {
+          "path": "api/public/specialOffer.json",
+          "bytes": 29331,
+          "sha256": "6d79b265cbfbd6ba01982d83c6c4d107af57ac921a7302fe3f23da23dd89865a"
+        },
+        {
+          "path": "api/public/specialOffer.php",
+          "bytes": 994,
+          "sha256": "0cacc2255f071cfb854e28e7e5685c8de4e9721705777afd89e0b9f2f53e4256"
+        },
+        {
+          "path": "api/public/specialOffer.jpg",
+          "bytes": 303208,
+          "sha256": "b06439d863fb3a2f475d3b87661d6fa9ceaf31e4f027302e87314b901b165831"
+        }
+      ]
+    },
+    {
+      "stem": "api/reservations/add",
+      "kind": "method",
+      "title": "Bramka Reservations/Metoda add",
+      "version": 36,
+      "requestFields": 83,
+      "responseFields": 14,
+      "files": [
+        {
+          "path": "api/reservations/add.md",
+          "bytes": 20106,
+          "sha256": "f7422553c915ea5087c44d117e580230cbb733f88687d9676995ee32ceee4121"
+        },
+        {
+          "path": "api/reservations/add.html",
+          "bytes": 70204,
+          "sha256": "6674b09984db088fbd1a6ac551ebaed14db52393656b18f36d334bdfeccb3dd9"
+        },
+        {
+          "path": "api/reservations/add.json",
+          "bytes": 136698,
+          "sha256": "13aeab9b409dda886d21f8ac96b47b84ed488638a6f801f8d8d0bcbd9789338b"
+        },
+        {
+          "path": "api/reservations/add.php",
+          "bytes": 7015,
+          "sha256": "3a5a7859ffcdbfc895848376015b2e14007d00a13110485755f31bd6d80d8c5a"
+        },
+        {
+          "path": "api/reservations/add.jpg",
+          "bytes": 796751,
+          "sha256": "8eb961046044a6959e3e374121f084fc1a389abe616e2835e92a3a2d84f15579"
+        }
+      ]
+    },
+    {
+      "stem": "api/reservations/changeCurrency",
+      "kind": "method",
+      "title": "Bramka Reservations/Metoda changeCurrency",
+      "version": 36,
+      "requestFields": 9,
+      "responseFields": 12,
+      "files": [
+        {
+          "path": "api/reservations/changeCurrency.md",
+          "bytes": 4376,
+          "sha256": "99eba9dfc8c53b59551ca52805a83560d327710a04001980d32d8d9fac63c54b"
+        },
+        {
+          "path": "api/reservations/changeCurrency.html",
+          "bytes": 17350,
+          "sha256": "76642e169b21c467b5418cf58dab846d8d783ac69996f67c1e4e29504d0d214a"
+        },
+        {
+          "path": "api/reservations/changeCurrency.json",
+          "bytes": 37406,
+          "sha256": "948c36b307294442ac395f22311c4a4fde1b0af73d3b1bbc08921e627d609e76"
+        },
+        {
+          "path": "api/reservations/changeCurrency.php",
+          "bytes": 1335,
+          "sha256": "a70112551387d5dddaec99c5ba5dbc779879b5ed11c9c7d0f42b9f968cd2618f"
+        },
+        {
+          "path": "api/reservations/changeCurrency.jpg",
+          "bytes": 362102,
+          "sha256": "b93448caac3ce12543b6c64495d01925e13110a04498c4eb566b0b2be02641f6"
+        }
+      ]
+    },
+    {
+      "stem": "api/reservations/edit",
+      "kind": "method",
+      "title": "Bramka Reservations/Metoda edit",
+      "version": 36,
+      "requestFields": 34,
+      "responseFields": 10,
+      "files": [
+        {
+          "path": "api/reservations/edit.md",
+          "bytes": 9246,
+          "sha256": "1abc057a510a8b8bf1990f592671a93c3b45d288d0a3d3f81ad9c9a22a093415"
+        },
+        {
+          "path": "api/reservations/edit.html",
+          "bytes": 34129,
+          "sha256": "3cc8002c881d002358d2d70c6104671ca28ea36c26f977387c9248b6f23f03cb"
+        },
+        {
+          "path": "api/reservations/edit.json",
+          "bytes": 67937,
+          "sha256": "f81af0261f009e6bc58063677f26c1e99b393d9243ecb51deaf2c814facb67b5"
+        },
+        {
+          "path": "api/reservations/edit.php",
+          "bytes": 3097,
+          "sha256": "4279356629c1deff11900701b15586a3316ebd2e948e80e1b29af8c2a6588bbb"
+        },
+        {
+          "path": "api/reservations/edit.jpg",
+          "bytes": 488429,
+          "sha256": "8cf3a8c6622e07605c8ee876665c2b06823a8500f30f3b36153375fd23a60c5d"
+        }
+      ]
+    },
+    {
+      "stem": "api/reservations/editStatus",
+      "kind": "method",
+      "title": "Bramka Reservations/Metoda editStatus",
+      "version": 36,
+      "requestFields": 10,
+      "responseFields": 14,
+      "files": [
+        {
+          "path": "api/reservations/editStatus.md",
+          "bytes": 4951,
+          "sha256": "1cc7bb1a0cb7aad36ba28045f0f67e46961a67e01002413501f59d8efbe2ffe9"
+        },
+        {
+          "path": "api/reservations/editStatus.html",
+          "bytes": 19081,
+          "sha256": "d65b8c600b59a4950a5f78c768c130ccea842e5fd7642f17abb4ae421913f12c"
+        },
+        {
+          "path": "api/reservations/editStatus.json",
+          "bytes": 41000,
+          "sha256": "d5bae61ea34b00fb143dd2307a4de99c5beb933d5f1098a3d17df8503c4ca11e"
+        },
+        {
+          "path": "api/reservations/editStatus.php",
+          "bytes": 1386,
+          "sha256": "e764609ab1acf34c44c8f7d0b3d8d818e10f860f3dc669debadf08bd080be496"
+        },
+        {
+          "path": "api/reservations/editStatus.jpg",
+          "bytes": 387780,
+          "sha256": "9fc73de143244f091dcbaf5f0477444444747c42dd3ce3d197fed234f277af2b"
+        }
+      ]
+    },
+    {
+      "stem": "api/reservations/get",
+      "kind": "method",
+      "title": "Bramka Reservations/Metoda get",
+      "version": 36,
+      "requestFields": 36,
+      "responseFields": 100,
+      "files": [
+        {
+          "path": "api/reservations/get.md",
+          "bytes": 19792,
+          "sha256": "ab137fa6ea78e3298bd90e517d556f014868c466018f75a6f78b495cef46aa4e"
+        },
+        {
+          "path": "api/reservations/get.html",
+          "bytes": 71559,
+          "sha256": "bfa719c9d02546333ec25f18213a25e34a07c40653b63e7f995db9268c38d902"
+        },
+        {
+          "path": "api/reservations/get.json",
+          "bytes": 146616,
+          "sha256": "a05982e3d55e42e8dbc150c5f5a28e3edc0d7da0b87cb954e63cd43ed9d426e9"
+        },
+        {
+          "path": "api/reservations/get.php",
+          "bytes": 2846,
+          "sha256": "fe162f231bf21ab6e0d44df7a41a4170e124d84e80f6d55515864269cd95fd41"
+        },
+        {
+          "path": "api/reservations/get.jpg",
+          "bytes": 1058462,
+          "sha256": "849e35da50732cd46753965271460a530598aeb608b2874248ecd095e0cf6330"
+        }
+      ]
+    },
+    {
+      "stem": "api/reservations/getSources",
+      "kind": "method",
+      "title": "Bramka Reservations/Metoda getSources",
+      "version": 36,
+      "requestFields": 7,
+      "responseFields": 13,
+      "files": [
+        {
+          "path": "api/reservations/getSources.md",
+          "bytes": 4147,
+          "sha256": "9b74ed5fde8cbe169db7aefb2a79535ba521b3b56218b897f30ad6f7fa985858"
+        },
+        {
+          "path": "api/reservations/getSources.html",
+          "bytes": 16426,
+          "sha256": "4a0242cc07fa63d7d1f3ff7025b3f6e7d3af31ccac8a8f8bc889e218bf88cafb"
+        },
+        {
+          "path": "api/reservations/getSources.json",
+          "bytes": 35652,
+          "sha256": "7a9f11d9d7b4dcd5e03fc21ea1d8fda3c0a513f45dba17bf3e0069ea43bd6f50"
+        },
+        {
+          "path": "api/reservations/getSources.php",
+          "bytes": 1205,
+          "sha256": "e161198debeae170d907a9bc89dbf31511331af67b9bb9586595eacd5eb27dc3"
+        },
+        {
+          "path": "api/reservations/getSources.jpg",
+          "bytes": 352614,
+          "sha256": "d4244621133ef140cc4aa9d63c31d21a72799bda7f067cd7b56bb2cabf0da7ee"
+        }
+      ]
+    },
+    {
+      "stem": "api/reservations/notifyClient",
+      "kind": "method",
+      "title": "Bramka Reservations/Metoda notifyClient",
+      "version": 36,
+      "requestFields": 9,
+      "responseFields": 14,
+      "files": [
+        {
+          "path": "api/reservations/notifyClient.md",
+          "bytes": 4832,
+          "sha256": "3775ac64a8d4310d229586860807aa606a50816b18fc8cd391387e91979b3587"
+        },
+        {
+          "path": "api/reservations/notifyClient.html",
+          "bytes": 18543,
+          "sha256": "305a0876bd17eab6395b07b6c752a271bd5b1f8b06864ca36c0162d3cca4828a"
+        },
+        {
+          "path": "api/reservations/notifyClient.json",
+          "bytes": 40009,
+          "sha256": "b38cef3280e344993c54705bf451aa983a3bd32c2f1e71931ce4bcfa3b8809de"
+        },
+        {
+          "path": "api/reservations/notifyClient.php",
+          "bytes": 1386,
+          "sha256": "fa92ffaef8725466840054988c4717e1c4e5480779831e08c4a91cde80b5d739"
+        },
+        {
+          "path": "api/reservations/notifyClient.jpg",
+          "bytes": 386099,
+          "sha256": "f91df67f3d2f21a1cfd79e6d088c2e6d511f2efc7432b828be65719e5fbced7c"
+        }
+      ]
+    },
+    {
+      "stem": "api/reservations/notifyExternalService",
+      "kind": "method",
+      "title": "Bramka Reservations/Metoda notifyExternalService",
+      "version": 36,
+      "requestFields": 9,
+      "responseFields": 14,
+      "files": [
+        {
+          "path": "api/reservations/notifyExternalService.md",
+          "bytes": 4808,
+          "sha256": "ea0a8ea4baab7ced0c3c7086978ac16f1ffb1e275175a3ece83071c95a45fa83"
+        },
+        {
+          "path": "api/reservations/notifyExternalService.html",
+          "bytes": 18530,
+          "sha256": "2ce5a055ebd131127fac5fad16129c4dfa317e7eaa359965d11b59d6322e3e42"
+        },
+        {
+          "path": "api/reservations/notifyExternalService.json",
+          "bytes": 40107,
+          "sha256": "394ccee9721f5ecd593a7ffaacb97bd121ee768a35090211ee946cf47bbe24f5"
+        },
+        {
+          "path": "api/reservations/notifyExternalService.php",
+          "bytes": 1353,
+          "sha256": "3745f5cf39fb431059a9396805dedd14d1df2dc4f765bfeec3e136525badaed8"
+        },
+        {
+          "path": "api/reservations/notifyExternalService.jpg",
+          "bytes": 382816,
+          "sha256": "b5b58bdcd65dcd9b29493f88eaf09455f1fc6324c165111aa8125309cc988d94"
+        }
+      ]
+    },
+    {
+      "stem": "api/reservations/setDiscount",
+      "kind": "method",
+      "title": "Bramka Reservations/Metoda setDiscount",
+      "version": 36,
+      "requestFields": 8,
+      "responseFields": 11,
+      "files": [
+        {
+          "path": "api/reservations/setDiscount.md",
+          "bytes": 4084,
+          "sha256": "1ed66f22b3655a340bca9697709935c2c9a675babdedbf646cba58d32b8117cb"
+        },
+        {
+          "path": "api/reservations/setDiscount.html",
+          "bytes": 16392,
+          "sha256": "be0ac7b5711686b81e898752dac95310a01e86fc68048538b47fd6b4cac0f3ec"
+        },
+        {
+          "path": "api/reservations/setDiscount.json",
+          "bytes": 35442,
+          "sha256": "a18e8197cb4829e3924f81d419232254c27c5df411f10f1ce6e24168f16fe967"
+        },
+        {
+          "path": "api/reservations/setDiscount.php",
+          "bytes": 1286,
+          "sha256": "802663ee0849579dd03022aa74fe0a025a6a7bfb7f41571d47fad2d2cb7413dd"
+        },
+        {
+          "path": "api/reservations/setDiscount.jpg",
+          "bytes": 352798,
+          "sha256": "2ca0375411e9701fa5dc18f9811f0682fc4bfa1b70614ed36eaac4a909924195"
+        }
+      ]
+    },
+    {
+      "stem": "api/reservationsdocuments/cancelDocuments",
+      "kind": "method",
+      "title": "Bramka Reservations Documents/Metoda cancelDocuments",
+      "version": 36,
+      "requestFields": 10,
+      "responseFields": 12,
+      "files": [
+        {
+          "path": "api/reservationsdocuments/cancelDocuments.md",
+          "bytes": 4637,
+          "sha256": "a77eeedfaf6ee7b9bb5cd859ba0c32a5d2ac5c1173926248d6c770e39f8f1cb6"
+        },
+        {
+          "path": "api/reservationsdocuments/cancelDocuments.html",
+          "bytes": 18377,
+          "sha256": "a4f3a2eb55bf6012fe80ed1327a554d6628ec851685146c664f987f2f9a5119c"
+        },
+        {
+          "path": "api/reservationsdocuments/cancelDocuments.json",
+          "bytes": 39464,
+          "sha256": "ccaca757d67ba96f900053a76a7c3c6f8ce502b984e3a317909fac77a454c194"
+        },
+        {
+          "path": "api/reservationsdocuments/cancelDocuments.php",
+          "bytes": 1435,
+          "sha256": "ff12a61216c03ffcb98e3587ccd2824cc2615571530ef996cce973fe053b1f6a"
+        },
+        {
+          "path": "api/reservationsdocuments/cancelDocuments.jpg",
+          "bytes": 381413,
+          "sha256": "df510d377b5cf5ffd059fe9f89dcafb3453d15ed2d5f58628173c69ebb152947"
+        }
+      ]
+    },
+    {
+      "stem": "api/reservationsdocuments/createDocuments",
+      "kind": "method",
+      "title": "Bramka Reservations Documents/Metoda createDocuments",
+      "version": 36,
+      "requestFields": 13,
+      "responseFields": 15,
+      "files": [
+        {
+          "path": "api/reservationsdocuments/createDocuments.md",
+          "bytes": 5461,
+          "sha256": "fb532b6193e0423d285f06abfa86521d35bb6bf34369399003399e437182c345"
+        },
+        {
+          "path": "api/reservationsdocuments/createDocuments.html",
+          "bytes": 21356,
+          "sha256": "d0a4544d5d9fa52e5183599463ece58a00d3a433f1a381e5a33b8c160b44b679"
+        },
+        {
+          "path": "api/reservationsdocuments/createDocuments.json",
+          "bytes": 45326,
+          "sha256": "767fd837745ac5dc818c3bf3c8b5045f0634782d6d1287b231eda45bd7f99740"
+        },
+        {
+          "path": "api/reservationsdocuments/createDocuments.php",
+          "bytes": 1644,
+          "sha256": "c94194a2489c0f288925f95681051144f8be808d0d50afe79cbd52637032ab9c"
+        },
+        {
+          "path": "api/reservationsdocuments/createDocuments.jpg",
+          "bytes": 410881,
+          "sha256": "c7b0b7ceabb985f9b7d405de0cf4a12cc10047dab0b04bdef1b5ac5c9c0c97fd"
+        }
+      ]
+    },
+    {
+      "stem": "api/reservationsdocuments/editDocuments",
+      "kind": "method",
+      "title": "Bramka Reservations Documents/Metoda editDocuments",
+      "version": 36,
+      "requestFields": 13,
+      "responseFields": 15,
+      "files": [
+        {
+          "path": "api/reservationsdocuments/editDocuments.md",
+          "bytes": 5344,
+          "sha256": "65a3d1f67c2933b5b9b750ad867fb2dbac21841ddbc1f6b615c8c1aeff076f7e"
+        },
+        {
+          "path": "api/reservationsdocuments/editDocuments.html",
+          "bytes": 21404,
+          "sha256": "b9dd1e04bd3b32f19542a293a2eb77ad5905c99172473cc693a9ac1f0fad686f"
+        },
+        {
+          "path": "api/reservationsdocuments/editDocuments.json",
+          "bytes": 45191,
+          "sha256": "2ce658771f69eb2c13489d9b7643e922da49aafc2e6f3b2ba948a3c6c324cdea"
+        },
+        {
+          "path": "api/reservationsdocuments/editDocuments.php",
+          "bytes": 1626,
+          "sha256": "5f007c6581a3c835bbc9ce2dff3832ea0aef806593aeadf13d53febffa70e5b1"
+        },
+        {
+          "path": "api/reservationsdocuments/editDocuments.jpg",
+          "bytes": 410843,
+          "sha256": "2cf72149b5f3a72d119c2f64e603af3ad61487b56c970ba278cfc6eafc3a5782"
+        }
+      ]
+    },
+    {
+      "stem": "api/reservationsdocuments/getDocuments",
+      "kind": "method",
+      "title": "Bramka Reservations Documents/Metoda getDocuments",
+      "version": 36,
+      "requestFields": 6,
+      "responseFields": 19,
+      "files": [
+        {
+          "path": "api/reservationsdocuments/getDocuments.md",
+          "bytes": 4653,
+          "sha256": "a655c35655c48ce850b00538bfcd7cc8c9e6dac85e4faf9bb227f51e5f158230"
+        },
+        {
+          "path": "api/reservationsdocuments/getDocuments.html",
+          "bytes": 18381,
+          "sha256": "1689a9f362ae75eb2ac9d00211539fa30a4e1a67d7e23ec85a8e75ddd8834a37"
+        },
+        {
+          "path": "api/reservationsdocuments/getDocuments.json",
+          "bytes": 39978,
+          "sha256": "56a815131b81925b6571f348905096bd29d08b7f0327b8e81678cedbfb61c8ea"
+        },
+        {
+          "path": "api/reservationsdocuments/getDocuments.php",
+          "bytes": 1191,
+          "sha256": "6a04065af396541678a433713bef9ee510f88b160ac415310332f72bdea63915"
+        },
+        {
+          "path": "api/reservationsdocuments/getDocuments.jpg",
+          "bytes": 388132,
+          "sha256": "45dea12f19a75a4d486d176748aaef475ee71613eb7b3e8820feb2a6b3fb0863"
+        }
+      ]
+    },
+    {
+      "stem": "api/restrictions/deleteExceptions",
+      "kind": "method",
+      "title": "Restrictions/Metoda deleteExceptions",
+      "version": 36,
+      "requestFields": 11,
+      "responseFields": 14,
+      "files": [
+        {
+          "path": "api/restrictions/deleteExceptions.md",
+          "bytes": 5323,
+          "sha256": "111a08a634048ffe021bddc062d17027b226d69a6deef8f0349e4cf7a291d71d"
+        },
+        {
+          "path": "api/restrictions/deleteExceptions.html",
+          "bytes": 19562,
+          "sha256": "42149df586f5268f0be342b7cde8e70b7dd5f9e814caf51585cc611237a09b4c"
+        },
+        {
+          "path": "api/restrictions/deleteExceptions.json",
+          "bytes": 42186,
+          "sha256": "99210b11919d409829b448e7442a7f5b3b0bf3437ef845ccbfe9b2301d918401"
+        },
+        {
+          "path": "api/restrictions/deleteExceptions.php",
+          "bytes": 1639,
+          "sha256": "ddcefbb8ab401d522b64aa5cda63f131428fe6b81170a93ea886914a62bb405c"
+        },
+        {
+          "path": "api/restrictions/deleteExceptions.jpg",
+          "bytes": 397160,
+          "sha256": "e6253a06f93bd12f58e3005ffca8449520e1c211c8f878564a414a32429e39dc"
+        }
+      ]
+    },
+    {
+      "stem": "api/restrictions/getExceptions",
+      "kind": "method",
+      "title": "Restrictions/Metoda getExceptions",
+      "version": 36,
+      "requestFields": 10,
+      "responseFields": 19,
+      "files": [
+        {
+          "path": "api/restrictions/getExceptions.md",
+          "bytes": 5545,
+          "sha256": "0754031759f54a774634f21abf76e1837a97b9fef9e6b04234b4d69361faeb33"
+        },
+        {
+          "path": "api/restrictions/getExceptions.html",
+          "bytes": 21138,
+          "sha256": "be5e384a8b8a30148c999027f444cccf175a08f660086d747d9fb4ce167a1a55"
+        },
+        {
+          "path": "api/restrictions/getExceptions.json",
+          "bytes": 45248,
+          "sha256": "bd32244453a6188f55145f25d3f3293841acb3d4e372b6ed364a3df67fb12073"
+        },
+        {
+          "path": "api/restrictions/getExceptions.php",
+          "bytes": 1543,
+          "sha256": "95b27b032fb21333da5fe4a58b4872d1827cf3f6a4841519c11a4bbd106ef9fd"
+        },
+        {
+          "path": "api/restrictions/getExceptions.jpg",
+          "bytes": 415882,
+          "sha256": "6fa590e81bdfb8fa6a9f5d33a0cc511fa8ef089cdc369e8b37991db7911044e3"
+        }
+      ]
+    },
+    {
+      "stem": "api/restrictions/setExceptions",
+      "kind": "method",
+      "title": "Restrictions/Metoda setExceptions",
+      "version": 36,
+      "requestFields": 17,
+      "responseFields": 8,
+      "files": [
+        {
+          "path": "api/restrictions/setExceptions.md",
+          "bytes": 5683,
+          "sha256": "6cd8aa0d1908d38747b1cf17cab959fab40d455ee969faa21c9d09b1a56e1699"
+        },
+        {
+          "path": "api/restrictions/setExceptions.html",
+          "bytes": 21091,
+          "sha256": "a7e71ecf44a9b22637ade99c0e69bae68d59cd54fa7cc26195e85f959fdda2eb"
+        },
+        {
+          "path": "api/restrictions/setExceptions.json",
+          "bytes": 44588,
+          "sha256": "4b1fc33a9db0d12d48b8899b76eab90ec2d01eab4f445851a22dc1dba44d501b"
+        },
+        {
+          "path": "api/restrictions/setExceptions.php",
+          "bytes": 2056,
+          "sha256": "6c2088e7f7455a1f6b4b3e0d9db83bd5cf631d39b1558ec9a1874cf41aa26ef8"
+        },
+        {
+          "path": "api/restrictions/setExceptions.jpg",
+          "bytes": 407830,
+          "sha256": "f6a174d5f12581204a15ba6f9c30644229b43015a51438e2f5bb300a615aeb94"
+        }
+      ]
+    },
+    {
+      "stem": "api/users/get",
+      "kind": "method",
+      "title": "Bramka Users/Metoda get",
+      "version": 36,
+      "requestFields": 9,
+      "responseFields": 33,
+      "files": [
+        {
+          "path": "api/users/get.md",
+          "bytes": 7861,
+          "sha256": "831165ef764429185a440c111daf6594113f6963781d230547cf1c86242bd195"
+        },
+        {
+          "path": "api/users/get.html",
+          "bytes": 29792,
+          "sha256": "d125bf2ccd1318cfd91282f9b98f0d329512ec60fa5bdfdea7e01a1d975b4137"
+        },
+        {
+          "path": "api/users/get.json",
+          "bytes": 62434,
+          "sha256": "7a6bde72609b33c112c089dd6b2745c01f283e67fdea2ab598a314f0e00ec5fb"
+        },
+        {
+          "path": "api/users/get.php",
+          "bytes": 1268,
+          "sha256": "6acdc179da7a8adc27941143cd2e5a481f65ea82d9b093498e8e55b1f98f03b4"
+        },
+        {
+          "path": "api/users/get.jpg",
+          "bytes": 580679,
+          "sha256": "1e333f45e41126fc5591a43e3206d3fb0de67b55fb9fc891296b5c3fc0a24ef1"
+        }
+      ]
+    },
+    {
+      "stem": "api/users/getLogs",
+      "kind": "method",
+      "title": "Bramka Users/Metoda getLogs",
+      "version": 36,
+      "requestFields": 6,
+      "responseFields": 14,
+      "files": [
+        {
+          "path": "api/users/getLogs.md",
+          "bytes": 4109,
+          "sha256": "858e1bfac0e515de824e03494847ac7ab348c385667ffec8e3e1f519315f8b93"
+        },
+        {
+          "path": "api/users/getLogs.html",
+          "bytes": 16553,
+          "sha256": "dcf956377542c7fa0a98143ef53c3e324f72cd386303117f8c7c7e827994f3b6"
+        },
+        {
+          "path": "api/users/getLogs.json",
+          "bytes": 35616,
+          "sha256": "54f553a2ba72d7fd09ff7a76903621797627bcdf59a55ac66fb949489e2c8a2f"
+        },
+        {
+          "path": "api/users/getLogs.php",
+          "bytes": 1165,
+          "sha256": "1f4b63a1cea2be4a6754087a850748f5fd30595bbc3c56b2f07f78044ff5f50a"
+        },
+        {
+          "path": "api/users/getLogs.jpg",
+          "bytes": 373315,
+          "sha256": "d3a3689c24fb273796b968378f9edb6ad3e7f0755319aa358c8e6cac0195dd36"
+        }
+      ]
+    },
+    {
+      "stem": "pages/developers",
+      "kind": "page",
+      "title": "Dział developerów tworzących programy współpracujące z IdoBooking",
+      "version": null,
+      "requestFields": 0,
+      "responseFields": 0,
+      "files": [
+        {
+          "path": "pages/developers.md",
+          "bytes": 1200,
+          "sha256": "3ff9dc137f8c45ac893ce799e1cbf64b97e5e814c185ee20ae6f93daf5491af3"
+        },
+        {
+          "path": "pages/developers.html",
+          "bytes": 3436,
+          "sha256": "fa58b73d23c01bec324049def539b5978dd8393e68abe0096d1bdbe7c0b802a4"
+        },
+        {
+          "path": "pages/developers.json",
+          "bytes": 3939,
+          "sha256": "d14a160df95cf548dd498ae1247a4236cb747a7c7fab634d2764acc1e09a018d"
+        },
+        {
+          "path": "pages/developers.jpg",
+          "bytes": 186058,
+          "sha256": "ded5c485b25654da63815adfe8af73dbf46f9e5f81a5cd8db48dcb8394da9dbb"
+        }
+      ]
+    },
+    {
+      "stem": "pages/szablony-wlasne-wizytowki-idobooking-w-smarty",
+      "kind": "page",
+      "title": "Szablony własne Wizytówki IdoBooking w Smarty",
+      "version": null,
+      "requestFields": 0,
+      "responseFields": 0,
+      "files": [
+        {
+          "path": "pages/szablony-wlasne-wizytowki-idobooking-w-smarty.md",
+          "bytes": 672,
+          "sha256": "d1f69169cf1920274962b57b92e4ac2167e905be0b6c6abd8a92594b90aa448f"
+        },
+        {
+          "path": "pages/szablony-wlasne-wizytowki-idobooking-w-smarty.html",
+          "bytes": 2516,
+          "sha256": "1509c70d28dc8794524a3ae920a4093bbf20f0ddea90592d5e76766ceed5a832"
+        },
+        {
+          "path": "pages/szablony-wlasne-wizytowki-idobooking-w-smarty.json",
+          "bytes": 2552,
+          "sha256": "606f4c8c9c393ece4bf6c1b50d977ffac10b51eb9af089030f046370d64846eb"
+        },
+        {
+          "path": "pages/szablony-wlasne-wizytowki-idobooking-w-smarty.jpg",
+          "bytes": 116533,
+          "sha256": "aed20b15f2a3fae8b2674e91dca888f4cc4651fc9c844ed2842851586d4484fa"
+        }
+      ]
+    },
+    {
+      "stem": "pages/lista-dostepnych-szablonow-wizytowki-w-smarty",
+      "kind": "page",
+      "title": "Lista dostępnych szablonów Wizytówki w Smarty",
+      "version": null,
+      "requestFields": 0,
+      "responseFields": 0,
+      "files": [
+        {
+          "path": "pages/lista-dostepnych-szablonow-wizytowki-w-smarty.md",
+          "bytes": 2589,
+          "sha256": "a5d3d45b4a0f2663e36da90318b82cf5102303acfb3a86f0c84ee3ab3814ce47"
+        },
+        {
+          "path": "pages/lista-dostepnych-szablonow-wizytowki-w-smarty.html",
+          "bytes": 5863,
+          "sha256": "291c4637df56858f539917ac28264d703d66f143fea3efbc9ee12d7f49bb5bb1"
+        },
+        {
+          "path": "pages/lista-dostepnych-szablonow-wizytowki-w-smarty.json",
+          "bytes": 10782,
+          "sha256": "9a74412e7203ace87207d108965b2fd4a42c1549bad122c1625b6a96dfd7547d"
+        },
+        {
+          "path": "pages/lista-dostepnych-szablonow-wizytowki-w-smarty.jpg",
+          "bytes": 186534,
+          "sha256": "669a1b5d46231ed8d77740627b706da400299d7edf76c759c76fb241af9f9b38"
+        }
+      ]
+    },
+    {
+      "stem": "pages/zmienne-obowiazujace-globalnie",
+      "kind": "page",
+      "title": "Zmienne obowiązujące globalnie",
+      "version": null,
+      "requestFields": 0,
+      "responseFields": 0,
+      "files": [
+        {
+          "path": "pages/zmienne-obowiazujace-globalnie.md",
+          "bytes": 8454,
+          "sha256": "0e163dabec8737b62b41204eaf1bee89800d66b82fe94259da79979fe0b7db8e"
+        },
+        {
+          "path": "pages/zmienne-obowiazujace-globalnie.html",
+          "bytes": 25358,
+          "sha256": "99457336b958f2826f2e68d6d6ecb9d3effc874bfe4a3993d3c7261f0e82f9a8"
+        },
+        {
+          "path": "pages/zmienne-obowiazujace-globalnie.json",
+          "bytes": 37127,
+          "sha256": "abac10e9ae86dc0bc315a036722476521d45cd5c7a07562d3b21d89ab2a5af47"
+        },
+        {
+          "path": "pages/zmienne-obowiazujace-globalnie.jpg",
+          "bytes": 718046,
+          "sha256": "0cf3cd14e215ce93f6babfa6a61939acc35f12dec5c5d94c399808555fdfddd4"
+        }
+      ]
+    },
+    {
+      "stem": "pages/strona-index-tpl-w-szablonach-wizytowki",
+      "kind": "page",
+      "title": "Strona index.tpl w szablonach Wizytówki",
+      "version": null,
+      "requestFields": 0,
+      "responseFields": 0,
+      "files": [
+        {
+          "path": "pages/strona-index-tpl-w-szablonach-wizytowki.md",
+          "bytes": 2279,
+          "sha256": "ee886584cb6a4e8f1a916c0d7fc16306b63e786b3f277f81913e0dfcc28d6629"
+        },
+        {
+          "path": "pages/strona-index-tpl-w-szablonach-wizytowki.html",
+          "bytes": 7787,
+          "sha256": "97a189f405e790eba9c515d85b8c74410c2ee3bcaf64d08a4a94da1ba267f543"
+        },
+        {
+          "path": "pages/strona-index-tpl-w-szablonach-wizytowki.json",
+          "bytes": 10481,
+          "sha256": "9794c3d82fa85be12a7abd4f1c03801cd4fda2a1d635c01ba09ff27a946a07ba"
+        },
+        {
+          "path": "pages/strona-index-tpl-w-szablonach-wizytowki.jpg",
+          "bytes": 237351,
+          "sha256": "306bc4c32eefa32f68fea236e2b757ed5a4a4747428cb9074cfa6d6e78a1dc24"
+        }
+      ]
+    },
+    {
+      "stem": "pages/strona-contact-tpl-w-szablonach-wizytowki",
+      "kind": "page",
+      "title": "Strona contact.tpl w szablonach Wizytówki",
+      "version": null,
+      "requestFields": 0,
+      "responseFields": 0,
+      "files": [
+        {
+          "path": "pages/strona-contact-tpl-w-szablonach-wizytowki.md",
+          "bytes": 3408,
+          "sha256": "604df808bb9d722635b76c33b53cab6cc7c3353dd4ceaf32bcc8fd036c241dff"
+        },
+        {
+          "path": "pages/strona-contact-tpl-w-szablonach-wizytowki.html",
+          "bytes": 9978,
+          "sha256": "a4836e650adb6d05ad8057336f145a4736330f65e0a2cd6e7163415ec481827e"
+        },
+        {
+          "path": "pages/strona-contact-tpl-w-szablonach-wizytowki.json",
+          "bytes": 14054,
+          "sha256": "3b82b86e11df15a61e9fa9c609035d34308232543f4d298177dc6b1de02d1e44"
+        },
+        {
+          "path": "pages/strona-contact-tpl-w-szablonach-wizytowki.jpg",
+          "bytes": 323787,
+          "sha256": "e5dfda618424a4c10e02c9ddde9bca90c29033c1969468e316cbab58d6f4f171"
+        }
+      ]
+    },
+    {
+      "stem": "pages/strona-txt-tpl-w-szablonach-wizytowki",
+      "kind": "page",
+      "title": "Strona txt.tpl w szablonach Wizytówki",
+      "version": null,
+      "requestFields": 0,
+      "responseFields": 0,
+      "files": [
+        {
+          "path": "pages/strona-txt-tpl-w-szablonach-wizytowki.md",
+          "bytes": 1671,
+          "sha256": "f1b4b5c115e5ae97229e7843eb749881d2ead999a3726be413d891e6076b5e63"
+        },
+        {
+          "path": "pages/strona-txt-tpl-w-szablonach-wizytowki.html",
+          "bytes": 6183,
+          "sha256": "a4bcead58e9b2f931f5967b4a3cafadc76a7cb050c1689095d1b449e85722466"
+        },
+        {
+          "path": "pages/strona-txt-tpl-w-szablonach-wizytowki.json",
+          "bytes": 7993,
+          "sha256": "eeffa5cd22bd1a7279dc7f71e7de59e95f0274568fd3916b512b62ddba9fb03a"
+        },
+        {
+          "path": "pages/strona-txt-tpl-w-szablonach-wizytowki.jpg",
+          "bytes": 194936,
+          "sha256": "1a6949bed340544f8627ea858262dfad0da7baf942c476eb719bbb60b105ad15"
+        }
+      ]
+    },
+    {
+      "stem": "pages/strona-offers-tpl-w-szablonach-wizytowki",
+      "kind": "page",
+      "title": "Strona offers.tpl w szablonach Wizytówki",
+      "version": null,
+      "requestFields": 0,
+      "responseFields": 0,
+      "files": [
+        {
+          "path": "pages/strona-offers-tpl-w-szablonach-wizytowki.md",
+          "bytes": 4442,
+          "sha256": "e8664f46e2621ef13aaf9db54122eb5674fc3558f40beb2f71a4b48c4a6344ed"
+        },
+        {
+          "path": "pages/strona-offers-tpl-w-szablonach-wizytowki.html",
+          "bytes": 12262,
+          "sha256": "1cee56402a429f78477d81ccc2a9f82a874474833af59f9daf19d7be0d6d0821"
+        },
+        {
+          "path": "pages/strona-offers-tpl-w-szablonach-wizytowki.json",
+          "bytes": 17701,
+          "sha256": "b0ba8c596734d0a3fa5e4ae92f1ffce41fa83541aff8fbb679ee9de062272fa8"
+        },
+        {
+          "path": "pages/strona-offers-tpl-w-szablonach-wizytowki.jpg",
+          "bytes": 394518,
+          "sha256": "94df7f24011827630e9bb346ee8dd4ab25e42bb331e347cb01d0509ecd0683b8"
+        }
+      ]
+    },
+    {
+      "stem": "pages/strona-special-offer-tpl-w-szablonach-wizytowki",
+      "kind": "page",
+      "title": "Strona special-offer.tpl w szablonach Wizytówki",
+      "version": null,
+      "requestFields": 0,
+      "responseFields": 0,
+      "files": [
+        {
+          "path": "pages/strona-special-offer-tpl-w-szablonach-wizytowki.md",
+          "bytes": 6861,
+          "sha256": "46c423e7ab0c31367171aa367d6a3b91b9f1bf9969d2281c3be4aa238965bfb4"
+        },
+        {
+          "path": "pages/strona-special-offer-tpl-w-szablonach-wizytowki.html",
+          "bytes": 17248,
+          "sha256": "b10aa2e453a9cbbc07b12e651789a6bd27aa4d72c11d334932c61f1fd15695cc"
+        },
+        {
+          "path": "pages/strona-special-offer-tpl-w-szablonach-wizytowki.json",
+          "bytes": 25648,
+          "sha256": "c214f07e95af45d25a4c0d768b2d61da1486621d3f91ec5a19ff6f324d6f6705"
+        },
+        {
+          "path": "pages/strona-special-offer-tpl-w-szablonach-wizytowki.jpg",
+          "bytes": 569919,
+          "sha256": "362c50c19269006168e06754dd94b4891204db6957e55744426d154fabcc40f4"
+        }
+      ]
+    },
+    {
+      "stem": "pages/strona-promotions-tpl-w-szablonach-wizytowki",
+      "kind": "page",
+      "title": "Strona promotions.tpl w szablonach Wizytówki",
+      "version": null,
+      "requestFields": 0,
+      "responseFields": 0,
+      "files": [
+        {
+          "path": "pages/strona-promotions-tpl-w-szablonach-wizytowki.md",
+          "bytes": 1639,
+          "sha256": "c20c855c0d4969c23cd7708bcc54e4daa99e049c1c1d601601078d1c5af6350c"
+        },
+        {
+          "path": "pages/strona-promotions-tpl-w-szablonach-wizytowki.html",
+          "bytes": 5187,
+          "sha256": "6a408a2045d9ca5061d0bfab8d23461a82f2c0b469688e781319b5529c780488"
+        },
+        {
+          "path": "pages/strona-promotions-tpl-w-szablonach-wizytowki.json",
+          "bytes": 6759,
+          "sha256": "240bf468ef23254ffc212e30c0310c938a6a647c8226a9cc912bc25b902dc621"
+        },
+        {
+          "path": "pages/strona-promotions-tpl-w-szablonach-wizytowki.jpg",
+          "bytes": 185449,
+          "sha256": "828f1bd81cfb62f6eb9a4750f8b25d1508fabbf5b10cad1642cbb39cc242585c"
+        }
+      ]
+    },
+    {
+      "stem": "pages/strona-facebook-tpl-w-szablonach-wizytowki",
+      "kind": "page",
+      "title": "Strona facebook.tpl w szablonach Wizytówki",
+      "version": null,
+      "requestFields": 0,
+      "responseFields": 0,
+      "files": [
+        {
+          "path": "pages/strona-facebook-tpl-w-szablonach-wizytowki.md",
+          "bytes": 536,
+          "sha256": "013b1e5c31dd0e0715f8302e2f62fe389f73eaf7217d1be3257f55fcb001048b"
+        },
+        {
+          "path": "pages/strona-facebook-tpl-w-szablonach-wizytowki.html",
+          "bytes": 2556,
+          "sha256": "c12e05cf1c14a64b3d6b3386a4073e0d35e1fd6a9b23b53ad0e4e3682830583a"
+        },
+        {
+          "path": "pages/strona-facebook-tpl-w-szablonach-wizytowki.json",
+          "bytes": 2612,
+          "sha256": "d47a8b347b11dfb9a5e4718bd78da880135e8f9d4fa1c9d02fd435d551013188"
+        },
+        {
+          "path": "pages/strona-facebook-tpl-w-szablonach-wizytowki.jpg",
+          "bytes": 123644,
+          "sha256": "0443088757bd515aaf0c900df8145e42c3f0526b26551b472520f1132b95bca8"
+        }
+      ]
+    },
+    {
+      "stem": "pages/strona-news-tpl-w-szablonach-wizytowki",
+      "kind": "page",
+      "title": "Strona news.tpl w szablonach Wizytówki",
+      "version": null,
+      "requestFields": 0,
+      "responseFields": 0,
+      "files": [
+        {
+          "path": "pages/strona-news-tpl-w-szablonach-wizytowki.md",
+          "bytes": 1115,
+          "sha256": "6eb5a06b3300049a49539f48d76af9fede63720a3fa9ea05b33bcb0f1deaff91"
+        },
+        {
+          "path": "pages/strona-news-tpl-w-szablonach-wizytowki.html",
+          "bytes": 4276,
+          "sha256": "867e5f56edfc33ffdd6a768f4584a2e5bbcdb392ffa9f565a389a555ab797604"
+        },
+        {
+          "path": "pages/strona-news-tpl-w-szablonach-wizytowki.json",
+          "bytes": 5260,
+          "sha256": "ea47fca7f7d86526d7987297ff2761b495cf5aceb5cf50b0aa04d5ff7b612105"
+        },
+        {
+          "path": "pages/strona-news-tpl-w-szablonach-wizytowki.jpg",
+          "bytes": 156125,
+          "sha256": "f777ae0639cd5fa7ea6353d29fbae25214c9b01f4c5b00b1538af91d7d1e4184"
+        }
+      ]
+    },
+    {
+      "stem": "pages/strona-offer-tpl-w-szablonach-wizytowki",
+      "kind": "page",
+      "title": "Strona offer.tpl w szablonach Wizytówki",
+      "version": null,
+      "requestFields": 0,
+      "responseFields": 0,
+      "files": [
+        {
+          "path": "pages/strona-offer-tpl-w-szablonach-wizytowki.md",
+          "bytes": 7103,
+          "sha256": "691b2471e1a67397ca262d566245e5e9f813d6a9d94e80e00fab300cb8b2d7a4"
+        },
+        {
+          "path": "pages/strona-offer-tpl-w-szablonach-wizytowki.html",
+          "bytes": 17754,
+          "sha256": "1dca1cbb0e3dd1e9081fd6bf4dd953e3b3325278220b81df81d5c1a356565462"
+        },
+        {
+          "path": "pages/strona-offer-tpl-w-szablonach-wizytowki.json",
+          "bytes": 26448,
+          "sha256": "30c5a0825544527d58511f6648ff9d6c023a280e7b5aeeed6e746fd6cad0eb7a"
+        },
+        {
+          "path": "pages/strona-offer-tpl-w-szablonach-wizytowki.jpg",
+          "bytes": 587178,
+          "sha256": "62c487131cb7fb7f99e25e94f59451bc69e0ffbe58e631e7d73010890f6c5ed1"
+        }
+      ]
+    },
+    {
+      "stem": "pages/strona-about-tpl-w-szablonach-wizytowki",
+      "kind": "page",
+      "title": "Strona about.tpl w szablonach Wizytówki",
+      "version": null,
+      "requestFields": 0,
+      "responseFields": 0,
+      "files": [
+        {
+          "path": "pages/strona-about-tpl-w-szablonach-wizytowki.md",
+          "bytes": 381,
+          "sha256": "6e5dc8538bf88fd8a92b4e7119c404a7edfa0748e07db88647ca9a3c621f9def"
+        },
+        {
+          "path": "pages/strona-about-tpl-w-szablonach-wizytowki.html",
+          "bytes": 2017,
+          "sha256": "572ea7b0d499054a9ee9a663424bdf2dce25302170fbaf21560d9fb12867afad"
+        },
+        {
+          "path": "pages/strona-about-tpl-w-szablonach-wizytowki.json",
+          "bytes": 1875,
+          "sha256": "088bf76dc21bc15da455f08d3fd0026ff781783edda02e165cb404c81884e884"
+        },
+        {
+          "path": "pages/strona-about-tpl-w-szablonach-wizytowki.jpg",
+          "bytes": 115004,
+          "sha256": "c67ea089cc609b02fc5e4a32c056ddaf81ffef50f4a1796cfbac4e95bc1820f1"
+        }
+      ]
+    },
+    {
+      "stem": "pages/strona-analytics-tpl-w-szablonach-wizytowki",
+      "kind": "page",
+      "title": "Strona analytics.tpl w szablonach Wizytówki",
+      "version": null,
+      "requestFields": 0,
+      "responseFields": 0,
+      "files": [
+        {
+          "path": "pages/strona-analytics-tpl-w-szablonach-wizytowki.md",
+          "bytes": 403,
+          "sha256": "221d46a3cce35342a2dc7172a0e39092f98a7c5f87e1c03bf89a67455377b8fc"
+        },
+        {
+          "path": "pages/strona-analytics-tpl-w-szablonach-wizytowki.html",
+          "bytes": 2047,
+          "sha256": "27a92aca26b5fba9490ea41c5af9052b55550c42c75404063a419c8c8fc18ff9"
+        },
+        {
+          "path": "pages/strona-analytics-tpl-w-szablonach-wizytowki.json",
+          "bytes": 1903,
+          "sha256": "e4db5193c525bc0e02c473637ec19bb6d11bd0cc67efac73e8fd7e4ae494b7e3"
+        },
+        {
+          "path": "pages/strona-analytics-tpl-w-szablonach-wizytowki.jpg",
+          "bytes": 115914,
+          "sha256": "2570560f277f39bd1e1770db4e1ab57acdc572484b3c5d720ddb3a054e94b14f"
+        }
+      ]
+    },
+    {
+      "stem": "pages/strona-facebook-comments-tpl-w-szablonach-wizytowki",
+      "kind": "page",
+      "title": "Strona facebook-comments.tpl w szablonach Wizytówki",
+      "version": null,
+      "requestFields": 0,
+      "responseFields": 0,
+      "files": [
+        {
+          "path": "pages/strona-facebook-comments-tpl-w-szablonach-wizytowki.md",
+          "bytes": 430,
+          "sha256": "c7c83c332be63d462ee45c00a0a0f39dcdd50b464f96d369e31c6ae8b875ed33"
+        },
+        {
+          "path": "pages/strona-facebook-comments-tpl-w-szablonach-wizytowki.html",
+          "bytes": 2090,
+          "sha256": "b99bfea348486e1186b076c28392be42a6e229a767196cbbd5cb6340134172b9"
+        },
+        {
+          "path": "pages/strona-facebook-comments-tpl-w-szablonach-wizytowki.json",
+          "bytes": 1933,
+          "sha256": "560481b23e5bc7a3226f23f51258d8d665aaae8efd898daef6a3a50964576c10"
+        },
+        {
+          "path": "pages/strona-facebook-comments-tpl-w-szablonach-wizytowki.jpg",
+          "bytes": 116607,
+          "sha256": "3f10359cd5bebddc223e6d65c7576cd0a84dbac03b9038632105912ff65a25b6"
+        }
+      ]
+    },
+    {
+      "stem": "pages/strona-footer-tpl-w-szablonach-wizytowki",
+      "kind": "page",
+      "title": "Strona footer.tpl w szablonach Wizytówki",
+      "version": null,
+      "requestFields": 0,
+      "responseFields": 0,
+      "files": [
+        {
+          "path": "pages/strona-footer-tpl-w-szablonach-wizytowki.md",
+          "bytes": 376,
+          "sha256": "9b7e99504cb643f876fdf360d069a1c9dab49d1362681290b9768b28eda95d22"
+        },
+        {
+          "path": "pages/strona-footer-tpl-w-szablonach-wizytowki.html",
+          "bytes": 2014,
+          "sha256": "0b3f2fa626cee35772375a0e4dc4a33e630eadecf9ba6fe5a054de1ea7d96904"
+        },
+        {
+          "path": "pages/strona-footer-tpl-w-szablonach-wizytowki.json",
+          "bytes": 1858,
+          "sha256": "32a495214d91b1f8ff3bf0a5ec68539b063e3e2625278647d1a988c518e0dc54"
+        },
+        {
+          "path": "pages/strona-footer-tpl-w-szablonach-wizytowki.jpg",
+          "bytes": 114615,
+          "sha256": "7461e178972080019edc7770e8b3836fba1eb1a5d2a32419cf8c42238e62b022"
+        }
+      ]
+    },
+    {
+      "stem": "pages/strona-header-tpl-w-szablonach-wizytowki",
+      "kind": "page",
+      "title": "Strona header.tpl w szablonach Wizytówki",
+      "version": null,
+      "requestFields": 0,
+      "responseFields": 0,
+      "files": [
+        {
+          "path": "pages/strona-header-tpl-w-szablonach-wizytowki.md",
+          "bytes": 380,
+          "sha256": "5cfed28b1fd5badb824c6fa0305af14bb2bd307ca9763b6dbd03082721147b63"
+        },
+        {
+          "path": "pages/strona-header-tpl-w-szablonach-wizytowki.html",
+          "bytes": 2018,
+          "sha256": "6effbfa5819dcb90b0ee519822b3b14eb0a979294508a16d02f92726ecd000a4"
+        },
+        {
+          "path": "pages/strona-header-tpl-w-szablonach-wizytowki.json",
+          "bytes": 1866,
+          "sha256": "21eb76fb34e1007500c34e2794f27a9fb378612861ee21cf2289f83cf8dab19a"
+        },
+        {
+          "path": "pages/strona-header-tpl-w-szablonach-wizytowki.jpg",
+          "bytes": 114879,
+          "sha256": "92ced5792581c6659f7ee7f22ad006ddec174badce12d36495c4ce8edcb47af2"
+        }
+      ]
+    },
+    {
+      "stem": "pages/strona-opinions-tpl-w-szablonach-wizytowki",
+      "kind": "page",
+      "title": "Strona opinions.tpl w szablonach Wizytówki",
+      "version": null,
+      "requestFields": 0,
+      "responseFields": 0,
+      "files": [
+        {
+          "path": "pages/strona-opinions-tpl-w-szablonach-wizytowki.md",
+          "bytes": 705,
+          "sha256": "18717516704980ede07769959d98a3010388742755e44c784827e7963f6045ce"
+        },
+        {
+          "path": "pages/strona-opinions-tpl-w-szablonach-wizytowki.html",
+          "bytes": 3381,
+          "sha256": "d3f1c7b48a4aa9a680fa5304a41358026147b91d23085a2b85f90792d2305beb"
+        },
+        {
+          "path": "pages/strona-opinions-tpl-w-szablonach-wizytowki.json",
+          "bytes": 3791,
+          "sha256": "274d8e03899b650cfc26667ee169b86497cc60c1a5f2ce85e2b84c885e6f6194"
+        },
+        {
+          "path": "pages/strona-opinions-tpl-w-szablonach-wizytowki.jpg",
+          "bytes": 132593,
+          "sha256": "e32e659c3af4143c46a719c18591e6282a8074430b68e2edb085003f16102a8e"
+        }
+      ]
+    },
+    {
+      "stem": "pages/przetestuj-system-w-wersji-demo",
+      "kind": "page",
+      "title": "Dostęp do demo",
+      "version": null,
+      "requestFields": 0,
+      "responseFields": 0,
+      "files": [
+        {
+          "path": "pages/przetestuj-system-w-wersji-demo.md",
+          "bytes": 2434,
+          "sha256": "0f9827f67cfe5570952f17b748162178179da2523e45d9252bbb986f28e70d0a"
+        },
+        {
+          "path": "pages/przetestuj-system-w-wersji-demo.html",
+          "bytes": 8254,
+          "sha256": "ddb2c223d93d9cd32347d3d03e65624754258a7a5f20426606c63c3d03967265"
+        },
+        {
+          "path": "pages/przetestuj-system-w-wersji-demo.json",
+          "bytes": 16811,
+          "sha256": "a6e9bafa8de18c3686bd28be4509f7b22408379a72c39ac2dccce6e2e52e3f3c"
+        },
+        {
+          "path": "pages/przetestuj-system-w-wersji-demo.jpg",
+          "bytes": 176168,
+          "sha256": "7b65d68ad68c9afa53b4f85820a2fa69592131d871a50f3e28664c27d7d5c084"
+        }
+      ]
+    },
+    {
+      "stem": "pages/zapis-zadan-i-odpowiedzi-do-api",
+      "kind": "page",
+      "title": "Zapis żądań i odpowiedzi do API",
+      "version": null,
+      "requestFields": 0,
+      "responseFields": 0,
+      "files": [
+        {
+          "path": "pages/zapis-zadan-i-odpowiedzi-do-api.md",
+          "bytes": 2701,
+          "sha256": "309af88a4ffcdb81079107a91f198df489fa4888b31e765110e41c00bb917882"
+        },
+        {
+          "path": "pages/zapis-zadan-i-odpowiedzi-do-api.html",
+          "bytes": 4770,
+          "sha256": "7718f5b3972ea3f88ae6a3e9bc851594740af1cb4516ef52238a7a3c53b62f0e"
+        },
+        {
+          "path": "pages/zapis-zadan-i-odpowiedzi-do-api.json",
+          "bytes": 6565,
+          "sha256": "8ac34ffaaacfdb248bcf41dc8c2db531e3000aaa80701354875f91714eb8cb57"
+        },
+        {
+          "path": "pages/zapis-zadan-i-odpowiedzi-do-api.jpg",
+          "bytes": 297663,
+          "sha256": "8175910ea4704edbbed9b55b63a506ab0c59c1f9ab068890aaf983afa9807fd4"
+        }
+      ]
+    },
+    {
+      "stem": "pages/statystyki-api",
+      "kind": "page",
+      "title": "Statystyki API",
+      "version": null,
+      "requestFields": 0,
+      "responseFields": 0,
+      "files": [
+        {
+          "path": "pages/statystyki-api.md",
+          "bytes": 1642,
+          "sha256": "fccdfc32a5d03079c6677f4aae0b1ce4b6bdec7c861d92c8a117384fbb02ab9c"
+        },
+        {
+          "path": "pages/statystyki-api.html",
+          "bytes": 3617,
+          "sha256": "2a37e7b650fedc8db3941c93383be30eb10a273cbca1fc7688f496adb84dacd1"
+        },
+        {
+          "path": "pages/statystyki-api.json",
+          "bytes": 4241,
+          "sha256": "32e1e0eada9ee47f66d131f2630ad1b44e36cd9adb6b2aadef42ccee757a71b5"
+        },
+        {
+          "path": "pages/statystyki-api.jpg",
+          "bytes": 265874,
+          "sha256": "76bd11f8e0b884ef4a709c1fa32ff6ffa4bdb71df14768e3c6020ebd6089f3f1"
+        }
+      ]
+    },
+    {
+      "stem": "pages/kontakt-dla-developerow",
+      "kind": "page",
+      "title": "Kontakt dla Developerów IdoBooking",
+      "version": null,
+      "requestFields": 0,
+      "responseFields": 0,
+      "files": [
+        {
+          "path": "pages/kontakt-dla-developerow.md",
+          "bytes": 2287,
+          "sha256": "d5a4b9902d23b4d40b55e78e54e44040649c23e64d7f1a7384dc30375f598307"
+        },
+        {
+          "path": "pages/kontakt-dla-developerow.html",
+          "bytes": 4398,
+          "sha256": "351bf42bdf8ea8f8323a395c502bdeae9f872e306dad94c58aaa8c4c2a880173"
+        },
+        {
+          "path": "pages/kontakt-dla-developerow.json",
+          "bytes": 5996,
+          "sha256": "da44f549af23c5b8e7c52a2b466e565874979fd2601b5dc5242f7b38611a72c0"
+        },
+        {
+          "path": "pages/kontakt-dla-developerow.jpg",
+          "bytes": 231430,
+          "sha256": "62865da55241831262ff2ec88bb5f2760bbe9278f085c7fc138a2d32c9d90522"
+        }
+      ]
+    },
+    {
+      "stem": "pages/strona-menu-tpl-w-szablonach-wizytowki",
+      "kind": "page",
+      "title": "Lista dostępnych szablonów Wizytówki w Smarty",
+      "version": null,
+      "requestFields": 0,
+      "responseFields": 0,
+      "files": [
+        {
+          "path": "pages/strona-menu-tpl-w-szablonach-wizytowki.md",
+          "bytes": 2582,
+          "sha256": "c0ccd04dad613c85eb20ec982a1e8ec9fd1925f98af5879ae864e59e8d749384"
+        },
+        {
+          "path": "pages/strona-menu-tpl-w-szablonach-wizytowki.html",
+          "bytes": 6006,
+          "sha256": "9181fc76bcf33fc1f21d78a50105bb14807671084829912c61287d29ade4a258"
+        },
+        {
+          "path": "pages/strona-menu-tpl-w-szablonach-wizytowki.json",
+          "bytes": 10782,
+          "sha256": "8c59db753ee12e76a6293e9dfc464f4afc87d56170fe3d33d59abafbe90bb3c9"
+        },
+        {
+          "path": "pages/strona-menu-tpl-w-szablonach-wizytowki.jpg",
+          "bytes": 185058,
+          "sha256": "6363bf6392446178bf0e304cef48be9416b0d9ec1dac57ca1a6c85e01889c131"
+        }
+      ]
+    },
+    {
+      "stem": "api-v34/reservations/get",
+      "kind": "legacy-method",
+      "title": "Bramka Reservations/Metoda get",
+      "version": 34,
+      "requestFields": 36,
+      "responseFields": 100,
+      "files": [
+        {
+          "path": "api-v34/reservations/get.md",
+          "bytes": 19793,
+          "sha256": "d618675d5b4c1bfc80d0c7b01f0b8cd924f8af26c9a158cb9390bd24131e76f5"
+        },
+        {
+          "path": "api-v34/reservations/get.html",
+          "bytes": 71561,
+          "sha256": "d99ca8d3ef3a01ffe4bdd78214c760170d482bb9df7e4d45a58c0f43b3032769"
+        },
+        {
+          "path": "api-v34/reservations/get.json",
+          "bytes": 146630,
+          "sha256": "93b44e43bc48f563c3fd43dc608bf6a44cde1b012bf793765ebae3a0d1c2ab5c"
+        },
+        {
+          "path": "api-v34/reservations/get.php",
+          "bytes": 2847,
+          "sha256": "eca4fa76339b4d28f78b397f8fc55e80690ccaa28fe64f5d938724f647b6ceef"
+        },
+        {
+          "path": "api-v34/reservations/get.jpg",
+          "bytes": 1058164,
+          "sha256": "fedca768e91eb8e68e90cda42bf8a70d5011a9f0ede5988ee8d8703ba87c7315"
+        }
+      ]
+    },
+    {
+      "stem": "api-v34/reservations/getSources",
+      "kind": "legacy-method",
+      "title": "Bramka Reservations/Metoda getSources",
+      "version": 34,
+      "requestFields": 7,
+      "responseFields": 13,
+      "files": [
+        {
+          "path": "api-v34/reservations/getSources.md",
+          "bytes": 4148,
+          "sha256": "5ce70bba597e0c981e4d299f7acdaceb53efcd197dd1eecf67e86438337bd57c"
+        },
+        {
+          "path": "api-v34/reservations/getSources.html",
+          "bytes": 16428,
+          "sha256": "6e2e1d1af2d74c27cd6c05edaf05465fb115464eee59d5725a795e3c8594fe9c"
+        },
+        {
+          "path": "api-v34/reservations/getSources.json",
+          "bytes": 35666,
+          "sha256": "5c279869044511c79cd4b70d5f4c45c0dd6848d6bcf03eb015255dcee12b2cb9"
+        },
+        {
+          "path": "api-v34/reservations/getSources.php",
+          "bytes": 1206,
+          "sha256": "179cff0d9a376f90f2e34bef584a0aecf22906bad664dba71d280b860002833f"
+        },
+        {
+          "path": "api-v34/reservations/getSources.jpg",
+          "bytes": 351785,
+          "sha256": "f3ee5ed16719045d6f01bbd03556e48ccfb48fe44e0afec7971042064cacdd0a"
+        }
+      ]
+    },
+    {
+      "stem": "pages/poradnik-edycji-wizytowki",
+      "kind": "supplement",
+      "title": "Konfiguracja strony głównej",
+      "version": null,
+      "requestFields": 0,
+      "responseFields": 0,
+      "files": [
+        {
+          "path": "pages/poradnik-edycji-wizytowki.md",
+          "bytes": 3240,
+          "sha256": "996885d776fc07f6b39d68959b07c5060abb483a767947367e47c41fb393aadd"
+        },
+        {
+          "path": "pages/poradnik-edycji-wizytowki.html",
+          "bytes": 6716,
+          "sha256": "87a16cd8e279f547ccc6dc4537477904450461c5fd0564a0a8a8f1103c730fd9"
+        },
+        {
+          "path": "pages/poradnik-edycji-wizytowki.json",
+          "bytes": 8962,
+          "sha256": "58d1c5c068a0278843dc4963c59c7b5ab0c4ec3b40f9492f852cffb23f11f8d8"
+        },
+        {
+          "path": "pages/poradnik-edycji-wizytowki.jpg",
+          "bytes": 466476,
+          "sha256": "ec83053626a724e43414a6da08b07cded04a85a535233b4302f2e07b35e5b191"
+        }
+      ]
+    }
+  ],
+  "userReferenceScreenshots": 10
+}

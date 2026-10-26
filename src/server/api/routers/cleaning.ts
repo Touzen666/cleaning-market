@@ -3,6 +3,9 @@ import { z } from "zod";
 import { createTRPCRouter, publicProcedure, adminProcedure } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { env } from "@/env";
+import { cleaningAccess, listCleaningCandidates } from "./cleaning-candidates";
+import { listCleaningOverview } from "./cleaning-overview";
+import { cleaningWorkforceRouter } from "./cleaning-workforce";
 
 function stripRoomFromName(apartmentName: string, roomCode?: string | null) {
     if (!apartmentName || !roomCode) return apartmentName;
@@ -12,6 +15,10 @@ function stripRoomFromName(apartmentName: string, roomCode?: string | null) {
 }
 
 export const cleaningRouter = createTRPCRouter({
+    workforce: cleaningWorkforceRouter,
+    access: cleaningAccess,
+    listCandidates: listCleaningCandidates,
+    listOverview: listCleaningOverview,
     listJobs: publicProcedure
         .input(
             z

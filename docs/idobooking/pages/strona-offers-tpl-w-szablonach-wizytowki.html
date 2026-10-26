@@ -1,0 +1,224 @@
+<!doctype html><html lang="pl"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Strona offers.tpl w szablonach Wizytówki</title><style>body{font:16px/1.65 system-ui,sans-serif;color:#21302d;margin:0;background:#f5f7f5}main{max-width:1120px;margin:30px auto;background:white;padding:36px;border-radius:12px}a{color:#087f5b}h1{line-height:1.2}h2{margin-top:2em}table{width:100%;border-collapse:collapse;font-size:14px}td,th{border:1px solid #d9e2df;padding:10px;text-align:left;vertical-align:top}th{background:#edf5f0}code,pre{font-family:Consolas,monospace}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#eef3f1;padding:20px}img{max-width:100%;height:auto}.meta{padding:14px;background:#edf5f0}.api_details_item_inner{display:grid;grid-template-columns:minmax(190px,40%) 1fr;border-bottom:1px solid #ddd;padding:12px;gap:16px}.api_details_item_sub{margin-left:18px;border-left:2px solid #a9cdbb;padding-left:8px}.api_required.required_after:after{content:' *';color:#b62323}.api_method_header{background:#edf5f0;padding:12px;margin-top:24px}input{padding:12px;font:inherit;width:90%;max-width:700px}.index li{margin:6px 0}.notice{background:#fff5d7;padding:14px}nav{margin-bottom:24px}@media(max-width:700px){main{padding:16px}.api_details_item_inner{display:block}td,th{padding:5px}}</style><main><nav><a href="../index.html">← Spis dokumentacji</a></nav><h1>Strona offers.tpl w szablonach Wizytówki</h1><p class="meta">Źródło: <a href="https://api.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/strona-offers-tpl-w-szablonach-wizytowki/">iDoBooking</a> · Kopia: 24.10.2026 · <a href="strona-offers-tpl-w-szablonach-wizytowki.jpg">Pełny zrzut</a> · <a href="strona-offers-tpl-w-szablonach-wizytowki.md">Markdown</a></p><div class="content__collapse col-md-9"> 
+<h3 id="toc6668" class="old_wiki"> <b>$objects</b> - przedmioty rezerwacji</h3>
+
+
+<table class="responsive">
+    <tbody><tr class="simple-table-row">
+        <th class="simple-table-head"><b>Zmienna</b></th>
+        <th class="simple-table-head"><b>Opis</b></th>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$objects[item]</td>
+        <td class="simple-table-body">Blok zmiennych dla przedmiotu rezerwacji</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$objects[item]['id']</td>
+        <td class="simple-table-body">Identyfikator przedmiotu rezerwacji</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$objects[item]['aggregated']</td>
+        <td class="simple-table-body">Określa czy przedmiot rezerwacji została zaimportowany z innego panelu IdoBooking</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$objects[item]['pkwiu']</td>
+        <td class="simple-table-body">PKWiU przedmiotu rezerwacji</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$objects[item]['object_type_id']</td>
+        <td class="simple-table-body">Identyfikator typu przedmiotu rezerwacji</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$objects[item]['type_name']</td>
+        <td class="simple-table-body">Nazwa typu przedmiotu rezerwacji</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$objects[item]['code_at_site']</td>
+        <td class="simple-table-body">Kod przedmiotu rezerwacji wyświetlany na stronie wizytówce</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$objects[item]['visible_at_site']</td>
+        <td class="simple-table-body">Określa czy przedmiot rezerwacji jest widoczny na stronie wizytówki</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$objects[item]['visible_at_external_services']</td>
+        <td class="simple-table-body">Określa czy przedmiot rezerwacji jest widoczny na serwisach zewnętrznych</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$objects[item]['priority']</td>
+        <td class="simple-table-body">Priorytet przedmiotu rezerwacji</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$objects[item]['vat']</td>
+        <td class="simple-table-body">Stawka VAT przedmiotu rezerwacji</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$objects[item]['currency_id']</td>
+        <td class="simple-table-body">Identyfikator waluty przedmiotu rezerwacji</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$objects[item]['active']</td>
+        <td class="simple-table-body">Określa czy przedmiot rezerwacji jest aktywny</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$objects[item]['capacity']</td>
+        <td class="simple-table-body">Maksymalna pojemność przedmiotu rezerwacji</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$objects[item]['roll_away_beds']</td>
+        <td class="simple-table-body">Liczba dostawek przedmiotu rezerwacji</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$objects[item]['name']</td>
+        <td class="simple-table-body">Nazwa przedmiotu rezerwacji</td>
+    </tr>
+</tbody></table>
+
+
+<h3 id="toc6669" class="old_wiki"> <b>$objects[item]['descriptions']</b> - opisy przedmiotów rezerwacji</h3>
+
+
+<table class="responsive">
+    <tbody><tr class="simple-table-row">
+        <th class="simple-table-head"><b>Zmienna</b></th>
+        <th class="simple-table-head"><b>Opis</b></th>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$objects[item]['descriptions'][language]</td>
+        <td class="simple-table-body">Blok zmiennych dla opisów przedmiotów rezerwacji</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$objects[item]['descriptions'][language]['object_id']</td>
+        <td class="simple-table-body">Identyfikator przedmiotu rezerwacji w języku</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$objects[item]['descriptions'][language]['language_id']</td>
+        <td class="simple-table-body">Identyfikator języka opisu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$objects[item]['descriptions'][language]['name']</td>
+        <td class="simple-table-body">Nazwa przedmiotu rezerwacji</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$objects[item]['descriptions'][language]['short_description']</td>
+        <td class="simple-table-body">Opis krótki przedmiotu rezerwacji</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$objects[item]['descriptions'][language]['long_description']</td>
+        <td class="simple-table-body">Opis długi przedmiotu rezerwacji</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$objects[item]['descriptions'][language]['meta_title']</td>
+        <td class="simple-table-body">Tytuł znacznika META przedmiotu rezerwacji</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$objects[item]['descriptions'][language]['meta_description']</td>
+        <td class="simple-table-body">Opis znacznika META przedmiotu rezerwacji</td>
+    </tr>
+</tbody></table>
+
+
+<h3 id="toc6670" class="old_wiki"> <b>$objects[item]['objectPicture'][picture]</b> - galeria przedmiotu rezerwacji</h3>
+
+
+<table class="responsive">
+    <tbody><tr class="simple-table-row">
+        <th class="simple-table-head"><b>Zmienna</b></th>
+        <th class="simple-table-head"><b>Opis</b></th>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$objects[item]['objectPicture'][picture]['url']</td>
+        <td class="simple-table-body">Adres zdjęcia/filmu przedmiotu rezerwacji</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$objects[item]['objectPicture'][picture]['type']</td>
+        <td class="simple-table-body">Typ (picture lub video) przedmiotu rezerwacji</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$objects[item]['objectPicture'][picture]['thumbnail']</td>
+        <td class="simple-table-body">Miniatura dla typu video przedmiotu rezerwacji</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$objects[item]['objectPicture'][picture]['miniature']</td>
+        <td class="simple-table-body">Miniatura dla typu picture</td>
+    </tr>
+</tbody></table>
+
+
+<h3 id="toc6671" class="old_wiki"> <b>$specialOffers</b> - zestawy</h3>
+
+
+<table class="responsive">
+    <tbody><tr class="simple-table-row">
+        <th class="simple-table-head"><b>Zmienna</b></th>
+        <th class="simple-table-head"><b>Opis</b></th>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$specialOffers[offer]</td>
+        <td class="simple-table-body">Blok zmiennych dla zestawu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$specialOffers[offer]['id']</td>
+        <td class="simple-table-body">Identyfikator zestawu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$specialOffers[offer]['name']</td>
+        <td class="simple-table-body">Nazwa zestawu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$specialOffers[offer]['maxCapacity']</td>
+        <td class="simple-table-body">Maksymalna pojemność zestawu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$specialOffers[offer]['shortDescription']</td>
+        <td class="simple-table-body">Krótki opis zestawu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$specialOffers[offer]['pictures'][picture]</td>
+        <td class="simple-table-body">Blok zmiennych dla elementu galerii zestawu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$specialOffers[offer]['pictures'][picture]['miniature']</td>
+        <td class="simple-table-body">Adres miniatury dla typu picture zestawu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$specialOffers[offer]['pictures'][picture]['url']</td>
+        <td class="simple-table-body">Adres zdjęcia/filmu zestawu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$specialOffers[offer]['pictures'][picture]['type']</td>
+        <td class="simple-table-body">Typ (picture lub video) zestawu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$specialOffers[offer]['pictures'][picture]['thumbnail']</td>
+        <td class="simple-table-body">Adres miniatury dla typu video zestawu</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$specialOffers[offer]['url']</td>
+        <td class="simple-table-body">Link do zestawu</td>
+    </tr>
+</tbody></table>
+
+
+<h3 id="toc6672" class="old_wiki"> <b>Pozostałe zmienne</b></h3>
+
+
+<table class="responsive">
+    <tbody><tr class="simple-table-row">
+        <th class="simple-table-head"><b>Zmienna</b></th>
+        <th class="simple-table-head"><b>Opis</b></th>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$object['objectPrices']['priceMinInFormat’]</td>
+        <td class="simple-table-body">Minimalna cena przedmiotu rezerwacji, po której jest możliwy do rezerwacji w okresie najbliższych 3 miesięcy</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$offerCategories</td>
+        <td class="simple-table-body">Lista kategorii przypisanych do poszczególnych przedmiotów rezerwacji</td>
+    </tr>
+    <tr class="simple-table-row">
+        <td class="simple-table-body">$objectsAndOffersWithPrioritys</td>
+        <td class="simple-table-body">Piorytety wyświetlania ofert</td>
+    </tr>
+</tbody></table>
+
+</div></main></html>

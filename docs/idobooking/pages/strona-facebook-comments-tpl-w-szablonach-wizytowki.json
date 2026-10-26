@@ -1,0 +1,35 @@
+{
+  "title": "Strona facebook-comments.tpl w szablonach Wizytówki",
+  "url": "https://api.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/strona-facebook-comments-tpl-w-szablonach-wizytowki/",
+  "kind": "page",
+  "height": 1561,
+  "html": "<div class=\"content__collapse col-md-9\"> <ul class=\"old_wiki\">\n    <li>ten szablon służy do zaprezentowania wtyczki komentarzy Facebook</li>\n</ul>\n\n</div>",
+  "links": [
+    {
+      "title": "Dział dla developerów",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "Szablony własne Wizytówki w Smarty",
+      "url": "https://api.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/"
+    },
+    {
+      "title": "Lista szablonów Wizytówki w Smarty",
+      "url": "https://api.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/"
+    },
+    {
+      "title": "Najlepsze rozwiązania do sprzedaży w internecie\n                        \n                            \n                                    \n                                \n                            \n                            \n                                Narzędzia dla Developerów\n                                IdoBooking",
+      "url": "https://api.idobooking.com/pl/developers/"
+    }
+  ],
+  "text": "ten szablon służy do zaprezentowania wtyczki komentarzy Facebook",
+  "capturedAt": "2026-10-24T18:10:11.690Z",
+  "version": null,
+  "description": "",
+  "source": {
+    "url": "https://api.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/strona-facebook-comments-tpl-w-szablonach-wizytowki/",
+    "capturedAt": "2026-10-24T18:10:11.690Z",
+    "transport": "authenticated Chrome HTTPS session",
+    "format": null
+  }
+}

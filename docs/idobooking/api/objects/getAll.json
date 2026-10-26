@@ -1,0 +1,681 @@
+{
+  "title": "Bramka Objects/Metoda getAll",
+  "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=getAll##",
+  "kind": "method",
+  "gateway": "objects",
+  "height": 5932,
+  "html": "<div class=\"content__collapse col-md-9\"> \n          <div class=\"d-flex justify-content-between align-items-center mb-3\">\n            <span class=\"api_title mb-0\">Dokumentacja API Booking</span>   \n            <div class=\"show_list_link\"></div>\n          </div>\n        \n            \n        \n            <div id=\"documentation_background\">\n                <div class=\"content shop api_docs\">\n                    <div class=\"container white_bg\" data-equalizer=\"\">\n        \n        <div class=\"api_content row\" data-equalizer-watch=\"\"><div class=\"col-12 mb-5\"><p class=\"api_short_description\">\nZwraca informacje o wszystkich przedmiotach rezerwacji.\n\n\n</p></div><div class=\"apiDesc col-12 mb-5\">\n            <div id=\"format_type\" class=\"tabs\">\n                \n        <div class=\"tabs__content\"><div id=\"tab1\" class=\"tabs__element --shown\">\n            <div id=\"api_method_adresses\" class=\"mb-5\">\n                <div class=\"api_method_header px-3 d-flex align-items-center\">\n                    <i class=\"icon-info-circled\"></i>\n                    <strong>Adresy</strong>\n                </div>\n        \n              <div class=\"api_method_row\">\n                <div class=\"row align-items-center py-3\">\n                    <div class=\"col-3 pl-5\">\n                        <strong>Nasłuch</strong>\n                    </div>\n                    <div class=\"col-9 col-sm-7\">\n                        <a href=\"https://client1679.idosell.com/api/objects/getAll/36/json\" class=\"api_link\" id=\"copyTarget_0json\">https://_domena_booking_.idosell.com/api/objects/getAll/36/json</a>\n                    </div>\n                    <div class=\"col-12 col-sm-2 d-flex justify-content-end\">\n                        \n                    </div>\n                \n                    </div>\n                </div>\n            </div>\n        \n        <div id=\"api_method_request_json\" class=\"mb-5\"><div class=\"api_method_header px-3\"><div class=\"api_method_header_left d-flex flex-wrap justify-content-center justify-content-sm-between align-items-center\"><div><i class=\"icon-code\"></i> \n            <strong>Struktura żądania</strong></div></div></div><div id=\"api_method_request_content\" class=\"api_details visible\">\n                <div class=\"api_details_item open\" data-parameter-name=\"authenticate\">\n                    <div class=\"api_details_item_inner level0 toggle\">\n                        <strong class=\"api_required required_after\">authenticate <span>(authenticateType)</span></strong>\n                        <span><p>Element służy do uwierzytelniania konta w celu wywołania metody</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"systemKey\">\n                    <div class=\"api_details_item_inner level1\">\n                        <strong class=\"api_required required_after\">systemKey <span>(string)</span></strong>\n                        <span><p>Klucz wykorzystywany podczas uwierzytelniania. Zapoznaj się z <a href=\"https://pomoc.idobooking.com/dodatkowe-moduly/api\">instrukcją generowania klucza</a></p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"systemLogin\">\n                    <div class=\"api_details_item_inner level1\">\n                        <strong class=\"api_required required_after\">systemLogin <span>(string)</span></strong>\n                        <span><p>Login użytkownika panelu IdoSell Booking</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"lang\">\n                    <div class=\"api_details_item_inner level1\">\n                        <strong class=\"\">lang <span>(apiLanguage)</span></strong>\n                        <span><p>\n                    <span>Możliwe wartości:\n                    </span> (<i>eng, pol, ger</i>)</p><p>Język API, możliwe wartości:\n                        - eng - angielski\n                        - pol - polski\n                        - ger - niemiecki</p></span>\n                    </div>\n        </div></div></div>\n                <div class=\"api_details_item open\" data-parameter-name=\"result\">\n                    <div class=\"api_details_item_inner level0 toggle\">\n                        <strong class=\"\">result <span>(resultRequestType)</span></strong>\n                        <span><p>Parametry dotyczące zwracanych wyników</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"page\">\n                    <div class=\"api_details_item_inner level1\">\n                        <strong class=\"\">page <span>(int)</span></strong>\n                        <span><p>Numer strony z wynikami. Numeracja rozpoczyna się od 1</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"number\">\n                    <div class=\"api_details_item_inner level1\">\n                        <strong class=\"\">number <span>(int)</span></strong>\n                        <span><p>Liczba wyników zwracanych na stronie (maksymalna wartość to 100)</p></span>\n                    </div>\n        </div></div></div></div></div>\n        <div id=\"api_method_response_json\" class=\"mb-5\"><div class=\"api_method_header px-3\"><div class=\"api_method_header_left d-flex flex-wrap justify-content-center justify-content-sm-between align-items-center\"><div><i class=\"icon-code\"></i> \n            <strong>Struktura odpowiedzi</strong></div></div></div><div id=\"api_method_response_content\" class=\"api_details visible\">\n                <div class=\"api_details_item open\" data-parameter-name=\"authenticate\">\n                    <div class=\"api_details_item_inner level0 toggle\">\n                        <strong class=\"api_required required_after\">authenticate <span>(authenticateType)</span></strong>\n                        <span><p>Element służy do uwierzytelniania konta w celu wywołania metody</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"systemKey\">\n                    <div class=\"api_details_item_inner level1\">\n                        <strong class=\"api_required required_after\">systemKey <span>(string)</span></strong>\n                        <span><p>Klucz wykorzystywany podczas uwierzytelniania. Zapoznaj się z <a href=\"https://pomoc.idobooking.com/dodatkowe-moduly/api\">instrukcją generowania klucza</a></p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"systemLogin\">\n                    <div class=\"api_details_item_inner level1\">\n                        <strong class=\"api_required required_after\">systemLogin <span>(string)</span></strong>\n                        <span><p>Login użytkownika panelu IdoSell Booking</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"lang\">\n                    <div class=\"api_details_item_inner level1\">\n                        <strong class=\"\">lang <span>(apiLanguage)</span></strong>\n                        <span><p>\n                    <span>Możliwe wartości:\n                    </span> (<i>eng, pol, ger</i>)</p><p>Język API, możliwe wartości:\n                        - eng - angielski\n                        - pol - polski\n                        - ger - niemiecki</p></span>\n                    </div>\n        </div></div></div>\n                <div class=\"api_details_item open\" data-parameter-name=\"errors\">\n                    <div class=\"api_details_item_inner level0 toggle\">\n                        <strong class=\"\">errors <span>(gateErrorType)</span></strong>\n                        <span><p>Lista kodów błędów</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"faultCode\">\n                    <div class=\"api_details_item_inner level1\">\n                        <strong class=\"\">faultCode <span>(int)</span></strong>\n                        <span><p>Kod błędu</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"faultString\">\n                    <div class=\"api_details_item_inner level1\">\n                        <strong class=\"\">faultString <span>(string)</span></strong>\n                        <span><p>Opis błędu</p></span>\n                    </div>\n        </div></div></div>\n                <div class=\"api_details_item open\" data-parameter-name=\"objects\">\n                    <div class=\"api_details_item_inner level0 toggle\">\n                        <strong class=\"\">objects <span>(objectTypeArray)</span></strong>\n                        <span><p>Miejsca noclegowe</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item open\" data-parameter-name=\"objectType\">\n                    <div class=\"api_details_item_inner level1 toggle\">\n                        <strong class=\"api_required required_after\"> <span>(objectType)</span></strong>\n                        <span><p>element typu objectType</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"id\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"api_required required_after\">id <span>(int)</span></strong>\n                        <span><p>Identyfikator</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"name\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"api_required required_after\">name <span>(string)</span></strong>\n                        <span><p>Nazwa</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"capacity\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"api_required required_after\">capacity <span>(int)</span></strong>\n                        <span><p>Pojemność przedmiotu rezerwacji</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"area\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"api_required required_after\">area <span>(string)</span></strong>\n                        <span><p>Powierzchnia w metrach kwadratowych</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"minCapacity\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"api_required required_after\">minCapacity <span>(int)</span></strong>\n                        <span><p>Minimalna ilość osób</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"pricesPerPersons\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"api_required required_after\">pricesPerPersons <span>(boolean)</span></strong>\n                        <span><p>Cena zależna od liczby osób</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"bedroomsCount\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"api_required required_after\">bedroomsCount <span>(int)</span></strong>\n                        <span><p>Liczba sypialni</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"priceRules\">\n                    <div class=\"api_details_item_inner level2\">\n                        <strong class=\"api_required required_after\">priceRules <span>(boolean)</span></strong>\n                        <span><p>Informacja czy obiekt konfiguruje ceny za pomocą automatycznych reguł cenowych</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item open\" data-parameter-name=\"beds\">\n                    <div class=\"api_details_item_inner level2 toggle\">\n                        <strong class=\"\">beds <span>(bedsConfigurationArray)</span></strong>\n                        <span><p>Rodzaj łóżek przypisanych do miejsca noclegowego</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item open\" data-parameter-name=\"bedConfigurationArray\">\n                    <div class=\"api_details_item_inner level3 toggle\">\n                        <strong class=\"api_required required_after\"> <span>(bedConfigurationArray)</span></strong>\n                        <span><p>element typu bedConfigurationArray</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"count\">\n                    <div class=\"api_details_item_inner level4\">\n                        <strong class=\"api_required required_after\">count <span>(int)</span></strong>\n                        <span><p>Liczba łóżek danego rodzaju</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"bedType\">\n                    <div class=\"api_details_item_inner level4\">\n                        <strong class=\"api_required required_after\">bedType <span>(bedTypeType)</span></strong>\n                        <span><p>\n                    <span>Możliwe wartości:\n                    </span> (<i>single, futon, murphyBed, queen, double, king, sofaBed, singleSofa, roll_away_bed, bunkBed</i>)</p><p></p></span>\n                    </div>\n        </div></div></div></div></div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item open\" data-parameter-name=\"categories\">\n                    <div class=\"api_details_item_inner level2 toggle\">\n                        <strong class=\"\">categories <span>(categoryTypeArray)</span></strong>\n                        <span><p></p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item open\" data-parameter-name=\"categoryType\">\n                    <div class=\"api_details_item_inner level3 toggle\">\n                        <strong class=\"api_required required_after\"> <span>(categoryType)</span></strong>\n                        <span><p>element typu categoryType</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"id\">\n                    <div class=\"api_details_item_inner level4\">\n                        <strong class=\"api_required required_after\">id <span>(int)</span></strong>\n                        <span><p>Identyfikator</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"name\">\n                    <div class=\"api_details_item_inner level4\">\n                        <strong class=\"api_required required_after\">name <span>(string)</span></strong>\n                        <span><p>Nazwa</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"isActive\">\n                    <div class=\"api_details_item_inner level4\">\n                        <strong class=\"api_required required_after\">isActive <span>(isActiveType)</span></strong>\n                        <span><p>\n                    <span>Możliwe wartości:\n                    </span> (<i>n, y</i>)</p><p>Czy aktywna</p></span>\n                    </div>\n        </div></div></div></div></div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item open\" data-parameter-name=\"items\">\n                    <div class=\"api_details_item_inner level2 toggle\">\n                        <strong class=\"\">items <span>(itemTypeArray)</span></strong>\n                        <span><p>Egzemplarze przedmiotu rezerwacji</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item open\" data-parameter-name=\"itemType\">\n                    <div class=\"api_details_item_inner level3 toggle\">\n                        <strong class=\"api_required required_after\"> <span>(itemType)</span></strong>\n                        <span><p>element typu itemType</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"id\">\n                    <div class=\"api_details_item_inner level4\">\n                        <strong class=\"\">id <span>(int)</span></strong>\n                        <span><p>Identyfikator</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"name\">\n                    <div class=\"api_details_item_inner level4\">\n                        <strong class=\"\">name <span>(string)</span></strong>\n                        <span><p>Nazwa</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"capacity\">\n                    <div class=\"api_details_item_inner level4\">\n                        <strong class=\"\">capacity <span>(int)</span></strong>\n                        <span><p>Pojemność przedmiotu rezerwacji</p></span>\n                    </div>\n        </div></div></div></div></div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item open\" data-parameter-name=\"addons\">\n                    <div class=\"api_details_item_inner level2 toggle\">\n                        <strong class=\"\">addons <span>(addonTypeArray)</span></strong>\n                        <span><p>Dodatki</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item open\" data-parameter-name=\"addonType\">\n                    <div class=\"api_details_item_inner level3 toggle\">\n                        <strong class=\"api_required required_after\"> <span>(addonType)</span></strong>\n                        <span><p>element typu addonType</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"id\">\n                    <div class=\"api_details_item_inner level4\">\n                        <strong class=\"\">id <span>(int)</span></strong>\n                        <span><p>Identyfikator</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"name\">\n                    <div class=\"api_details_item_inner level4\">\n                        <strong class=\"\">name <span>(string)</span></strong>\n                        <span><p>Nazwa</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"costless\">\n                    <div class=\"api_details_item_inner level4\">\n                        <strong class=\"\">costless <span>(boolean)</span></strong>\n                        <span><p>Czy bezpłatny</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"optional\">\n                    <div class=\"api_details_item_inner level4\">\n                        <strong class=\"\">optional <span>(boolean)</span></strong>\n                        <span><p>Niekonieczny</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"hasVariants\">\n                    <div class=\"api_details_item_inner level4\">\n                        <strong class=\"api_required required_after\">hasVariants <span>(boolean)</span></strong>\n                        <span><p>dodatek z wieloma wartościami / cenami</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"currency\">\n                    <div class=\"api_details_item_inner level4\">\n                        <strong class=\"\">currency <span>(string)</span></strong>\n                        <span><p>Kod waluty zgodny z ISO 4217 Przykład: PLN, EUR</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"price\">\n                    <div class=\"api_details_item_inner level4\">\n                        <strong class=\"\">price <span>(float)</span></strong>\n                        <span><p>Cena</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"type\">\n                    <div class=\"api_details_item_inner level4\">\n                        <strong class=\"\">type <span>(string)</span></strong>\n                        <span><p>Typ</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"personType\">\n                    <div class=\"api_details_item_inner level4\">\n                        <strong class=\"\">personType <span>(personTypeType)</span></strong>\n                        <span><p>\n                    <span>Możliwe wartości:\n                    </span> (<i>adults, big_children, small_children</i>)</p><p>Dodatek naliczany tylko dla konkretnego typu osoby, możliwe wartości:\n        - adults - dorośli\n        - big_children - starsze dzieci\n        - small_children - małe dzieci</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item open\" data-parameter-name=\"names\">\n                    <div class=\"api_details_item_inner level4 toggle\">\n                        <strong class=\"api_required required_after\">names <span>(addonNameArray)</span></strong>\n                        <span><p>Lista nazw dla włączonych języków</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item open\" data-parameter-name=\"addonNameItem\">\n                    <div class=\"api_details_item_inner level5 toggle\">\n                        <strong class=\"api_required required_after\"> <span>(addonNameItem)</span></strong>\n                        <span><p>element typu addonNameItem</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"languageCode\">\n                    <div class=\"api_details_item_inner level6\">\n                        <strong class=\"api_required required_after\">languageCode <span>(string)</span></strong>\n                        <span><p>Kod języka</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"name\">\n                    <div class=\"api_details_item_inner level6\">\n                        <strong class=\"api_required required_after\">name <span>(string)</span></strong>\n                        <span><p>Nazwa</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"description\">\n                    <div class=\"api_details_item_inner level6\">\n                        <strong class=\"api_required required_after\">description <span>(string)</span></strong>\n                        <span><p>Opis</p></span>\n                    </div>\n        </div></div></div></div></div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item open\" data-parameter-name=\"variants\">\n                    <div class=\"api_details_item_inner level4 toggle\">\n                        <strong class=\"\">variants <span>(variantsTypeArray)</span></strong>\n                        <span><p></p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item open\" data-parameter-name=\"variantItem\">\n                    <div class=\"api_details_item_inner level5 toggle\">\n                        <strong class=\"api_required required_after\"> <span>(variantItem)</span></strong>\n                        <span><p>element typu variantItem</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"currency\">\n                    <div class=\"api_details_item_inner level6\">\n                        <strong class=\"api_required required_after\">currency <span>(string)</span></strong>\n                        <span><p>Kod waluty zgodny z ISO 4217 Przykład: PLN, EUR</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"price\">\n                    <div class=\"api_details_item_inner level6\">\n                        <strong class=\"api_required required_after\">price <span>(float)</span></strong>\n                        <span><p>Cena</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"id\">\n                    <div class=\"api_details_item_inner level6\">\n                        <strong class=\"api_required required_after\">id <span>(int)</span></strong>\n                        <span><p>Identyfikator</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item open\" data-parameter-name=\"names\">\n                    <div class=\"api_details_item_inner level6 toggle\">\n                        <strong class=\"api_required required_after\">names <span>(addonNameArray)</span></strong>\n                        <span><p>Lista nazw dla włączonych języków</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item open\" data-parameter-name=\"addonNameItem\">\n                    <div class=\"api_details_item_inner level7 toggle\">\n                        <strong class=\"api_required required_after\"> <span>(addonNameItem)</span></strong>\n                        <span><p>element typu addonNameItem</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"languageCode\">\n                    <div class=\"api_details_item_inner level8\">\n                        <strong class=\"api_required required_after\">languageCode <span>(string)</span></strong>\n                        <span><p>Kod języka</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"name\">\n                    <div class=\"api_details_item_inner level8\">\n                        <strong class=\"api_required required_after\">name <span>(string)</span></strong>\n                        <span><p>Nazwa</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"description\">\n                    <div class=\"api_details_item_inner level8\">\n                        <strong class=\"api_required required_after\">description <span>(string)</span></strong>\n                        <span><p>Opis</p></span>\n                    </div>\n        </div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div></div>\n                <div class=\"api_details_item open\" data-parameter-name=\"result\">\n                    <div class=\"api_details_item_inner level0 toggle\">\n                        <strong class=\"\">result <span>(resultResponseType)</span></strong>\n                        <span><p>Parametry dotyczące zwracanych wyników</p></span>\n                    </div>\n        \n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"page\">\n                    <div class=\"api_details_item_inner level1\">\n                        <strong class=\"\">page <span>(int)</span></strong>\n                        <span><p>Numer strony z wynikami. Numeracja rozpoczyna się od 1</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"countOnPage\">\n                    <div class=\"api_details_item_inner level1\">\n                        <strong class=\"\">countOnPage <span>(int)</span></strong>\n                        <span><p>Ilość wyników na stronie</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"pageAll\">\n                    <div class=\"api_details_item_inner level1\">\n                        <strong class=\"\">pageAll <span>(int)</span></strong>\n                        <span><p>Suma wyników na stronie</p></span>\n                    </div>\n        </div></div>\n            <div class=\"api_details_item_sub\">\n            \n                <div class=\"api_details_item\" data-parameter-name=\"countAll\">\n                    <div class=\"api_details_item_inner level1\">\n                        <strong class=\"\">countAll <span>(int)</span></strong>\n                        <span><p>Suma wszystkich wyników</p></span>\n                    </div>\n        </div></div></div></div></div>\n        <div id=\"php-example_json\" class=\"code_example mb-5\"><div class=\"api_method_header px-3\"><div class=\"api_method_header_left d-flex flex-wrap justify-content-center justify-content-sm-between align-items-center\"><div><i class=\"icon-file-code\"></i> \n            <strong>Przykład kodu w PHP</strong></div></div></div><div class=\"api_details visible\">\n                <div id=\"php-example_content_json\">\n                    <pre class=\"highlight-code hljs php\"><span class=\"hljs-meta\">&lt;?php</span>\n\n$address = <span class=\"hljs-string\">'https://client1679.idobooking.com/api/objects/getAll/36/json'</span>;\n\n$request = <span class=\"hljs-keyword\">array</span>();\n$request[<span class=\"hljs-string\">'authenticate'</span>] = <span class=\"hljs-keyword\">array</span>();\n$request[<span class=\"hljs-string\">'authenticate'</span>][<span class=\"hljs-string\">'systemKey'</span>] = sha1(date(<span class=\"hljs-string\">'Ymd'</span>) . sha1(<span class=\"hljs-string\">'YOUR_KEY'</span>));\n$request[<span class=\"hljs-string\">'authenticate'</span>][<span class=\"hljs-string\">'systemLogin'</span>] = <span class=\"hljs-string\">\"systemLogin\"</span>;\n$request[<span class=\"hljs-string\">'authenticate'</span>][<span class=\"hljs-string\">'lang'</span>] = <span class=\"hljs-string\">'eng'</span>;\n$request[<span class=\"hljs-string\">'result'</span>] = <span class=\"hljs-keyword\">array</span>();\n$request[<span class=\"hljs-string\">'result'</span>][<span class=\"hljs-string\">'page'</span>] = <span class=\"hljs-number\">1</span>;\n$request[<span class=\"hljs-string\">'result'</span>][<span class=\"hljs-string\">'number'</span>] = <span class=\"hljs-number\">2</span>;\n\n$request_json = json_encode($request);\n$headers = <span class=\"hljs-keyword\">array</span>(\n    <span class=\"hljs-string\">'Accept: application/json'</span>,\n    <span class=\"hljs-string\">'Content-Type: application/json;charset=UTF-8'</span>\n);\n\n$curl = curl_init($address);\ncurl_setopt($curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, <span class=\"hljs-number\">1</span>);\ncurl_setopt($curl, CURLOPT_SSL_VERIFYPEER, <span class=\"hljs-keyword\">false</span>);\ncurl_setopt($curl, CURLOPT_SSL_VERIFYHOST, <span class=\"hljs-keyword\">false</span>);\ncurl_setopt($curl, CURLOPT_FORBID_REUSE, <span class=\"hljs-number\">1</span>);\ncurl_setopt($curl, CURLINFO_HEADER_OUT, <span class=\"hljs-number\">1</span>);\ncurl_setopt($curl, CURLOPT_HEADER, <span class=\"hljs-number\">1</span>);\ncurl_setopt($curl, CURLOPT_POST, <span class=\"hljs-number\">1</span>);\ncurl_setopt($curl, CURLOPT_POSTFIELDS, $request_json);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, $headers);\n\n$response = curl_exec($curl);\n$status = curl_getinfo($curl);\ncurl_close($curl);\n       </pre>\n                </div>\n            </div></div>\n        <div id=\"api_changelog_json\" class=\"mb-5\"><h2>Historia zmian</h2><p>W rozwiniętej historii metody nie wyświetlono wpisów zmian; dostępny był formularz porównywania wersji.</p></div></div></div></div>\n                        </div>\n                    </div>\n                </div>\n            </div>\n        \n            \n        </div></div>",
+  "links": [
+    {
+      "title": "Narzędzia dla Developerów",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "API Admin",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/"
+    },
+    {
+      "title": "Bramka Objects",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=documentation&function=objects"
+    },
+    {
+      "title": "Najlepsze rozwiązania do sprzedaży w internecie\n                        \n                            \n                                    \n                                \n                            \n                            \n                                Narzędzia dla Developerów\n                                IdoBooking",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "Wybierz inną dokumentację",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=getAll#"
+    },
+    {
+      "title": "Dokumentacja API Admin",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/"
+    },
+    {
+      "title": "Dokumentacja API Customer",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "Dokumentacja API Marketplace",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "Dokumentacja API Storefront",
+      "url": "https://api.idobooking.com/pl/developers/storefront-documentation/"
+    },
+    {
+      "title": "Dokumentacja Smarty",
+      "url": "https://api.idobooking.com/pl/developers/smarty-documentation/"
+    },
+    {
+      "title": "sprawdź historię zmian",
+      "url": "https://api.idobooking.com/pl/developers/api/?branch=booking&action=changelog"
+    },
+    {
+      "title": "Objects",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=documentation&function=objects"
+    },
+    {
+      "title": "SOAP",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=getAll#tab0"
+    },
+    {
+      "title": "JSON",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=getAll#tab1"
+    },
+    {
+      "title": "https://_domena_booking_.idosell.com/api/objects/getAll/36/soap",
+      "url": "https://client1679.idosell.com/api/objects/getAll/36/soap"
+    },
+    {
+      "title": "kopiuj",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=getAll#copyContentHref"
+    },
+    {
+      "title": "https://_domena_booking_.idosell.com/api/objects/getAll/36/soap/wsdl/pol",
+      "url": "https://client1679.idosell.com/api/objects/getAll/36/soap/wsdl/pol"
+    },
+    {
+      "title": "kopiuj",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=getAll#copyContentHref"
+    },
+    {
+      "title": "rozwiń wszystkie węzły",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=getAll##"
+    },
+    {
+      "title": "zwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=getAll##"
+    },
+    {
+      "title": "instrukcją generowania klucza",
+      "url": "https://pomoc.idobooking.com/dodatkowe-moduly/api"
+    },
+    {
+      "title": "rozwiń wszystkie węzły",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=getAll##"
+    },
+    {
+      "title": "zwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=getAll##"
+    },
+    {
+      "title": "instrukcją generowania klucza",
+      "url": "https://pomoc.idobooking.com/dodatkowe-moduly/api"
+    },
+    {
+      "title": "pobierz",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=getAll##"
+    },
+    {
+      "title": "kopiuj",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=getAll##"
+    },
+    {
+      "title": "rozwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=getAll##"
+    },
+    {
+      "title": "pobierz",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=getAll##"
+    },
+    {
+      "title": "kopiuj",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=getAll##"
+    },
+    {
+      "title": "rozwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=getAll##"
+    },
+    {
+      "title": "rozwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=getAll##"
+    },
+    {
+      "title": "https://_domena_booking_.idosell.com/api/objects/getAll/36/json",
+      "url": "https://client1679.idosell.com/api/objects/getAll/36/json"
+    },
+    {
+      "title": "kopiuj",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=getAll#copyContentHref"
+    },
+    {
+      "title": "zwiń wszystkie węzły",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=getAll##"
+    },
+    {
+      "title": "zwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=getAll##"
+    },
+    {
+      "title": "instrukcją generowania klucza",
+      "url": "https://pomoc.idobooking.com/dodatkowe-moduly/api"
+    },
+    {
+      "title": "zwiń wszystkie węzły",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=getAll##"
+    },
+    {
+      "title": "zwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=getAll##"
+    },
+    {
+      "title": "instrukcją generowania klucza",
+      "url": "https://pomoc.idobooking.com/dodatkowe-moduly/api"
+    },
+    {
+      "title": "pobierz",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=getAll##"
+    },
+    {
+      "title": "kopiuj",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=getAll##"
+    },
+    {
+      "title": "zwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=getAll##"
+    },
+    {
+      "title": "zwiń",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=getAll##"
+    }
+  ],
+  "php": "\n                    <?php\n\n$address = 'https://client1679.idobooking.com/api/objects/getAll/36/json';\n\n$request = array();\n$request['authenticate'] = array();\n$request['authenticate']['systemKey'] = sha1(date('Ymd') . sha1('YOUR_KEY'));\n$request['authenticate']['systemLogin'] = \"systemLogin\";\n$request['authenticate']['lang'] = 'eng';\n$request['result'] = array();\n$request['result']['page'] = 1;\n$request['result']['number'] = 2;\n\n$request_json = json_encode($request);\n$headers = array(\n    'Accept: application/json',\n    'Content-Type: application/json;charset=UTF-8'\n);\n\n$curl = curl_init($address);\ncurl_setopt($curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);\ncurl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);\ncurl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);\ncurl_setopt($curl, CURLOPT_FORBID_REUSE, 1);\ncurl_setopt($curl, CURLINFO_HEADER_OUT, 1);\ncurl_setopt($curl, CURLOPT_HEADER, 1);\ncurl_setopt($curl, CURLOPT_POST, 1);\ncurl_setopt($curl, CURLOPT_POSTFIELDS, $request_json);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, $headers);\n\n$response = curl_exec($curl);\n$status = curl_getinfo($curl);\ncurl_close($curl);\n       \n                ",
+  "request": [
+    {
+      "description": "Element służy do uwierzytelniania konta w celu wywołania metody",
+      "name": "authenticate",
+      "path": "authenticate",
+      "required": true,
+      "type": "authenticateType"
+    },
+    {
+      "description": "Klucz wykorzystywany podczas uwierzytelniania. Zapoznaj się z instrukcją generowania klucza",
+      "name": "systemKey",
+      "path": "authenticate.systemKey",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "description": "Login użytkownika panelu IdoSell Booking",
+      "name": "systemLogin",
+      "path": "authenticate.systemLogin",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "description": "Możliwe wartości: (eng, pol, ger)\n\nJęzyk API, możliwe wartości: - eng - angielski - pol - polski - ger - niemiecki",
+      "name": "lang",
+      "path": "authenticate.lang",
+      "required": false,
+      "type": "apiLanguage"
+    },
+    {
+      "description": "Parametry dotyczące zwracanych wyników",
+      "name": "result",
+      "path": "result",
+      "required": false,
+      "type": "resultRequestType"
+    },
+    {
+      "description": "Numer strony z wynikami. Numeracja rozpoczyna się od 1",
+      "name": "page",
+      "path": "result.page",
+      "required": false,
+      "type": "int"
+    },
+    {
+      "description": "Liczba wyników zwracanych na stronie (maksymalna wartość to 100)",
+      "name": "number",
+      "path": "result.number",
+      "required": false,
+      "type": "int"
+    }
+  ],
+  "response": [
+    {
+      "description": "Element służy do uwierzytelniania konta w celu wywołania metody",
+      "name": "authenticate",
+      "path": "authenticate",
+      "required": true,
+      "type": "authenticateType"
+    },
+    {
+      "description": "Klucz wykorzystywany podczas uwierzytelniania. Zapoznaj się z instrukcją generowania klucza",
+      "name": "systemKey",
+      "path": "authenticate.systemKey",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "description": "Login użytkownika panelu IdoSell Booking",
+      "name": "systemLogin",
+      "path": "authenticate.systemLogin",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "description": "Możliwe wartości: (eng, pol, ger)\n\nJęzyk API, możliwe wartości: - eng - angielski - pol - polski - ger - niemiecki",
+      "name": "lang",
+      "path": "authenticate.lang",
+      "required": false,
+      "type": "apiLanguage"
+    },
+    {
+      "description": "Lista kodów błędów",
+      "name": "errors",
+      "path": "errors",
+      "required": false,
+      "type": "gateErrorType"
+    },
+    {
+      "description": "Kod błędu",
+      "name": "faultCode",
+      "path": "errors.faultCode",
+      "required": false,
+      "type": "int"
+    },
+    {
+      "description": "Opis błędu",
+      "name": "faultString",
+      "path": "errors.faultString",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "Miejsca noclegowe",
+      "name": "objects",
+      "path": "objects",
+      "required": false,
+      "type": "objectTypeArray"
+    },
+    {
+      "description": "element typu objectType",
+      "name": "objectType",
+      "path": "objects.objectType",
+      "required": true,
+      "type": "objectType"
+    },
+    {
+      "description": "Identyfikator",
+      "name": "id",
+      "path": "objects.objectType.id",
+      "required": true,
+      "type": "int"
+    },
+    {
+      "description": "Nazwa",
+      "name": "name",
+      "path": "objects.objectType.name",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "description": "Pojemność przedmiotu rezerwacji",
+      "name": "capacity",
+      "path": "objects.objectType.capacity",
+      "required": true,
+      "type": "int"
+    },
+    {
+      "description": "Powierzchnia w metrach kwadratowych",
+      "name": "area",
+      "path": "objects.objectType.area",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "description": "Minimalna ilość osób",
+      "name": "minCapacity",
+      "path": "objects.objectType.minCapacity",
+      "required": true,
+      "type": "int"
+    },
+    {
+      "description": "Cena zależna od liczby osób",
+      "name": "pricesPerPersons",
+      "path": "objects.objectType.pricesPerPersons",
+      "required": true,
+      "type": "boolean"
+    },
+    {
+      "description": "Liczba sypialni",
+      "name": "bedroomsCount",
+      "path": "objects.objectType.bedroomsCount",
+      "required": true,
+      "type": "int"
+    },
+    {
+      "description": "Informacja czy obiekt konfiguruje ceny za pomocą automatycznych reguł cenowych",
+      "name": "priceRules",
+      "path": "objects.objectType.priceRules",
+      "required": true,
+      "type": "boolean"
+    },
+    {
+      "description": "Rodzaj łóżek przypisanych do miejsca noclegowego",
+      "name": "beds",
+      "path": "objects.objectType.beds",
+      "required": false,
+      "type": "bedsConfigurationArray"
+    },
+    {
+      "description": "element typu bedConfigurationArray",
+      "name": "bedConfigurationArray",
+      "path": "objects.objectType.beds.bedConfigurationArray",
+      "required": true,
+      "type": "bedConfigurationArray"
+    },
+    {
+      "description": "Liczba łóżek danego rodzaju",
+      "name": "count",
+      "path": "objects.objectType.beds.bedConfigurationArray.count",
+      "required": true,
+      "type": "int"
+    },
+    {
+      "description": "Możliwe wartości: (single, futon, murphyBed, queen, double, king, sofaBed, singleSofa, roll_away_bed, bunkBed)",
+      "name": "bedType",
+      "path": "objects.objectType.beds.bedConfigurationArray.bedType",
+      "required": true,
+      "type": "bedTypeType"
+    },
+    {
+      "description": "",
+      "name": "categories",
+      "path": "objects.objectType.categories",
+      "required": false,
+      "type": "categoryTypeArray"
+    },
+    {
+      "description": "element typu categoryType",
+      "name": "categoryType",
+      "path": "objects.objectType.categories.categoryType",
+      "required": true,
+      "type": "categoryType"
+    },
+    {
+      "description": "Identyfikator",
+      "name": "id",
+      "path": "objects.objectType.categories.categoryType.id",
+      "required": true,
+      "type": "int"
+    },
+    {
+      "description": "Nazwa",
+      "name": "name",
+      "path": "objects.objectType.categories.categoryType.name",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "description": "Możliwe wartości: (n, y)\n\nCzy aktywna",
+      "name": "isActive",
+      "path": "objects.objectType.categories.categoryType.isActive",
+      "required": true,
+      "type": "isActiveType"
+    },
+    {
+      "description": "Egzemplarze przedmiotu rezerwacji",
+      "name": "items",
+      "path": "objects.objectType.items",
+      "required": false,
+      "type": "itemTypeArray"
+    },
+    {
+      "description": "element typu itemType",
+      "name": "itemType",
+      "path": "objects.objectType.items.itemType",
+      "required": true,
+      "type": "itemType"
+    },
+    {
+      "description": "Identyfikator",
+      "name": "id",
+      "path": "objects.objectType.items.itemType.id",
+      "required": false,
+      "type": "int"
+    },
+    {
+      "description": "Nazwa",
+      "name": "name",
+      "path": "objects.objectType.items.itemType.name",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "Pojemność przedmiotu rezerwacji",
+      "name": "capacity",
+      "path": "objects.objectType.items.itemType.capacity",
+      "required": false,
+      "type": "int"
+    },
+    {
+      "description": "Dodatki",
+      "name": "addons",
+      "path": "objects.objectType.addons",
+      "required": false,
+      "type": "addonTypeArray"
+    },
+    {
+      "description": "element typu addonType",
+      "name": "addonType",
+      "path": "objects.objectType.addons.addonType",
+      "required": true,
+      "type": "addonType"
+    },
+    {
+      "description": "Identyfikator",
+      "name": "id",
+      "path": "objects.objectType.addons.addonType.id",
+      "required": false,
+      "type": "int"
+    },
+    {
+      "description": "Nazwa",
+      "name": "name",
+      "path": "objects.objectType.addons.addonType.name",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "Czy bezpłatny",
+      "name": "costless",
+      "path": "objects.objectType.addons.addonType.costless",
+      "required": false,
+      "type": "boolean"
+    },
+    {
+      "description": "Niekonieczny",
+      "name": "optional",
+      "path": "objects.objectType.addons.addonType.optional",
+      "required": false,
+      "type": "boolean"
+    },
+    {
+      "description": "dodatek z wieloma wartościami / cenami",
+      "name": "hasVariants",
+      "path": "objects.objectType.addons.addonType.hasVariants",
+      "required": true,
+      "type": "boolean"
+    },
+    {
+      "description": "Kod waluty zgodny z ISO 4217 Przykład: PLN, EUR",
+      "name": "currency",
+      "path": "objects.objectType.addons.addonType.currency",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "Cena",
+      "name": "price",
+      "path": "objects.objectType.addons.addonType.price",
+      "required": false,
+      "type": "float"
+    },
+    {
+      "description": "Typ",
+      "name": "type",
+      "path": "objects.objectType.addons.addonType.type",
+      "required": false,
+      "type": "string"
+    },
+    {
+      "description": "Możliwe wartości: (adults, big_children, small_children)\n\nDodatek naliczany tylko dla konkretnego typu osoby, możliwe wartości: - adults - dorośli - big_children - starsze dzieci - small_children - małe dzieci",
+      "name": "personType",
+      "path": "objects.objectType.addons.addonType.personType",
+      "required": false,
+      "type": "personTypeType"
+    },
+    {
+      "description": "Lista nazw dla włączonych języków",
+      "name": "names",
+      "path": "objects.objectType.addons.addonType.names",
+      "required": true,
+      "type": "addonNameArray"
+    },
+    {
+      "description": "element typu addonNameItem",
+      "name": "addonNameItem",
+      "path": "objects.objectType.addons.addonType.names.addonNameItem",
+      "required": true,
+      "type": "addonNameItem"
+    },
+    {
+      "description": "Kod języka",
+      "name": "languageCode",
+      "path": "objects.objectType.addons.addonType.names.addonNameItem.languageCode",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "description": "Nazwa",
+      "name": "name",
+      "path": "objects.objectType.addons.addonType.names.addonNameItem.name",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "description": "Opis",
+      "name": "description",
+      "path": "objects.objectType.addons.addonType.names.addonNameItem.description",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "description": "",
+      "name": "variants",
+      "path": "objects.objectType.addons.addonType.variants",
+      "required": false,
+      "type": "variantsTypeArray"
+    },
+    {
+      "description": "element typu variantItem",
+      "name": "variantItem",
+      "path": "objects.objectType.addons.addonType.variants.variantItem",
+      "required": true,
+      "type": "variantItem"
+    },
+    {
+      "description": "Kod waluty zgodny z ISO 4217 Przykład: PLN, EUR",
+      "name": "currency",
+      "path": "objects.objectType.addons.addonType.variants.variantItem.currency",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "description": "Cena",
+      "name": "price",
+      "path": "objects.objectType.addons.addonType.variants.variantItem.price",
+      "required": true,
+      "type": "float"
+    },
+    {
+      "description": "Identyfikator",
+      "name": "id",
+      "path": "objects.objectType.addons.addonType.variants.variantItem.id",
+      "required": true,
+      "type": "int"
+    },
+    {
+      "description": "Lista nazw dla włączonych języków",
+      "name": "names",
+      "path": "objects.objectType.addons.addonType.variants.variantItem.names",
+      "required": true,
+      "type": "addonNameArray"
+    },
+    {
+      "description": "element typu addonNameItem",
+      "name": "addonNameItem",
+      "path": "objects.objectType.addons.addonType.variants.variantItem.names.addonNameItem",
+      "required": true,
+      "type": "addonNameItem"
+    },
+    {
+      "description": "Kod języka",
+      "name": "languageCode",
+      "path": "objects.objectType.addons.addonType.variants.variantItem.names.addonNameItem.languageCode",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "description": "Nazwa",
+      "name": "name",
+      "path": "objects.objectType.addons.addonType.variants.variantItem.names.addonNameItem.name",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "description": "Opis",
+      "name": "description",
+      "path": "objects.objectType.addons.addonType.variants.variantItem.names.addonNameItem.description",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "description": "Parametry dotyczące zwracanych wyników",
+      "name": "result",
+      "path": "result",
+      "required": false,
+      "type": "resultResponseType"
+    },
+    {
+      "description": "Numer strony z wynikami. Numeracja rozpoczyna się od 1",
+      "name": "page",
+      "path": "result.page",
+      "required": false,
+      "type": "int"
+    },
+    {
+      "description": "Ilość wyników na stronie",
+      "name": "countOnPage",
+      "path": "result.countOnPage",
+      "required": false,
+      "type": "int"
+    },
+    {
+      "description": "Suma wyników na stronie",
+      "name": "pageAll",
+      "path": "result.pageAll",
+      "required": false,
+      "type": "int"
+    },
+    {
+      "description": "Suma wszystkich wyników",
+      "name": "countAll",
+      "path": "result.countAll",
+      "required": false,
+      "type": "int"
+    }
+  ],
+  "text": "Dokumentacja API Booking   \n            \n          \n        \n            \n        \n            \n                \n                    \n        \n        \nZwraca informacje o wszystkich przedmiotach rezerwacji.\n\n\n\n            \n                \n        \n            \n                \n                    \n                    Adresy\n                \n        \n              \n                \n                    \n                        Nasłuch\n                    \n                    \n                        https://_domena_booking_.idosell.com/api/objects/getAll/36/json\n                    \n                    \n                        \n                    \n                \n                    \n                \n            \n        \n         \n            Struktura żądania\n                \n                    \n                        authenticate (authenticateType)\n                        Element służy do uwierzytelniania konta w celu wywołania metody\n                    \n        \n            \n            \n                \n                    \n                        systemKey (string)\n                        Klucz wykorzystywany podczas uwierzytelniania. Zapoznaj się z instrukcją generowania klucza\n                    \n        \n            \n            \n                \n                    \n                        systemLogin (string)\n                        Login użytkownika panelu IdoSell Booking\n                    \n        \n            \n            \n                \n                    \n                        lang (apiLanguage)\n                        \n                    Możliwe wartości:\n                     (eng, pol, ger)Język API, możliwe wartości:\n                        - eng - angielski\n                        - pol - polski\n                        - ger - niemiecki\n                    \n        \n                \n                    \n                        result (resultRequestType)\n                        Parametry dotyczące zwracanych wyników\n                    \n        \n            \n            \n                \n                    \n                        page (int)\n                        Numer strony z wynikami. Numeracja rozpoczyna się od 1\n                    \n        \n            \n            \n                \n                    \n                        number (int)\n                        Liczba wyników zwracanych na stronie (maksymalna wartość to 100)\n                    \n        \n         \n            Struktura odpowiedzi\n                \n                    \n                        authenticate (authenticateType)\n                        Element służy do uwierzytelniania konta w celu wywołania metody\n                    \n        \n            \n            \n                \n                    \n                        systemKey (string)\n                        Klucz wykorzystywany podczas uwierzytelniania. Zapoznaj się z instrukcją generowania klucza\n                    \n        \n            \n            \n                \n                    \n                        systemLogin (string)\n                        Login użytkownika panelu IdoSell Booking\n                    \n        \n            \n            \n                \n                    \n                        lang (apiLanguage)\n                        \n                    Możliwe wartości:\n                     (eng, pol, ger)Język API, możliwe wartości:\n                        - eng - angielski\n                        - pol - polski\n                        - ger - niemiecki\n                    \n        \n                \n                    \n                        errors (gateErrorType)\n                        Lista kodów błędów\n                    \n        \n            \n            \n                \n                    \n                        faultCode (int)\n                        Kod błędu\n                    \n        \n            \n            \n                \n                    \n                        faultString (string)\n                        Opis błędu\n                    \n        \n                \n                    \n                        objects (objectTypeArray)\n                        Miejsca noclegowe\n                    \n        \n            \n            \n                \n                    \n                         (objectType)\n                        element typu objectType\n                    \n        \n            \n            \n                \n                    \n                        id (int)\n                        Identyfikator\n                    \n        \n            \n            \n                \n                    \n                        name (string)\n                        Nazwa\n                    \n        \n            \n            \n                \n                    \n                        capacity (int)\n                        Pojemność przedmiotu rezerwacji\n                    \n        \n            \n            \n                \n                    \n                        area (string)\n                        Powierzchnia w metrach kwadratowych\n                    \n        \n            \n            \n                \n                    \n                        minCapacity (int)\n                        Minimalna ilość osób\n                    \n        \n            \n            \n                \n                    \n                        pricesPerPersons (boolean)\n                        Cena zależna od liczby osób\n                    \n        \n            \n            \n                \n                    \n                        bedroomsCount (int)\n                        Liczba sypialni\n                    \n        \n            \n            \n                \n                    \n                        priceRules (boolean)\n                        Informacja czy obiekt konfiguruje ceny za pomocą automatycznych reguł cenowych\n                    \n        \n            \n            \n                \n                    \n                        beds (bedsConfigurationArray)\n                        Rodzaj łóżek przypisanych do miejsca noclegowego\n                    \n        \n            \n            \n                \n                    \n                         (bedConfigurationArray)\n                        element typu bedConfigurationArray\n                    \n        \n            \n            \n                \n                    \n                        count (int)\n                        Liczba łóżek danego rodzaju\n                    \n        \n            \n            \n                \n                    \n                        bedType (bedTypeType)\n                        \n                    Możliwe wartości:\n                     (single, futon, murphyBed, queen, double, king, sofaBed, singleSofa, roll_away_bed, bunkBed)\n                    \n        \n            \n            \n                \n                    \n                        categories (categoryTypeArray)\n                        \n                    \n        \n            \n            \n                \n                    \n                         (categoryType)\n                        element typu categoryType\n                    \n        \n            \n            \n                \n                    \n                        id (int)\n                        Identyfikator\n                    \n        \n            \n            \n                \n                    \n                        name (string)\n                        Nazwa\n                    \n        \n            \n            \n                \n                    \n                        isActive (isActiveType)\n                        \n                    Możliwe wartości:\n                     (n, y)Czy aktywna\n                    \n        \n            \n            \n                \n                    \n                        items (itemTypeArray)\n                        Egzemplarze przedmiotu rezerwacji\n                    \n        \n            \n            \n                \n                    \n                         (itemType)\n                        element typu itemType\n                    \n        \n            \n            \n                \n                    \n                        id (int)\n                        Identyfikator\n                    \n        \n            \n            \n                \n                    \n                        name (string)\n                        Nazwa\n                    \n        \n            \n            \n                \n                    \n                        capacity (int)\n                        Pojemność przedmiotu rezerwacji\n                    \n        \n            \n            \n                \n                    \n                        addons (addonTypeArray)\n                        Dodatki\n                    \n        \n            \n            \n                \n                    \n                         (addonType)\n                        element typu addonType\n                    \n        \n            \n            \n                \n                    \n                        id (int)\n                        Identyfikator\n                    \n        \n            \n            \n                \n                    \n                        name (string)\n                        Nazwa\n                    \n        \n            \n            \n                \n                    \n                        costless (boolean)\n                        Czy bezpłatny\n                    \n        \n            \n            \n                \n                    \n                        optional (boolean)\n                        Niekonieczny\n                    \n        \n            \n            \n                \n                    \n                        hasVariants (boolean)\n                        dodatek z wieloma wartościami / cenami\n                    \n        \n            \n            \n                \n                    \n                        currency (string)\n                        Kod waluty zgodny z ISO 4217 Przykład: PLN, EUR\n                    \n        \n            \n            \n                \n                    \n                        price (float)\n                        Cena\n                    \n        \n            \n            \n                \n                    \n                        type (string)\n                        Typ\n                    \n        \n            \n            \n                \n                    \n                        personType (personTypeType)\n                        \n                    Możliwe wartości:\n                     (adults, big_children, small_children)Dodatek naliczany tylko dla konkretnego typu osoby, możliwe wartości:\n        - adults - dorośli\n        - big_children - starsze dzieci\n        - small_children - małe dzieci\n                    \n        \n            \n            \n                \n                    \n                        names (addonNameArray)\n                        Lista nazw dla włączonych języków\n                    \n        \n            \n            \n                \n                    \n                         (addonNameItem)\n                        element typu addonNameItem\n                    \n        \n            \n            \n                \n                    \n                        languageCode (string)\n                        Kod języka\n                    \n        \n            \n            \n                \n                    \n                        name (string)\n                        Nazwa\n                    \n        \n            \n            \n                \n                    \n                        description (string)\n                        Opis\n                    \n        \n            \n            \n                \n                    \n                        variants (variantsTypeArray)\n                        \n                    \n        \n            \n            \n                \n                    \n                         (variantItem)\n                        element typu variantItem\n                    \n        \n            \n            \n                \n                    \n                        currency (string)\n                        Kod waluty zgodny z ISO 4217 Przykład: PLN, EUR\n                    \n        \n            \n            \n                \n                    \n                        price (float)\n                        Cena\n                    \n        \n            \n            \n                \n                    \n                        id (int)\n                        Identyfikator\n                    \n        \n            \n            \n                \n                    \n                        names (addonNameArray)\n                        Lista nazw dla włączonych języków\n                    \n        \n            \n            \n                \n                    \n                         (addonNameItem)\n                        element typu addonNameItem\n                    \n        \n            \n            \n                \n                    \n                        languageCode (string)\n                        Kod języka\n                    \n        \n            \n            \n                \n                    \n                        name (string)\n                        Nazwa\n                    \n        \n            \n            \n                \n                    \n                        description (string)\n                        Opis\n                    \n        \n                \n                    \n                        result (resultResponseType)\n                        Parametry dotyczące zwracanych wyników\n                    \n        \n            \n            \n                \n                    \n                        page (int)\n                        Numer strony z wynikami. Numeracja rozpoczyna się od 1\n                    \n        \n            \n            \n                \n                    \n                        countOnPage (int)\n                        Ilość wyników na stronie\n                    \n        \n            \n            \n                \n                    \n                        pageAll (int)\n                        Suma wyników na stronie\n                    \n        \n            \n            \n                \n                    \n                        countAll (int)\n                        Suma wszystkich wyników\n                    \n        \n         \n            Przykład kodu w PHP\n                \n                    <?php\n\n$address = 'https://client1679.idobooking.com/api/objects/getAll/36/json';\n\n$request = array();\n$request['authenticate'] = array();\n$request['authenticate']['systemKey'] = sha1(date('Ymd') . sha1('YOUR_KEY'));\n$request['authenticate']['systemLogin'] = \"systemLogin\";\n$request['authenticate']['lang'] = 'eng';\n$request['result'] = array();\n$request['result']['page'] = 1;\n$request['result']['number'] = 2;\n\n$request_json = json_encode($request);\n$headers = array(\n    'Accept: application/json',\n    'Content-Type: application/json;charset=UTF-8'\n);\n\n$curl = curl_init($address);\ncurl_setopt($curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);\ncurl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);\ncurl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);\ncurl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);\ncurl_setopt($curl, CURLOPT_FORBID_REUSE, 1);\ncurl_setopt($curl, CURLINFO_HEADER_OUT, 1);\ncurl_setopt($curl, CURLOPT_HEADER, 1);\ncurl_setopt($curl, CURLOPT_POST, 1);\ncurl_setopt($curl, CURLOPT_POSTFIELDS, $request_json);\ncurl_setopt($curl, CURLOPT_HTTPHEADER, $headers);\n\n$response = curl_exec($curl);\n$status = curl_getinfo($curl);\ncurl_close($curl);\n       \n                \n            \n        Historia zmianW rozwiniętej historii metody nie wyświetlono wpisów zmian; dostępny był formularz porównywania wersji.",
+  "version": 36,
+  "capturedAt": "2026-10-24T18:04:26.852Z",
+  "endpoint": "https://_domena_booking_.idosell.com/api/objects/getAll/36/json",
+  "description": "Zwraca informacje o wszystkich przedmiotach rezerwacji.",
+  "source": {
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=method&function=objects&method=getAll##",
+    "capturedAt": "2026-10-24T18:04:26.852Z",
+    "transport": "authenticated Chrome HTTPS session",
+    "format": "JSON"
+  }
+}

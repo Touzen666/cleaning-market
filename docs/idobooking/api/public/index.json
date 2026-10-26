@@ -1,0 +1,94 @@
+{
+  "title": "Bramka Public",
+  "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=documentation&function=public",
+  "kind": "gateway",
+  "height": 1666,
+  "html": "<div class=\"content__collapse col-md-9\"> \n          <div class=\"d-flex justify-content-between align-items-center mb-3\">\n            <span class=\"api_title mb-0\">Dokumentacja API Booking</span>   \n            <div class=\"show_list_link\"></div>\n          </div>\n        \n            \n        \n            <div id=\"documentation_background\">\n                <div class=\"content shop api_docs\">\n                    <div class=\"container white_bg\" data-equalizer=\"\">\n        \n        <div class=\"api_content row\" data-equalizer-watch=\"\">\n            <div class=\"col-12 mb-5\">\n              <p class=\"api_short_description\"></p><p class=\"old_wiki\">Bramka publiczna, niewymagająca danych do logowania.\n\n</p>\n            </div>\n            <div class=\"apiDesc cms col-12 mb-5\">\n                <h3 class=\"section__title\">Dostępne metody:</h3>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"availability.html\"><span>availability</span></a>\n                    <span>Zwraca informacje o dostępności.</span>\n                </div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"filters.html\"><span>filters</span></a>\n                    <span>Zwraca informacje o ustawieniach filtrów Booking Engine.</span>\n                </div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"offer.html\"><span>offer</span></a>\n                    <span>Zwraca informacje o przedmiotach rezerwacji.</span>\n                </div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"parameters.html\"><span>parameters</span></a>\n                    <span>Zwraca informacje o dostępnych parametrach.</span>\n                </div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"pricingOffers.html\"><span>pricingOffers</span></a>\n                    <span>Zwraca informację o dostępnych ofertach w Booking Engine.</span>\n                </div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"specialOffer.html\"><span>specialOffer</span></a>\n                    <span>Zwraca informacje o zestawie.</span>\n                </div>\n            </div>\n        \n            </div>\n        \n                        </div>\n                    </div>\n                </div>\n            </div>\n        \n            \n        </div>",
+  "links": [
+    {
+      "title": "Narzędzia dla Developerów",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "API Admin",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/"
+    },
+    {
+      "title": "Bramka Public",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=documentation&function=public"
+    },
+    {
+      "title": "Najlepsze rozwiązania do sprzedaży w internecie\n                        \n                            \n                                    \n                                \n                            \n                            \n                                Narzędzia dla Developerów\n                                IdoBooking",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "Wybierz inną dokumentację",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=documentation&function=public#"
+    },
+    {
+      "title": "Dokumentacja API Admin",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/"
+    },
+    {
+      "title": "Dokumentacja API Customer",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "Dokumentacja API Marketplace",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "Dokumentacja API Storefront",
+      "url": "https://api.idobooking.com/pl/developers/storefront-documentation/"
+    },
+    {
+      "title": "Dokumentacja Smarty",
+      "url": "https://api.idobooking.com/pl/developers/smarty-documentation/"
+    },
+    {
+      "title": "sprawdź historię zmian",
+      "url": "https://api.idobooking.com/pl/developers/api/?branch=booking&action=changelog"
+    },
+    {
+      "title": "Public",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=documentation&function=public"
+    },
+    {
+      "title": "availability",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=public&method=availability"
+    },
+    {
+      "title": "filters",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=public&method=filters"
+    },
+    {
+      "title": "offer",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=public&method=offer"
+    },
+    {
+      "title": "parameters",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=public&method=parameters"
+    },
+    {
+      "title": "pricingOffers",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=public&method=pricingOffers"
+    },
+    {
+      "title": "specialOffer",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=public&method=specialOffer"
+    }
+  ],
+  "php": "",
+  "request": [],
+  "response": [],
+  "text": "Dokumentacja API Booking   \n            \n          \n        \n            \n        \n            \n                \n                    \n        \n        \n            \n              Bramka publiczna, niewymagająca danych do logowania.\n\n\n            \n            \n                Dostępne metody:\n        \n            \n                \n                    availability\n                    Zwraca informacje o dostępności.\n                \n            \n        \n            \n                \n                    filters\n                    Zwraca informacje o ustawieniach filtrów Booking Engine.\n                \n            \n        \n            \n                \n                    offer\n                    Zwraca informacje o przedmiotach rezerwacji.\n                \n            \n        \n            \n                \n                    parameters\n                    Zwraca informacje o dostępnych parametrach.\n                \n            \n        \n            \n                \n                    pricingOffers\n                    Zwraca informację o dostępnych ofertach w Booking Engine.\n                \n            \n        \n            \n                \n                    specialOffer\n                    Zwraca informacje o zestawie.",
+  "capturedAt": "2026-10-24T18:01:05.575Z",
+  "version": null,
+  "description": "",
+  "source": {
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=documentation&function=public",
+    "capturedAt": "2026-10-24T18:01:05.575Z",
+    "transport": "authenticated Chrome HTTPS session",
+    "format": null
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "title": "Strona facebook.tpl w szablonach Wizytówki",
+  "url": "https://api.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/strona-facebook-tpl-w-szablonach-wizytowki/",
+  "kind": "page",
+  "height": 1561,
+  "html": "<div class=\"content__collapse col-md-9\"> \n\n<table class=\"responsive\">\n    <tbody><tr class=\"simple-table-row\">\n        <th class=\"simple-table-head\"><b>Zmienna</b></th>\n        <th class=\"simple-table-head\"><b>Opis</b></th>\n    </tr>\n    <tr class=\"simple-table-row\">\n        <td class=\"simple-table-body\">$fbCommentsTitle</td>\n        <td class=\"simple-table-body\">Tytuł strony komentarze Facebook</td>\n    </tr>\n    <tr class=\"simple-table-row\">\n        <td class=\"simple-table-body\">$includeFacebookAdmins</td>\n        <td class=\"simple-table-body\">Określa czy włączyć na stronie administratorów komentarze Facebook</td>\n    </tr>\n</tbody></table>\n\n</div>",
+  "links": [
+    {
+      "title": "Dział dla developerów",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "Szablony własne Wizytówki w Smarty",
+      "url": "https://api.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/"
+    },
+    {
+      "title": "Lista szablonów Wizytówki w Smarty",
+      "url": "https://api.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/"
+    },
+    {
+      "title": "Najlepsze rozwiązania do sprzedaży w internecie\n                        \n                            \n                                    \n                                \n                            \n                            \n                                Narzędzia dla Developerów\n                                IdoBooking",
+      "url": "https://api.idobooking.com/pl/developers/"
+    }
+  ],
+  "text": "Zmienna\n        Opis\n    \n    \n        $fbCommentsTitle\n        Tytuł strony komentarze Facebook\n    \n    \n        $includeFacebookAdmins\n        Określa czy włączyć na stronie administratorów komentarze Facebook",
+  "capturedAt": "2026-10-24T18:10:06.710Z",
+  "version": null,
+  "description": "",
+  "source": {
+    "url": "https://api.idobooking.com/pl/developers/szablony-wlasne-wizytowki-idobooking-w-smarty/lista-dostepnych-szablonow-wizytowki-w-smarty/strona-facebook-tpl-w-szablonach-wizytowki/",
+    "capturedAt": "2026-10-24T18:10:06.710Z",
+    "transport": "authenticated Chrome HTTPS session",
+    "format": null
+  }
+}

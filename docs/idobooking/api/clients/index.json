@@ -1,0 +1,90 @@
+{
+  "title": "Bramka Clients",
+  "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=documentation&function=clients",
+  "kind": "gateway",
+  "height": 1666,
+  "html": "<div class=\"content__collapse col-md-9\"> \n          <div class=\"d-flex justify-content-between align-items-center mb-3\">\n            <span class=\"api_title mb-0\">Dokumentacja API Booking</span>   \n            <div class=\"show_list_link\"></div>\n          </div>\n        \n            \n        \n            <div id=\"documentation_background\">\n                <div class=\"content shop api_docs\">\n                    <div class=\"container white_bg\" data-equalizer=\"\">\n        \n        <div class=\"api_content row\" data-equalizer-watch=\"\">\n            <div class=\"col-12 mb-5\">\n              <p class=\"api_short_description\"></p><p class=\"old_wiki\">Umożliwia dowolne zarządzanie bazą klientów i przypisanych do nich gości, co pozwala także m.in. na integrację z zewnętrznymi narzędziami CRM, czy systemami marketingowymi.\n\n</p>\n            </div>\n            <div class=\"apiDesc cms col-12 mb-5\">\n                <h3 class=\"section__title\">Dostępne metody:</h3>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"add.html\"><span>add</span></a>\n                    <span>Dodaje klientów oraz powiązanych z kontem gości upoważnionych do odbioru rezerwacji.</span>\n                </div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"delete.html\"><span>delete</span></a>\n                    <span>Usuwa klientów oraz powiązane z kontem dane gości.</span>\n                </div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"edit.html\"><span>edit</span></a>\n                    <span>Edytuje dane klienta i jego gości.</span>\n                </div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"get.html\"><span>get</span></a>\n                    <span>Pobiera informacje o kliencie i jego gościach.</span>\n                </div>\n            </div>\n        \n            <div class=\"api_list_item\">\n                <div class=\"api_list_item_content\">\n                    <a class=\"api\" href=\"history.html\"><span>history</span></a>\n                    <span>Pobiera historię zmian danych klienta.</span>\n                </div>\n            </div>\n        \n            </div>\n        \n                        </div>\n                    </div>\n                </div>\n            </div>\n        \n            \n        </div>",
+  "links": [
+    {
+      "title": "Narzędzia dla Developerów",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "API Admin",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/"
+    },
+    {
+      "title": "Bramka Clients",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=documentation&function=clients"
+    },
+    {
+      "title": "Najlepsze rozwiązania do sprzedaży w internecie\n                        \n                            \n                                    \n                                \n                            \n                            \n                                Narzędzia dla Developerów\n                                IdoBooking",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "Wybierz inną dokumentację",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=documentation&function=clients#"
+    },
+    {
+      "title": "Dokumentacja API Admin",
+      "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/"
+    },
+    {
+      "title": "Dokumentacja API Customer",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "Dokumentacja API Marketplace",
+      "url": "https://api.idobooking.com/pl/developers/"
+    },
+    {
+      "title": "Dokumentacja API Storefront",
+      "url": "https://api.idobooking.com/pl/developers/storefront-documentation/"
+    },
+    {
+      "title": "Dokumentacja Smarty",
+      "url": "https://api.idobooking.com/pl/developers/smarty-documentation/"
+    },
+    {
+      "title": "sprawdź historię zmian",
+      "url": "https://api.idobooking.com/pl/developers/api/?branch=booking&action=changelog"
+    },
+    {
+      "title": "Clients",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=documentation&function=clients"
+    },
+    {
+      "title": "add",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=clients&method=add"
+    },
+    {
+      "title": "delete",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=clients&method=delete"
+    },
+    {
+      "title": "edit",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=clients&method=edit"
+    },
+    {
+      "title": "get",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=clients&method=get"
+    },
+    {
+      "title": "history",
+      "url": "https://api.idobooking.com/pl/developers/api/?action=method&function=clients&method=history"
+    }
+  ],
+  "php": "",
+  "request": [],
+  "response": [],
+  "text": "Dokumentacja API Booking   \n            \n          \n        \n            \n        \n            \n                \n                    \n        \n        \n            \n              Umożliwia dowolne zarządzanie bazą klientów i przypisanych do nich gości, co pozwala także m.in. na integrację z zewnętrznymi narzędziami CRM, czy systemami marketingowymi.\n\n\n            \n            \n                Dostępne metody:\n        \n            \n                \n                    add\n                    Dodaje klientów oraz powiązanych z kontem gości upoważnionych do odbioru rezerwacji.\n                \n            \n        \n            \n                \n                    delete\n                    Usuwa klientów oraz powiązane z kontem dane gości.\n                \n            \n        \n            \n                \n                    edit\n                    Edytuje dane klienta i jego gości.\n                \n            \n        \n            \n                \n                    get\n                    Pobiera informacje o kliencie i jego gościach.\n                \n            \n        \n            \n                \n                    history\n                    Pobiera historię zmian danych klienta.",
+  "capturedAt": "2026-10-24T18:00:51.547Z",
+  "version": null,
+  "description": "",
+  "source": {
+    "url": "https://api.idobooking.com/pl/developers/api/administration-panel-api/?action=documentation&function=clients",
+    "capturedAt": "2026-10-24T18:00:51.547Z",
+    "transport": "authenticated Chrome HTTPS session",
+    "format": null
+  }
+}

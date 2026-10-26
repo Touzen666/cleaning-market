@@ -1,0 +1,97 @@
+{
+  "verifiedAt": "2026-10-25T18:11:53.228Z",
+  "timezone": "Europe/Warsaw",
+  "project": "C:\\React Workspace\\book-market",
+  "scope": "cleaning list and reservation calendar; read-only active admin catalog; native source reservations",
+  "automatedTests": {
+    "command": "node node_modules\\vitest\\vitest.mjs run src/server/cleaning src/server/idobooking src/app/cleaningService",
+    "files": 17,
+    "networkAndDatabase": "mocked",
+    "tests": 166,
+    "status": "passed"
+  },
+  "typescript": {
+    "status": "passed",
+    "command": "node node_modules\\typescript\\bin\\tsc --noEmit --incremental false"
+  },
+  "eslint": {
+    "status": "passed",
+    "command": "node node_modules/eslint/bin/eslint.js src/server/cleaning src/server/api/routers/cleaning-candidates.ts src/server/api/routers/cleaning-overview.ts src/app/cleaningService src/app/layout.tsx"
+  },
+  "browser": {
+    "status": "passed",
+    "browser": "Chrome through browser control",
+    "liveReadOnly": true,
+    "qaSession": "process-only secret, loopback API allowlist; logged out and process stopped; ordinary dev server restored",
+    "desktop": true,
+    "mobileWidthRequested": 390,
+    "mobileWidthObserved": 391,
+    "pageWidthOnMobile": 375,
+    "horizontalCalendarScrollVerified": true,
+    "scenarios": [
+      "real active catalog with 13 mapped source units and photos",
+      "unmapped active Apartment 5 shown explicitly",
+      "list and calendar show the same reservation 4720",
+      "pending toClarify 4717-4720 compared with source UI",
+      "full local dates and actual checkin/checkout times",
+      "60-minute windows and provisional indicators",
+      "overlapping stay 4721/4656 explained with IDs and dates",
+      "review after checkout at 21:00",
+      "range 7 to 30 days",
+      "manual forceRefresh",
+      "mobile internal horizontal scroll and sticky apartment label",
+      "logout and login page including empty session user"
+    ],
+    "snapshots": [
+      {
+        "from": "2026-10-25",
+        "toExclusive": "2026-11-01",
+        "ready": 25,
+        "accepted": 24,
+        "provisional": 1,
+        "reviews": 3,
+        "excluded": 8
+      },
+      {
+        "from": "2026-10-25",
+        "toExclusive": "2026-11-24",
+        "ready": 62,
+        "accepted": 58,
+        "provisional": 4,
+        "reviews": 7,
+        "excluded": 15
+      }
+    ],
+    "sourceTruth": "cleaning-live-mapping.json",
+    "comparedReservationIds": [
+      4717,
+      4718,
+      4719,
+      4720,
+      4721,
+      4727,
+      4729,
+      4731
+    ]
+  },
+  "preserved": [
+    "src/app/admin",
+    "src/app/api/operations",
+    "src/server/idobooking",
+    "prisma",
+    "src/server/api/routers/cleaning-auth.ts",
+    "existing cleaning procedure contracts"
+  ],
+  "writesToAdminDatabase": false,
+  "taskOrScheduleGeneration": false,
+  "deployed": false,
+  "devServer": "http://127.0.0.1:3100",
+  "screenshots": [
+    "../cleaning-ui/calendar-real-apartments.jpg",
+    "../cleaning-ui/calendar-real-list.jpg",
+    "../cleaning-ui/calendar-real-mobile.jpg",
+    "../cleaning-ui/calendar-real-reservation-4720.jpg",
+    "../cleaning-ui/calendar-real-overlap.jpg",
+    "../cleaning-ui/idobooking-source-apartments.jpg"
+  ]
+}
