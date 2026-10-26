@@ -34,9 +34,12 @@ const text = (value: unknown): string => {
 const sha1 = (s: string) => createHash("sha1").update(s).digest("hex");
 
 export function configFromEnv(): Config {
-  const login = process.env.IDOBOOKING_LOGIN;
+  // Production and the existing integration use IDOBOOKING_USER. Keep the
+  // dedicated override while accepting the deployed name without copying secrets.
+  const configuredLogin = process.env.IDOBOOKING_LOGIN;
+  const login = configuredLogin?.length ? configuredLogin : process.env.IDOBOOKING_USER;
   const password = process.env.IDOBOOKING_PASSWORD;
-  if (!login || !password) throw new Error("Configure IDOBOOKING_LOGIN and IDOBOOKING_PASSWORD");
+  if (!login || !password) throw new Error("Configure IDOBOOKING_LOGIN (or IDOBOOKING_USER) and IDOBOOKING_PASSWORD");
   const baseUrl = process.env.IDOBOOKING_BASE_URL ?? "https://zlote-wynajmy.pl";
   const url = new URL(baseUrl);
   if (url.protocol !== "https:" || url.username || url.password || url.search || url.hash || url.pathname !== "/") {
