@@ -231,6 +231,7 @@ export function WorkforcePanel({ manager }: { manager: boolean }) {
   const [error, setError] = useState<string>();
   const [notice, setNotice] = useState<string>();
   const [busy, setBusy] = useState(false);
+  const [manualForm, setManualForm] = useState(false);
   const input = { from, to: addDays(from, 30) };
   const board = api.cleaning.workforce.board.useQuery(input, {
     retry: false,
@@ -394,21 +395,47 @@ export function WorkforcePanel({ manager }: { manager: boolean }) {
           </div>
         </div>
         {manager && (
-          <button
-            className={buttonClass}
-            disabled={busy}
-            onClick={() =>
-              void run(
-                () => sync.mutateAsync(input),
-                "Rezerwacje i przydziały zostały przeliczone.",
-              )
-            }
-          >
-            <RefreshCw className={`h-4 w-4 ${busy ? "animate-spin" : ""}`} />
-            Pobierz i przelicz rezerwacje
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <button
+              className={secondaryClass}
+              onClick={() => setManualForm(true)}
+            >
+              <Plus className="h-4 w-4" />
+              Dodaj ręczne sprzątanie
+            </button>
+            <button
+              className={buttonClass}
+              disabled={busy}
+              onClick={() =>
+                void run(
+                  () => sync.mutateAsync(input),
+                  "Rezerwacje i przydziały zostały przeliczone.",
+                )
+              }
+            >
+              <RefreshCw className={`h-4 w-4 ${busy ? "animate-spin" : ""}`} />
+              Pobierz i przelicz rezerwacje
+            </button>
+          </div>
         )}
       </div>
+      {manager && manualForm && (
+        <ManualTaskForm
+          date={from}
+          team={team.data ?? []}
+          onClose={() => setManualForm(false)}
+          onSaved={async (date) => {
+            setFrom(date);
+            setManualForm(false);
+            setStatus("all");
+            setSearch("");
+            await utils.cleaning.workforce.invalidate();
+            setNotice(
+              "Ręczne sprzątanie zapisane. Przydzielona osoba otrzyma propozycję do akceptacji.",
+            );
+          }}
+        />
+      )}
       <nav
         aria-label="Nawigacja cleaning"
         className={`${manager ? "mb-5 flex rounded-2xl border border-slate-200 bg-white p-1" : "fixed inset-x-0 bottom-0 z-40 flex border-t border-slate-200 bg-white/95 px-2 pb-[max(8px,env(safe-area-inset-bottom))] pt-2 backdrop-blur sm:static sm:mb-5 sm:rounded-2xl sm:border sm:p-1"}`}
@@ -938,7 +965,10 @@ export function WorkforcePanel({ manager }: { manager: boolean }) {
                         </div>
                         {t.provisional && (
                           <p className="mt-3 text-xs text-amber-800">
-                            Rezerwacja oczekująca ·{" "}
+                            {t.manual
+                              ? "Ręczne zlecenie podczas pobytu lub blokady"
+                              : "Rezerwacja oczekująca"}{" "}
+                            ·{" "}
                             {t.entryApproved
                               ? "wejście potwierdzone"
                               : "wejście wymaga potwierdzenia"}
@@ -1299,7 +1329,7 @@ function TaskDetail(p: DetailProps) {
     lateMinutes: adjustment?.lateMinutes ?? 0,
   });
   const [adjustedReservation, setAdjustedReservation] = useState(
-    t.reservationId,
+    t.reservationId ?? 0,
   );
   const selectedReservationValid =
     adjustedReservation === t.reservationId ||
@@ -1334,7 +1364,8 @@ function TaskDetail(p: DetailProps) {
       currentEarly !== expectedAdjustment.earlyMinutes ||
       currentLate !== expectedAdjustment.lateMinutes
     ) {
-      if (!selectedReservationValid) setAdjustedReservation(t.reservationId);
+      if (!selectedReservationValid)
+        setAdjustedReservation(t.reservationId ?? 0);
       setEarly(currentEarly);
       setLate(currentLate);
       setExpectedAdjustment({
@@ -1427,44 +1458,66 @@ function TaskDetail(p: DetailProps) {
           Przydział koordynatora: {t.forcedReason}
         </p>
       )}
-      <div className="rounded-2xl border border-slate-200 bg-white p-5">
-        <h4 className="mb-4 font-bold">Pomiędzy pobytami</h4>
-        <div className="space-y-4 border-l-2 border-teal-100 pl-4">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-wide text-slate-400">
-              Kończący się pobyt
+      {t.manual ? (
+        <div className="space-y-3 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-950">
+          <h4 className="font-bold">Ręczne zlecenie koordynatora</h4>
+          <p>{t.manual.reason}</p>
+          <p>To dodatkowe sprzątanie, niezależne od wyjazdu gości.</p>
+          {t.manual.conflicts.map((c) => (
+            <p key={c.kind + String(c.id)}>
+              {c.kind === "reservation" ? "Rezerwacja" : "Blokada"} #{c.id}:{" "}
+              {c.from.slice(0, 16).replace("T", " ")} →{" "}
+              {c.to.slice(0, 16).replace("T", " ")}
             </p>
-            <p className="mt-1 text-sm font-semibold">
-              {t.stayFrom.slice(0, 10)} {time(t.stayFrom)} →{" "}
-              {t.stayTo.slice(0, 10)} {time(t.stayTo)}
+          ))}
+          {t.provisional && (
+            <p className="font-semibold">
+              {t.entryApproved
+                ? "Koordynator potwierdził możliwość wejścia."
+                : "Nie wchodź bez potwierdzenia koordynatora."}
             </p>
-            <p className="mt-1 text-xs text-slate-500">
-              Liczba gości: {t.guests ?? "brak danych"}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs font-bold uppercase tracking-wide text-slate-400">
-              Następny pobyt
-            </p>
-            <p className="mt-1 text-sm font-semibold">
-              {t.nextFrom
-                ? `${t.nextFrom.slice(0, 10)} ${time(t.nextFrom)} → ${t.nextTo?.slice(0, 10)} ${time(t.nextTo)}`
-                : "Brak w odczytanym zakresie"}
-            </p>
-            <p className="mt-1 text-xs text-slate-500">
-              Liczba gości: {t.nextGuests ?? "brak danych"}
-            </p>
-          </div>
+          )}
         </div>
-        {t.provisional && (
-          <p className="mt-4 rounded-xl bg-amber-50 p-3 text-xs leading-5 text-amber-900">
-            Rezerwacja oczekująca.{" "}
-            {t.entryApproved
-              ? "Koordynator potwierdził możliwość wejścia."
-              : "Nie wchodź bez potwierdzenia koordynatora."}
-          </p>
-        )}
-      </div>
+      ) : (
+        <div className="rounded-2xl border border-slate-200 bg-white p-5">
+          <h4 className="mb-4 font-bold">Pomiędzy pobytami</h4>
+          <div className="space-y-4 border-l-2 border-teal-100 pl-4">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wide text-slate-400">
+                Kończący się pobyt
+              </p>
+              <p className="mt-1 text-sm font-semibold">
+                {t.stayFrom?.slice(0, 10)} {time(t.stayFrom)} →{" "}
+                {t.stayTo?.slice(0, 10)} {time(t.stayTo)}
+              </p>
+              <p className="mt-1 text-xs text-slate-500">
+                Liczba gości: {t.guests ?? "brak danych"}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wide text-slate-400">
+                Następny pobyt
+              </p>
+              <p className="mt-1 text-sm font-semibold">
+                {t.nextFrom
+                  ? `${t.nextFrom.slice(0, 10)} ${time(t.nextFrom)} → ${t.nextTo?.slice(0, 10)} ${time(t.nextTo)}`
+                  : "Brak w odczytanym zakresie"}
+              </p>
+              <p className="mt-1 text-xs text-slate-500">
+                Liczba gości: {t.nextGuests ?? "brak danych"}
+              </p>
+            </div>
+          </div>
+          {t.provisional && (
+            <p className="mt-4 rounded-xl bg-amber-50 p-3 text-xs leading-5 text-amber-900">
+              Rezerwacja oczekująca.{" "}
+              {t.entryApproved
+                ? "Koordynator potwierdził możliwość wejścia."
+                : "Nie wchodź bez potwierdzenia koordynatora."}
+            </p>
+          )}
+        </div>
+      )}
       {p.manager ? (
         <>
           <form
@@ -1543,63 +1596,68 @@ function TaskDetail(p: DetailProps) {
               </button>
             )}
           </form>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (busy) return;
-              void p.onAdjust(
-                adjustedReservation,
-                early,
-                late,
-                expectedAdjustment,
-              );
-            }}
-            className="space-y-4 rounded-2xl border bg-white p-5"
-          >
-            <h4 className="font-bold">Lokalna korekta godzin pobytu</h4>
-            <Field label="Korygowany pobyt">
-              <select
-                className={inputClass}
-                value={adjustedReservation}
-                onChange={(e) => {
-                  const id = Number(e.target.value);
-                  setAdjustedReservation(id);
-                  const a = p.adjustments.find(
-                    (a) => a.reservationId === id && a.unitId === t.unitId,
-                  );
-                  setEarly(a?.earlyMinutes ?? 0);
-                  setLate(a?.lateMinutes ?? 0);
-                  setExpectedAdjustment({
-                    earlyMinutes: a?.earlyMinutes ?? 0,
-                    lateMinutes: a?.lateMinutes ?? 0,
-                  });
-                }}
-              >
-                <option value={t.reservationId}>Kończący się pobyt</option>
-                {t.nextReservationId && (
-                  <option value={t.nextReservationId}>Następny pobyt</option>
-                )}
-              </select>
-            </Field>
-            <p className="text-xs leading-5 text-slate-500">
-              Nie zmienia iDoBooking ani panelu admina. Korekty są liczone od
-              godzin źródłowych, a okno sprzątania zostanie ponownie sprawdzone.
-            </p>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <Field label="Wcześniejsze zameldowanie">
-                <MinuteSelect value={early} onChange={setEarly} />
-              </Field>
-              <Field label="Późniejsze wymeldowanie">
-                <MinuteSelect value={late} onChange={setLate} />
-              </Field>
-            </div>
-            <button
-              disabled={busy || t.status === "DONE"}
-              className={`${secondaryClass} w-full`}
+          {!t.manual && (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (busy) return;
+                void p.onAdjust(
+                  adjustedReservation,
+                  early,
+                  late,
+                  expectedAdjustment,
+                );
+              }}
+              className="space-y-4 rounded-2xl border bg-white p-5"
             >
-              Zapisz i przelicz okno
-            </button>
-          </form>
+              <h4 className="font-bold">Lokalna korekta godzin pobytu</h4>
+              <Field label="Korygowany pobyt">
+                <select
+                  className={inputClass}
+                  value={adjustedReservation}
+                  onChange={(e) => {
+                    const id = Number(e.target.value);
+                    setAdjustedReservation(id);
+                    const a = p.adjustments.find(
+                      (a) => a.reservationId === id && a.unitId === t.unitId,
+                    );
+                    setEarly(a?.earlyMinutes ?? 0);
+                    setLate(a?.lateMinutes ?? 0);
+                    setExpectedAdjustment({
+                      earlyMinutes: a?.earlyMinutes ?? 0,
+                      lateMinutes: a?.lateMinutes ?? 0,
+                    });
+                  }}
+                >
+                  <option value={t.reservationId ?? ""}>
+                    Kończący się pobyt
+                  </option>
+                  {t.nextReservationId && (
+                    <option value={t.nextReservationId}>Następny pobyt</option>
+                  )}
+                </select>
+              </Field>
+              <p className="text-xs leading-5 text-slate-500">
+                Nie zmienia iDoBooking ani panelu admina. Korekty są liczone od
+                godzin źródłowych, a okno sprzątania zostanie ponownie
+                sprawdzone.
+              </p>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Field label="Wcześniejsze zameldowanie">
+                  <MinuteSelect value={early} onChange={setEarly} />
+                </Field>
+                <Field label="Późniejsze wymeldowanie">
+                  <MinuteSelect value={late} onChange={setLate} />
+                </Field>
+              </div>
+              <button
+                disabled={busy || t.status === "DONE"}
+                className={`${secondaryClass} w-full`}
+              >
+                Zapisz i przelicz okno
+              </button>
+            </form>
+          )}
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -1937,6 +1995,197 @@ function TaskPhoto({ id }: { id: string }) {
         </Sheet>
       )}
     </>
+  );
+}
+
+function ManualTaskForm({
+  date: initialDate,
+  team,
+  onClose,
+  onSaved,
+}: {
+  date: string;
+  team: TeamUser[];
+  onClose: () => void;
+  onSaved: (date: string) => Promise<void>;
+}) {
+  const [date, setDate] = useState(initialDate),
+    [unitId, setUnitId] = useState("");
+  const [person, setPerson] = useState(""),
+    [reason, setReason] = useState("");
+  const [acknowledged, setAcknowledged] = useState(false),
+    [error, setError] = useState<string>();
+  const [requestId] = useState(() => crypto.randomUUID());
+  const preview = api.cleaning.workforce.manualOptions.useQuery(
+    { date },
+    { retry: false },
+  );
+  const create = api.cleaning.workforce.createManualTask.useMutation();
+  const option = preview.data?.find((u) => u.unitId === Number(unitId));
+  useEffect(
+    () => setAcknowledged(false),
+    [date, unitId, option?.sourceRevision],
+  );
+  return (
+    <Sheet title="Ręczne sprzątanie" onClose={onClose} busy={create.isPending}>
+      <p className="text-sm leading-6 text-slate-600">
+        Dodatkowe zlecenie na 60 minut w godzinach 10:00–15:00. Nie zmienia
+        rezerwacji. Użyj istniejącego sprzątania, jeśli dla tego dnia jest już
+        dostępne.
+      </p>
+      <form
+        className="space-y-4"
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (!option || preview.isFetching || create.isPending) return;
+          setError(undefined);
+          void create
+            .mutateAsync({
+              unitId: option.unitId,
+              serviceDate: date,
+              reason,
+              requestId,
+              expectedSourceRevision: option.sourceRevision,
+              acknowledgeOccupancy: acknowledged,
+              ...(person ? { userId: Number(person) } : {}),
+            })
+            .then(() => onSaved(date))
+            .catch((e: unknown) => {
+              setError(
+                e instanceof Error ? e.message : "Nie udało się zapisać",
+              );
+              void preview.refetch();
+            });
+        }}
+      >
+        <Field label="Dzień ręcznego sprzątania">
+          <input
+            type="date"
+            required
+            min={todayInWarsaw()}
+            value={date}
+            onChange={(e) => {
+              setDate(e.target.value);
+              setUnitId("");
+            }}
+            className={inputClass}
+          />
+        </Field>
+        <Field label="Apartament do ręcznego sprzątania">
+          <select
+            required
+            value={unitId}
+            onChange={(e) => setUnitId(e.target.value)}
+            className={inputClass}
+            disabled={preview.isPending || preview.isFetching}
+          >
+            <option value="">Wybierz apartament</option>
+            {preview.data?.map((u) => (
+              <option key={u.unitId} value={u.unitId}>
+                {u.label}
+              </option>
+            ))}
+          </select>
+        </Field>
+        {preview.isFetching && (
+          <p role="status">Sprawdzanie rezerwacji i blokad…</p>
+        )}
+        {option?.checkoutTaskId && (
+          <p className="rounded-xl bg-blue-50 p-4 text-sm text-blue-950">
+            Dla tego dnia jest dostępne sprzątanie po wyjeździe. Pobierz
+            rezerwacje i otwórz istniejące zlecenie.
+          </p>
+        )}
+        {preview.error && (
+          <p role="alert" className="text-sm text-red-800">
+            {preview.error.message}
+            <button
+              type="button"
+              className="ml-2 underline"
+              onClick={() => void preview.refetch()}
+            >
+              Ponów odczyt
+            </button>
+          </p>
+        )}
+        {option && option.conflicts.length > 0 && (
+          <div className="space-y-3 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
+            <p className="font-bold">
+              W tym dniu występuje pobyt lub blokada w godzinach pracy.
+            </p>
+            {option.conflicts.map((c) => (
+              <p key={c.kind + String(c.id)}>
+                {c.kind === "reservation" ? "Rezerwacja" : "Blokada"} #{c.id}:{" "}
+                {c.from.slice(0, 16).replace("T", " ")} →{" "}
+                {c.to.slice(0, 16).replace("T", " ")}
+              </p>
+            ))}
+            <label className="flex items-start gap-3">
+              <input
+                type="checkbox"
+                checked={acknowledged}
+                onChange={(e) => setAcknowledged(e.target.checked)}
+                className="mt-1 h-5 w-5"
+              />
+              Potwierdzam dodatkowe zlecenie mimo pobytu lub blokady. Możliwość
+              wejścia potwierdzę osobno.
+            </label>
+          </div>
+        )}
+        <Field label="Pracownik ręcznego sprzątania">
+          <select
+            value={person}
+            onChange={(e) => setPerson(e.target.value)}
+            className={inputClass}
+          >
+            <option value="">Pozostaw bez przydziału</option>
+            {team
+              .filter((u) => u.cleaningProfile?.active)
+              .map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.cleaningProfile!.displayName}
+                </option>
+              ))}
+          </select>
+        </Field>
+        <Field label="Powód ręcznego zlecenia">
+          <textarea
+            required
+            minLength={5}
+            maxLength={500}
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            className={inputClass}
+          />
+        </Field>
+        <p className="text-xs leading-5 text-slate-500">
+          Przydział jest propozycją do akceptacji. Nadal obowiązuje limit 4
+          mieszkań oraz brak nakładania się pracy wybranej osoby. Zlecenia z
+          pobytem lub blokadą wymagają potwierdzenia wejścia przez koordynatora.
+        </p>
+        {error && (
+          <p
+            role="alert"
+            className="rounded-xl bg-red-50 p-3 text-sm text-red-900"
+          >
+            {error}
+          </p>
+        )}
+        <button
+          disabled={
+            create.isPending ||
+            preview.isFetching ||
+            !option ||
+            !!option.checkoutTaskId ||
+            !!preview.error ||
+            (!!option.conflicts.length && !acknowledged)
+          }
+          className={`${buttonClass} w-full`}
+        >
+          {create.isPending ? "Zapisywanie…" : "Zapisz ręczne sprzątanie"}
+        </button>
+      </form>
+    </Sheet>
   );
 }
 

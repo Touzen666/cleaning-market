@@ -339,7 +339,8 @@ describe("atomic workforce mutation regressions", () => {
     reason: "Nowe dane kontaktowe",
   };
   it("rejects a stale claim when the dedicated fresh read materially changes the cleaning window", async () => {
-    const initial = emptyState(), src = source();
+    const initial = emptyState(),
+      src = source();
     reconcileState(initial, src, [], now);
     const target = initial.tasks[0]!;
     const harness = transactionHarness(initial);
@@ -348,7 +349,9 @@ describe("atomic workforce mutation regressions", () => {
       snapshot.stays[0]!.to = "2026-10-26T11:00";
       return { ...snapshot, from, to, fetchedAt: new Date().toISOString() };
     });
-    await expect(harness.caller().claim({ taskId: target.id, version: target.version })).rejects.toMatchObject({ code: "CONFLICT" });
+    await expect(
+      harness.caller().claim({ taskId: target.id, version: target.version }),
+    ).rejects.toMatchObject({ code: "CONFLICT" });
     expect(harness.state().tasks[0]?.version).toBeGreaterThan(target.version);
     expect(harness.state().tasks[0]?.userId).toBeNull();
   });
@@ -619,14 +622,74 @@ function source(): WorkforceSource {
     },
   };
 }
+describe("manual order endpoint authorization and persistence", () => {
+  it("rejects employee access to creation and the catalog preview", async () => {
+    const harness = transactionHarness();
+    await expect(
+      harness.caller().manualOptions({ date: "2026-10-26" }),
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(
+      harness
+        .caller()
+        .createManualTask({
+          unitId: 50,
+          serviceDate: "2026-10-26",
+          reason: "Additional cleaning",
+          requestId: "0f68fdda-dba3-4ff1-ac06-23fb5f0d5171",
+          expectedSourceRevision: "stale",
+          acknowledgeOccupancy: false,
+        }),
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
+    expect(harness.state().tasks).toEqual([]);
+  });
+  it("creates an auditable manager order, retries idempotently and survives a subsequent fresh import", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-10-26T08:00:00Z"));
+    vi.mocked(getCleaningSnapshot).mockImplementation(async (from, to) => ({
+      ...source().snapshot,
+      from,
+      to,
+      fetchedAt: new Date().toISOString(),
+    }));
+    const harness = transactionHarness(),
+      caller = harness.caller(true);
+    const options = await caller.manualOptions({ date: "2026-10-27" }),
+      option = options[0]!;
+    const payload = {
+      unitId: 50,
+      serviceDate: "2026-10-27",
+      reason: "Additional cleaning",
+      requestId: "0f68fdda-dba3-4ff1-ac06-23fb5f0d5171",
+      expectedSourceRevision: option.sourceRevision,
+      acknowledgeOccupancy: true,
+    };
+    const result = await caller.createManualTask(payload);
+    expect(await caller.createManualTask(payload)).toEqual(result);
+    expect(harness.state().tasks.filter((t) => t.manual)).toHaveLength(1);
+    expect(harness.audit).toHaveBeenCalled();
+    await caller.synchronize({ from: "2026-10-27", to: "2026-10-28" });
+    expect(harness.state().tasks.find((t) => t.id === result.id)).toMatchObject(
+      {
+        status: "UNASSIGNED",
+        reservationId: null,
+        manual: { reason: "Additional cleaning" },
+      },
+    );
+  });
+});
 describe("reconciliation", () => {
   it("can refresh source qualification without automatically distributing available tasks before a decision", () => {
-    const state = emptyState(), src = source();
+    const state = emptyState(),
+      src = source();
     reconcileState(state, src, [], now);
     const target = state.tasks[0]!;
     const version = target.version;
     reconcileState(state, src, [worker()], now, { autoOffer: false });
-    expect(target).toMatchObject({ status: "UNASSIGNED", userId: null, version });
+    expect(target).toMatchObject({
+      status: "UNASSIGNED",
+      userId: null,
+      version,
+    });
     reconcileState(state, src, [worker()], now);
     expect(target).toMatchObject({ status: "OFFERED", userId: 1 });
   });

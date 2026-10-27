@@ -60,13 +60,13 @@ export type TaskStatus =
 export type Task = {
   id: string;
   unitId: number;
-  reservationId: number;
+  reservationId: number | null;
   serviceDate: string;
   name: string;
   address: string | null;
   imageUrl: string | null;
-  stayFrom: string;
-  stayTo: string;
+  stayFrom: string | null;
+  stayTo: string | null;
   nextFrom: string | null;
   nextReservationId: number | null;
   nextTo: string | null;
@@ -92,6 +92,18 @@ export type Task = {
   startedAt: string | null;
   completedAt: string | null;
   entryApproved: boolean;
+  manual?: {
+    reason: string;
+    requestId: string;
+    createdAt: string;
+    sourceRevision: string;
+    conflicts: {
+      id: number;
+      kind: "reservation" | "lock";
+      from: string;
+      to: string;
+    }[];
+  };
 };
 export type Adjustment = {
   reservationId: number;

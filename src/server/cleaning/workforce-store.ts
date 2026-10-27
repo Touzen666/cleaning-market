@@ -4,6 +4,7 @@ import { buildCleaningOverview } from "./overview";
 import { cleaningAccountId, getCleaningSnapshot } from "./snapshot";
 import { readGuestCounts } from "./guest-counts";
 import { revision } from "@/server/idobooking/operations";
+import { manualOptions, refreshManualTask } from "./manual-tasks";
 import {
   activeTask,
   effectiveStays,
@@ -11,6 +12,7 @@ import {
   localNow,
   offerNext,
   rulesSchema,
+  slotFor,
   type Task,
   type Worker,
   type WorkforceState,
@@ -562,6 +564,34 @@ export function reconcileState(
     }
   }
   for (const task of state.tasks) {
+    if (task.manual) {
+      if (task.serviceDate >= snapshot.from && task.serviceDate < snapshot.to)
+        refreshManualTask(
+          task,
+          manualOptions(source, state.adjustments, task.serviceDate).find(
+            (u) => u.unitId === task.unitId,
+          ),
+        );
+      if (
+        task.userId &&
+        ["OFFERED", "ACCEPTED", "FORCED"].includes(task.status)
+      ) {
+        const worker = workers.find((w) => w.id === task.userId);
+        const valid =
+          worker &&
+          task.start &&
+          task.end &&
+          slotFor(
+            { ...task, windows: [{ start: task.start, end: task.end }] },
+            worker,
+            state.tasks,
+            task.serviceDate + "T00:00",
+            true,
+          );
+        if (!valid) offerNext(task, workers, state.tasks, now);
+      }
+      continue;
+    }
     if (
       task.status === "DONE" ||
       seen.has(task.id) ||

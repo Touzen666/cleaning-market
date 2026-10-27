@@ -26,6 +26,10 @@ import {
   refreshTaskBeforeDecision,
 } from "@/server/cleaning/workforce-store";
 import { cleaningAccountId } from "@/server/cleaning/snapshot";
+import {
+  createManualTask as addManualTask,
+  manualOptions,
+} from "@/server/cleaning/manual-tasks";
 import { validateRange } from "@/server/idobooking/operations";
 import {
   hashCleaningPassword,
@@ -134,6 +138,65 @@ function ownTask(task: Task, userId: number | null) {
   return userId;
 }
 export const cleaningWorkforceRouter = createTRPCRouter({
+  manualOptions: manager
+    .input(z.object({ date: z.string().date() }))
+    .query(async ({ ctx, input }) => {
+      const to = new Date(Date.parse(input.date + "T12:00Z") + 86400000)
+        .toISOString()
+        .slice(0, 10);
+      const source = await sourceForWorkforce(ctx.db, input.date, to);
+      const { state } = await readWorkforce(ctx.db);
+      return manualOptions(source, state.adjustments, input.date);
+    }),
+  createManualTask: manager
+    .input(
+      z.object({
+        unitId: z.number().int().positive(),
+        serviceDate: z.string().date(),
+        reason: z.string().trim().min(5).max(500),
+        requestId: z.string().uuid(),
+        expectedSourceRevision: z.string().min(1).max(200),
+        acknowledgeOccupancy: z.boolean(),
+        userId: z.number().int().positive().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const to = new Date(Date.parse(input.serviceDate + "T12:00Z") + 86400000)
+        .toISOString()
+        .slice(0, 10);
+      const source = await sourceForWorkforce(
+        ctx.db,
+        input.serviceDate,
+        to,
+        true,
+      );
+      return changeWorkforce(
+        ctx.db,
+        ctx.workforceActor,
+        "MANUAL_TASK_CREATED",
+        (state, _tx, workers) => {
+          const option = manualOptions(
+            source,
+            state.adjustments,
+            input.serviceDate,
+          ).find((u) => u.unitId === input.unitId);
+          if (!option)
+            throw new Error(
+              "Wybierz apartament z potwierdzonym aktywnym mapowaniem.",
+            );
+          const task = addManualTask(
+            state,
+            option,
+            input,
+            cleaningAccountId(),
+            localNow(),
+          );
+          if (input.userId && task.status === "UNASSIGNED")
+            offerNext(task, workers, state.tasks, localNow(), input.userId);
+          return { id: task.id, serviceDate: task.serviceDate };
+        },
+      );
+    }),
   requestPasswordHelp: publicProcedure
     .input(z.object({ email: z.string().trim().email().max(200) }))
     .mutation(async ({ ctx, input }) => {
@@ -739,7 +802,7 @@ export const cleaningWorkforceRouter = createTRPCRouter({
         )
           throw new Error(
             task.provisional && !task.entryApproved
-              ? "Rezerwacja oczekująca wymaga potwierdzenia przez koordynatora przed wejściem."
+              ? "Możliwość wejścia do lokalu wymaga potwierdzenia przez koordynatora."
               : "Rozpocznij przyjęte sprzątanie w przydzielonym terminie.",
           );
         task.status = "IN_PROGRESS";
